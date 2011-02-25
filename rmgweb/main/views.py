@@ -1,6 +1,10 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.http import HttpResponseRedirect
 import django.contrib.auth.views
+from django.contrib.auth.decorators import login_required
+
+from forms import UserProfileForm
 
 def index(request):
     """
@@ -20,3 +24,18 @@ def logout(request):
     """
     return django.contrib.auth.views.logout(request, template_name='logout.html')
 
+@login_required
+def editProfile(request):
+    """
+    Called when the user wishes to edit his/her user profile.
+    """
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/') # Redirect after POST
+    else:
+        form = UserProfileForm(instance=request.user) # An unbound form
+
+    return render_to_response('editProfile.html', {'form': form}, context_instance=RequestContext(request))
+    

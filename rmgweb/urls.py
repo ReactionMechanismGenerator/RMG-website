@@ -22,6 +22,7 @@ urlpatterns = patterns('rmgweb',
     # User account management
     (r'^login$', 'main.views.login'),
     (r'^logout$', 'main.views.logout'),
+    (r'^profile$', 'main.views.editProfile'),
     
 )
 
