@@ -109,3 +109,4 @@ INSTALLED_APPS = (
 # Settings relating to user account management
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
+AUTH_PROFILE_MODULE = 'main.UserProfile'
