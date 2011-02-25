@@ -22,6 +22,11 @@
 
     <div id="mainbar">
         <div id="header">
+            {% if user.is_authenticated %}
+            {{ user.get_full_name }} ({{ user.username }}) / <a href="{% url main.views.logout %}?next={{ request.path }}">Log out</a>
+            {% else %}
+            <a href="{% url main.views.login %}?next={{ request.path }}">Log in</a>
+            {% endif %}
         </div>
 
         <div id="main">

@@ -18,7 +18,11 @@ urlpatterns = patterns('rmgweb',
     
     # The RMG website homepage
     (r'^$', 'main.views.index'),
-        
+    
+    # User account management
+    (r'^login$', 'main.views.login'),
+    (r'^logout$', 'main.views.logout'),
+    
 )
 
 # When developing in Django we generally don't have a web server available to
