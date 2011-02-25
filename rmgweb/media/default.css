@@ -1,0 +1,204 @@
+body {
+    font-family: sans-serif;
+    font-size: 10pt;
+    margin: 0;
+}
+
+/* Colors */
+
+body, #document {
+    background-color: #F0F0F0;
+}
+
+#main {
+    background-color: #FFFFFF;
+    border: 1px solid #993333;
+    border-right: 0px;
+}
+
+a, h1, h2, h3, #logo {
+    color: #993333;
+}
+
+#navbar {
+    border-bottom: 1px solid #993333;
+}
+
+/* Hyperlinks */
+
+a {
+    text-decoration: none;
+}
+
+/* Headings */
+
+h1, h2, h3 {
+    margin: 0pt 0pt 12pt 0pt;
+    font-weight: normal;
+}
+
+h1 {
+    font-size: 200%;
+}
+
+h2 {
+    font-size: 150%;
+}
+
+h3 {
+    font-size: 125%;
+}
+
+/* Document structure */
+
+#document {
+    width: 100%;
+}
+
+#sidebar {
+    float: left;
+    width: 224px;
+    padding: 4px;
+}
+
+#logo {
+    text-align: center;
+    font-size: 150%;
+    font-weight: bold;
+}
+
+#mainbar {
+    margin: 0px 0px 0px 232px;
+    padding: 0px;
+}
+
+#navbar {
+    font-size: 80%;
+}
+
+#navbar, #main, #contents {
+    padding: 4px;
+}
+
+/* Header and footer */
+
+#header, #footer {
+    padding: 4px 8px 4px 8px;
+    font-size: 80%;
+}
+
+#header, #footer {
+    text-align: right;
+}
+
+#footer {
+    text-align: center;
+}
+
+/* Sidebar list */
+
+#sidebar ul {
+    list-style-type: none;
+    padding: 0px 0px 12px 0px;
+}
+
+#sidebar ul {
+    font-weight: bold;
+}
+
+
+#sidebar li ul {
+    font-weight: normal;
+    font-size: 90%;
+}
+
+/* Forms */
+
+label {
+    float: left;
+    width: 180px;
+    text-align: right;
+    padding-right: 8px;
+}
+
+input, textarea {
+    border: 1px solid #993333;
+    margin: 1px;
+    vertical-align: middle;
+}
+
+select {
+    border: 1px solid #993333;
+    background-color: #FFFFFF;
+    margin: 1px;
+}
+
+.error {
+    color: #FF0000;
+}
+
+.numberInput {
+    width: 100px;
+    margin: 1px -2px 1px 1px;
+}
+
+.lineInput, .textInput {
+    width: 500px;
+}
+
+.textInput {
+    height: 125px;
+}
+
+#submit {
+    display: block;
+    margin: auto;   
+}
+
+.comment, .history {
+    width: 100%;
+    background-color: #EEEEEE;
+    padding: 2px;
+    margin: 2px 0px 2px 0px;
+}
+
+td.commentText p, td.historyText p {
+    margin: 0px;
+}
+
+.commentIcon, .historyIcon {
+    padding: 6px;
+    vertical-align: top;
+}
+
+.commentText, .historyText {
+    width: 100%;
+}
+
+.commentMeta, .historyMeta {
+    font-size: 80%;
+    color: #808080;
+}
+
+table.data {
+    width: 100%;
+}
+
+table.data td.heading {
+    text-align: center;
+    font-weight: normal;
+    text-decoration: underline;
+    width: 100%;
+}
+
+table.data td.key {
+    text-align: right;
+    font-weight: bold;
+    vertical-align: top;
+    width: 50%;
+}
+
+table.data td.value {
+    text-align: left;
+    width: 50%;
+}
