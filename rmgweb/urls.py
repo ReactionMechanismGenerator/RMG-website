@@ -6,7 +6,7 @@ import os
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns('rmgweb',
     # Example:
     # (r'^website/', include('website.foo.urls')),
 
@@ -15,6 +15,10 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
+    
+    # The RMG website homepage
+    (r'^$', 'main.views.index'),
+        
 )
 
 # When developing in Django we generally don't have a web server available to
