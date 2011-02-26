@@ -26,6 +26,9 @@ urlpatterns = patterns('rmgweb',
 
     (r'^user/(?P<username>\w+)$', 'main.views.viewProfile'),
 
+    # Database
+    (r'^database/', include('database.urls')),
+
 )
 
 # When developing in Django we generally don't have a web server available to

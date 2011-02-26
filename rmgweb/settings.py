@@ -104,6 +104,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     # RMG website apps
     'main',
+    'database',
 )
 
 # Settings relating to user account management
