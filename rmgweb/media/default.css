@@ -202,3 +202,8 @@ table.data td.value {
     text-align: left;
     width: 50%;
 }
+
+.avatar img {
+    vertical-align: middle;
+}
+

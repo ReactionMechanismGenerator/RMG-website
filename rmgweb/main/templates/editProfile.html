@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load gravatar %}
 
 {% block title %}Edit profile - RMG{% endblock %}
 
@@ -12,6 +13,7 @@
 
 <form action="profile" method="post">{% csrf_token %}
 {{ form.as_p }}
+<p  class="avatar"><label>Avatar:</label>{% gravatar user.email 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></p>
 <input type="submit" value="Submit" id="submit"/>
 </form>
 
