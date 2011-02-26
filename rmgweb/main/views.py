@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 from forms import UserProfileForm
 
@@ -23,6 +24,15 @@ def logout(request):
     Called when the user wishes to log out of his/her account.
     """
     return django.contrib.auth.views.logout(request, template_name='logout.html')
+
+def viewProfile(request, username):
+    """
+    Called when the user wishes to view another user's profile. The other user
+    is identified by his/her `username`. Note that viewing user profiles does
+    not require authentication.
+    """
+    user0 = User.objects.get(username=username)
+    return render_to_response('viewProfile.html', {'user0': user0}, context_instance=RequestContext(request))
 
 @login_required
 def editProfile(request):
