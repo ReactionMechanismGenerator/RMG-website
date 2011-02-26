@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Log in{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block page_title %}Log in{% endblock %}
+
+{% block page_body %}
+{% if form.errors %}
+<p>Your username and password did not match. Please try again.</p>
+{% endif %}
+
+<form method="post" action="{% url main.views.login %}">
+{% csrf_token %}
+
+<p>
+<div class="fieldWrapper">
+    {{ form.username.errors }}
+    <label>{{ form.username.label_tag }}</label>
+    {{ form.username }}
+</div>
+<div class="fieldWrapper">
+    {{ form.password.errors }}
+    <label>{{ form.password.label_tag }}</label>
+    {{ form.password }}
+</div>
+</p>
+<p><input type="submit" value="Login" id="submit" /></p>
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+{% endblock %}

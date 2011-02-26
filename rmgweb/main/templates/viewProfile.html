@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}{{ user0.username }}'s Profile - RMG{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block page_title %}{{ user0.username }} ({{ user0.get_full_name }}){% endblock %}
+
+{% block page_body %}
+
+<p>{% gravatar user0.email 80 %}</p>
+
+{% if user.is_authenticated %}
+<p>Email: {{ user0.email }}</p>
+{% endif %}
+
+{% endblock %}

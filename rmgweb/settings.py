@@ -105,3 +105,8 @@ INSTALLED_APPS = (
     # RMG website apps
     'main',
 )
+
+# Settings relating to user account management
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/'
+AUTH_PROFILE_MODULE = 'main.UserProfile'
