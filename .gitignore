@@ -10,3 +10,8 @@
 # SQLite database files
 rmgweb/*.db
 
+# jQuery
+rmgweb/media/jquery.js
+
+# jsMath
+rmgweb/media/jsMath/*
