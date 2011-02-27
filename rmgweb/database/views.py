@@ -19,3 +19,8 @@ def index(request):
     """
     return render_to_response('database.html', context_instance=RequestContext(request))
 
+def thermo(request, section='', subsection=''):
+    """
+    The RMG database homepage.
+    """
+    return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': thermoDatabase}, context_instance=RequestContext(request))
