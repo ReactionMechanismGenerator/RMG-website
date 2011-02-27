@@ -30,6 +30,10 @@ a {
     text-decoration: none;
 }
 
+a:hover {
+    text-decoration: underline;
+}
+
 /* Headings */
 
 h1, h2, h3 {
@@ -167,8 +171,8 @@ td.commentText p, td.historyText p {
 }
 
 .commentIcon, .historyIcon {
-    padding: 6px;
-    vertical-align: top;
+    padding: 0 4px 0 0;
+    vertical-align: middle;
 }
 
 .commentText, .historyText {
@@ -214,3 +218,17 @@ table.thermoData {
 table.thermoData th {
     text-align: left;
 }
+
+table.reference {
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+table.reference td.label {
+    font-weight: bold;
+}
+
+table.reference td.reference p {
+    margin: 0px;
+}
+

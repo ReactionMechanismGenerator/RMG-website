@@ -41,6 +41,26 @@ def getThermoDatabase(section, subsection):
 
 ################################################################################
 
+def getStructureMarkup(item):
+    """
+    Return the HTML used to markup structure information for the given `item`.
+    For a :class:`Molecule`, the markup is an ``<img>`` tag so that we can
+    draw the molecule. For a :class:`MoleculePattern`, the markup is the
+    adjacency list, wrapped in ``<pre>`` tags.
+    """
+    if isinstance(item, Molecule):
+        # We can draw Molecule objects, so use that instead of an adjacency list
+        adjlist = item.toAdjacencyList(removeH=True)
+        adjlist = adjlist.replace('\n', ';')
+        adjlist = re.sub('\s+', '%20', adjlist)
+        structure = '<img src="/adjlist/%s"/>' % adjlist
+    else:
+        # We can't draw MoleculePattern objects, so just print the adjacency list
+        structure = '<pre>%s</pre>' % item.toAdjacencyList(removeH=True)
+    return structure
+
+################################################################################
+
 def index(request):
     """
     The RMG database homepage.
@@ -73,15 +93,7 @@ def thermo(request, section='', subsection=''):
         entries = []
         for entry in entries0:
 
-            if isinstance(entry.item, Molecule):
-                # We can draw Molecule objects, so use that instead of an adjacency list
-                adjlist = entry.item.toAdjacencyList(removeH=True)
-                adjlist = adjlist.replace('\n', ';')
-                adjlist = re.sub('\s+', '%20', adjlist)
-                structure = '<img src="/adjlist/%s"/>' % adjlist
-            else:
-                # We can't draw MoleculePattern objects, so just print the adjacency list
-                structure = '<pre>%s</pre>' % entry.item.toAdjacencyList(removeH=True)
+            structure = getStructureMarkup(entry.item)
 
             if isinstance(entry.data, ThermoGAModel): dataFormat = 'Group additivity'
             elif isinstance(entry.data, WilhoitModel): dataFormat = 'Wilhoit'
@@ -111,4 +123,53 @@ def thermoEntry(request, section, subsection, index):
             break
     else:
         raise Http404
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry}, context_instance=RequestContext(request))
+
+    # Get the structure of the item we are viewing
+    structure = getStructureMarkup(entry.item)
+
+    # Prepare the thermo data for passing to the template
+    # This includes all string formatting, since we can't do that in the template
+    if isinstance(entry.data, ThermoGAModel):
+        # Thermo data is in group additivity format
+        dataFormat = 'Group additivity'
+        thermoData = ['%.2f' % (entry.data.H298 / 1000.), '%.2f' % (entry.data.S298)]
+        thermoData.append('%g' % (entry.data.Tmin))
+        thermoData.append('%g' % (entry.data.Tmax))
+        for T, Cp in zip(entry.data.Tdata, entry.data.Cpdata):
+            thermoData.append(('%g' % T, '%.2f' % Cp))
+    elif isinstance(entry.data, WilhoitModel):
+        # Thermo data is in Wilhoit polynomial format
+        dataFormat = 'Wilhoit'
+        thermoData = [
+            '%.2f' % (entry.data.cp0),
+            '%.2f' % (entry.data.cpInf),
+            '%g' % (entry.data.a0),
+            '%g' % (entry.data.a1),
+            '%g' % (entry.data.a2),
+            '%g' % (entry.data.a3),
+            '%.2f' % (entry.data.H0 / 1000.),
+            '%.2f' % (entry.data.S0),
+            '%.2f' % (entry.data.B),
+            '%g' % (entry.data.Tmin),
+            '%g' % (entry.data.Tmax),
+        ]
+    elif isinstance(entry.data, NASAModel):
+        # Thermo data is in NASA polynomial format
+        dataFormat = 'NASA'
+        thermoData = []
+        for poly in entry.data.polynomials:
+            thermoData.append([
+                '%g' % (poly.cm2),
+                '%g' % (poly.cm1),
+                '%g' % (poly.c0),
+                '%g' % (poly.c1),
+                '%g' % (poly.c2),
+                '%g' % (poly.c3),
+                '%g' % (poly.c4),
+                '%g' % (poly.c5),
+                '%g' % (poly.c6),
+                '%g' % (poly.Tmin),
+                '%g' % (poly.Tmax),
+            ])
+    
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'dataFormat': dataFormat, 'thermoData': thermoData}, context_instance=RequestContext(request))
