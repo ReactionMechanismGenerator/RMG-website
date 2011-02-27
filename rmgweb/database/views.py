@@ -1,5 +1,17 @@
+import os.path
+
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+import settings
+
+from rmgpy.data.thermo import ThermoDatabase
+
+################################################################################
+
+thermoDatabase = ThermoDatabase()
+thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
+
+################################################################################
 
 def index(request):
     """

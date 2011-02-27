@@ -15,3 +15,6 @@ rmgweb/media/jquery.js
 
 # jsMath
 rmgweb/media/jsMath/*
+
+# Database files
+database/*
