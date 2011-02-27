@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 import django.contrib.auth.views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -48,4 +48,21 @@ def editProfile(request):
         form = UserProfileForm(instance=request.user) # An unbound form
 
     return render_to_response('editProfile.html', {'form': form}, context_instance=RequestContext(request))
-    
+
+def drawMolecule(request, adjlist):
+    """
+    Returns an image of the provided adjacency list `adjlist`. Note that the
+    newline character cannot be represented in a URL; semicolons should be used
+    instead.
+    """
+    from rmgpy.chem.molecule import Molecule
+    from rmgpy.chem.ext.molecule_draw import drawMolecule
+
+    response = HttpResponse(mimetype="image/png")
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+    surface, cr, rect = drawMolecule(molecule, surface='png')
+    surface.write_to_png(response)
+
+    return response

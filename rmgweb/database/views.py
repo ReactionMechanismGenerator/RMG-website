@@ -1,10 +1,12 @@
 import os.path
+import re
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import Http404
 import settings
 
+from rmgpy.chem.molecule import Molecule
 from rmgpy.chem.thermo import *
 from rmgpy.data.thermo import ThermoDatabase
 
@@ -57,7 +59,15 @@ def thermo(request, section='', subsection=''):
         entries = []
         for entry in entries0:
 
-            structure = '<pre>%s</pre>' % entry.item.toAdjacencyList(removeH=True)
+            if isinstance(entry.item, Molecule):
+                # We can draw Molecule objects, so use that instead of an adjacency list
+                adjlist = entry.item.toAdjacencyList(removeH=True)
+                adjlist = adjlist.replace('\n', ';')
+                adjlist = re.sub('\s+', '%20', adjlist)
+                structure = '<img src="/adjlist/%s"/>' % adjlist
+            else:
+                # We can't draw MoleculePattern objects, so just print the adjacency list
+                structure = '<pre>%s</pre>' % entry.item.toAdjacencyList(removeH=True)
 
             if isinstance(entry.data, ThermoGAModel): dataFormat = 'Group additivity'
             elif isinstance(entry.data, WilhoitModel): dataFormat = 'Wilhoit'
