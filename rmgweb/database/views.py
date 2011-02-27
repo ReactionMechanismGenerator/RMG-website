@@ -15,6 +15,30 @@ from rmgpy.data.thermo import ThermoDatabase
 thermoDatabase = ThermoDatabase()
 thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
 
+def getThermoDatabase(section, subsection):
+    """
+    Return the component of the thermodynamics database corresponding to the
+    given `section` and `subsection`. If either of these is invalid, a
+    :class:`ValueError` is raised.
+    """
+    if section == 'depository':
+        try:
+            database = thermoDatabase.depository[subsection]
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    elif section == 'libraries':
+        libraries = [library for library in thermoDatabase.libraries if library.label == subsection]
+        if len(libraries) != 1: raise Http404
+        database = libraries[0]
+    elif section == 'groups':
+        try:
+            database = thermoDatabase.groups[subsection]
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    else:
+        raise ValueError('Invalid value "%s" for section parameter.' % section)
+    return database
+
 ################################################################################
 
 def index(request):
@@ -37,20 +61,10 @@ def thermo(request, section='', subsection=''):
         # that part of the database
         
         # Determine which subsection we wish to view
-        if section == 'depository':
-            try:
-                database = thermoDatabase.depository[subsection]
-            except KeyError:
-                raise Http404
-        elif section == 'libraries':
-            libraries = [library for library in thermoDatabase.libraries if library.label == subsection]
-            if len(libraries) != 1: raise Http404
-            database = libraries[0]
-        elif section == 'groups':
-            try:
-                database = thermoDatabase.groups[subsection]
-            except KeyError:
-                raise Http404
+        try:
+            database = getThermoDatabase(section, subsection)
+        except ValueError:
+            raise Http404
 
         # Sort entries by index
         entries0 = database.library.values()
@@ -81,3 +95,20 @@ def thermo(request, section='', subsection=''):
         # No subsection was specified, so render an outline of the thermo
         # database components
         return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': thermoDatabase}, context_instance=RequestContext(request))
+
+def thermoEntry(request, section, subsection, index):
+    """
+    A view for showing an entry in a thermodynamics database.
+    """
+    # Determine the entry we wish to view
+    try:
+        database = getThermoDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    index = int(index)
+    for label, entry in database.library.iteritems():
+        if entry.index == index:
+            break
+    else:
+        raise Http404
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry}, context_instance=RequestContext(request))
