@@ -207,3 +207,10 @@ table.data td.value {
     vertical-align: middle;
 }
 
+table.thermoData {
+    width: 100%;
+}
+
+table.thermoData th {
+    text-align: left;
+}
