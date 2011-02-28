@@ -113,6 +113,7 @@ def thermo(request, section='', subsection=''):
             if isinstance(entry.data, ThermoGAModel): dataFormat = 'Group additivity'
             elif isinstance(entry.data, WilhoitModel): dataFormat = 'Wilhoit'
             elif isinstance(entry.data, NASAModel): dataFormat = 'NASA'
+            elif isinstance(entry.data, str): dataFormat = 'Link'
 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
@@ -186,5 +187,8 @@ def thermoEntry(request, section, subsection, index):
                 '%g' % (poly.Tmin),
                 '%g' % (poly.Tmax),
             ])
-    
+    elif isinstance(entry.data, str):
+        dataFormat = 'Link'
+        thermoData = [database.entries[entry.data].index]
+
     return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'dataFormat': dataFormat, 'thermoData': thermoData}, context_instance=RequestContext(request))

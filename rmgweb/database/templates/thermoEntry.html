@@ -234,6 +234,10 @@ y \equiv \frac{T}{T + B}
 </table>
 {% endifequal %}
 
+{% ifequal dataFormat 'Link' %}
+<p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.0 %}">{{ entry.data }}</a></p>
+{% endifequal %}
+
 <h2>Reference</h2>
 {% include "reference.html" %}
 
