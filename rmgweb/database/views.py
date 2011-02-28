@@ -102,7 +102,7 @@ def thermo(request, section='', subsection=''):
             raise Http404
 
         # Sort entries by index
-        entries0 = database.library.values()
+        entries0 = database.entries.values()
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
@@ -133,7 +133,7 @@ def thermoEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    for label, entry in database.library.iteritems():
+    for label, entry in database.entries.iteritems():
         if entry.index == index:
             break
     else:
