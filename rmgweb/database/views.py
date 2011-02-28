@@ -41,6 +41,18 @@ def getThermoDatabase(section, subsection):
 
 ################################################################################
 
+def getLaTeXScientificNotation(value):
+    """
+    Return a LaTeX-formatted string containing the provided `value` in
+    scientific notation.
+    """
+    if value == 0: return '%g' % 0
+    exp = int(math.log10(abs(value)))
+    mant = value / 10**exp
+    if abs(mant) < 1:
+        mant *= 10; exp -= 1
+    return '%g \\times 10^{%i}' % (mant, exp)
+
 def getStructureMarkup(item):
     """
     Return the HTML used to markup structure information for the given `item`.
@@ -143,10 +155,10 @@ def thermoEntry(request, section, subsection, index):
         thermoData = [
             '%.2f' % (entry.data.cp0),
             '%.2f' % (entry.data.cpInf),
-            '%g' % (entry.data.a0),
-            '%g' % (entry.data.a1),
-            '%g' % (entry.data.a2),
-            '%g' % (entry.data.a3),
+            '%s' % getLaTeXScientificNotation(entry.data.a0),
+            '%s' % getLaTeXScientificNotation(entry.data.a1),
+            '%s' % getLaTeXScientificNotation(entry.data.a2),
+            '%s' % getLaTeXScientificNotation(entry.data.a3),
             '%.2f' % (entry.data.H0 / 1000.),
             '%.2f' % (entry.data.S0),
             '%.2f' % (entry.data.B),
@@ -159,15 +171,15 @@ def thermoEntry(request, section, subsection, index):
         thermoData = []
         for poly in entry.data.polynomials:
             thermoData.append([
-                '%g' % (poly.cm2),
-                '%g' % (poly.cm1),
-                '%g' % (poly.c0),
-                '%g' % (poly.c1),
-                '%g' % (poly.c2),
-                '%g' % (poly.c3),
-                '%g' % (poly.c4),
-                '%g' % (poly.c5),
-                '%g' % (poly.c6),
+                '%s' % getLaTeXScientificNotation(poly.cm2),
+                '%s' % getLaTeXScientificNotation(poly.cm1),
+                '%s' % getLaTeXScientificNotation(poly.c0),
+                '%s' % getLaTeXScientificNotation(poly.c1),
+                '%s' % getLaTeXScientificNotation(poly.c2),
+                '%s' % getLaTeXScientificNotation(poly.c3),
+                '%s' % getLaTeXScientificNotation(poly.c4),
+                '%s' % getLaTeXScientificNotation(poly.c5),
+                '%s' % getLaTeXScientificNotation(poly.c6),
                 '%g' % (poly.Tmin),
                 '%g' % (poly.Tmax),
             ])
