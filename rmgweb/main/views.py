@@ -51,9 +51,9 @@ def editProfile(request):
 
 def drawMolecule(request, adjlist):
     """
-    Returns an image of the provided adjacency list `adjlist`. Note that the
-    newline character cannot be represented in a URL; semicolons should be used
-    instead.
+    Returns an image of the provided adjacency list `adjlist` for a molecule.
+    Note that the newline character cannot be represented in a URL;
+    semicolons should be used instead.
     """
     from rmgpy.chem.molecule import Molecule
     from rmgpy.chem.ext.molecule_draw import drawMolecule
@@ -64,5 +64,41 @@ def drawMolecule(request, adjlist):
     molecule = Molecule().fromAdjacencyList(adjlist)
     surface, cr, rect = drawMolecule(molecule, surface='png')
     surface.write_to_png(response)
+
+    return response
+
+def drawMoleculePattern(request, adjlist):
+    """
+    Returns an image of the provided adjacency list `adjlist` for a molecular
+    pattern. Note that the newline character cannot be represented in a URL;
+    semicolons should be used instead.
+    """
+    from rmgpy.chem.pattern import MoleculePattern
+    import pydot
+
+    response = HttpResponse(mimetype="image/png")
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    pattern = MoleculePattern().fromAdjacencyList(adjlist)
+
+    graph = pydot.Dot(graph_type='graph', dpi=75)
+    for index, atom in enumerate(pattern.atoms):
+        atomType = '%s ' % atom.label if atom.label != '' else ''
+        atomType += ','.join([atomType.label for atomType in atom.atomType])
+        graph.add_node(pydot.Node(name='%i' % (index+1), label=atomType, fontname='sans', fontsize=12))
+    for atom1, bonds in pattern.bonds.iteritems():
+        for atom2, bond in bonds.iteritems():
+            index1 = pattern.atoms.index(atom1)
+            index2 = pattern.atoms.index(atom2)
+            if index1 < index2:
+                bondType = ','.join([order for order in bond.order])
+                graph.add_edge(pydot.Edge(
+                    src = '%i' % (index1+1),
+                    dst = '%i' % (index2+1),
+                    label = bondType,
+                    fontname='sans', fontsize = 12,
+                ))
+
+    response.write(graph.create(prog='neato', format='png'))
 
     return response

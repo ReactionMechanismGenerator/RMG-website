@@ -30,7 +30,8 @@ urlpatterns = patterns('rmgweb',
     (r'^database/', include('database.urls')),
 
     # Molecule drawing
-    (r'^adjlist/(?P<adjlist>[\S\s]+)$', 'main.views.drawMolecule'),
+    (r'^molecule/(?P<adjlist>[\S\s]+)$', 'main.views.drawMolecule'),
+    (r'^pattern/(?P<adjlist>[\S\s]+)$', 'main.views.drawMoleculePattern'),
 
 )
 
