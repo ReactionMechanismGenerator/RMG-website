@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}RMG{% endblock %}
+{% block title %}RMG Database{% endblock %}
 
 {% block extrahead %}{% endblock %}
 
-{% block navbar_items %}<a href="{% url database.views.index %}">Database</a>{% endblock %}
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+{% endblock %}
 
 {% block sidebar_items %}
 {% endblock %}
@@ -12,4 +14,11 @@
 {% block page_title %}RMG Database{% endblock %}
 
 {% block page_body %}
+<h2><a href="{% url database.views.thermo %}">Thermodynamics Database</a></h2>
+
+<ul>
+<li><a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></li>
+<li><a href="{% url database.views.thermo section='libraries' %}">Thermodynamics Libraries</a></li>
+<li><a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></li>
+</ul>
 {% endblock %}

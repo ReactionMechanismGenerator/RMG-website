@@ -29,6 +29,10 @@ urlpatterns = patterns('rmgweb',
     # Database
     (r'^database/', include('database.urls')),
 
+    # Molecule drawing
+    (r'^molecule/(?P<adjlist>[\S\s]+)$', 'main.views.drawMolecule'),
+    (r'^pattern/(?P<adjlist>[\S\s]+)$', 'main.views.drawMoleculePattern'),
+
 )
 
 # When developing in Django we generally don't have a web server available to

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{% block title %}
+{% if section != '' %}
+RMG Thermodynamics {{ section|title }}
+{% else %}
+RMG Thermodynamics Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}
+<style>
+table.thermoEntryData {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+table.thermoEntryData td.key {
+    font-weight: bold;
+    text-align: right;
+}
+
+table.thermoEntryData td.equals {
+    text-align: center;
+}
+
+table.thermoEntryData td.value {
+    text-align: left;
+}
+
+table.thermoEntryData td.reference p {
+    margin: 0px;
+}
+</style>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
+&raquo; <a href="{% url database.views.thermo section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url database.views.thermo section=section subsection=subsection %}">{{ databaseName }}</a>
+&raquo; <a href="{% url database.views.thermoEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{{ entry.index }}. {{ entry.label }}{% endblock %}
+
+{% block page_body %}
+
+<h2>Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+
+<h2>Thermodynamic Data</h2>
+
+{% ifequal dataFormat 'Group additivity' %}
+<table class="thermoEntryData">
+    <tr>
+        <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.0 }} \ \mathrm{kJ/mol}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.1 }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    {% for T, Cp in thermoData|slice:"4:" %}
+    <tr>
+        <td class="key"><span class="math">C_\mathrm{p}^\circ({{ T }} \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ Cp }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ thermoData.2 }} to {{ thermoData.3 }} K</td>
+    </tr>
+</table>
+{% endifequal %}
+
+{% ifequal dataFormat 'Wilhoit' %}
+<div class="math">
+C_\mathrm{p}(T) = C_\mathrm{p}(0) + \left[ C_\mathrm{p}(\infty) -
+    C_\mathrm{p}(0) \right] y^2 \left[ 1 + (y - 1) \sum_{i=0}^3 a_i y^i \right]
+</div>
+<div class="math">
+H^\circ(T) = H_0 + \int_0^\infty C_\mathrm{p}(T) \ dT \ \ \ \ \ \ \ \ S^\circ(T) = S_0 + \int_0^\infty \frac{C_\mathrm{p}(T)}{T} \ dT
+</div>
+<div class="math">
+y \equiv \frac{T}{T + B}
+</div>
+<table class="thermoEntryData">
+    <tr>
+        <td class="key"><span class="math">C_\mathrm{p}(0)</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.0 }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">C_\mathrm{p}(\infty)</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.1 }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_0</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.2 }}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_1</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.3 }}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_2</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.4 }}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_3</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.5 }}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">H_0</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.6 }} \ \mathrm{kJ/mol}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">S_0</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.7 }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">B</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.8 }} \ \mathrm{K}</span></td>
+    </tr>
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ thermoData.9 }} to {{ thermoData.10 }} K</td>
+    </tr>
+</table>
+{% endifequal %}
+
+{% ifequal dataFormat 'NASA' %}
+<div class="math">
+\frac{C_\mathrm{p}^\circ(T)}{R} = a_{-2} T^{-2} + a_{-1} T^{-1} + a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4
+</div>
+<div class="math">
+\frac{H^\circ(T)}{RT} = -a_{-2} T^{-2} + a_{-1} \frac{\ln T}{T} + a_0 + \frac{1}{2} a_1 T + \frac{1}{3} a_2 T^2 + \frac{1}{4} a_3 T^3 + \frac{1}{5} a_4 T^4 + \frac{a_5}{T}
+</div>
+<div class="math">
+\frac{S^\circ(T)}{R} = -\frac{1}{2} a_{-2} T^{-2} - a_{-1} T^{-1} + a_0 \ln T + a_1 T + \frac{1}{2} a_2 T^2 + \frac{1}{3} a_3 T^3 + \frac{1}{4} a_4 T^4 + a_6
+</div>
+<table class="thermoEntryData">
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value">{{ poly.9 }} to {{ poly.10 }} K</td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_{-2}</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.0 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_{-1}</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.1 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_0</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.2 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_1</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.3 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_2</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.4 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_3</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.5 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_4</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.6 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_5</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.7 }}</span></td>
+        {% endfor %}
+    </tr>
+    <tr>
+        <td class="key"><span class="math">a_6</span></td>
+        <td class="equals">=</td>
+        {% for poly in thermoData %}
+        <td class="value"><span class="math">{{ poly.8 }}</span></td>
+        {% endfor %}
+    </tr>
+</table>
+{% endifequal %}
+
+{% ifequal dataFormat 'Link' %}
+<p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.0 %}">{{ entry.data }}</a></p>
+{% endifequal %}
+
+<h2>Reference</h2>
+{% include "reference.html" %}
+
+<h2>Comments</h2>
+{% for date, username, comment in entry.comments %}
+<table class="comment">
+<tr>
+    <td rowspan="2" class="commentIcon">{% gravatar username 40 %}</td>
+    <td class="commentText">{{ comment|restructuredtext }}</td>
+</tr>
+<tr>
+    <td class="commentMeta">Comment by {{ username }} on {{ date }}</td>
+</tr>
+</table>
+{% endfor %}
+<br/>
+
+<h2>History</h2>
+{% for date, username, action in entry.history %}
+<table class="history">
+<tr>
+    <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
+    <td class="historyText">{{ action|restructuredtext }}</td>
+</tr>
+<tr>
+    <td class="historyMeta">Action by {{ username }} on {{ date }} <a>View details</a></td>
+</tr>
+</table>
+{% endfor %}
+<br/>
+
+{% endblock %}

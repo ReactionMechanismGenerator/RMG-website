@@ -7,6 +7,8 @@ import os.path
 # The full path of the Django project (as determined from the location of this file)
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
+DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', 'database'))
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -98,6 +100,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'django.contrib.markup',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

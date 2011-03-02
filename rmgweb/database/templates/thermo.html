@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if section != '' %}
+RMG Thermodynamics {{ section|title }}
+{% else %}
+RMG Thermodynamics Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
+{% if section != '' %}&raquo; <a href="{% url database.views.thermo section=section %}">{{ section|title }}</a>{% endif %}
+{% if subsection != '' %}&raquo; <a href="{% url database.views.thermo section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}
+{% if section != '' %}
+RMG Thermodynamics {{ section|title }}
+{% else %}
+RMG Thermodynamics Database
+{% endif %}
+{% endblock %}
+
+{% block page_body %}
+
+{% if section == '' %}
+<h2><a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></h2>
+{% endif %}
+
+{% if section == 'depository' or section == '' %}
+<ul>
+{% for subsection, depository in thermoDatabase.depository.items %}
+<li><a href="{% url database.views.thermo section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if section == '' %}
+<h2><a href="{% url database.views.thermo section='libraries' %}">Thermodynamics Libraries</a></h2>
+{% endif %}
+
+{% if section == 'libraries' or section == '' %}
+<ul>
+{% for library in thermoDatabase.libraries %}
+<li><a href="{% url database.views.thermo section='libraries' subsection=library.label %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if section == '' %}
+<h2><a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></h2>
+{% endif %}
+
+{% if section == 'groups' or section == '' %}
+<ul>
+    <li><a href="{% url database.views.thermo section='groups' subsection='group' %}">{{ thermoDatabase.groups.group.name }}</a> ({{ thermoDatabase.groups.group.entries|length }} entries)</li>
+{% for subsection, groups in thermoDatabase.groups.items %}
+    {% if subsection != 'group' %}
+        <li><a href="{% url database.views.thermo section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
+    {% endif %}
+{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock %}
