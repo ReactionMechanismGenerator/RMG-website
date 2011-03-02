@@ -137,10 +137,9 @@ def thermoEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    for label, entry in database.entries.iteritems():
-        if entry.index == index:
-            break
-    else:
+    try:
+        entry = database.entries[index]
+    except KeyError:
         raise Http404
 
     # Get the structure of the item we are viewing
