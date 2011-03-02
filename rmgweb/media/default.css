@@ -226,9 +226,11 @@ table.reference {
 
 table.reference td.label {
     font-weight: bold;
+    text-align: right;
+    vertical-align: top;
 }
 
-table.reference td.reference p {
+table.reference td p {
     margin: 0px;
 }
 

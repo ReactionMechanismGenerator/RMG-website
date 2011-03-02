@@ -194,4 +194,8 @@ def thermoEntry(request, section, subsection, index):
         dataFormat = 'Link'
         thermoData = [database.entries[entry.data].index]
 
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'dataFormat': dataFormat, 'thermoData': thermoData}, context_instance=RequestContext(request))
+    reference = entry.reference
+    if reference[1:3] == '. ':
+        reference = reference[0:2] + '\ ' + reference[2:]
+
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'dataFormat': dataFormat, 'thermoData': thermoData}, context_instance=RequestContext(request))
