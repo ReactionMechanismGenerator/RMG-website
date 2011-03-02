@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if section != '' %}
+RMG Thermodynamics {{ section|title }}
+{% else %}
+RMG Thermodynamics Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
+&raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ databaseName }}</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{{ databaseName }}{% endblock %}
+
+{% block page_body %}
+
+<table class="kineticsData">
+<tr>
+    <th>Label</th>
+    <th colspan="3">Reaction</th>
+    <th>Data Format</th>
+</tr>
+{% for index, label, reactants, arrow, products, dataFormat in entries %}
+<tr>
+    <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
+    <td class="reactants">{{ reactants|safe }}</td>
+    <td class="reactionArrow">{{ arrow|safe }}</td>
+    <td class="products">{{ products|safe }}</td>
+    <td>{{ dataFormat }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

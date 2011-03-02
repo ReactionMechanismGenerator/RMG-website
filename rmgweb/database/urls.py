@@ -41,4 +41,10 @@ urlpatterns = patterns('rmgweb.database',
     (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.thermo'),
     (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.thermoEntry'),
 
+    # Kinetics database
+    (r'^kinetics/$', 'views.kinetics'),
+    (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.kinetics'),
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.kineticsEntry'),
+
 )

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{% block title %}
+{% if section != '' %}
+RMG Kinetics {{ section|title }}
+{% else %}
+RMG Kinetics Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}
+<style>
+table.kineticsEntryData {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+table.kineticsEntryData td.key {
+    font-weight: bold;
+    text-align: right;
+}
+
+table.kineticsEntryData td.equals {
+    text-align: center;
+}
+
+table.kineticsEntryData td.value {
+    text-align: left;
+}
+
+table.kineticsEntryData td.reference p {
+    margin: 0px;
+}
+</style>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
+&raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ databaseName }}</a>
+&raquo; <a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{{ entry.index }}. {{ entry.label }}{% endblock %}
+
+{% block page_body %}
+
+<h2>Reaction</h2>
+<table>
+    <tr>
+        <td class="reactants">{{ reactants|safe }}</td>
+        <td class="reactionArrow">{{ arrow|safe }}</td>
+        <td class="reactants">{{ products|safe }}</td>
+    </tr>
+</table>
+<br/>
+
+<h2>Kinetic Data</h2>
+
+{% ifequal dataFormat 'Arrhenius' %}
+<div class="math">
+k(T) = {{ kineticsData.0 }}
+{% if kineticsData.3 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.1 }} }
+\exp \left( - \frac{ {{ kineticsData.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'Link' %}
+<p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.0 %}">{{ entry.data }}</a></p>
+{% endifequal %}
+
+<h2>Reference</h2>
+{% include "reference.html" %}
+
+<h2>History</h2>
+{% for date, username, action, description in entry.history %}
+<table class="history">
+<tr>
+    <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
+    <td class="historyText">{{ description|restructuredtext }}</td>
+</tr>
+<tr>
+    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} <a>View details</a></td>
+</tr>
+</table>
+{% endfor %}
+<br/>
+
+{% endblock %}
