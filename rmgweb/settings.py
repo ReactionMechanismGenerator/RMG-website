@@ -68,8 +68,13 @@ MEDIA_URL = '/media/'
 ADMIN_MEDIA_PREFIX = '/admin/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'i+a0dzd@buc8k!4#(zn!*h#f4iinp*_v@6cu!08u_3^uwbzwp#'
-
+try:
+    from secretkey import SECRET_KEY
+except ImportError:
+    print 'secretkey.py not found!'
+    print 'Please create a file named secretkey.py that contains the SECRET_KEY setting.'
+    quit()
+   
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
