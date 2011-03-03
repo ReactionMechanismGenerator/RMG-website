@@ -43,8 +43,17 @@ from rmgpy.data.thermo import ThermoDatabase
 
 ################################################################################
 
-thermoDatabase = ThermoDatabase()
-thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
+thermoDatabase = None
+
+def loadThermoDatabase():
+    """
+    Load the thermodynamics database, if necessary. If the thermodynamics
+    database is already loaded, then do nothing.
+    """
+    global thermoDatabase
+    if not thermoDatabase:
+        thermoDatabase = ThermoDatabase()
+        thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
 
 def getThermoDatabase(section, subsection):
     """
@@ -52,6 +61,8 @@ def getThermoDatabase(section, subsection):
     given `section` and `subsection`. If either of these is invalid, a
     :class:`ValueError` is raised.
     """
+    global thermoDatabase
+
     if section == 'depository':
         try:
             database = thermoDatabase.depository[subsection]
@@ -123,6 +134,9 @@ def thermo(request, section='', subsection=''):
     if section not in ['depository', 'libraries', 'groups', '']:
         raise Http404
 
+    # Load the thermo database if necessary
+    loadThermoDatabase()
+
     if subsection != '':
 
         # A subsection was specified, so render a table of the entries in
@@ -161,6 +175,10 @@ def thermoEntry(request, section, subsection, index):
     """
     A view for showing an entry in a thermodynamics database.
     """
+
+    # Load the thermo database if necessary
+    loadThermoDatabase()
+
     # Determine the entry we wish to view
     try:
         database = getThermoDatabase(section, subsection)
