@@ -241,29 +241,15 @@ y \equiv \frac{T}{T + B}
 <h2>Reference</h2>
 {% include "reference.html" %}
 
-<h2>Comments</h2>
-{% for date, username, comment in entry.comments %}
-<table class="comment">
-<tr>
-    <td rowspan="2" class="commentIcon">{% gravatar username 40 %}</td>
-    <td class="commentText">{{ comment|restructuredtext }}</td>
-</tr>
-<tr>
-    <td class="commentMeta">Comment by {{ username }} on {{ date }}</td>
-</tr>
-</table>
-{% endfor %}
-<br/>
-
 <h2>History</h2>
-{% for date, username, action in entry.history %}
+{% for date, username, action, description in entry.history %}
 <table class="history">
 <tr>
     <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
-    <td class="historyText">{{ action|restructuredtext }}</td>
+    <td class="historyText">{{ description|restructuredtext }}</td>
 </tr>
 <tr>
-    <td class="historyMeta">Action by {{ username }} on {{ date }} <a>View details</a></td>
+    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} <a>View details</a></td>
 </tr>
 </table>
 {% endfor %}
