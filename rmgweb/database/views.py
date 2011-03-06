@@ -33,7 +33,7 @@ import re
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 import settings
 
@@ -44,6 +44,8 @@ from rmgpy.chem.kinetics import *
 
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase
+
+from forms import *
 
 ################################################################################
 
@@ -303,6 +305,27 @@ def thermoEntry(request, section, subsection, index):
         reference = reference[0:2] + '\ ' + reference[2:]
 
     return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'thermoData': thermoData}, context_instance=RequestContext(request))
+
+def thermoSearch(request):
+    """
+    A view of a form for specifying a molecule to search the database for
+    thermodynamics properties.
+    """
+
+    # Load the thermo database if necessary
+    loadThermoDatabase()
+
+    if request.method == 'POST':
+        form = ThermoSearchForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            adjlist = form.cleaned_data['species']
+            adjlist = adjlist.replace('\n', ';')
+            adjlist = re.sub('\s+', '%20', adjlist)
+            return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
+    else:
+        form = ThermoSearchForm()
+    
+    return render_to_response('thermoSearch.html', {'form': form}, context_instance=RequestContext(request))
 
 def thermoData(request, adjlist):
     """

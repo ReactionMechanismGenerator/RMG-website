@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{% block title %}Search Thermodynamics Database{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
+&raquo; <a href="{% url database.views.thermoSearch %}">Search</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Search Thermodynamics Database{% endblock %}
+
+{% block page_body %}
+<form action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit" /></p>
+</form>
+{% endblock %}

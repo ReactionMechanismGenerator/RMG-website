@@ -28,25 +28,37 @@
 #
 ################################################################################
 
-from django.conf.urls.defaults import *
+from django import forms
+from django.forms.util import ErrorList
+from django.utils.safestring import mark_safe
 
-urlpatterns = patterns('rmgweb.database',
+from rmgpy.chem.molecule import Molecule
 
-    # Database homepage
-    (r'^$', 'views.index'),
+class DivErrorList(ErrorList):
+    def __unicode__(self):
+        return self.as_divs()
+    def as_divs(self):
+        if not self: return u''
+        return mark_safe(u'<label>&nbsp;</label>%s' % (''.join([u'<div class="error">%s</div>' % e for e in self])))
 
-    # Thermodynamics database
-    (r'^thermo/$', 'views.thermo'),
-    (r'^thermo/search.html$', 'views.thermoSearch'),
-    (r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', 'views.thermoData'),
-    (r'^thermo/(?P<section>\w+)/$', 'views.thermo'),
-    (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.thermo'),
-    (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.thermoEntry'),
+class ThermoSearchForm(forms.Form):
+    """
+    This form provides a means of specifying a species to get thermodynamic
+    data for.
+    """
+    species = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
 
-    # Kinetics database
-    (r'^kinetics/$', 'views.kinetics'),
-    (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
-    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.kinetics'),
-    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.kineticsEntry'),
+    def clean_species(self):
+        """
+        Custom validation for the species field to ensure that a valid adjacency
+        list has been provided.
+        """
+        try:
+            molecule = Molecule()
+            molecule.fromAdjacencyList(str(self.cleaned_data['species']))
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return str(self.cleaned_data['species'])
 
-)
