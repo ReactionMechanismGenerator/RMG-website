@@ -72,9 +72,160 @@ k(T) = {{ kineticsData.0 }}
 </div>
 {% endifequal %}
 
+{% ifequal dataFormat 'ArrheniusEP' %}
+<div class="math">
+k(T) = {{ kineticsData.0 }} T^{ {{ kineticsData.1 }} } \exp \left( - \frac{ {{ kineticsData.3 }} \ \mathrm{kJ/mol} + {{ kineticsData.2 }} \Delta H_\mathrm{rxn}^\circ }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'MultiArrhenius' %}
+<div class="math">
+k(T) = {% for arrh in kineticsData %}k_{ {{ forloop.counter }} }(T){% if not forloop.last %} + {% endif %}{% endfor %}
+</div>
+<div class="math">
+\begin{split}
+{% for arrh in kineticsData %}
+k_{ {{ forloop.counter }} }(T) = {{ arrh.0 }}
+{% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
+\exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+{% endfor %}
+\end{split}
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'PDepArrhenius' %}
+<div class="math">
+\begin{split}
+{% for arrh in kineticsData %}
+k(T, {{ arrh.4 }} \ \mathrm{bar}) = {{ arrh.0 }}
+{% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
+\exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+{% endfor %}
+\end{split}
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'Chebyshev' %}
+<div class="math">
+\begin{split}
+\log k(T,P) = \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\\tilde{T}) \phi_p(\tilde{P}) \\
+\tilde{T} &\equiv \frac{2T^{-1} - T_\mathrm{min}^{-1} - T_\mathrm{max}^{-1}}{T_\mathrm{max}^{-1} - T_\mathrm{min}^{-1}} \\
+\tilde{P} &\equiv \frac{2 \\log P - \log P_\\mathrm{min} - \log P_\mathrm{max}}{\log P_\\mathrm{max} - \log P_\mathrm{min}}
+\end{split}
+</div>
+C =
+<table>
+    {% for row in kineticsData %}
+    <tr>
+        {% for col in row %}
+        <td>{{ col }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<br/>
+{% endifequal %}
+
+{% ifequal dataFormat 'ThirdBody' %}
+<div class="math">
+k(T,P) = k_\infty(T) [\mathrm{M}]
+</div>
+<div class="math">
+k_\infty(T) = {{ kineticsData.0 }}
+{% if kineticsData.3 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.1 }} }
+\exp \left( - \frac{ {{ kineticsData.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'Lindemann' %}
+<div class="math">
+\begin{split}
+k(T,P) &= k_\infty(T) \left[ \frac{P_\mathrm{r}}{1 + P_\mathrm{r}} \right] \\
+P_\mathrm{r} &= \frac{k_0(T)}{k_\infty(T)} [\mathrm{M}] \\
+\end{split}
+</div>
+<div class="math">
+\begin{split}
+k_\infty(T) &= {{ kineticsData.0 }}
+{% if kineticsData.3 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.1 }} }
+\exp \left( - \frac{ {{ kineticsData.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} } \\
+k_0(T) &= {{ kineticsData.4 }}
+{% if kineticsData.7 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.7 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.5 }} }
+\exp \left( - \frac{ {{ kineticsData.6 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^6/mol^2*s{% else %}m^3/mol*s{% endif %} }
+\end{split}
+</div>
+{% endifequal %}
+
+{% ifequal dataFormat 'Troe' %}
+<div class="math">
+\begin{split}
+k(T,P) &= k_\infty(T) \left[ \frac{P_\mathrm{r}}{1 + P_\mathrm{r}} \right] F \\
+P_\mathrm{r} &= \frac{k_0(T)}{k_\infty(T)} [\mathrm{M}] \\
+\log F &= \left\{1 + \left[ \frac{\log P_\mathrm{r} + c}{n - d (\log P_\mathrm{r} + c)} \right]^2 \right\}^{-1} \log F_\mathrm{cent} \\
+c &= -0.4 - 0.67 \log F_\mathrm{cent} \\
+n &= 0.75 - 1.27 \log F_\mathrm{cent} \\
+d &= 0.14 \\
+F_\mathrm{cent} &= (1 - \alpha) \exp \left( -T/T_3 \right) + \alpha \exp \left( -T/T_1 \right){% if kineticsData.11 != 1e100 %} + \exp \left( -T_2/T \right){% endif %}
+\end{split}
+</div>
+<div class="math">
+\begin{split}
+k_\infty(T) &= {{ kineticsData.0 }}
+{% if kineticsData.3 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.1 }} }
+\exp \left( - \frac{ {{ kineticsData.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} } \\
+k_0(T) &= {{ kineticsData.4 }}
+{% if kineticsData.7 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.7 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.5 }} }
+\exp \left( - \frac{ {{ kineticsData.6 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^6/mol^2*s{% else %}m^3/mol*s{% endif %} } \\
+\alpha &= {{ kineticsData.8 }} \\
+T_3 &= {{ kineticsData.9 }} \ \mathrm{K} \\
+T_1 &= {{ kineticsData.10 }} \ \mathrm{K} \\
+{% if kineticsData.11 != 1e100 %}T_2 &= {{ kineticsData.11 }} \ \mathrm{K} {% endif %}
+\end{split}
+</div>
+{% endifequal %}
+
 {% ifequal dataFormat 'Link' %}
 <p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.0 %}">{{ entry.data }}</a></p>
 {% endifequal %}
+
+{% if efficiencies|length > 0 %}
+<table style="margin: auto;">
+    <tr>
+        <th colspan="2">Collision efficiencies</th>
+    </tr>
+{% for label, eff in efficiencies %}
+    <tr>
+        <td>{{ label|safe }}</td>
+        <td>{{ eff }}</td>
+    </tr>
+{% endfor %}
+</table>
+<br/>
+{% endif %}
+
+<table class="kineticsEntryData">
+    {% if Trange|length == 2 %}
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ Trange.0 }} to {{ Trange.1 }} K</td>
+    </tr>
+    {% endif %}
+    {% if Prange|length == 2 %}
+    <tr>
+        <td class="key">Pressure range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ Prange.0 }} to {{ Prange.1 }} bar</td>
+    </tr>
+    {% endif %}
+</table>
 
 <h2>Reference</h2>
 {% include "reference.html" %}
