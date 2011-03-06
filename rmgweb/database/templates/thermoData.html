@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{% block title %}Thermodynamics Data{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Thermodynamics Data{% endblock %}
+
+{% block page_body %}
+<h2>Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+
+<h2>Thermodynamic Data</h2>
+
+{% for thermoData, source, href in thermoDataList %}
+{% if href != '' %}
+<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
+{% else %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
+{% endif %}
+
+{% include "thermo/thermoModel.html" %}
+<br/>
+{% endfor %}
+
+{% endblock %}

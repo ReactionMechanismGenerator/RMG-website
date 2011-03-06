@@ -34,6 +34,7 @@ import re
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import Http404
+from django.core.urlresolvers import reverse
 import settings
 
 from rmgpy.chem.molecule import Molecule
@@ -302,6 +303,43 @@ def thermoEntry(request, section, subsection, index):
         reference = reference[0:2] + '\ ' + reference[2:]
 
     return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'thermoData': thermoData}, context_instance=RequestContext(request))
+
+def thermoData(request, adjlist):
+    """
+    Returns an image of the provided adjacency list `adjlist` for a molecule.
+    Note that the newline character cannot be represented in a URL;
+    semicolons should be used instead.
+    """
+    from rmgpy.chem.molecule import Molecule
+    
+    # Load the thermo database if necessary
+    loadThermoDatabase()
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+
+    # Get the thermo data for the molecule
+    thermoDataList = []
+    for data, library, entry in thermoDatabase.getAllThermoData(molecule):
+        if library is None:
+            source = 'Group additivity estimate'
+            href = ''
+        elif library in thermoDatabase.depository.values():
+            source = 'Depository'
+            href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
+        elif library in thermoDatabase.libraries:
+            source = library.name
+            href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+        thermoDataList.append((
+            prepareThermoParameters(data),
+            source,
+            href,
+        ))
+    
+    # Get the structure of the item we are viewing
+    structure = getStructureMarkup(molecule)
+
+    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList}, context_instance=RequestContext(request))
 
 ################################################################################
 
