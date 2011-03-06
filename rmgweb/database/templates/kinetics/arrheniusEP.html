@@ -1,0 +1,26 @@
+{% comment %}
+This template expects a variable kineticsData as a list in the following form:
+
+kineticsData[0]     = The value 'ArrheniusEP'
+kineticsData[1]     = Arrhenius preexponential factor in SI units (s^-1, m^3/mol*s, etc.)
+kineticsData[2]     = Arrhenius temperature exponent (dimensionless)
+kineticsData[3]     = Evans-Polanyi slope (dimensionless)
+kineticsData[4]     = Evans-Polanyi thermoneutral activation energy in kJ/mol
+kineticsData[5]     = Minimum valid temperature in K
+kineticsData[6]     = Maximum valid temperature in K
+
+All of these values should be strings in the desired format.
+{% endcomment %}
+
+<div class="math">
+k(T) = {{ kineticsData.1 }} T^{ {{ kineticsData.2 }} } \exp \left( - \frac{ {{ kineticsData.4 }} \ \mathrm{kJ/mol} + {{ kineticsData.3 }} \Delta H_\mathrm{rxn}^\circ }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+</div>
+
+<table class="kineticsEntryData">
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.5 }} to {{ kineticsData.6 }} K</td>
+    </tr>
+</table>

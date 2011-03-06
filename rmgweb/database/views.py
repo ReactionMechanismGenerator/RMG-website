@@ -357,6 +357,103 @@ def kinetics(request, section='', subsection=''):
         # database components
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDatabase': kineticsDatabase}, context_instance=RequestContext(request))
 
+def prepareKineticsParameters(kinetics):
+    """
+    Collect the thermodynamic parameters for the provided thermodynamics model
+    `thermo` and prepare them for viewing in a template. In particular, we must
+    do any string formatting here because we can't do that in the template
+    itself.
+    """
+
+    kineticsData = []
+
+    if isinstance(kinetics, ArrheniusModel):
+        # Kinetics data is in Arrhenius format
+        kineticsData = ['Arrhenius']
+        kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%.2f' % (kinetics.Ea / 1000.), '%g' % (kinetics.T0)])
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+
+    elif isinstance(kinetics, ArrheniusEPModel):
+        # Kinetics data is in ArrheniusEP format
+        kineticsData = ['Arrhenius']
+        kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%g' % (kinetics.alpha), '%.2f' % (kinetics.E0 / 1000.)])
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+
+    elif isinstance(kinetics, MultiArrheniusModel):
+        # Kinetics data is in MultiArrhenius format
+        kineticsData = ['MultiArrhenius']
+        arrheniusList = []
+        for arrh in kinetics.arrheniusList:
+            kineticsData.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.)])
+        kineticsData.append(arrheniusList)
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+
+    elif isinstance(kinetics, PDepArrheniusModel):
+        # Kinetics data is in PDepArrhenius format
+        kineticsData = ['PDepArrhenius']
+        pdeparrhenius = []
+        for P, arrh in zip(kinetics.pressures, kinetics.arrhenius):
+            pdeparrhenius.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.), '%g' % (P / 1.0e5)])
+        kineticsData.append(pdeparrhenius)
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
+        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+        
+    elif isinstance(kinetics, ChebyshevModel):
+        # Kinetics data is in Chebyshev format
+        kineticsData = ['Chebyshev']
+        chebyshev = []
+        for i in range(kinetics.degreeT):
+            chebyshev.append(['%g' % kinetics.coeffs[i,j] for j in range(kinetics.degreeP)])
+        kineticsData.append(chebyshev)
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
+        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+
+    elif isinstance(kinetics, TroeModel):
+        # Kinetics data is in Troe format
+        kineticsData = ['Troe']
+        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
+        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusLow.A), '%.2f' % (kinetics.arrheniusLow.n), '%.2f' % (kinetics.arrheniusLow.Ea / 1000.), '%g' % (kinetics.arrheniusLow.T0)])
+        kineticsData.extend(['%g' % kinetics.alpha, '%g' % (kinetics.T3), '%g' % (kinetics.T1), '%g' % (kinetics.T2)])
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
+        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+
+    elif isinstance(kinetics, LindemannModel):
+        # Kinetics data is in Lindemann format
+        kineticsData = ['Lindemann']
+        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
+        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusLow.A), '%.2f' % (kinetics.arrheniusLow.n), '%.2f' % (kinetics.arrheniusLow.Ea / 1000.), '%g' % (kinetics.arrheniusLow.T0)])
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
+        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+        
+    elif isinstance(kinetics, ThirdBodyModel):
+        # Kinetics data is in ThirdBody format
+        kineticsData = ['ThirdBody']
+        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
+        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+
+    # Also include collision efficiencies for the relevant kinetics models
+    efficiencies = []
+    if isinstance(kinetics, ThirdBodyModel):
+        for molecule, efficiency in kinetics.efficiencies.iteritems():
+            efficiencies.append((getStructureMarkup(molecule), '%g' % efficiency))
+    kineticsData.append(efficiencies)
+    
+    return kineticsData
+
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
@@ -386,65 +483,9 @@ def kineticsEntry(request, section, subsection, index):
 
     # Prepare the kinetics data for passing to the template
     # This includes all string formatting, since we can't do that in the template
-    kineticsData = []
-    if isinstance(entry.data, ArrheniusModel):
-        # Kinetics data is in Arrhenius format
-        dataFormat = 'Arrhenius'
-        kineticsData = [getLaTeXScientificNotation(entry.data.A), '%.2f' % (entry.data.n), '%.2f' % (entry.data.Ea / 1000.), '%g' % (entry.data.T0)]
-        kineticsData.append('%g' % (entry.data.Tmin))
-        kineticsData.append('%g' % (entry.data.Tmax))
-    elif isinstance(entry.data, ArrheniusEPModel):
-        # Kinetics data is in ArrheniusEP format
-        dataFormat = 'ArrheniusEP'
-        kineticsData = [getLaTeXScientificNotation(entry.data.A), '%.2f' % (entry.data.n), '%g' % (entry.data.alpha), '%.2f' % (entry.data.E0 / 1000.)]
-    elif isinstance(entry.data, MultiArrheniusModel):
-        # Kinetics data is in MultiArrhenius format
-        dataFormat = 'MultiArrhenius'
-        for arrh in entry.data.arrheniusList:
-            kineticsData.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.)])
-    elif isinstance(entry.data, PDepArrheniusModel):
-        # Kinetics data is in PDepArrhenius format
-        dataFormat = 'PDepArrhenius'
-        for P, arrh in zip(entry.data.pressures, entry.data.arrhenius):
-            kineticsData.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.), '%g' % (P / 1.0e5)])
-    elif isinstance(entry.data, ChebyshevModel):
-        # Kinetics data is in Chebyshev format
-        dataFormat = 'Chebyshev'
-        for i in range(entry.data.degreeT):
-            kineticsData.append(['%g' % entry.data.coeffs[i,j] for j in range(entry.data.degreeP)])
-    elif isinstance(entry.data, TroeModel):
-        # Kinetics data is in Troe format
-        dataFormat = 'Troe'
-        kineticsData.extend([getLaTeXScientificNotation(entry.data.arrheniusHigh.A), '%.2f' % (entry.data.arrheniusHigh.n), '%.2f' % (entry.data.arrheniusHigh.Ea / 1000.), '%g' % (entry.data.arrheniusHigh.T0)])
-        kineticsData.extend([getLaTeXScientificNotation(entry.data.arrheniusLow.A), '%.2f' % (entry.data.arrheniusLow.n), '%.2f' % (entry.data.arrheniusLow.Ea / 1000.), '%g' % (entry.data.arrheniusLow.T0)])
-        kineticsData.extend(['%g' % entry.data.alpha, '%g' % (entry.data.T3), '%g' % (entry.data.T1), '%g' % (entry.data.T2)])
-        kineticsData.append('%g' % (entry.data.Tmin))
-        kineticsData.append('%g' % (entry.data.Tmax))
-        kineticsData.append('%g' % (entry.data.Pmin / 1.0e5))
-        kineticsData.append('%g' % (entry.data.Pmax / 1.0e5))
-    elif isinstance(entry.data, LindemannModel):
-        # Kinetics data is in Lindemann format
-        dataFormat = 'Lindemann'
-        kineticsData.extend([getLaTeXScientificNotation(entry.data.arrheniusHigh.A), '%.2f' % (entry.data.arrheniusHigh.n), '%.2f' % (entry.data.arrheniusHigh.Ea / 1000.), '%g' % (entry.data.arrheniusHigh.T0)])
-        kineticsData.extend([getLaTeXScientificNotation(entry.data.arrheniusLow.A), '%.2f' % (entry.data.arrheniusLow.n), '%.2f' % (entry.data.arrheniusLow.Ea / 1000.), '%g' % (entry.data.arrheniusLow.T0)])
-    elif isinstance(entry.data, ThirdBodyModel):
-        # Kinetics data is in ThirdBody format
-        dataFormat = 'ThirdBody'
-        kineticsData.extend([getLaTeXScientificNotation(entry.data.arrheniusHigh.A), '%.2f' % (entry.data.arrheniusHigh.n), '%.2f' % (entry.data.arrheniusHigh.Ea / 1000.), '%g' % (entry.data.arrheniusHigh.T0)])
-    elif isinstance(entry.data, str):
-        dataFormat = 'Link'
-        kineticsData = [database.entries[entry.data].index]
+    if isinstance(entry.data, str):
+        kineticsData = ['Link', database.entries[entry.data].index]
+    else:
+        kineticsData = prepareKineticsParameters(entry.data)
 
-    efficiencies = []
-    if isinstance(entry.data, ThirdBodyModel):
-        for molecule, efficiency in entry.data.efficiencies.iteritems():
-            efficiencies.append((getStructureMarkup(molecule), '%g' % efficiency))
-
-    Trange = ['%g' % (entry.data.Tmin), '%g' % (entry.data.Tmax)]
-    Prange = []
-    try:
-        if entry.data.isPressureDependent():
-            Prange = ['%g' % (entry.data.Pmin / 1e5), '%g' % (entry.data.Pmax / 1e5)]
-    except AttributeError: pass
-
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'dataFormat': dataFormat, 'kineticsData': kineticsData, 'efficiencies': efficiencies, 'Trange': Trange, 'Prange': Prange}, context_instance=RequestContext(request))
+    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))

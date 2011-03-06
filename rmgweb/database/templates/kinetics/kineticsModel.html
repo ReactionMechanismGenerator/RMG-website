@@ -1,0 +1,35 @@
+{% ifequal kineticsData.0 'Arrhenius' %}
+{% include "kinetics/arrhenius.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'ArrheniusEP' %}
+{% include "kinetics/arrheniusEP.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'MultiArrhenius' %}
+{% include "kinetics/multiArrhenius.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'PDepArrhenius' %}
+{% include "kinetics/pDepArrhenius.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'Chebyshev' %}
+{% include "kinetics/chebyshev.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'ThirdBody' %}
+{% include "kinetics/thirdBody.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'Lindemann' %}
+{% include "kinetics/lindemann.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'Troe' %}
+{% include "kinetics/troe.html" %}
+{% endifequal %}
+
+{% ifequal kineticsData.0 'Link' %}
+<p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=kineticsData.1 %}">{{ entry.data }}</a></p>
+{% endifequal %}

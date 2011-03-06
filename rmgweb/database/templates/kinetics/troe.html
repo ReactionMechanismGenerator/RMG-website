@@ -1,0 +1,79 @@
+{% comment %}
+This template expects a variable kineticsData with the following form:
+
+kineticsData[0]     = The value 'Troe'
+kineticsData[1]     = A list of Arrhenius parameters for the high-pressure limit
+kineticsData[2]     = A list of Arrhenius parameters for the low-pressure limit
+kineticsData[3]     = Troe alpha parameter
+kineticsData[4]     = Troe T3 parameter
+kineticsData[5]     = Troe T1 parameter
+kineticsData[6]     = Troe T2 parameter
+kineticsData[7]     = Minimum valid temperature in K
+kineticsData[8]     = Maximum valid temperature in K
+kineticsData[9]     = Minimum valid pressure in bar
+kineticsData[10]    = Maximum valid pressure in bar
+kineticsData[11]    = List of collision efficiencies 
+
+All of these values should be strings in the desired format.
+{% endcomment %}
+
+<div class="math">
+\begin{split}
+k(T,P) &= k_\infty(T) \left[ \frac{P_\mathrm{r}}{1 + P_\mathrm{r}} \right] F \\
+P_\mathrm{r} &= \frac{k_0(T)}{k_\infty(T)} [\mathrm{M}] \\
+\log F &= \left\{1 + \left[ \frac{\log P_\mathrm{r} + c}{n - d (\log P_\mathrm{r} + c)} \right]^2 \right\}^{-1} \log F_\mathrm{cent} \\
+c &= -0.4 - 0.67 \log F_\mathrm{cent} \\
+n &= 0.75 - 1.27 \log F_\mathrm{cent} \\
+d &= 0.14 \\
+F_\mathrm{cent} &= (1 - \alpha) \exp \left( -T/T_3 \right) + \alpha \exp \left( -T/T_1 \right){% if kineticsData.11 != 1e100 %} + \exp \left( -T_2/T \right){% endif %}
+\end{split}
+</div>
+
+<div class="math">
+\begin{split}
+{% with kineticsData.1 as arrh %}
+k_\infty(T) &= {{ arrh.0 }}
+{% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
+\exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} } \\
+{% endwith %}
+{% with kineticsData.2 as arrh %}
+k_0(T) &= {{ arrh.0 }}
+{% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
+\exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^6/mol^2*s{% else %}m^3/mol*s{% endif %} } \\
+{% endwith %}
+\alpha &= {{ kineticsData.3 }} \\
+T_3 &= {{ kineticsData.4 }} \ \mathrm{K} \\
+T_1 &= {{ kineticsData.5 }} \ \mathrm{K} \\
+{% if kineticsData.6 != 1e100 %}T_2 &= {{ kineticsData.6 }} \ \mathrm{K} {% endif %}
+\end{split}
+</div>
+
+{% if kineticsData.11|length > 0 %}
+<table style="margin: auto;">
+    <tr>
+        <th colspan="2">Collision efficiencies</th>
+    </tr>
+{% for label, eff in kineticsData.11 %}
+    <tr>
+        <td>{{ label|safe }}</td>
+        <td>{{ eff }}</td>
+    </tr>
+{% endfor %}
+</table>
+<br/>
+{% endif %}
+
+<table class="kineticsEntryData">
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.7 }} to {{ kineticsData.8 }} K</td>
+    </tr>
+    <tr>
+        <td class="key">Pressure range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.9 }} to {{ kineticsData.10 }} bar</td>
+    </tr>
+</table>

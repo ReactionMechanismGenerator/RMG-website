@@ -1,0 +1,53 @@
+{% comment %}
+This template expects a variable kineticsData with the following form:
+
+kineticsData[0]     = The value 'ThirdBody'
+kineticsData[1]     = A list of Arrhenius parameters for the high-pressure limit
+kineticsData[2]     = Minimum valid temperature in K
+kineticsData[3]     = Maximum valid temperature in K
+kineticsData[4]     = Minimum valid pressure in bar
+kineticsData[5]     = Maximum valid pressure in bar
+kineticsData[6]     = List of collision efficiencies 
+
+All of these values should be strings in the desired format.
+{% endcomment %}
+
+<div class="math">
+k(T,P) = k_\infty(T) [\mathrm{M}]
+</div>
+<div class="math">
+{% with kineticsData.1 as arrh %}
+k_\infty(T) = {{ arrh.0 }}
+{% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
+\exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+{% endwith %}
+</div>
+
+{% if kineticsData.6|length > 0 %}
+<table style="margin: auto;">
+    <tr>
+        <th colspan="2">Collision efficiencies</th>
+    </tr>
+{% for label, eff in kineticsData.6 %}
+    <tr>
+        <td>{{ label|safe }}</td>
+        <td>{{ eff }}</td>
+    </tr>
+{% endfor %}
+</table>
+<br/>
+{% endif %}
+
+<table class="kineticsEntryData">
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.2 }} to {{ kineticsData.3 }} K</td>
+    </tr>
+    <tr>
+        <td class="key">Pressure range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.4 }} to {{ kineticsData.5 }} bar</td>
+    </tr>
+</table>
