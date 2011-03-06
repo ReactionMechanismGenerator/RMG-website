@@ -1,0 +1,38 @@
+{% comment %}
+This template expects a variable thermoData as a list in the following form:
+
+thermoData[0]   = The value 'ThermoGA'
+thermoData[1]   = Enthalpy at 298 K in kJ/mol
+thermoData[2]   = Entropy at 298 K in J/mol*K
+thermoData[3]   = Minimum valid temperature in K
+thermoData[4]   = Maximum valid temperature in K
+thermoData[5:]  = (T, Cp) tuples, where T is temperature in K and Cp is heat 
+                  capacity in J/mol*K at that temperature
+
+All of these values should be strings in the desired format.
+{% endcomment %}
+
+<table class="thermoEntryData">
+    <tr>
+        <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.1 }} \ \mathrm{kJ/mol}</span></td>
+    </tr>
+    <tr>
+        <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ thermoData.2 }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    {% for T, Cp in thermoData|slice:"5:" %}
+    <tr>
+        <td class="key"><span class="math">C_\mathrm{p}^\circ({{ T }} \ \mathrm{K})</span></td>
+        <td class="equals">=</td>
+        <td class="value"><span class="math">{{ Cp }} \ \mathrm{J/mol \cdot K}</span></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td class="key">Temperature range</td>
+        <td class="equals">=</td>
+        <td class="value">{{ thermoData.3 }} to {{ thermoData.4 }} K</td>
+    </tr>
+</table>

@@ -212,6 +212,62 @@ def thermo(request, section='', subsection=''):
         # database components
         return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': thermoDatabase}, context_instance=RequestContext(request))
 
+def prepareThermoParameters(thermo):
+    """
+    Collect the thermodynamic parameters for the provided thermodynamics model
+    `thermo` and prepare them for viewing in a template. In particular, we must
+    do any string formatting here because we can't do that in the template
+    itself.
+    """
+
+    thermoData = []
+    
+    if isinstance(thermo, ThermoGAModel):
+        # Thermo data is in group additivity format
+        thermoData = ['Group additivity']
+        thermoData.extend(['%.2f' % (thermo.H298 / 1000.), '%.2f' % (thermo.S298)])
+        thermoData.append('%g' % (thermo.Tmin))
+        thermoData.append('%g' % (thermo.Tmax))
+        for T, Cp in zip(thermo.Tdata, thermo.Cpdata):
+            thermoData.append(('%g' % T, '%.2f' % Cp))
+
+    elif isinstance(thermo, WilhoitModel):
+        # Thermo data is in Wilhoit polynomial format
+        thermoData = [
+            'Wilhoit',
+            '%.2f' % (thermo.cp0),
+            '%.2f' % (thermo.cpInf),
+            '%s' % getLaTeXScientificNotation(thermo.a0),
+            '%s' % getLaTeXScientificNotation(thermo.a1),
+            '%s' % getLaTeXScientificNotation(thermo.a2),
+            '%s' % getLaTeXScientificNotation(thermo.a3),
+            '%.2f' % (thermo.H0 / 1000.),
+            '%.2f' % (thermo.S0),
+            '%.2f' % (thermo.B),
+            '%g' % (thermo.Tmin),
+            '%g' % (thermo.Tmax),
+        ]
+
+    elif isinstance(thermo, NASAModel):
+        # Thermo data is in NASA polynomial format
+        thermoData = ['NASA']
+        for poly in thermo.polynomials:
+            thermoData.append([
+                '%s' % getLaTeXScientificNotation(poly.cm2),
+                '%s' % getLaTeXScientificNotation(poly.cm1),
+                '%s' % getLaTeXScientificNotation(poly.c0),
+                '%s' % getLaTeXScientificNotation(poly.c1),
+                '%s' % getLaTeXScientificNotation(poly.c2),
+                '%s' % getLaTeXScientificNotation(poly.c3),
+                '%s' % getLaTeXScientificNotation(poly.c4),
+                '%s' % getLaTeXScientificNotation(poly.c5),
+                '%s' % getLaTeXScientificNotation(poly.c6),
+                '%g' % (poly.Tmin),
+                '%g' % (poly.Tmax),
+            ])
+
+    return thermoData
+
 def thermoEntry(request, section, subsection, index):
     """
     A view for showing an entry in a thermodynamics database.
@@ -236,57 +292,16 @@ def thermoEntry(request, section, subsection, index):
 
     # Prepare the thermo data for passing to the template
     # This includes all string formatting, since we can't do that in the template
-    if isinstance(entry.data, ThermoGAModel):
-        # Thermo data is in group additivity format
-        dataFormat = 'Group additivity'
-        thermoData = ['%.2f' % (entry.data.H298 / 1000.), '%.2f' % (entry.data.S298)]
-        thermoData.append('%g' % (entry.data.Tmin))
-        thermoData.append('%g' % (entry.data.Tmax))
-        for T, Cp in zip(entry.data.Tdata, entry.data.Cpdata):
-            thermoData.append(('%g' % T, '%.2f' % Cp))
-    elif isinstance(entry.data, WilhoitModel):
-        # Thermo data is in Wilhoit polynomial format
-        dataFormat = 'Wilhoit'
-        thermoData = [
-            '%.2f' % (entry.data.cp0),
-            '%.2f' % (entry.data.cpInf),
-            '%s' % getLaTeXScientificNotation(entry.data.a0),
-            '%s' % getLaTeXScientificNotation(entry.data.a1),
-            '%s' % getLaTeXScientificNotation(entry.data.a2),
-            '%s' % getLaTeXScientificNotation(entry.data.a3),
-            '%.2f' % (entry.data.H0 / 1000.),
-            '%.2f' % (entry.data.S0),
-            '%.2f' % (entry.data.B),
-            '%g' % (entry.data.Tmin),
-            '%g' % (entry.data.Tmax),
-        ]
-    elif isinstance(entry.data, NASAModel):
-        # Thermo data is in NASA polynomial format
-        dataFormat = 'NASA'
-        thermoData = []
-        for poly in entry.data.polynomials:
-            thermoData.append([
-                '%s' % getLaTeXScientificNotation(poly.cm2),
-                '%s' % getLaTeXScientificNotation(poly.cm1),
-                '%s' % getLaTeXScientificNotation(poly.c0),
-                '%s' % getLaTeXScientificNotation(poly.c1),
-                '%s' % getLaTeXScientificNotation(poly.c2),
-                '%s' % getLaTeXScientificNotation(poly.c3),
-                '%s' % getLaTeXScientificNotation(poly.c4),
-                '%s' % getLaTeXScientificNotation(poly.c5),
-                '%s' % getLaTeXScientificNotation(poly.c6),
-                '%g' % (poly.Tmin),
-                '%g' % (poly.Tmax),
-            ])
-    elif isinstance(entry.data, str):
-        dataFormat = 'Link'
-        thermoData = [database.entries[entry.data].index]
+    if isinstance(entry.data, str):
+        thermoData = ['Link', database.entries[entry.data].index]
+    else:
+        thermoData = prepareThermoParameters(entry.data)
 
     reference = entry.reference
     if reference[1:3] == '. ':
         reference = reference[0:2] + '\ ' + reference[2:]
 
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'dataFormat': dataFormat, 'thermoData': thermoData}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'thermoData': thermoData}, context_instance=RequestContext(request))
 
 ################################################################################
 
