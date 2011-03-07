@@ -68,7 +68,7 @@ jQuery(document).ready(function() {
     var Hlist = new Array();
     var Slist = new Array();
     var Glist = new Array();
-    for (var i = 0; i < 301; i++) {
+    for (var i = 0; i < 201; i++) {
         Tlist[i] = i * 10;
         Cplist[i] = null;
         Hlist[i] = null;
@@ -100,10 +100,12 @@ jQuery(document).ready(function() {
 
     }
 
-    plotHeatCapacity(Tlist, Cplist, 'plotCp');
-    plotEnthalpy(Tlist, Hlist, 'plotH');
-    plotEntropy(Tlist, Slist, 'plotS');
-    plotFreeEnergy(Tlist, Glist, 'plotG');
+    jsMath.Synchronize(function() {
+        plotHeatCapacity(Tlist, Cplist, 'plotCp');
+        plotEnthalpy(Tlist, Hlist, 'plotH');
+        plotEntropy(Tlist, Slist, 'plotS');
+        plotFreeEnergy(Tlist, Glist, 'plotG');
+    });
 
 });
 </script>
