@@ -25,90 +25,269 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-function thermoGA_getHeatCapacity(T, Tdata, Cpdata, H298, S298) {
-    Cp = 0.0;
-    if (T < Tdata[0])
-        Cp = Cpdata[0];
-    else if (T >= Tdata[Tdata.length-1])
-        Cp = Cpdata[Cpdata.length-1];
-    else { 
-        for (var i = 0; i < Tdata.length-1; i++) {
-            var Tmin  = Tdata [i]; var Tmax  = Tdata [i+1];
-            var Cpmin = Cpdata[i]; var Cpmax = Cpdata[i+1];
-            if (Tmin <= T && T < Tmax)
-                Cp = (Cpmax - Cpmin) * ((T - Tmin) / (Tmax - Tmin)) + Cpmin;
+/**
+ * A thermodynamics model defined by a set of discrete heat capacity data
+ * points, along with a reference enthalpy and entropy.
+ */
+function ThermoGAModel(Tdata, Cpdata, H298, S298, Tmin, Tmax) {
+
+    // The temperatures in K at which we have heat capacity data
+    this.Tdata = (Tdata) ? Tdata : [];
+    // The heat capacity in J/mol*K at each temperature
+    this.Cpdata = (Cpdata) ? Cpdata : [];
+    // The enthalpy at 298 K in J/mol
+    this.H298 = (H298) ? H298 : 0.0;
+    // The entropy at 298 K in J/mol*K
+    this.S298 = (S298) ? S298 : 0.0;
+    // The minimum valid temperature in K
+    this.Tmin = (Tmin) ? Tmin : 0.0;
+    // The maximum valid temperature in K
+    this.Tmax = (Tmax) ? Tmax : 99999.9;
+
+    /**
+     * Return the heat capacity in J/mol*K at the given temperature `T` in K.
+     */
+    this.getHeatCapacity = function(T) {
+        Cp = 0.0;
+        if (T < this.Tdata[0])
+            Cp = this.Cpdata[0];
+        else if (T >= this.Tdata[this.Tdata.length-1])
+            Cp = this.Cpdata[this.Cpdata.length-1];
+        else {
+            for (var i = 0; i < this.Tdata.length-1; i++) {
+                var Tmin  = this.Tdata [i]; var Tmax  = this.Tdata [i+1];
+                var Cpmin = this.Cpdata[i]; var Cpmax = this.Cpdata[i+1];
+                if (Tmin <= T && T < Tmax)
+                    Cp = (Cpmax - Cpmin) * ((T - Tmin) / (Tmax - Tmin)) + Cpmin;
+            }
         }
+        return Cp;
     }
-    return Cp;
-}
 
-function thermoGA_getEnthalpy(T, Tdata, Cpdata, H298, S298) {
-    H = H298;
-    for (var i = 0; i < Tdata.length-1; i++) {
-        var Tmin  = Tdata [i]; var Tmax  = Tdata [i+1];
-        var Cpmin = Cpdata[i]; var Cpmax = Cpdata[i+1];
-        if (T > Tmin) {
-            var slope = (Cpmax - Cpmin) / (Tmax - Tmin);
-            var intercept = (Cpmin * Tmax - Cpmax * Tmin) / (Tmax - Tmin);
-            if (T < Tmax) H += 0.5 * slope * (T*T - Tmin*Tmin) + intercept * (T - Tmin);
-            else          H += 0.5 * slope * (Tmax*Tmax - Tmin*Tmin) + intercept * (Tmax - Tmin);
+    /**
+     * Return the enthalpy in J/mol at the given temperature `T` in K.
+     */
+    this.getEnthalpy = function(T) {
+        H = this.H298;
+        for (var i = 0; i < this.Tdata.length-1; i++) {
+            var Tmin  = this.Tdata [i]; var Tmax  = this.Tdata [i+1];
+            var Cpmin = this.Cpdata[i]; var Cpmax = this.Cpdata[i+1];
+            if (T > Tmin) {
+                var slope = (Cpmax - Cpmin) / (Tmax - Tmin);
+                var intercept = (Cpmin * Tmax - Cpmax * Tmin) / (Tmax - Tmin);
+                if (T < Tmax) H += 0.5 * slope * (T*T - Tmin*Tmin) + intercept * (T - Tmin);
+                else          H += 0.5 * slope * (Tmax*Tmax - Tmin*Tmin) + intercept * (Tmax - Tmin);
+            }
         }
+        if (T > this.Tdata[this.Tdata.length-1])
+            H += this.Cpdata[this.Cpdata.length-1] * (T - this.Tdata[this.Tdata.length-1]);
+        return H;
     }
-    if (T > Tdata[Tdata.length-1])
-        H += Cpdata[Cpdata.length-1] * (T - Tdata[Tdata.length-1]);
-    return H;
-}
 
-function thermoGA_getEntropy(T, Tdata, Cpdata, H298, S298) {
-    S = S298;
-    for (var i = 0; i < Tdata.length-1; i++) {
-        var Tmin  = Tdata [i]; var Tmax  = Tdata [i+1];
-        var Cpmin = Cpdata[i]; var Cpmax = Cpdata[i+1];
-        if (T > Tmin) {
-            var slope = (Cpmax - Cpmin) / (Tmax - Tmin);
-            var intercept = (Cpmin * Tmax - Cpmax * Tmin) / (Tmax - Tmin);
-            if (T < Tmax) S += slope * (T - Tmin) + intercept * Math.log(T/Tmin);
-            else          S += slope * (Tmax - Tmin) + intercept * Math.log(Tmax/Tmin);
+    /**
+     * Return the entropy in J/mol*K at the given temperature `T` in K.
+     */
+    this.getEntropy = function(T) {
+        S = this.S298;
+        for (var i = 0; i < this.Tdata.length-1; i++) {
+            var Tmin  = this.Tdata [i]; var Tmax  = this.Tdata [i+1];
+            var Cpmin = this.Cpdata[i]; var Cpmax = this.Cpdata[i+1];
+            if (T > Tmin) {
+                var slope = (Cpmax - Cpmin) / (Tmax - Tmin);
+                var intercept = (Cpmin * Tmax - Cpmax * Tmin) / (Tmax - Tmin);
+                if (T < Tmax) S += slope * (T - Tmin) + intercept * Math.log(T/Tmin);
+                else          S += slope * (Tmax - Tmin) + intercept * Math.log(Tmax/Tmin);
+            }
         }
+        if (T > this.Tdata[this.Tdata.length-1])
+            S += this.Cpdata[this.Cpdata.length-1] * Math.log(T / this.Tdata[this.Tdata.length-1]);
+        return S;
     }
-    if (T > Tdata[Tdata.length-1])
-        S += Cpdata[Cpdata.length-1] * Math.log(T / Tdata[Tdata.length-1]);
-    return S;
+
+    /**
+     * Return the Gibbs free energy in J/mol*K at the given temperature `T` in
+     * K.
+     */
+    this.getFreeEnergy = function(T) {
+        return this.getEnthalpy(T) - T * this.getEntropy(T);
+    }
 }
 
-function wilhoit_getHeatCapacity(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0) {
-    var y = T / (T + B);
-    return Cp0 + (CpInf - Cp0)*y*y*(1 + (y-1)*(a0 + y*(a1 + y*(a2 + y*a3))));
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A thermodynamics model based on the Wilhoit polynomial model of heat
+ * capacity.
+ */
+function WilhoitModel(cp0, cpInf, a0, a1, a2, a3, B, H0, S0, Tmin, Tmax) {
+
+    // The heat capacity at zero temperature in J/mol*K
+    this.cp0 = (cp0) ? cp0 : 0.0;
+    // The heat capacity at infinite temperature in J/mol*K
+    this.cpInf = (cpInf) ? cpInf : 0.0;
+    // The Wilhoit zeroth-order polynomial coefficient
+    this.a0 = (a0) ? a0 : 0.0;
+    // The Wilhoit first-order polynomial coefficient
+    this.a1 = (a1) ? a1 : 0.0;
+    // The Wilhoit second-order polynomial coefficient
+    this.a2 = (a2) ? a2 : 0.0;
+    // The Wilhoit third-order polynomial coefficient
+    this.a3 = (a3) ? a3 : 0.0;
+    // The intermediate temperature in K
+    this.B = (B) ? B : 0.0;
+    // The enthalpy at zero temperature in J/mol
+    this.H0 = (H0) ? H0 : 0.0;
+    // The entropy at zero temperature in J/mol*K
+    this.S0 = (S0) ? S0 : 0.0;
+    // The minimum valid temperature in K
+    this.Tmin = (Tmin) ? Tmin : 0.0;
+    // The maximum valid temperature in K
+    this.Tmax = (Tmax) ? Tmax : 99999.9;
+
+    /**
+     * Return the heat capacity in J/mol*K at the given temperature `T` in K.
+     */
+    this.getHeatCapacity = function(T) {
+        var y = T / (T + this.B);
+        return this.cp0 + (this.cpInf - this.cp0)*y*y*(1 + (y-1)*(this.a0 + y*(this.a1 + y*(this.a2 + y*this.a3))));
+    }
+
+    /**
+     * Return the enthalpy in J/mol at the given temperature `T` in K.
+     */
+    this.getEnthalpy = function(T) {
+        var y = T / (T + this.B);
+        var y2 = y*y;
+        var logBplust = Math.log(this.B + T);
+        return this.H0 + this.cp0*T - (this.cpInf-this.cp0)*T*(y2*((3*this.a0 + this.a1 + this.a2 + this.a3)/6. + (4*this.a1 + this.a2 + this.a3)*y/12. + (5*this.a2 + this.a3)*y2/20. + this.a3*y2*y/5.) + (2 + this.a0 + this.a1 + this.a2 + this.a3)*( y/2. - 1 + (1/y-1)*logBplust));
+    }
+
+    /**
+     * Return the entropy in J/mol*K at the given temperature `T` in K.
+     */
+    this.getEntropy = function(T) {
+        var y = T / (T + this.B);
+        var logt = Math.log(T);
+        var logy = Math.log(y);
+        return this.S0 + this.cpInf*logt-(this.cpInf-this.cp0)*(logy+y*(1+y*(this.a0/2+y*(this.a1/3 + y*(this.a2/4 + y*this.a3/5)))));
+    }
+
+    /**
+     * Return the Gibbs free energy in J/mol*K at the given temperature `T` in
+     * K.
+     */
+    this.getFreeEnergy = function(T) {
+        return this.getEnthalpy(T) - T * this.getEntropy(T);
+    }
 }
 
-function wilhoit_getEnthalpy(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0) {
-    var y = T / (T + B);
-    var y2 = y*y;
-    var logBplust = Math.log(B + T);
-    return H0 + Cp0*T - (CpInf-Cp0)*T*(y2*((3*a0 + a1 + a2 + a3)/6. + (4*a1 + a2 + a3)*y/12. + (5*a2 + a3)*y2/20. + a3*y2*y/5.) + (2 + a0 + a1 + a2 + a3)*( y/2. - 1 + (1/y-1)*logBplust)); 
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A thermodynamics model based on the NASA polynomial model of heat
+ * capacity.
+ */
+function NASAPolynomial(coeffs, Tmin, Tmax) {
+
+    // The NASA polynomial coefficients
+    this.coeffs = (coeffs) ? coeffs : [];
+    // The minimum valid temperature in K
+    this.Tmin = (Tmin) ? Tmin : 0.0;
+    // The maximum valid temperature in K
+    this.Tmax = (Tmax) ? Tmax : 99999.9;
+
+    /**
+     * Return the heat capacity in J/mol*K at the given temperature `T` in K.
+     */
+    this.getHeatCapacity = function(T) {
+        return ((this.coeffs[0] / T + this.coeffs[1]) / T + this.coeffs[2] + T*(this.coeffs[3] + T*(this.coeffs[4] + T*(this.coeffs[5] + this.coeffs[6]*T)))) * 8.314472;
+    }
+
+    /**
+     * Return the enthalpy in J/mol at the given temperature `T` in K.
+     */
+    this.getEnthalpy = function(T) {
+        var T2 = T*T;
+        var T4 = T2*T2;
+        return ((-this.coeffs[0] / T + this.coeffs[1] * Math.log(T)) / T + this.coeffs[2] + this.coeffs[3]*T/2. + this.coeffs[4]*T2/3. + this.coeffs[5]*T2*T/4. + this.coeffs[6]*T4/5. + this.coeffs[7]/T) * 8.314472 * T;
+    }
+
+    /**
+     * Return the entropy in J/mol*K at the given temperature `T` in K.
+     */
+    this.getEntropy = function(T) {
+        var T2 = T*T;
+        var T4 = T2*T2;
+        return ((-this.coeffs[0] / T / 2. - this.coeffs[1]) / T + this.coeffs[2]*Math.log(T) + this.coeffs[3]*T + this.coeffs[4]*T2/2. + this.coeffs[5]*T2*T/3. + this.coeffs[6]*T4/4. + this.coeffs[8] ) * 8.314472;
+    }
+
+    /**
+     * Return the Gibbs free energy in J/mol*K at the given temperature `T` in
+     * K.
+     */
+    this.getFreeEnergy = function(T) {
+        return this.getEnthalpy(T) - T * this.getEntropy(T);
+    }
 }
 
-function wilhoit_getEntropy(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0) {
-    var y = T / (T + B);
-    var logt = Math.log(T);
-    var logy = Math.log(y);
-    return S0 + CpInf*logt-(CpInf-Cp0)*(logy+y*(1+y*(a0/2+y*(a1/3 + y*(a2/4 + y*a3/5)))));
-}
+////////////////////////////////////////////////////////////////////////////////
 
-function nasaPolynomial_getHeatCapacity(T, coeffs) {
-    return ((coeffs[0] / T + coeffs[1]) / T + coeffs[2] + T*(coeffs[3] + T*(coeffs[4] + T*(coeffs[5] + coeffs[6]*T)))) * 8.314472;
-}
+/**
+ * A thermodynamics model combining multiple NASA polynomials.
+ */
+function NASAModel(polynomials) {
 
-function nasaPolynomial_getEnthalpy(T, coeffs) {
-    var T2 = T*T;
-    var T4 = T2*T2;
-    return ((-coeffs[0] / T + coeffs[1] * Math.log(T)) / T + coeffs[2] + coeffs[3]*T/2. + coeffs[4]*T2/3. + coeffs[5]*T2*T/4. + coeffs[6]*T4/5. + coeffs[7]/T) * 8.314472 * T;
-}
+    // The NASA polynomials
+    this.polynomials = (polynomials) ? polynomials : [];
 
-function nasaPolynomial_getEntropy(T, coeffs) {
-    var T2 = T*T;
-    var T4 = T2*T2;
-    return ((-coeffs[0] / T / 2. - coeffs[1]) / T + coeffs[2]*Math.log(T) + coeffs[3]*T + coeffs[4]*T2/2. + coeffs[5]*T2*T/3. + coeffs[6]*T4/4. + coeffs[8] ) * 8.314472;
+    /**
+     * Return the heat capacity in J/mol*K at the given temperature `T` in K.
+     */
+    this.getHeatCapacity = function(T) {
+        for (var j = 0; j < polynomials.length; j++) {
+            if (polynomials[j].Tmin <= T && T <= polynomials[j].Tmax) {
+                return polynomials[j].getHeatCapacity(T);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the enthalpy in J/mol at the given temperature `T` in K.
+     */
+    this.getEnthalpy = function(T) {
+        for (var j = 0; j < polynomials.length; j++) {
+            if (polynomials[j].Tmin <= T && T <= polynomials[j].Tmax) {
+                return polynomials[j].getEnthalpy(T);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the entropy in J/mol*K at the given temperature `T` in K.
+     */
+    this.getEntropy = function(T) {
+        for (var j = 0; j < polynomials.length; j++) {
+            if (polynomials[j].Tmin <= T && T <= polynomials[j].Tmax) {
+                return polynomials[j].getEntropy(T);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the Gibbs free energy in J/mol*K at the given temperature `T` in
+     * K.
+     */
+    this.getFreeEnergy = function(T) {
+        for (var j = 0; j < polynomials.length; j++) {
+            if (polynomials[j].Tmin <= T && T <= polynomials[j].Tmax) {
+                return polynomials[j].getFreeEnergy(T);
+            }
+        }
+        return null;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
