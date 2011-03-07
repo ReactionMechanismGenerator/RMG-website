@@ -137,3 +137,289 @@ function nasaPolynomial_getEntropy(T, coeffs) {
     var T4 = T2*T2;
     return ((-coeffs[0] / T / 2. - coeffs[1]) / T + coeffs[2]*Math.log(T) + coeffs[3]*T + coeffs[4]*T2/2. + coeffs[5]*T2*T/3. + coeffs[6]*T4/4. + coeffs[8] ) * 8.314472;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+function plotHeatCapacity(Tdata, Cpdata, id) {
+
+    var data = new Array();
+    for (var i = 0; i < Tdata.length; i++)
+        data[i] = [Tdata[i], Cpdata[i]];
+    
+    options = {
+        chart: {
+            renderTo: id,
+            defaultSeriesType: 'line'
+        },
+        title: {
+            text: 'Heat capacity'
+        },
+        xAxis: {
+            title: {
+               text: 'Temperature (K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            min: 0,
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        yAxis: {
+            title: {
+               text: 'Heat capacity (J/mol*K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        legend: { enabled: false },
+        series: [{
+            data: data
+        }],
+        plotOptions: {
+            line: {
+                marker: { enabled: false }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '' + Highcharts.numberFormat(this.x, 0) +' K, ' + Highcharts.numberFormat(this.y, 2) + ' J/mol*K';
+            }
+        },
+        credits: { enabled: false }
+    }
+    
+    var chartCp = new Highcharts.Chart(options);
+}
+
+function plotEnthalpy(Tdata, Hdata, id) {
+
+    var data = new Array();
+    for (var i = 0; i < Tdata.length; i++)
+        data[i] = [Tdata[i], Hdata[i] / 1000.];
+
+    options = {
+        chart: {
+            renderTo: id,
+            defaultSeriesType: 'line'
+        },
+        title: {
+            text: 'Enthalpy'
+        },
+        xAxis: {
+            title: {
+               text: 'Temperature (K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            min: 0,
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        yAxis: {
+            title: {
+               text: 'Enthalpy (kJ/mol)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        legend: { enabled: false },
+        series: [{
+            data: data
+        }],
+        plotOptions: {
+            line: {
+                marker: { enabled: false }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '' + Highcharts.numberFormat(this.x, 0) +' K, ' + Highcharts.numberFormat(this.y, 2) + ' kJ/mol';
+            }
+        },
+        credits: { enabled: false }
+    }
+
+    var chartH = new Highcharts.Chart(options);
+}
+
+function plotEntropy(Tdata, Sdata, id) {
+
+    var data = new Array();
+    for (var i = 0; i < Tdata.length; i++)
+        data[i] = [Tdata[i], Sdata[i]];
+
+    options = {
+        chart: {
+            renderTo: id,
+            defaultSeriesType: 'line'
+        },
+        title: {
+            text: 'Entropy'
+        },
+        xAxis: {
+            title: {
+               text: 'Temperature (K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            min: 0,
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        yAxis: {
+            title: {
+               text: 'Entropy (J/mol*K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        legend: { enabled: false },
+        series: [{
+            data: data
+        }],
+        plotOptions: {
+            line: {
+                marker: { enabled: false }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '' + Highcharts.numberFormat(this.x, 0) +' K, ' + Highcharts.numberFormat(this.y, 2) + ' J/mol*K';
+            }
+        },
+        credits: { enabled: false }
+    }
+
+    var chartS = new Highcharts.Chart(options);
+}
+
+function plotFreeEnergy(Tdata, Gdata, id) {
+
+    var data = new Array();
+    for (var i = 0; i < Tdata.length; i++)
+        data[i] = [Tdata[i], Gdata[i] / 1000.];
+
+    options = {
+        chart: {
+            renderTo: id,
+            defaultSeriesType: 'line'
+        },
+        title: {
+            text: 'Gibbs free energy'
+        },
+        xAxis: {
+            title: {
+               text: 'Temperature (K)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            min: 0,
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        yAxis: {
+            title: {
+               text: 'Free energy (kJ/mol)'
+            },
+            labels: {
+                formatter: function() {
+                    return '' + Highcharts.numberFormat(this.value, 0, '.', '');
+                }
+            },
+            lineWidth: 1,
+            gridLineWidth: 0,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            minorTickPosition: 'inside',
+            minorTickInterval: 'auto',
+            minorTickWidth: 1,
+            minorGridLineWidth: 0
+        },
+        legend: { enabled: false },
+        series: [{
+            data: data
+        }],
+        plotOptions: {
+            line: {
+                marker: { enabled: false }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return '' + Highcharts.numberFormat(this.x, 0) +' K, ' + Highcharts.numberFormat(this.y, 2) + ' kJ/mol';
+            }
+        },
+        credits: { enabled: false }
+    }
+
+    var chartG = new Highcharts.Chart(options);
+}

@@ -19,5 +19,8 @@ rmgweb/media/jquery.js
 # jsMath
 rmgweb/media/jsMath/*
 
+# Highcharts
+rmgweb/media/Highcharts/*
+
 # Database files
 database/*
