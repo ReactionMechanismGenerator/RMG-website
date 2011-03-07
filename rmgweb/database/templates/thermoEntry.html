@@ -50,7 +50,15 @@ jQuery(document).ready(function() {
     S298 = {{ entry.data.S298 }};
     {% endifequal %}
     {% ifequal thermoData.0 "Wilhoit" %}
-
+    Cp0 = {{ entry.data.cp0 }};
+    CpInf = {{ entry.data.cpInf }};
+    a0 = {{ entry.data.a0 }};
+    a1 = {{ entry.data.a1 }};
+    a2 = {{ entry.data.a2 }};
+    a3 = {{ entry.data.a3 }};
+    B = {{ entry.data.B }};
+    H0 = {{ entry.data.H0 }};
+    S0 = {{ entry.data.S0 }};
     {% endifequal %}
     {% ifequal thermoData.0 "NASA" %}
     var polynomials = new Array();
@@ -69,34 +77,42 @@ jQuery(document).ready(function() {
     var Slist = new Array();
     var Glist = new Array();
     for (var i = 0; i < 201; i++) {
-        Tlist[i] = i * 10;
-        Cplist[i] = null;
-        Hlist[i] = null;
-        Slist[i] = null;
-        Glist[i] = null;
+        T = i * 10;
+        Cp = null;
+        H = null;
+        S = null;
+        G = null;
         {% ifequal thermoData.0 "Group additivity" %}
-        Cplist[i] = thermoGA_getHeatCapacity(Tlist[i], Tdata, Cpdata, H298, S298);
-        Hlist[i] = thermoGA_getEnthalpy(Tlist[i], Tdata, Cpdata, H298, S298);
-        Slist[i] = thermoGA_getEntropy(Tlist[i], Tdata, Cpdata, H298, S298);
-        Glist[i] = Hlist[i] - Tlist[i] * Slist[i];
+        Cp = thermoGA_getHeatCapacity(, Tdata, Cpdata, H298, S298);
+        H = thermoGA_getEnthalpy(T, Tdata, Cpdata, H298, S298);
+        S = thermoGA_getEntropy(T, Tdata, Cpdata, H298, S298);
+        G = H - T * S;
         {% endifequal %}
         {% ifequal thermoData.0 "Wilhoit" %}
-        Cplist[i] = wilhoit_getHeatCapacity(Tlist[i], Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
-        Hlist[i] = wilhoit_getEnthalpy(Tlist[i], Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
-        Slist[i] = wilhoit_getEntropy(Tlist[i], Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
-        Glist[i] = Hlist[i] - Tlist[i] * Slist[i];
+        Cp = wilhoit_getHeatCapacity(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
+        H = wilhoit_getEnthalpy(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
+        S = wilhoit_getEntropy(T, Cp0, CpInf, a0, a1, a2, a3, B, H0, S0);
+        G = H - T * S;
         {% endifequal %}
         {% ifequal thermoData.0 "NASA" %}
         for (var j = 0; j < polynomials.length; j++) {
-            if (Tmin[j] <= Tlist[i] && Tlist[i] <= Tmax[j]) {
-                Cplist[i] = nasaPolynomial_getHeatCapacity(Tlist[i], polynomials[j]);
-                Hlist[i] = nasaPolynomial_getEnthalpy(Tlist[i], polynomials[j]);
-                Slist[i] = nasaPolynomial_getEntropy(Tlist[i], polynomials[j]);
-                Glist[i] = Hlist[i] - Tlist[i] * Slist[i];
+            if (Tmin[j] <= T && T <= Tmax[j]) {
+                Cp = nasaPolynomial_getHeatCapacity(T, polynomials[j]);
+                H = nasaPolynomial_getEnthalpy(T, polynomials[j]);
+                S = nasaPolynomial_getEntropy(T, polynomials[j]);
+                G = H - T * S;
                 break;
             }
         }
         {% endifequal %}
+
+        if (T != null && Cp != null && H != null && S != null && G != null) {
+            Tlist.push(T);
+            Cplist.push(Cp);
+            Hlist.push(H);
+            Slist.push(S);
+            Glist.push(G);
+        }
 
     }
 
@@ -134,10 +150,10 @@ jQuery(document).ready(function() {
 <h2>Thermodynamic Data</h2>
 {% include "thermo/thermoModel.html" %}
 
-<div id="plotCp" style="width: 45%; height: 300px;"></div>
-<div id="plotH" style="width: 45%; height: 300px;"></div>
-<div id="plotS" style="width: 45%; height: 300px;"></div>
-<div id="plotG" style="width: 45%; height: 300px;"></div>
+<div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotS" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotG" style="width: 500px; height: 300px; margin: auto;"></div>
 
 <h2>Reference</h2>
 {% include "reference.html" %}
