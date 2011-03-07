@@ -34,6 +34,117 @@ table.kineticsEntryData td.reference p {
     margin: 0px;
 }
 </style>
+
+<script src="/media/kinetics.js" type="text/javascript"></script>
+
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    {% ifequal kineticsData.0 "Arrhenius" %}
+    kineticsModel = new ArrheniusModel(
+        {{ entry.data.A }},
+        {{ entry.data.n }},
+        {{ entry.data.Ea }},
+        {{ entry.data.T0 }},
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "ArrheniusEP" %}
+    kineticsModel = new ArrheniusEPModel(
+        {{ entry.data.A }},
+        {{ entry.data.n }},
+        {{ entry.data.alpha }},
+        {{ entry.data.E0 }},
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "MultiArrhenius" %}
+    kineticsModel = new MultiArrheniusModel([
+        {% for arrh in entry.data.arrheniusList %}
+        new ArrheniusModel({{ arrh.A }}, {{ arrh.n }}, {{ arrh.Ea }}, {{ arrh.T0 }}){% if not forloop.last %},{% endif %}
+        {% endfor %}],
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "PDepArrhenius" %}
+    kineticsModel = new PDepArrheniusModel(
+        [{% for P in entry.data.pressures %}P{% if not forloop.last %},{% endif %}{% endfor %}],
+        [
+        {% for arrh in entry.data.arrhenius %}
+            new ArrheniusModel({{ arrh.A }}, {{ arrh.n }}, {{ arrh.Ea }}, {{ arrh.T0 }}){% if not forloop.last %},{% endif %}
+        {% endfor %}],
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }},
+        {{ entry.data.Pmin }},
+        {{ entry.data.Pmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "Chebyshev" %}
+    kineticsModel = new ChebyshevModel([
+        {% for row in kineticsData.1 %}
+            [{% for col in row %}{{ col }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        {% endfor %}],
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }},
+        {{ entry.data.Pmin }},
+        {{ entry.data.Pmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "ThirdBody" %}
+    kineticsModel = new ThirdBodyModel(
+        new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }},
+        {{ entry.data.Pmin }},
+        {{ entry.data.Pmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "Lindemann" %}
+    kineticsModel = new LindemannModel(
+        new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
+        new ArrheniusModel({{ entry.data.arrheniusLow.A }}, {{ entry.data.arrheniusLow.n }}, {{ entry.data.arrheniusLow.Ea }}, {{ entry.data.arrheniusLow.T0 }}),
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }},
+        {{ entry.data.Pmin }},
+        {{ entry.data.Pmax }}
+    );
+    {% endifequal %}
+    {% ifequal kineticsData.0 "Troe" %}
+    kineticsModel = new TroeModel(
+        new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
+        new ArrheniusModel({{ entry.data.arrheniusLow.A }}, {{ entry.data.arrheniusLow.n }}, {{ entry.data.arrheniusLow.Ea }}, {{ entry.data.arrheniusLow.T0 }}),
+        {{ entry.data.alpha }},
+        {{ entry.data.T3 }},
+        {{ entry.data.T1 }},
+        {{ entry.data.T2 }},
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }},
+        {{ entry.data.Pmin }},
+        {{ entry.data.Pmax }}
+    );
+    {% endifequal %}
+
+    var klist = [];
+    for (var Tinv = 0.0005; Tinv < 0.0035; Tinv+=0.00001) {
+        T = 1.0 / Tinv;
+        k = kineticsModel.getRateCoefficient(T, 1e5);
+        if (T != null && k != null) {
+            klist.push([Tinv*1000, Math.log(k) / Math.LN10]);
+        }
+    }
+    
+    jsMath.Synchronize(function() {
+        plotKinetics('plotk', [['', klist]]);
+    });
+
+});
+</script>
 {% endblock %}
 
 {% block navbar_items %}
@@ -63,6 +174,8 @@ table.kineticsEntryData td.reference p {
 
 <h2>Kinetic Data</h2>
 {% include "kinetics/kineticsModel.html" %}
+
+<div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
 
 <h2>Reference</h2>
 {% include "reference.html" %}
