@@ -76,32 +76,30 @@ jQuery(document).ready(function() {
     ]);
     {% endifequal %}
     
-    var Tlist = new Array();
     var Cplist = new Array();
     var Hlist = new Array();
     var Slist = new Array();
     var Glist = new Array();
-    for (var i = 0; i < 201; i++) {
+    for (var i = 1; i < 201; i++) {
         T = i * 10;
         Cp = thermoData.getHeatCapacity(T);
         H = thermoData.getEnthalpy(T);
         S = thermoData.getEntropy(T);
         G = thermoData.getFreeEnergy(T);
         if (T != null && Cp != null && H != null && S != null && G != null) {
-            Tlist.push(T);
-            Cplist.push(Cp);
-            Hlist.push(H);
-            Slist.push(S);
-            Glist.push(G);
+            Cplist.push([T, Cp]);
+            Hlist.push([T, H / 1000.]);
+            Slist.push([T, S]);
+            Glist.push([T, G / 1000.]);
         }
 
     }
 
     jsMath.Synchronize(function() {
-        plotHeatCapacity(Tlist, Cplist, 'plotCp');
-        plotEnthalpy(Tlist, Hlist, 'plotH');
-        plotEntropy(Tlist, Slist, 'plotS');
-        plotFreeEnergy(Tlist, Glist, 'plotG');
+        plotHeatCapacity('plotCp', [['', Cplist]]);
+        plotEnthalpy('plotH', [['', Hlist]]);
+        plotEntropy('plotS', [['', Slist]]);
+        plotFreeEnergy('plotG', [['', Glist]]);
     });
 
 });

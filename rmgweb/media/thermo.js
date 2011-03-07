@@ -292,11 +292,15 @@ function NASAModel(polynomials) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function plotHeatCapacity(Tdata, Cpdata, id) {
+function plotHeatCapacity(id, Cpseries) {
 
-    var data = new Array();
-    for (var i = 0; i < Tdata.length; i++)
-        data[i] = [Tdata[i], Cpdata[i]];
+    series = [];
+    for (var i = 0; i < Cpseries.length; i++)
+        series.push({
+            name: Cpseries[i][0],
+            data: Cpseries[i][1]
+        });
+    var legendEnabled = (Cpseries.length > 1);
     
     options = {
         chart: {
@@ -311,10 +315,8 @@ function plotHeatCapacity(Tdata, Cpdata, id) {
         yAxis: {
             title: { text: 'Heat capacity (J/mol*K)' }
         },
-        legend: { enabled: false },
-        series: [{
-            data: data
-        }],
+        legend: { enabled: legendEnabled },
+        series: series,
         tooltip: {
             formatter: function() {
                 return 'Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
@@ -325,11 +327,15 @@ function plotHeatCapacity(Tdata, Cpdata, id) {
     var chartCp = new Highcharts.Chart(options);
 }
 
-function plotEnthalpy(Tdata, Hdata, id) {
+function plotEnthalpy(id, Hseries) {
 
-    var data = new Array();
-    for (var i = 0; i < Tdata.length; i++)
-        data[i] = [Tdata[i], Hdata[i] / 1000.];
+    series = [];
+    for (var i = 0; i < Hseries.length; i++)
+        series.push({
+            name: Hseries[i][0],
+            data: Hseries[i][1]
+        });
+    var legendEnabled = (Hseries.length > 1);
 
     options = {
         chart: {
@@ -344,10 +350,8 @@ function plotEnthalpy(Tdata, Hdata, id) {
         yAxis: {
             title: { text: 'Enthalpy (kJ/mol)' }
         },
-        legend: { enabled: false },
-        series: [{
-            data: data
-        }],
+        legend: { enabled: legendEnabled },
+        series: series,
         plotOptions: {
             line: {
                 marker: { enabled: false }
@@ -363,11 +367,15 @@ function plotEnthalpy(Tdata, Hdata, id) {
     var chartH = new Highcharts.Chart(options);
 }
 
-function plotEntropy(Tdata, Sdata, id) {
+function plotEntropy(id, Sseries) {
 
-    var data = new Array();
-    for (var i = 0; i < Tdata.length; i++)
-        data[i] = [Tdata[i], Sdata[i]];
+    series = [];
+    for (var i = 0; i < Sseries.length; i++)
+        series.push({
+            name: Sseries[i][0],
+            data: Sseries[i][1]
+        });
+    var legendEnabled = (Sseries.length > 1);
 
     options = {
         chart: {
@@ -382,10 +390,8 @@ function plotEntropy(Tdata, Sdata, id) {
         yAxis: {
             title: { text: 'Entropy (J/mol*K)' }
         },
-        legend: { enabled: false },
-        series: [{
-            data: data
-        }],
+        legend: { enabled: legendEnabled },
+        series: series,
         plotOptions: {
             line: {
                 marker: { enabled: false }
@@ -401,11 +407,15 @@ function plotEntropy(Tdata, Sdata, id) {
     var chartS = new Highcharts.Chart(options);
 }
 
-function plotFreeEnergy(Tdata, Gdata, id) {
+function plotFreeEnergy(id, Gseries) {
 
-    var data = new Array();
-    for (var i = 0; i < Tdata.length; i++)
-        data[i] = [Tdata[i], Gdata[i] / 1000.];
+    series = [];
+    for (var i = 0; i < Gseries.length; i++)
+        series.push({
+            name: Gseries[i][0],
+            data: Gseries[i][1]
+        });
+    var legendEnabled = (Gseries.length > 1);
 
     options = {
         chart: {
@@ -420,10 +430,8 @@ function plotFreeEnergy(Tdata, Gdata, id) {
         yAxis: {
             title: { text: 'Free energy (kJ/mol)' }
         },
-        legend: { enabled: false },
-        series: [{
-            data: data
-        }],
+        legend: { enabled: legendEnabled },
+        series: series,
         plotOptions: {
             line: {
                 marker: { enabled: false }

@@ -4,7 +4,94 @@
 
 {% block title %}Thermodynamics Data{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<script src="/media/thermo.js" type="text/javascript"></script>
+
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    thermoDataList = [];
+
+    {% for entry, thermoData, source, href in thermoDataList %}
+        {% ifequal thermoData.0 "Group additivity" %}
+        thermoData = new ThermoGAModel(
+            [{% for T in entry.data.Tdata %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            [{% for Cp in entry.data.Cpdata %}{{ Cp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            {{ entry.data.H298 }},
+            {{ entry.data.S298 }}
+        );
+        {% endifequal %}
+        {% ifequal thermoData.0 "Wilhoit" %}
+        thermoData = new WilhoitModel(
+            {{ entry.data.cp0 }},
+            {{ entry.data.cpInf }},
+            {{ entry.data.a0 }},
+            {{ entry.data.a1 }},
+            {{ entry.data.a2 }},
+            {{ entry.data.a3 }},
+            {{ entry.data.B }},
+            {{ entry.data.H0 }},
+            {{ entry.data.S0 }}
+        );
+        {% endifequal %}
+        {% ifequal thermoData.0 "NASA" %}
+        thermoData = new NASAModel([
+            {% for poly in entry.data.polynomials %}
+            new NASAPolynomial(
+                [{{ poly.cm2 }},{{ poly.cm1 }},{{ poly.c0 }},{{ poly.c1 }},{{ poly.c2 }},{{ poly.c3 }},{{ poly.c4 }},{{ poly.c5 }},{{ poly.c6 }}],
+                {{ poly.Tmin }},
+                {{ poly.Tmax }}
+            ),
+        {% endfor %}
+        ]);
+        {% endifequal %}
+    thermoDataList.push(["{{ source }}", thermoData]);
+    {% endfor %}
+
+    var Cpseries = [];
+    var Hseries = [];
+    var Sseries = [];
+    var Gseries = [];
+    for (var j = 0; j < thermoDataList.length; j++) {
+        name = thermoDataList[j][0];
+        thermoData = thermoDataList[j][1];
+        var Cplist = [];
+        var Hlist = [];
+        var Slist = [];
+        var Glist = [];
+        for (var i = 1; i < 201; i++) {
+            T = i * 10;
+            Cp = thermoData.getHeatCapacity(T);
+            H = thermoData.getEnthalpy(T);
+            S = thermoData.getEntropy(T);
+            G = thermoData.getFreeEnergy(T);
+            if (T != null && Cp != null && H != null && S != null && G != null) {
+                Cplist.push([T, Cp]);
+                Hlist.push([T, H / 1000.]);
+                Slist.push([T, S]);
+                Glist.push([T, G / 1000.]);
+            }
+
+        }
+        Cpseries.push([name, Cplist]);
+        Hseries.push([name, Hlist]);
+        Sseries.push([name, Slist]);
+        Gseries.push([name, Glist]);
+    }
+
+    jsMath.Synchronize(function() {
+        plotHeatCapacity('plotCp', Cpseries);
+        plotEnthalpy('plotH', Hseries);
+        plotEntropy('plotS', Sseries);
+        plotFreeEnergy('plotG', Gseries);
+    });
+
+});
+</script>
+{% endblock %}
 
 {% block navbar_items %}
 <a href="{% url database.views.index %}">Database</a>
@@ -24,7 +111,7 @@
 
 <h2>Thermodynamic Data</h2>
 
-{% for thermoData, source, href in thermoDataList %}
+{% for entry, thermoData, source, href in thermoDataList %}
 {% if href != '' %}
 <h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
 {% else %}
@@ -34,5 +121,10 @@
 {% include "thermo/thermoModel.html" %}
 <br/>
 {% endfor %}
+
+<div id="plotCp" style="width: 500px; height: 400px; margin: auto;"></div>
+<div id="plotH" style="width: 500px; height: 400px; margin: auto;"></div>
+<div id="plotS" style="width: 500px; height: 400px; margin: auto;"></div>
+<div id="plotG" style="width: 500px; height: 400px; margin: auto;"></div>
 
 {% endblock %}

@@ -42,7 +42,8 @@ from rmgpy.chem.pattern import MoleculePattern
 from rmgpy.chem.thermo import *
 from rmgpy.chem.kinetics import *
 
-from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.base import Entry
+from rmgpy.data.thermo import ThermoDatabase, convertThermoData
 from rmgpy.data.kinetics import KineticsDatabase
 
 from forms import *
@@ -345,8 +346,11 @@ def thermoData(request, adjlist):
     thermoDataList = []
     for data, library, entry in thermoDatabase.getAllThermoData(molecule):
         if library is None:
-            source = 'Group additivity estimate'
+            source = 'Group additivity'
             href = ''
+            data = convertThermoData(data, molecule, WilhoitModel)
+            data = convertThermoData(data, molecule, NASAModel)
+            entry = Entry(data=data)
         elif library in thermoDatabase.depository.values():
             source = 'Depository'
             href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
@@ -354,10 +358,12 @@ def thermoData(request, adjlist):
             source = library.name
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
+            entry,
             prepareThermoParameters(data),
             source,
             href,
         ))
+        print entry.data
     
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)

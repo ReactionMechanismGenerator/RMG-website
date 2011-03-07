@@ -1,6 +1,7 @@
 // Construct the theme
 Highcharts.theme = {
     chart: {
+        animation: false,
         zoomType: "xy"
     },
 	xAxis: {
