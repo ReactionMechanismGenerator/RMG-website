@@ -1,3 +1,7 @@
+{% ifequal kineticsData.0 'KineticsData' %}
+{% include "kinetics/kineticsData.html" %}
+{% endifequal %}
+
 {% ifequal kineticsData.0 'Arrhenius' %}
 {% include "kinetics/arrhenius.html" %}
 {% endifequal %}

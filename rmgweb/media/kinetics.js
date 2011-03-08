@@ -26,6 +26,45 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * A kinetics model defined by a set of discrete rate coefficient data
+ * points.
+ */
+function KineticsDataModel(Tdata, kdata, Tmin, Tmax) {
+
+    // The temperatures in K at which we have kinetics data
+    this.Tdata = (Tdata) ? Tdata : [];
+    // The rate coefficient in SI units at each temperature
+    this.kdata = (kdata) ? kdata : [];
+    // The minimum valid temperature in K
+    this.Tmin = (Tmin) ? Tmin : 0.0;
+    // The maximum valid temperature in K
+    this.Tmax = (Tmax) ? Tmax : 99999.9;
+
+    /**
+     * Return the rate coefficient in SI units at the given temperature `T` in K.
+     */
+    this.getRateCoefficient = function(T) {
+        var k = 0.0;
+        if (T < this.Tdata[0])
+            k = this.kdata[0];
+        else if (T >= this.Tdata[this.Tdata.length-1])
+            k = this.kdata[this.kdata.length-1];
+        else {
+            // Interpolate on T^-1 and log k domain
+            for (var i = 0; i < this.Tdata.length-1; i++) {
+                var Tmin = this.Tdata[i]; var Tmax = this.Tdata[i+1];
+                var kmin = this.kdata[i]; var kmax = this.kdata[i+1];
+                if (Tmin <= T && T < Tmax)
+                    k = Math.exp((Math.log(kmax) - Math.log(kmin)) * ((1.0/T - 1.0/Tmin) / (1.0/Tmax - 1.0/Tmin)) + Math.log(kmin));
+            }
+        }
+        return k;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
  * A kinetics model based on the (modified) Arrhenius equation.
  */
 function ArrheniusModel(A, n, Ea, T0, Tmin, Tmax) {

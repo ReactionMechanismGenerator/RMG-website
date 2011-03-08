@@ -43,6 +43,14 @@ table.kineticsEntryData td.reference p {
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
+    {% ifequal kineticsData.0 "KineticsData" %}
+    kineticsModel = new KineticsDataModel(
+        [{% for T in entry.data.Tdata %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        [{% for k in entry.data.kdata %}{{ k }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        {{ entry.data.Tmin }},
+        {{ entry.data.Tmax }}
+    );
+    {% endifequal %}
     {% ifequal kineticsData.0 "Arrhenius" %}
     kineticsModel = new ArrheniusModel(
         {{ entry.data.A }},

@@ -405,7 +405,9 @@ def kinetics(request, section='', subsection=''):
             products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
             arrow = '&hArr;' if entry.item.reversible else '&rarr;'
 
-            if isinstance(entry.data, ArrheniusModel): dataFormat = 'Arrhenius'
+            dataFormat = ''
+            if isinstance(entry.data, KineticsDataModel): dataFormat = 'KineticsData'
+            elif isinstance(entry.data, ArrheniusModel): dataFormat = 'Arrhenius'
             elif isinstance(entry.data, str): dataFormat = 'Link'
             elif isinstance(entry.data, ArrheniusEPModel): dataFormat = 'ArrheniusEP'
             elif isinstance(entry.data, MultiArrheniusModel): dataFormat = 'MultiArrhenius'
@@ -434,7 +436,17 @@ def prepareKineticsParameters(kinetics):
 
     kineticsData = []
 
-    if isinstance(kinetics, ArrheniusModel):
+    if isinstance(kinetics, KineticsDataModel):
+        # Kinetics data is in KineticsData format
+        kineticsData = ['KineticsData']
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        data = []
+        for T, k in zip(kinetics.Tdata, kinetics.kdata):
+            data.append(('%g' % T, getLaTeXScientificNotation(k)))
+        kineticsData.append(data)
+
+    elif isinstance(kinetics, ArrheniusModel):
         # Kinetics data is in Arrhenius format
         kineticsData = ['Arrhenius']
         kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%.2f' % (kinetics.Ea / 1000.), '%g' % (kinetics.T0)])
