@@ -465,7 +465,7 @@ def prepareKineticsParameters(kinetics):
         kineticsData = ['MultiArrhenius']
         arrheniusList = []
         for arrh in kinetics.arrheniusList:
-            kineticsData.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.)])
+            arrheniusList.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%.2f' % (arrh.Ea / 1000.), '%g' % (arrh.T0)])
         kineticsData.append(arrheniusList)
         kineticsData.append('%g' % (kinetics.Tmin))
         kineticsData.append('%g' % (kinetics.Tmax))
