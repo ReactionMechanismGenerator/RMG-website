@@ -623,7 +623,7 @@ def kineticsData(request, reactant1, reactant2=''):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
-        if library is None:
+        if library in kineticsDatabase.groups.values():
             source = '%s (Group additivity)' % (library.name)
             href = ''
             entry = Entry(data=kinetics)

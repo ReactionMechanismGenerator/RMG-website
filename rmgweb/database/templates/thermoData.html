@@ -16,38 +16,7 @@ jQuery(document).ready(function() {
     thermoDataList = [];
 
     {% for entry, thermoData, source, href in thermoDataList %}
-        {% ifequal thermoData.0 "Group additivity" %}
-        thermoData = new ThermoGAModel(
-            [{% for T in entry.data.Tdata %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            [{% for Cp in entry.data.Cpdata %}{{ Cp }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            {{ entry.data.H298 }},
-            {{ entry.data.S298 }}
-        );
-        {% endifequal %}
-        {% ifequal thermoData.0 "Wilhoit" %}
-        thermoData = new WilhoitModel(
-            {{ entry.data.cp0 }},
-            {{ entry.data.cpInf }},
-            {{ entry.data.a0 }},
-            {{ entry.data.a1 }},
-            {{ entry.data.a2 }},
-            {{ entry.data.a3 }},
-            {{ entry.data.B }},
-            {{ entry.data.H0 }},
-            {{ entry.data.S0 }}
-        );
-        {% endifequal %}
-        {% ifequal thermoData.0 "NASA" %}
-        thermoData = new NASAModel([
-            {% for poly in entry.data.polynomials %}
-            new NASAPolynomial(
-                [{{ poly.cm2 }},{{ poly.cm1 }},{{ poly.c0 }},{{ poly.c1 }},{{ poly.c2 }},{{ poly.c3 }},{{ poly.c4 }},{{ poly.c5 }},{{ poly.c6 }}],
-                {{ poly.Tmin }},
-                {{ poly.Tmax }}
-            ),
-        {% endfor %}
-        ]);
-        {% endifequal %}
+    {% include "thermo/thermoModelJS.html" %}
     thermoDataList.push(["{{ source }}", thermoData]);
     {% endfor %}
 
