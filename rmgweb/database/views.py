@@ -286,9 +286,10 @@ def thermoEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    try:
-        entry = database.entries[index]
-    except KeyError:
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
         raise Http404
 
     # Get the structure of the item we are viewing
@@ -547,9 +548,10 @@ def kineticsEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    try:
-        entry = database.entries[index]
-    except KeyError:
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
         raise Http404
         
     # Get the structure of the item we are viewing
