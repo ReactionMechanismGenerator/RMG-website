@@ -6,6 +6,7 @@ kineticsData[1]     = Minimum valid temperature in K
 kineticsData[2]     = Maximum valid temperature in K
 kineticsData[3]     = A list of (T, k) tuples, where T is temperature in K and
                       k is the rate coefficient in SI units at that temperature
+kineticsData[4]     = Reaction-path degeneracy
 
 All of these values should be strings in the desired format.
 {% endcomment %}
@@ -19,6 +20,11 @@ All of these values should be strings in the desired format.
         <td class="value"><span class="math">{{ k }} \ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }</span></td>
     </tr>
     {% endfor %}
+    {% if kineticsData.4 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.4 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>

@@ -5,6 +5,7 @@ kineticsData[0]     = The value 'MultiArrhenius'
 kineticsData[1]     = A list of lists of Arrhenius parameters
 kineticsData[2]     = Minimum valid temperature in K
 kineticsData[3]     = Maximum valid temperature in K
+kineticsData[4]     = Reaction-path degeneracy
 
 Each list of Arrhenius parameters has the following form:
 
@@ -32,6 +33,11 @@ k_{ {{ forloop.counter }} }(T) &= {{ arrh.0 }}
 </div>
 
 <table class="kineticsEntryData">
+    {% if kineticsData.4 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.4 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>

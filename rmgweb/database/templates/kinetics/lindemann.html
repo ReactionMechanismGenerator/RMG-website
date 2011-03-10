@@ -9,6 +9,7 @@ kineticsData[4]     = Maximum valid temperature in K
 kineticsData[5]     = Minimum valid pressure in bar
 kineticsData[6]     = Maximum valid pressure in bar
 kineticsData[7]     = List of collision efficiencies 
+kineticsData[8]     = Reaction-path degeneracy
 
 All of these values should be strings in the desired format.
 {% endcomment %}
@@ -53,6 +54,11 @@ k_0(T) &= {{ arrh.0 }}
 {% endif %}
 
 <table class="kineticsEntryData">
+    {% if kineticsData.8 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.8 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>

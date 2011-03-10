@@ -427,7 +427,7 @@ def kinetics(request, section='', subsection=''):
         # database components
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDatabase': kineticsDatabase}, context_instance=RequestContext(request))
 
-def prepareKineticsParameters(kinetics):
+def prepareKineticsParameters(kinetics, degeneracy):
     """
     Collect the thermodynamic parameters for the provided thermodynamics model
     `thermo` and prepare them for viewing in a template. In particular, we must
@@ -530,8 +530,13 @@ def prepareKineticsParameters(kinetics):
     if isinstance(kinetics, ThirdBodyModel):
         for molecule, efficiency in kinetics.efficiencies.iteritems():
             efficiencies.append((getStructureMarkup(molecule), '%g' % efficiency))
-    kineticsData.append(efficiencies)
-    
+        kineticsData.append(efficiencies)
+
+    # The last item in the list of data is the reaction path degeneracy
+    kineticsData.append('%i' % degeneracy)
+
+    print kineticsData
+
     return kineticsData
 
 def kineticsEntry(request, section, subsection, index):
@@ -567,7 +572,7 @@ def kineticsEntry(request, section, subsection, index):
     if isinstance(entry.data, str):
         kineticsData = ['Link', database.entries[entry.data].index]
     else:
-        kineticsData = prepareKineticsParameters(entry.data)
+        kineticsData = prepareKineticsParameters(entry.data, entry.item.degeneracy)
 
     return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
 
@@ -633,7 +638,7 @@ def kineticsData(request, reactant1, reactant2=''):
         elif library in kineticsDatabase.libraries:
             source = library.name
             href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
-        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics), source, href])
+        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics, reaction.degeneracy), source, href])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList}, context_instance=RequestContext(request))
 
