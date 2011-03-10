@@ -219,7 +219,7 @@ table.thermoData th, table.kineticsData th {
     text-align: left;
 }
 
-td.reactants img, td.products img {
+.reactants img, .products img {
     vertical-align: middle;
 }
 

@@ -568,3 +568,70 @@ def kineticsEntry(request, section, subsection, index):
         kineticsData = prepareKineticsParameters(entry.data)
 
     return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+
+def kineticsSearch(request):
+    """
+    A view of a form for specifying a set of reactants to search the database
+    for reactions.
+    """
+
+    # Load the kinetics database if necessary
+    loadKineticsDatabase()
+
+    if request.method == 'POST':
+        form = KineticsSearchForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            reactant1 = form.cleaned_data['reactant1']
+            reactant1 = reactant1.replace('\n', ';')
+            reactant1 = re.sub('\s+', '%20', reactant1)
+            reactant2 = form.cleaned_data['reactant2']
+            reactant2 = reactant2.replace('\n', ';')
+            reactant2 = re.sub('\s+', '%20', reactant2)
+            if reactant2 == '':
+                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1}))
+            else:
+                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1, 'reactant2': reactant2}))
+    else:
+        form = KineticsSearchForm()
+
+    return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
+
+def kineticsData(request, reactant1, reactant2=''):
+    """
+    A view used to present a list of reactions and the associated kinetics
+    for each.
+    """
+    from rmgpy.chem.molecule import Molecule
+
+    # Load the kinetics database if necessary
+    loadKineticsDatabase()
+
+    reactants = []
+
+    reactant1 = str(reactant1.replace(';', '\n'))
+    reactants.append(Molecule().fromAdjacencyList(reactant1))
+
+    if reactant2 != '':
+        reactant2 = str(reactant2.replace(';', '\n'))
+        reactants.append(Molecule().fromAdjacencyList(reactant2))
+
+    # Get the thermo data for the molecule
+    kineticsDataList = []
+    for reaction, kinetics, library, entry in kineticsDatabase.generateReactions(reactants):
+        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+        arrow = '&hArr;' if reaction.reversible else '&rarr;'
+        products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+        if library is None:
+            source = '%s (Group additivity)' % (library.name)
+            href = ''
+            entry = Entry(data=kinetics)
+        elif library in kineticsDatabase.depository.values():
+            source = '%s (depository)' % (library.name)
+            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
+        elif library in kineticsDatabase.libraries:
+            source = library.name
+            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics), source, href])
+
+    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList}, context_instance=RequestContext(request))
+

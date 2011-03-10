@@ -45,6 +45,9 @@ urlpatterns = patterns('rmgweb.database',
 
     # Kinetics database
     (r'^kinetics/$', 'views.kinetics'),
+    (r'^kinetics/search.html$', 'views.kineticsSearch'),
+    (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)_reactant2=(?P<reactant2>[\S\s]+)$', 'views.kineticsData'),
+    (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)$', 'views.kineticsData'),
     (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.kinetics'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.kineticsEntry'),

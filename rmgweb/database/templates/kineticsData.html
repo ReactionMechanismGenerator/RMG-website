@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{% block title %}Kinetics Data{% endblock %}
+{% block extrahead %}
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+&raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Kinetics Data{% endblock %}
+
+{% block page_body %}
+<h2>Kinetic Data</h2>
+
+{% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
+{% if href != '' %}
+<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
+{% else %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
+{% endif %}
+
+<p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
+
+{% include "kinetics/kineticsModel.html" %}
+<br/>
+{% endfor %}
+
+{% endblock %}
