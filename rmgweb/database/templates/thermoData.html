@@ -91,9 +91,9 @@ jQuery(document).ready(function() {
 <br/>
 {% endfor %}
 
-<div id="plotCp" style="width: 500px; height: 400px; margin: auto;"></div>
-<div id="plotH" style="width: 500px; height: 400px; margin: auto;"></div>
-<div id="plotS" style="width: 500px; height: 400px; margin: auto;"></div>
-<div id="plotG" style="width: 500px; height: 400px; margin: auto;"></div>
+<div id="plotCp" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+<div id="plotH" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+<div id="plotS" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+<div id="plotG" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
 {% endblock %}

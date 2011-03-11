@@ -369,7 +369,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)
 
-    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList}, context_instance=RequestContext(request))
+    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
 ################################################################################
 
@@ -640,5 +640,5 @@ def kineticsData(request, reactant1, reactant2=''):
             href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics, reaction.degeneracy), source, href])
 
-    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList}, context_instance=RequestContext(request))
+    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 
