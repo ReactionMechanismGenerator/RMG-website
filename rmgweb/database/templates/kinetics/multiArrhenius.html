@@ -5,6 +5,7 @@ kineticsData[0]     = The value 'MultiArrhenius'
 kineticsData[1]     = A list of lists of Arrhenius parameters
 kineticsData[2]     = Minimum valid temperature in K
 kineticsData[3]     = Maximum valid temperature in K
+kineticsData[4]     = Reaction-path degeneracy
 
 Each list of Arrhenius parameters has the following form:
 
@@ -17,21 +18,26 @@ All of these values should be strings in the desired format.
 {% endcomment %}
 
 <div class="math">
-k(T) = {% for arrh in kineticsData.0 %}k_{ {{ forloop.counter }} }(T){% if not forloop.last %} + {% endif %}{% endfor %}
+k(T) = {% for arrh in kineticsData.1 %}k_{ {{ forloop.counter }} }(T){% if not forloop.last %} + {% endif %}{% endfor %}
 </div>
 
 <div class="math">
 \begin{split}
 {% for arrh in kineticsData.1 %}
-k_{ {{ forloop.counter }} }(T) = {{ arrh.0 }}
+k_{ {{ forloop.counter }} }(T) &= {{ arrh.0 }}
 {% if arrh.3 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.3 }} \ \mathrm{K} } \right){% endif %}^{ {{ arrh.1 }} }
 \exp \left( - \frac{ {{ arrh.2 }} \ \mathrm{kJ/mol} }{ R T } \right)
-\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} } \\
 {% endfor %}
 \end{split}
 </div>
 
 <table class="kineticsEntryData">
+    {% if kineticsData.4 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.4 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>

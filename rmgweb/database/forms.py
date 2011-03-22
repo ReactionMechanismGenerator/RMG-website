@@ -62,3 +62,42 @@ class ThermoSearchForm(forms.Form):
             raise forms.ValidationError('Invalid adjacency list.')
         return str(self.cleaned_data['species'])
 
+class KineticsSearchForm(forms.Form):
+    """
+    This form provides a means of specifying a set of reactants to get
+    kinetic data for.
+    """
+
+    reactant1 = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
+    reactant2 = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+
+    def clean_reactant1(self):
+        """
+        Custom validation for the reactant1 field to ensure that a valid
+        adjacency list has been provided.
+        """
+        try:
+            molecule = Molecule()
+            molecule.fromAdjacencyList(str(self.cleaned_data['reactant1']))
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return str(self.cleaned_data['reactant1'])
+
+    def clean_reactant2(self):
+        """
+        Custom validation for the reactant1 field to ensure that a valid
+        adjacency list has been provided.
+        """
+        try:
+            adjlist = str(self.cleaned_data['reactant2'])
+            if adjlist.strip() == '': return ''
+            molecule = Molecule()
+            molecule.fromAdjacencyList(adjlist)
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return str(self.cleaned_data['reactant2'])
+

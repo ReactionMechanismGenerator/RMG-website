@@ -34,6 +34,45 @@ table.thermoEntryData td.reference p {
     margin: 0px;
 }
 </style>
+
+<script src="/media/thermo.js" type="text/javascript"></script>
+
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    {% include "thermo/thermoModelJS.html" %}
+    
+    var Cplist = new Array();
+    var Hlist = new Array();
+    var Slist = new Array();
+    var Glist = new Array();
+    for (var i = 1; i < 201; i++) {
+        T = i * 10;
+        Cp = thermoData.getHeatCapacity(T);
+        H = thermoData.getEnthalpy(T);
+        S = thermoData.getEntropy(T);
+        G = thermoData.getFreeEnergy(T);
+        if (T != null && Cp != null && H != null && S != null && G != null) {
+            Cplist.push([T, Cp]);
+            Hlist.push([T, H / 1000.]);
+            Slist.push([T, S]);
+            Glist.push([T, G / 1000.]);
+        }
+
+    }
+
+    jsMath.Synchronize(function() {
+        plotHeatCapacity('plotCp', [['', Cplist]]);
+        plotEnthalpy('plotH', [['', Hlist]]);
+        plotEntropy('plotS', [['', Slist]]);
+        plotFreeEnergy('plotG', [['', Glist]]);
+    });
+
+});
+</script>
 {% endblock %}
 
 {% block navbar_items %}
@@ -58,6 +97,11 @@ table.thermoEntryData td.reference p {
 
 <h2>Thermodynamic Data</h2>
 {% include "thermo/thermoModel.html" %}
+
+<div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotS" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotG" style="width: 500px; height: 300px; margin: auto;"></div>
 
 <h2>Reference</h2>
 {% include "reference.html" %}

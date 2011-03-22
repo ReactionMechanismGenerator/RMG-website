@@ -8,6 +8,7 @@ kineticsData[3]     = Evans-Polanyi slope (dimensionless)
 kineticsData[4]     = Evans-Polanyi thermoneutral activation energy in kJ/mol
 kineticsData[5]     = Minimum valid temperature in K
 kineticsData[6]     = Maximum valid temperature in K
+kineticsData[7]     = Reaction-path degeneracy
 
 All of these values should be strings in the desired format.
 {% endcomment %}
@@ -18,6 +19,11 @@ k(T) = {{ kineticsData.1 }} T^{ {{ kineticsData.2 }} } \exp \left( - \frac{ {{ k
 </div>
 
 <table class="kineticsEntryData">
+    {% if kineticsData.7 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.7 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>

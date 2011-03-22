@@ -42,7 +42,8 @@ from rmgpy.chem.pattern import MoleculePattern
 from rmgpy.chem.thermo import *
 from rmgpy.chem.kinetics import *
 
-from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.base import Entry
+from rmgpy.data.thermo import ThermoDatabase, convertThermoData
 from rmgpy.data.kinetics import KineticsDatabase
 
 from forms import *
@@ -285,9 +286,10 @@ def thermoEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    try:
-        entry = database.entries[index]
-    except KeyError:
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
         raise Http404
 
     # Get the structure of the item we are viewing
@@ -345,8 +347,11 @@ def thermoData(request, adjlist):
     thermoDataList = []
     for data, library, entry in thermoDatabase.getAllThermoData(molecule):
         if library is None:
-            source = 'Group additivity estimate'
+            source = 'Group additivity'
             href = ''
+            data = convertThermoData(data, molecule, WilhoitModel)
+            data = convertThermoData(data, molecule, NASAModel)
+            entry = Entry(data=data)
         elif library in thermoDatabase.depository.values():
             source = 'Depository'
             href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
@@ -354,15 +359,17 @@ def thermoData(request, adjlist):
             source = library.name
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
+            entry,
             prepareThermoParameters(data),
             source,
             href,
         ))
+        print entry.data
     
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)
 
-    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList}, context_instance=RequestContext(request))
+    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
 ################################################################################
 
@@ -399,7 +406,9 @@ def kinetics(request, section='', subsection=''):
             products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
             arrow = '&hArr;' if entry.item.reversible else '&rarr;'
 
-            if isinstance(entry.data, ArrheniusModel): dataFormat = 'Arrhenius'
+            dataFormat = ''
+            if isinstance(entry.data, KineticsDataModel): dataFormat = 'KineticsData'
+            elif isinstance(entry.data, ArrheniusModel): dataFormat = 'Arrhenius'
             elif isinstance(entry.data, str): dataFormat = 'Link'
             elif isinstance(entry.data, ArrheniusEPModel): dataFormat = 'ArrheniusEP'
             elif isinstance(entry.data, MultiArrheniusModel): dataFormat = 'MultiArrhenius'
@@ -418,7 +427,7 @@ def kinetics(request, section='', subsection=''):
         # database components
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDatabase': kineticsDatabase}, context_instance=RequestContext(request))
 
-def prepareKineticsParameters(kinetics):
+def prepareKineticsParameters(kinetics, degeneracy):
     """
     Collect the thermodynamic parameters for the provided thermodynamics model
     `thermo` and prepare them for viewing in a template. In particular, we must
@@ -428,7 +437,17 @@ def prepareKineticsParameters(kinetics):
 
     kineticsData = []
 
-    if isinstance(kinetics, ArrheniusModel):
+    if isinstance(kinetics, KineticsDataModel):
+        # Kinetics data is in KineticsData format
+        kineticsData = ['KineticsData']
+        kineticsData.append('%g' % (kinetics.Tmin))
+        kineticsData.append('%g' % (kinetics.Tmax))
+        data = []
+        for T, k in zip(kinetics.Tdata, kinetics.kdata):
+            data.append(('%g' % T, getLaTeXScientificNotation(k)))
+        kineticsData.append(data)
+
+    elif isinstance(kinetics, ArrheniusModel):
         # Kinetics data is in Arrhenius format
         kineticsData = ['Arrhenius']
         kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%.2f' % (kinetics.Ea / 1000.), '%g' % (kinetics.T0)])
@@ -447,7 +466,7 @@ def prepareKineticsParameters(kinetics):
         kineticsData = ['MultiArrhenius']
         arrheniusList = []
         for arrh in kinetics.arrheniusList:
-            kineticsData.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.)])
+            arrheniusList.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%.2f' % (arrh.Ea / 1000.), '%g' % (arrh.T0)])
         kineticsData.append(arrheniusList)
         kineticsData.append('%g' % (kinetics.Tmin))
         kineticsData.append('%g' % (kinetics.Tmax))
@@ -511,8 +530,13 @@ def prepareKineticsParameters(kinetics):
     if isinstance(kinetics, ThirdBodyModel):
         for molecule, efficiency in kinetics.efficiencies.iteritems():
             efficiencies.append((getStructureMarkup(molecule), '%g' % efficiency))
-    kineticsData.append(efficiencies)
-    
+        kineticsData.append(efficiencies)
+
+    # The last item in the list of data is the reaction path degeneracy
+    kineticsData.append('%i' % degeneracy)
+
+    print kineticsData
+
     return kineticsData
 
 def kineticsEntry(request, section, subsection, index):
@@ -529,9 +553,10 @@ def kineticsEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    try:
-        entry = database.entries[index]
-    except KeyError:
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
         raise Http404
         
     # Get the structure of the item we are viewing
@@ -547,6 +572,73 @@ def kineticsEntry(request, section, subsection, index):
     if isinstance(entry.data, str):
         kineticsData = ['Link', database.entries[entry.data].index]
     else:
-        kineticsData = prepareKineticsParameters(entry.data)
+        kineticsData = prepareKineticsParameters(entry.data, entry.item.degeneracy)
 
     return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+
+def kineticsSearch(request):
+    """
+    A view of a form for specifying a set of reactants to search the database
+    for reactions.
+    """
+
+    # Load the kinetics database if necessary
+    loadKineticsDatabase()
+
+    if request.method == 'POST':
+        form = KineticsSearchForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            reactant1 = form.cleaned_data['reactant1']
+            reactant1 = reactant1.replace('\n', ';')
+            reactant1 = re.sub('\s+', '%20', reactant1)
+            reactant2 = form.cleaned_data['reactant2']
+            reactant2 = reactant2.replace('\n', ';')
+            reactant2 = re.sub('\s+', '%20', reactant2)
+            if reactant2 == '':
+                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1}))
+            else:
+                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1, 'reactant2': reactant2}))
+    else:
+        form = KineticsSearchForm()
+
+    return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
+
+def kineticsData(request, reactant1, reactant2=''):
+    """
+    A view used to present a list of reactions and the associated kinetics
+    for each.
+    """
+    from rmgpy.chem.molecule import Molecule
+
+    # Load the kinetics database if necessary
+    loadKineticsDatabase()
+
+    reactants = []
+
+    reactant1 = str(reactant1.replace(';', '\n'))
+    reactants.append(Molecule().fromAdjacencyList(reactant1))
+
+    if reactant2 != '':
+        reactant2 = str(reactant2.replace(';', '\n'))
+        reactants.append(Molecule().fromAdjacencyList(reactant2))
+
+    # Get the thermo data for the molecule
+    kineticsDataList = []
+    for reaction, kinetics, library, entry in kineticsDatabase.generateReactions(reactants):
+        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+        arrow = '&hArr;' if reaction.reversible else '&rarr;'
+        products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+        if library in kineticsDatabase.groups.values():
+            source = '%s (Group additivity)' % (library.name)
+            href = ''
+            entry = Entry(data=kinetics)
+        elif library in kineticsDatabase.depository.values():
+            source = '%s (depository)' % (library.name)
+            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
+        elif library in kineticsDatabase.libraries:
+            source = library.name
+            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics, reaction.degeneracy), source, href])
+
+    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
+

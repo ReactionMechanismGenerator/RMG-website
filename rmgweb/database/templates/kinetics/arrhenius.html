@@ -8,6 +8,7 @@ kineticsData[3]     = Arrhenius activation energy in kJ/mol
 kineticsData[4]     = Arrhenius reference temperature in K
 kineticsData[5]     = Minimum valid temperature in K
 kineticsData[6]     = Maximum valid temperature in K
+kineticsData[7]     = Reaction-path degeneracy
 
 All of these values should be strings in the desired format.
 {% endcomment %}
@@ -20,6 +21,11 @@ k(T) = {{ kineticsData.1 }}
 </div>
 
 <table class="kineticsEntryData">
+    {% if kineticsData.7 != '1' %}<tr>
+        <td class="key">Reaction-path degeneracy</td>
+        <td class="equals">=</td>
+        <td class="value">{{ kineticsData.7 }}</td>
+    </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>
