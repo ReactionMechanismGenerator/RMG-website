@@ -68,8 +68,10 @@ class KineticsSearchForm(forms.Form):
     kinetic data for.
     """
 
-    reactant1 = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
-    reactant2 = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+    reactant1 = forms.CharField(label="Reactant #1", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
+    reactant2 = forms.CharField(label="Reactant #2", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+    product1 = forms.CharField(label="Product #1", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+    product2 = forms.CharField(label="Product #2", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
 
     def clean_reactant1(self):
         """
@@ -101,3 +103,34 @@ class KineticsSearchForm(forms.Form):
             raise forms.ValidationError('Invalid adjacency list.')
         return str(self.cleaned_data['reactant2'])
 
+    def clean_product1(self):
+        """
+        Custom validation for the product1 field to ensure that a valid
+        adjacency list has been provided.
+        """
+        try:
+            adjlist = str(self.cleaned_data['product1'])
+            if adjlist.strip() == '': return ''
+            molecule = Molecule()
+            molecule.fromAdjacencyList(adjlist)
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return str(self.cleaned_data['product1'])
+
+    def clean_product2(self):
+        """
+        Custom validation for the product1 field to ensure that a valid
+        adjacency list has been provided.
+        """
+        try:
+            adjlist = str(self.cleaned_data['product2'])
+            if adjlist.strip() == '': return ''
+            molecule = Molecule()
+            molecule.fromAdjacencyList(adjlist)
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return str(self.cleaned_data['product2'])

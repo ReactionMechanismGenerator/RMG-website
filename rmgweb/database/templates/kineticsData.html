@@ -55,6 +55,7 @@ jQuery(document).ready(function() {
 {% block page_title %}Kinetics Data{% endblock %}
 
 {% block page_body %}
+{% if kineticsDataList|length > 0 %}
 <h2>Kinetic Data</h2>
 
 {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
@@ -71,5 +72,8 @@ jQuery(document).ready(function() {
 {% endfor %}
 
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+{% else %}
+<p>No results found.</p>
+{% endif %}
 
 {% endblock %}

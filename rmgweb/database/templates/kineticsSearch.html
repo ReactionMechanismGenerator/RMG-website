@@ -19,6 +19,7 @@
 
 {% block page_body %}
 <form action="" method="POST">{% csrf_token %}
+<p>You can search either by reactants only or by both reactants and products.</p>
 {{ form.as_p }}
 <p><input type="submit" value="Submit" id="submit" /></p>
 </form>

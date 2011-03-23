@@ -588,22 +588,30 @@ def kineticsSearch(request):
     if request.method == 'POST':
         form = KineticsSearchForm(request.POST, error_class=DivErrorList)
         if form.is_valid():
+            kwargs = {}
+
             reactant1 = form.cleaned_data['reactant1']
-            reactant1 = reactant1.replace('\n', ';')
-            reactant1 = re.sub('\s+', '%20', reactant1)
+            kwargs['reactant1'] = re.sub('\s+', '%20', reactant1.replace('\n', ';'))
+
             reactant2 = form.cleaned_data['reactant2']
-            reactant2 = reactant2.replace('\n', ';')
-            reactant2 = re.sub('\s+', '%20', reactant2)
-            if reactant2 == '':
-                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1}))
-            else:
-                return HttpResponseRedirect(reverse(kineticsData, kwargs={'reactant1': reactant1, 'reactant2': reactant2}))
+            if reactant2 != '':
+                kwargs['reactant2'] = re.sub('\s+', '%20', reactant2.replace('\n', ';'))
+
+            product1 = form.cleaned_data['product1']
+            if product1 != '':
+                kwargs['product1'] = re.sub('\s+', '%20', product1.replace('\n', ';'))
+
+            product2 = form.cleaned_data['product2']
+            if product2 != '':
+                kwargs['product2'] = re.sub('\s+', '%20', product2.replace('\n', ';'))
+
+            return HttpResponseRedirect(reverse(kineticsData, kwargs=kwargs))
     else:
         form = KineticsSearchForm()
 
     return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
 
-def kineticsData(request, reactant1, reactant2=''):
+def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     """
     A view used to present a list of reactions and the associated kinetics
     for each.
@@ -619,12 +627,20 @@ def kineticsData(request, reactant1, reactant2=''):
     reactants.append(Molecule().fromAdjacencyList(reactant1))
 
     if reactant2 != '':
-        reactant2 = str(reactant2.replace(';', '\n'))
-        reactants.append(Molecule().fromAdjacencyList(reactant2))
+        reactants.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
 
-    # Get the thermo data for the molecule
+    if product1 != '' or product2 != '':
+        products = []
+        if product1 != '':
+            products.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
+        if product2 != '':
+            products.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
+    else:
+        products = None
+    
+    # Get the kinetics data for the reaction
     kineticsDataList = []
-    for reaction, kinetics, library, entry in kineticsDatabase.generateReactions(reactants):
+    for reaction, kinetics, library, entry in kineticsDatabase.generateReactions(reactants, products):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
