@@ -48,8 +48,8 @@ RMG Thermodynamics Database
 
 {% if section == 'libraries' or section == '' %}
 <ul>
-{% for library in thermoDatabase.libraries %}
-<li><a href="{% url database.views.thermo section='libraries' subsection=library.label %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+{% for subsection, library in thermoDatabase.libraries.items %}
+<li><a href="{% url database.views.thermo section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}

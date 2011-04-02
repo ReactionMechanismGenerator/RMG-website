@@ -43,36 +43,24 @@ from rmgpy.chem.thermo import *
 from rmgpy.chem.kinetics import *
 
 from rmgpy.data.base import Entry
-from rmgpy.data.thermo import ThermoDatabase, convertThermoData
-from rmgpy.data.kinetics import KineticsDatabase
+from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
 
 ################################################################################
 
-thermoDatabase = None
+database = None
 
-def loadThermoDatabase():
+def loadDatabase():
     """
     Load the thermodynamics database, if necessary. If the thermodynamics
     database is already loaded, then do nothing.
     """
-    global thermoDatabase
-    if not thermoDatabase:
-        thermoDatabase = ThermoDatabase()
-        thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
-
-kineticsDatabase = None
-
-def loadKineticsDatabase():
-    """
-    Load the kinetics database, if necessary. If the kinetics
-    database is already loaded, then do nothing.
-    """
-    global kineticsDatabase
-    if not kineticsDatabase:
-        kineticsDatabase = KineticsDatabase()
-        kineticsDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'kinetics'))
+    global database
+    if not database:
+        database = RMGDatabase()
+        database.load(path=os.path.join(settings.DATABASE_PATH))
+    return database
 
 def getThermoDatabase(section, subsection):
     """
@@ -80,25 +68,25 @@ def getThermoDatabase(section, subsection):
     given `section` and `subsection`. If either of these is invalid, a
     :class:`ValueError` is raised.
     """
-    global thermoDatabase
+    global database
 
     if section == 'depository':
         try:
-            database = thermoDatabase.depository[subsection]
+            db = database.thermo.depository[subsection]
         except KeyError:
             raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
     elif section == 'libraries':
-        libraries = [library for library in thermoDatabase.libraries if library.label == subsection]
+        libraries = [library for label, library in database.thermo.libraries.iteritems() if label == subsection]
         if len(libraries) != 1: raise Http404
-        database = libraries[0]
+        db = libraries[0]
     elif section == 'groups':
         try:
-            database = thermoDatabase.groups[subsection]
+            db = database.thermo.groups[subsection]
         except KeyError:
             raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
     else:
         raise ValueError('Invalid value "%s" for section parameter.' % section)
-    return database
+    return db
 
 def getKineticsDatabase(section, subsection):
     """
@@ -180,7 +168,7 @@ def thermo(request, section='', subsection=''):
         raise Http404
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    database = loadDatabase()
 
     if subsection != '':
 
@@ -202,9 +190,9 @@ def thermo(request, section='', subsection=''):
 
             structure = getStructureMarkup(entry.item)
 
-            if isinstance(entry.data, ThermoGAModel): dataFormat = 'Group additivity'
-            elif isinstance(entry.data, WilhoitModel): dataFormat = 'Wilhoit'
-            elif isinstance(entry.data, NASAModel): dataFormat = 'NASA'
+            if isinstance(entry.data, ThermoData): dataFormat = 'Group additivity'
+            elif isinstance(entry.data, Wilhoit): dataFormat = 'Wilhoit'
+            elif isinstance(entry.data, MultiNASA): dataFormat = 'NASA'
             elif isinstance(entry.data, str): dataFormat = 'Link'
 
             entries.append((entry.index,entry.label,structure,dataFormat))
@@ -214,7 +202,7 @@ def thermo(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the thermo
         # database components
-        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': thermoDatabase}, context_instance=RequestContext(request))
+        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': database.thermo}, context_instance=RequestContext(request))
 
 def prepareThermoParameters(thermo):
     """
@@ -226,33 +214,33 @@ def prepareThermoParameters(thermo):
 
     thermoData = []
     
-    if isinstance(thermo, ThermoGAModel):
+    if isinstance(thermo, ThermoData):
         # Thermo data is in group additivity format
         thermoData = ['Group additivity']
-        thermoData.extend(['%.2f' % (thermo.H298 / 1000.), '%.2f' % (thermo.S298)])
-        thermoData.append('%g' % (thermo.Tmin))
-        thermoData.append('%g' % (thermo.Tmax))
-        for T, Cp in zip(thermo.Tdata, thermo.Cpdata):
+        thermoData.extend(['%.2f' % (thermo.H298.value / 1000.), '%.2f' % (thermo.S298.value)])
+        thermoData.append('%s' % ('%g' % (thermo.Tmin.value) if thermo.Tmin is not None else 'None'))
+        thermoData.append('%s' % ('%g' % (thermo.Tmax.value) if thermo.Tmax is not None else 'None'))
+        for T, Cp in zip(thermo.Tdata.values, thermo.Cpdata.values):
             thermoData.append(('%g' % T, '%.2f' % Cp))
 
-    elif isinstance(thermo, WilhoitModel):
+    elif isinstance(thermo, Wilhoit):
         # Thermo data is in Wilhoit polynomial format
         thermoData = [
             'Wilhoit',
-            '%.2f' % (thermo.cp0),
-            '%.2f' % (thermo.cpInf),
-            '%s' % getLaTeXScientificNotation(thermo.a0),
-            '%s' % getLaTeXScientificNotation(thermo.a1),
-            '%s' % getLaTeXScientificNotation(thermo.a2),
-            '%s' % getLaTeXScientificNotation(thermo.a3),
-            '%.2f' % (thermo.H0 / 1000.),
-            '%.2f' % (thermo.S0),
-            '%.2f' % (thermo.B),
-            '%g' % (thermo.Tmin),
-            '%g' % (thermo.Tmax),
+            '%.2f' % (thermo.cp0.value),
+            '%.2f' % (thermo.cpInf.value),
+            '%s' % getLaTeXScientificNotation(thermo.a0.value),
+            '%s' % getLaTeXScientificNotation(thermo.a1.value),
+            '%s' % getLaTeXScientificNotation(thermo.a2.value),
+            '%s' % getLaTeXScientificNotation(thermo.a3.value),
+            '%.2f' % (thermo.H0.value / 1000.),
+            '%.2f' % (thermo.S0.value),
+            '%.2f' % (thermo.B.value),
+            '%s' % ('%g' % (thermo.Tmin.value) if thermo.Tmin is not None else 'None'),
+            '%s' % ('%g' % (thermo.Tmax.value) if thermo.Tmax is not None else 'None'),
         ]
 
-    elif isinstance(thermo, NASAModel):
+    elif isinstance(thermo, MultiNASA):
         # Thermo data is in NASA polynomial format
         thermoData = ['NASA']
         for poly in thermo.polynomials:
@@ -266,8 +254,8 @@ def prepareThermoParameters(thermo):
                 '%s' % getLaTeXScientificNotation(poly.c4),
                 '%s' % getLaTeXScientificNotation(poly.c5),
                 '%s' % getLaTeXScientificNotation(poly.c6),
-                '%g' % (poly.Tmin),
-                '%g' % (poly.Tmax),
+                '%s' % ('%g' % (poly.Tmin.value) if poly.Tmin is not None else 'None'),
+                '%s' % ('%g' % (poly.Tmax.value) if poly.Tmax is not None else 'None'),
             ])
 
     return thermoData
@@ -278,7 +266,7 @@ def thermoEntry(request, section, subsection, index):
     """
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase()
 
     # Determine the entry we wish to view
     try:
@@ -302,7 +290,7 @@ def thermoEntry(request, section, subsection, index):
     else:
         thermoData = prepareThermoParameters(entry.data)
 
-    reference = entry.reference
+    reference = str(entry.reference)
     if reference[1:3] == '. ':
         reference = reference[0:2] + '\ ' + reference[2:]
 
@@ -315,7 +303,7 @@ def thermoSearch(request):
     """
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase()
 
     if request.method == 'POST':
         form = ThermoSearchForm(request.POST, error_class=DivErrorList)
@@ -338,24 +326,24 @@ def thermoData(request, adjlist):
     from rmgpy.chem.molecule import Molecule
     
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase()
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
     # Get the thermo data for the molecule
     thermoDataList = []
-    for data, library, entry in thermoDatabase.getAllThermoData(molecule):
+    for data, library, entry in database.thermo.getAllThermoData(molecule):
         if library is None:
             source = 'Group additivity'
             href = ''
-            data = convertThermoData(data, molecule, WilhoitModel)
-            data = convertThermoData(data, molecule, NASAModel)
+            #data = convertThermoData(data, molecule, Wilhoit)
+            #data = convertThermoData(data, molecule, MultiNASA)
             entry = Entry(data=data)
-        elif library in thermoDatabase.depository.values():
+        elif library in database.thermo.depository.values():
             source = 'Depository'
             href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
-        elif library in thermoDatabase.libraries:
+        elif library in database.thermo.libraries:
             source = library.name
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
