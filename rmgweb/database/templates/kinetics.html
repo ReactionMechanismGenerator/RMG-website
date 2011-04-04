@@ -48,8 +48,8 @@ RMG Kinetics Database
 
 {% if section == 'libraries' or section == '' %}
 <ul>
-{% for library in kineticsDatabase.libraries %}
-<li><a href="{% url database.views.kinetics section='libraries' subsection=library.label %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+{% for subsection, library in kineticsDatabase.libraries.items %}
+<li><a href="{% url database.views.kinetics section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}

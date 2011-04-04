@@ -1,55 +1,59 @@
 {% ifequal kineticsData.0 "KineticsData" %}
 kineticsModel = new KineticsDataModel(
-    [{% for T in entry.data.Tdata %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
-    [{% for k in entry.data.kdata %}{{ k }}{% if not forloop.last %},{% endif %}{% endfor %}],
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }}
+    [{% for T in entry.data.Tdata.values %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
+    [{% for k in entry.data.kdata.values %}{{ k }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    {% if entry.data.Tmin != None and entry.data.Tmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "Arrhenius" %}
 kineticsModel = new ArrheniusModel(
-    {{ entry.data.A }},
-    {{ entry.data.n }},
-    {{ entry.data.Ea }},
-    {{ entry.data.T0 }},
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }}
+    {{ entry.data.A.value }},
+    {{ entry.data.n.value }},
+    {{ entry.data.Ea.value }},
+    {{ entry.data.T0.value }}
+    {% if entry.data.Tmin != None and entry.data.Tmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "ArrheniusEP" %}
 kineticsModel = new ArrheniusEPModel(
-    {{ entry.data.A }},
-    {{ entry.data.n }},
-    {{ entry.data.alpha }},
-    {{ entry.data.E0 }},
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }}
+    {{ entry.data.A.value }},
+    {{ entry.data.n.value }},
+    {{ entry.data.alpha.value }},
+    {{ entry.data.E0.value }}
+    {% if entry.data.Tmin != None and entry.data.Tmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "MultiArrhenius" %}
 kineticsModel = new MultiArrheniusModel([
     {% for arrh in entry.data.arrheniusList %}
-    new ArrheniusModel({{ arrh.A }}, {{ arrh.n }}, {{ arrh.Ea }}, {{ arrh.T0 }}){% if not forloop.last %},{% endif %}
-    {% endfor %}],
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }}
+    new ArrheniusModel({{ arrh.A.value }}, {{ arrh.n.value }}, {{ arrh.Ea.value }}, {{ arrh.T0.value }}){% if not forloop.last %},{% endif %}
+    {% endfor %}]
+    {% if entry.data.Tmin != None and entry.data.Tmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "PDepArrhenius" %}
 kineticsModel = new PDepArrheniusModel(
-    [{% for P in entry.data.pressures %}P{% if not forloop.last %},{% endif %}{% endfor %}],
+    [{% for P in entry.data.pressures.values %}P{% if not forloop.last %},{% endif %}{% endfor %}],
     [
     {% for arrh in entry.data.arrhenius %}
-        new ArrheniusModel({{ arrh.A }}, {{ arrh.n }}, {{ arrh.Ea }}, {{ arrh.T0 }}){% if not forloop.last %},{% endif %}
-    {% endfor %}],
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }},
-    {{ entry.data.Pmin }},
-    {{ entry.data.Pmax }}
+        new ArrheniusModel({{ arrh.A.value }}, {{ arrh.n.value }}, {{ arrh.Ea.value }}, {{ arrh.T0.value }}){% if not forloop.last %},{% endif %}
+    {% endfor %}]
+    {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }},
+    {{ entry.data.Pmin.value }},{{ entry.data.Pmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
@@ -57,46 +61,46 @@ kineticsModel = new PDepArrheniusModel(
 kineticsModel = new ChebyshevModel([
     {% for row in kineticsData.1 %}
         [{% for col in row %}{{ col }}{% if not forloop.last %},{% endif %}{% endfor %}],
-    {% endfor %}],
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }},
-    {{ entry.data.Pmin }},
-    {{ entry.data.Pmax }}
+    {% endfor %}]
+    {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }},
+    {{ entry.data.Pmin.value }},{{ entry.data.Pmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "ThirdBody" %}
 kineticsModel = new ThirdBodyModel(
-    new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }},
-    {{ entry.data.Pmin }},
-    {{ entry.data.Pmax }}
+    new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }})
+    {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }},
+    {{ entry.data.Pmin.value }},{{ entry.data.Pmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "Lindemann" %}
 kineticsModel = new LindemannModel(
-    new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
-    new ArrheniusModel({{ entry.data.arrheniusLow.A }}, {{ entry.data.arrheniusLow.n }}, {{ entry.data.arrheniusLow.Ea }}, {{ entry.data.arrheniusLow.T0 }}),
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }},
-    {{ entry.data.Pmin }},
-    {{ entry.data.Pmax }}
+    new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }}),
+    new ArrheniusModel({{ entry.data.arrheniusLow.A.value }}, {{ entry.data.arrheniusLow.n.value }}, {{ entry.data.arrheniusLow.Ea.value }}, {{ entry.data.arrheniusLow.T0.value }})
+    {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }},
+    {{ entry.data.Pmin.value }},{{ entry.data.Pmax.value }}
+    {% endif %}
 );
 {% endifequal %}
 
 {% ifequal kineticsData.0 "Troe" %}
 kineticsModel = new TroeModel(
-    new ArrheniusModel({{ entry.data.arrheniusHigh.A }}, {{ entry.data.arrheniusHigh.n }}, {{ entry.data.arrheniusHigh.Ea }}, {{ entry.data.arrheniusHigh.T0 }}),
-    new ArrheniusModel({{ entry.data.arrheniusLow.A }}, {{ entry.data.arrheniusLow.n }}, {{ entry.data.arrheniusLow.Ea }}, {{ entry.data.arrheniusLow.T0 }}),
-    {{ entry.data.alpha }},
-    {{ entry.data.T3 }},
-    {{ entry.data.T1 }},
-    {{ entry.data.T2 }},
-    {{ entry.data.Tmin }},
-    {{ entry.data.Tmax }},
-    {{ entry.data.Pmin }},
-    {{ entry.data.Pmax }}
+    new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }}),
+    new ArrheniusModel({{ entry.data.arrheniusLow.A.value }}, {{ entry.data.arrheniusLow.n.value }}, {{ entry.data.arrheniusLow.Ea.value }}, {{ entry.data.arrheniusLow.T0.value }}),
+    {{ entry.data.alpha.value }},
+    {{ entry.data.T3.value }},
+    {{ entry.data.T1.value }}
+    {% if entry.data.T2 != None %}, {{ entry.data.T2.value }}{% endif %}
+    {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
+    ,{{ entry.data.Tmin.value }},{{ entry.data.Tmax.value }},
+    {{ entry.data.Pmin.value }},{{ entry.data.Pmax.value }}
+    {% endif %}
 );
 {% endifequal %}

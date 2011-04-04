@@ -47,7 +47,7 @@ k_0(T) &= {{ arrh.0 }}
 \alpha &= {{ kineticsData.3 }} \\
 T_3 &= {{ kineticsData.4 }} \ \mathrm{K} \\
 T_1 &= {{ kineticsData.5 }} \ \mathrm{K} \\
-{% if kineticsData.6 != 1e100 %}T_2 &= {{ kineticsData.6 }} \ \mathrm{K} {% endif %}
+{% if kineticsData.6 != 'None' %}T_2 &= {{ kineticsData.6 }} \ \mathrm{K} {% endif %}
 \end{split}
 </div>
 
