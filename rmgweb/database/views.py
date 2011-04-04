@@ -43,6 +43,8 @@ from rmgpy.chem.thermo import *
 from rmgpy.chem.kinetics import *
 
 from rmgpy.data.base import Entry
+from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.kinetics import KineticsDatabase
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
@@ -51,15 +53,31 @@ from forms import *
 
 database = None
 
-def loadDatabase():
+def loadDatabase(component='', section=''):
     """
-    Load the thermodynamics database, if necessary. If the thermodynamics
-    database is already loaded, then do nothing.
+    Load the requested `component` of the RMG database if not already done.
     """
     global database
     if not database:
         database = RMGDatabase()
-        database.load(path=os.path.join(settings.DATABASE_PATH))
+        database.thermo = ThermoDatabase()
+        database.kinetics = KineticsDatabase()
+
+    if component in ['thermo', '']:
+        if section in ['depository', ''] and len(database.thermo.depository) == 0:
+            database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
+        if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
+            database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
+        if section in ['groups', ''] and len(database.thermo.groups) == 0:
+            database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
+    if component in ['kinetics', '']:
+        if section in ['depository', ''] and len(database.kinetics.depository) == 0:
+            database.kinetics.loadDepository(os.path.join(settings.DATABASE_PATH, 'kinetics', 'depository'))
+        if section in ['libraries', ''] and len(database.kinetics.libraries) == 0:
+            database.kinetics.loadLibraries(os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries'))
+        if section in ['groups', ''] and len(database.kinetics.groups) == 0:
+            database.kinetics.loadGroups(os.path.join(settings.DATABASE_PATH, 'kinetics', 'groups'))
+
     return database
 
 def getThermoDatabase(section, subsection):
@@ -168,7 +186,7 @@ def thermo(request, section='', subsection=''):
         raise Http404
 
     # Load the thermo database if necessary
-    database = loadDatabase()
+    database = loadDatabase('thermo', section)
 
     if subsection != '':
 
@@ -266,7 +284,7 @@ def thermoEntry(request, section, subsection, index):
     """
 
     # Load the thermo database if necessary
-    loadDatabase()
+    loadDatabase('thermo', section)
 
     # Determine the entry we wish to view
     try:
@@ -303,7 +321,7 @@ def thermoSearch(request):
     """
 
     # Load the thermo database if necessary
-    loadDatabase()
+    loadDatabase('thermo')
 
     if request.method == 'POST':
         form = ThermoSearchForm(request.POST, error_class=DivErrorList)
@@ -326,7 +344,7 @@ def thermoData(request, adjlist):
     from rmgpy.chem.molecule import Molecule
     
     # Load the thermo database if necessary
-    loadDatabase()
+    loadDatabase('thermo')
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
