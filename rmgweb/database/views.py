@@ -210,7 +210,13 @@ def thermo(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the thermo
         # database components
-        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': database.thermo}, context_instance=RequestContext(request))
+        thermoDepository = [(label, depository) for label, depository in database.thermo.depository.iteritems()]
+        thermoDepository.sort()
+        thermoLibraries = [(label, library) for label, library in database.thermo.libraries.iteritems()]
+        thermoLibraries.sort()
+        thermoGroups = [(label, groups) for label, groups in database.thermo.groups.iteritems()]
+        thermoGroups.sort()
+        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups}, context_instance=RequestContext(request))
 
 def prepareThermoParameters(thermo):
     """
@@ -419,11 +425,16 @@ def kinetics(request, section='', subsection=''):
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
-        print database.kinetics.depository
         # No subsection was specified, so render an outline of the kinetics
         # database components
-        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDatabase': database.kinetics}, context_instance=RequestContext(request))
-
+        kineticsDepository = [(label, depository) for label, depository in database.kinetics.depository.iteritems()]
+        kineticsDepository.sort()
+        kineticsLibraries = [(label, library) for label, library in database.kinetics.libraries.iteritems()]
+        kineticsLibraries.sort()
+        kineticsGroups = [(label, groups) for label, groups in database.kinetics.groups.iteritems()]
+        kineticsGroups.sort()
+        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDepository': kineticsDepository, 'kineticsLibraries': kineticsLibraries, 'kineticsGroups': kineticsGroups}, context_instance=RequestContext(request))
+        
 def prepareKineticsParameters(kinetics, degeneracy):
     """
     Collect the thermodynamic parameters for the provided thermodynamics model

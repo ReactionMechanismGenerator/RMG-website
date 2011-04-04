@@ -36,7 +36,7 @@ RMG Thermodynamics Database
 
 {% if section == 'depository' or section == '' %}
 <ul>
-{% for subsection, depository in thermoDatabase.depository.items %}
+{% for subsection, depository in thermoDepository %}
 <li><a href="{% url database.views.thermo section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
 {% endfor %}
 </ul>
@@ -48,7 +48,7 @@ RMG Thermodynamics Database
 
 {% if section == 'libraries' or section == '' %}
 <ul>
-{% for subsection, library in thermoDatabase.libraries.items %}
+{% for subsection, library in thermoLibraries %}
 <li><a href="{% url database.views.thermo section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
 {% endfor %}
 </ul>
@@ -61,7 +61,7 @@ RMG Thermodynamics Database
 {% if section == 'groups' or section == '' %}
 <ul>
     <li><a href="{% url database.views.thermo section='groups' subsection='group' %}">{{ thermoDatabase.groups.group.name }}</a> ({{ thermoDatabase.groups.group.entries|length }} entries)</li>
-{% for subsection, groups in thermoDatabase.groups.items %}
+{% for subsection, groups in thermoGroups %}
     {% if subsection != 'group' %}
         <li><a href="{% url database.views.thermo section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
     {% endif %}
