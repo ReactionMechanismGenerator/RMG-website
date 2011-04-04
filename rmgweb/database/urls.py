@@ -40,8 +40,8 @@ urlpatterns = patterns('rmgweb.database',
     (r'^thermo/search.html$', 'views.thermoSearch'),
     (r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', 'views.thermoData'),
     (r'^thermo/(?P<section>\w+)/$', 'views.thermo'),
-    (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.thermo'),
-    (r'^thermo/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.thermoEntry'),
+    (r'^thermo/(?P<section>\w+)/(?P<subsection>[^/]+)/$', 'views.thermo'),
+    (r'^thermo/(?P<section>\w+)/(?P<subsection>[^/]+)/(?P<index>\d+).html$', 'views.thermoEntry'),
 
     # Kinetics database
     (r'^kinetics/$', 'views.kinetics'),
@@ -53,7 +53,7 @@ urlpatterns = patterns('rmgweb.database',
     (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', 'views.kineticsData'),
     (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)$', 'views.kineticsData'),
     (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
-    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/$', 'views.kinetics'),
-    (r'^kinetics/(?P<section>\w+)/(?P<subsection>\w+)/(?P<index>\d+).html$', 'views.kineticsEntry'),
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>[^/]+)/$', 'views.kinetics'),
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>[^/]+)/(?P<index>\d+).html$', 'views.kineticsEntry'),
 
 )
