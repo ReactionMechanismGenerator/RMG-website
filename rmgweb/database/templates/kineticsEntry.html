@@ -43,7 +43,7 @@ table.kineticsEntryData td.reference p {
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
-    {% include "kinetics/kineticsModelJS.html" %}
+    {% include "kineticsModelJS.html" %}
 
     var klist = [];
     for (var Tinv = 0.0005; Tinv < 0.0035; Tinv+=0.00001) {
@@ -88,7 +88,7 @@ jQuery(document).ready(function() {
 <br/>
 
 <h2>Kinetic Data</h2>
-{% include "kinetics/kineticsModel.html" %}
+{% include "kineticsModel.html" %}
 
 <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
 
