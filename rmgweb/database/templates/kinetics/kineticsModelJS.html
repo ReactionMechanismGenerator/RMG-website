@@ -1,4 +1,4 @@
-{% ifequal kineticsData.0 "KineticsData" %}
+{% ifequal kineticsData.format "KineticsData" %}
 kineticsModel = new KineticsDataModel(
     [{% for T in entry.data.Tdata.values %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
     [{% for k in entry.data.kdata.values %}{{ k }}{% if not forloop.last %},{% endif %}{% endfor %}]
@@ -8,7 +8,7 @@ kineticsModel = new KineticsDataModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "Arrhenius" %}
+{% ifequal kineticsData.format "Arrhenius" %}
 kineticsModel = new ArrheniusModel(
     {{ entry.data.A.value }},
     {{ entry.data.n.value }},
@@ -20,7 +20,7 @@ kineticsModel = new ArrheniusModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "ArrheniusEP" %}
+{% ifequal kineticsData.format "ArrheniusEP" %}
 kineticsModel = new ArrheniusEPModel(
     {{ entry.data.A.value }},
     {{ entry.data.n.value }},
@@ -32,7 +32,7 @@ kineticsModel = new ArrheniusEPModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "MultiArrhenius" %}
+{% ifequal kineticsData.format "MultiArrhenius" %}
 kineticsModel = new MultiArrheniusModel([
     {% for arrh in entry.data.arrheniusList %}
     new ArrheniusModel({{ arrh.A.value }}, {{ arrh.n.value }}, {{ arrh.Ea.value }}, {{ arrh.T0.value }}){% if not forloop.last %},{% endif %}
@@ -43,7 +43,7 @@ kineticsModel = new MultiArrheniusModel([
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "PDepArrhenius" %}
+{% ifequal kineticsData.format "PDepArrhenius" %}
 kineticsModel = new PDepArrheniusModel(
     [{% for P in entry.data.pressures.values %}P{% if not forloop.last %},{% endif %}{% endfor %}],
     [
@@ -57,7 +57,7 @@ kineticsModel = new PDepArrheniusModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "Chebyshev" %}
+{% ifequal kineticsData.format "Chebyshev" %}
 kineticsModel = new ChebyshevModel([
     {% for row in kineticsData.1 %}
         [{% for col in row %}{{ col }}{% if not forloop.last %},{% endif %}{% endfor %}],
@@ -69,7 +69,7 @@ kineticsModel = new ChebyshevModel([
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "ThirdBody" %}
+{% ifequal kineticsData.format "ThirdBody" %}
 kineticsModel = new ThirdBodyModel(
     new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }})
     {% if entry.data.Tmin != None and entry.data.Tmax != None and entry.data.Pmin != None and entry.data.Pmax != None %}
@@ -79,7 +79,7 @@ kineticsModel = new ThirdBodyModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "Lindemann" %}
+{% ifequal kineticsData.format "Lindemann" %}
 kineticsModel = new LindemannModel(
     new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }}),
     new ArrheniusModel({{ entry.data.arrheniusLow.A.value }}, {{ entry.data.arrheniusLow.n.value }}, {{ entry.data.arrheniusLow.Ea.value }}, {{ entry.data.arrheniusLow.T0.value }})
@@ -90,7 +90,7 @@ kineticsModel = new LindemannModel(
 );
 {% endifequal %}
 
-{% ifequal kineticsData.0 "Troe" %}
+{% ifequal kineticsData.format "Troe" %}
 kineticsModel = new TroeModel(
     new ArrheniusModel({{ entry.data.arrheniusHigh.A.value }}, {{ entry.data.arrheniusHigh.n.value }}, {{ entry.data.arrheniusHigh.Ea.value }}, {{ entry.data.arrheniusHigh.T0.value }}),
     new ArrheniusModel({{ entry.data.arrheniusLow.A.value }}, {{ entry.data.arrheniusLow.n.value }}, {{ entry.data.arrheniusLow.Ea.value }}, {{ entry.data.arrheniusLow.T0.value }}),

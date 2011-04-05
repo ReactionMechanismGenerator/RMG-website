@@ -1,20 +1,6 @@
-{% comment %}
-This template expects a variable kineticsData with the following form:
-
-kineticsData[0]     = The value 'Chebyshev'
-kineticsData[1]     = A list of lists of Chebyshev polynomial coefficients
-kineticsData[2]     = Minimum valid temperature in K
-kineticsData[3]     = Maximum valid temperature in K
-kineticsData[4]     = Minimum valid pressure in bar
-kineticsData[5]     = Maximum valid pressure in bar
-kineticsData[6]     = Reaction-path degeneracy
-
-All of these values should be strings in the desired format.
-{% endcomment %}
-
 <div class="math">
 \begin{split}
-\log k(T,P) = \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\\tilde{T}) \phi_p(\tilde{P}) \\
+\log k(T,P) = \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\\tilde{T}) \phi_p(\tilde{P}) [\mathrm{ {{ kineticsData.coeffs.1 }} }] \\
 \tilde{T} &\equiv \frac{2T^{-1} - T_\mathrm{min}^{-1} - T_\mathrm{max}^{-1}}{T_\mathrm{max}^{-1} - T_\mathrm{min}^{-1}} \\
 \tilde{P} &\equiv \frac{2 \\log P - \log P_\\mathrm{min} - \log P_\mathrm{max}}{\log P_\\mathrm{max} - \log P_\mathrm{min}}
 \end{split}
@@ -22,7 +8,7 @@ All of these values should be strings in the desired format.
 
 C =
 <table>
-    {% for row in kineticsData.1 %}
+    {% for row in kineticsData.coeffs.0 %}
     <tr>
         {% for col in row %}
         <td>{{ col }}</td>
@@ -33,19 +19,27 @@ C =
 <br/>
 
 <table class="kineticsEntryData">
-    {% if kineticsData.6 != '1' %}<tr>
+    {% if kineticsData.degeneracy != '1' %}<tr>
         <td class="key">Reaction-path degeneracy</td>
         <td class="equals">=</td>
-        <td class="value">{{ kineticsData.6 }}</td>
+        <td class="value">{{ kineticsData.degeneracy }}</td>
     </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>
-        <td class="value">{{ kineticsData.2 }} to {{ kineticsData.3 }} K</td>
+        {% if kineticsData.Trange != None %}
+        <td class="value">{{ kineticsData.Trange.0 }} to {{ kineticsData.Trange.1 }} {{ kineticsData.Trange.2 }}</td>
+        {% else %}
+        <td class="value">Not given</td>
+        {% endif %}
     </tr>
     <tr>
         <td class="key">Pressure range</td>
         <td class="equals">=</td>
-        <td class="value">{{ kineticsData.4 }} to {{ kineticsData.5 }} bar</td>
+        {% if kineticsData.Prange != None %}
+        <td class="value">{{ kineticsData.Prange.0 }} to {{ kineticsData.Prange.1 }} {{ kineticsData.Prange.2 }}</td>
+        {% else %}
+        <td class="value">Not given</td>
+        {% endif %}
     </tr>
 </table>

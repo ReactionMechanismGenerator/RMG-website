@@ -1,34 +1,25 @@
-{% comment %}
-This template expects a variable kineticsData as a list in the following form:
-
-kineticsData[0]     = The value 'Arrhenius'
-kineticsData[1]     = Arrhenius preexponential factor in SI units (s^-1, m^3/mol*s, etc.)
-kineticsData[2]     = Arrhenius temperature exponent (dimensionless)
-kineticsData[3]     = Arrhenius activation energy in kJ/mol
-kineticsData[4]     = Arrhenius reference temperature in K
-kineticsData[5]     = Minimum valid temperature in K
-kineticsData[6]     = Maximum valid temperature in K
-kineticsData[7]     = Reaction-path degeneracy
-
-All of these values should be strings in the desired format.
-{% endcomment %}
-
 <div class="math">
-k(T) = {{ kineticsData.1 }}
-{% if kineticsData.4 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.4 }} \ \mathrm{K} } \right){% endif %}^{ {{ kineticsData.2 }} }
-\exp \left( - \frac{ {{ kineticsData.3 }} \ \mathrm{kJ/mol} }{ R T } \right)
-\ \mathrm{ {% if entry.item.reactants|length == 2 %}m^3/mol*s{% else %}s^{-1}{% endif %} }
+k(T) = {{ kineticsData.A.0 }}
+{% if kineticsData.n.0 != '0.00' %}
+{% if kineticsData.T0.0 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsData.T0.0 }} \ \mathrm{ {{ kineticsData.T0.1 }} } } \right){% endif %}^{ {{ kineticsData.n.0 }} }
+{% endif %}
+{% if kineticsData.Ea.0 != '0.00' %}\exp \left( - \frac{ {{ kineticsData.Ea.0 }} \ \mathrm{ {{ kineticsData.Ea.1 }} } }{ R T } \right){% endif %}
+\ \mathrm{ {{ kineticsData.A.1 }} }
 </div>
 
 <table class="kineticsEntryData">
-    {% if kineticsData.7 != '1' %}<tr>
+    {% if kineticsData.degeneracy != '1' %}<tr>
         <td class="key">Reaction-path degeneracy</td>
         <td class="equals">=</td>
-        <td class="value">{{ kineticsData.7 }}</td>
+        <td class="value">{{ kineticsData.degeneracy }}</td>
     </tr>{% endif %}
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>
-        <td class="value">{{ kineticsData.5 }} to {{ kineticsData.6 }} K</td>
+        {% if kineticsData.Trange != None %}
+        <td class="value">{{ kineticsData.Trange.0 }} to {{ kineticsData.Trange.1 }} {{ kineticsData.Trange.2 }}</td>
+        {% else %}
+        <td class="value">Not given</td>
+        {% endif %}
     </tr>
 </table>

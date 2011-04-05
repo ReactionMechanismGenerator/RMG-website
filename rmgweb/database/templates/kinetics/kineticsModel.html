@@ -1,39 +1,39 @@
-{% ifequal kineticsData.0 'KineticsData' %}
+{% ifequal kineticsData.format 'KineticsData' %}
 {% include "kinetics/kineticsData.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'Arrhenius' %}
+{% ifequal kineticsData.format 'Arrhenius' %}
 {% include "kinetics/arrhenius.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'ArrheniusEP' %}
+{% ifequal kineticsData.format 'ArrheniusEP' %}
 {% include "kinetics/arrheniusEP.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'MultiArrhenius' %}
+{% ifequal kineticsData.format 'MultiArrhenius' %}
 {% include "kinetics/multiArrhenius.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'PDepArrhenius' %}
+{% ifequal kineticsData.format 'PDepArrhenius' %}
 {% include "kinetics/pDepArrhenius.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'Chebyshev' %}
+{% ifequal kineticsData.format 'Chebyshev' %}
 {% include "kinetics/chebyshev.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'ThirdBody' %}
+{% ifequal kineticsData.format 'ThirdBody' %}
 {% include "kinetics/thirdBody.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'Lindemann' %}
+{% ifequal kineticsData.format 'Lindemann' %}
 {% include "kinetics/lindemann.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'Troe' %}
+{% ifequal kineticsData.format 'Troe' %}
 {% include "kinetics/troe.html" %}
 {% endifequal %}
 
-{% ifequal kineticsData.0 'Link' %}
+{% ifequal kineticsData.format 'Link' %}
 <p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=kineticsData.1 %}">{{ entry.data }}</a></p>
 {% endifequal %}
