@@ -1,15 +1,15 @@
-{% ifequal thermoData.0 'Group additivity' %}
+{% ifequal thermoData.format 'Group additivity' %}
 {% include "thermo/thermoGA.html" %}
 {% endifequal %}
 
-{% ifequal thermoData.0 'Wilhoit' %}
+{% ifequal thermoData.format 'Wilhoit' %}
 {% include "thermo/wilhoit.html" %}
 {% endifequal %}
 
-{% ifequal thermoData.0 'NASA' %}
+{% ifequal thermoData.format 'NASA' %}
 {% include "thermo/nasa.html" %}
 {% endifequal %}
 
-{% ifequal thermoData.0 'Link' %}
+{% ifequal thermoData.format 'Link' %}
 <p>Link: <a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.1 %}">{{ entry.data }}</a></p>
 {% endifequal %}

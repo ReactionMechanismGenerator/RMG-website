@@ -226,51 +226,53 @@ def prepareThermoParameters(thermo):
     itself.
     """
 
-    thermoData = []
+    thermoData = {}
     
     if isinstance(thermo, ThermoData):
         # Thermo data is in group additivity format
-        thermoData = ['Group additivity']
-        thermoData.extend(['%.2f' % (thermo.H298.value / 1000.), '%.2f' % (thermo.S298.value)])
-        thermoData.append('%s' % ('%g' % (thermo.Tmin.value) if thermo.Tmin is not None else 'None'))
-        thermoData.append('%s' % ('%g' % (thermo.Tmax.value) if thermo.Tmax is not None else 'None'))
+        thermoData['format'] = 'Group additivity'
+        thermoData['H298'] = ('%.2f' % (thermo.H298.value / 1000.),'kJ/mol')
+        thermoData['S298'] = ('%.2f' % (thermo.S298.value),'J/mol \\cdot K')
+        Cpdata = []
         for T, Cp in zip(thermo.Tdata.values, thermo.Cpdata.values):
-            thermoData.append(('%g' % T, '%.2f' % Cp))
-
+            Cpdata.append(('%g' % (T),'K', '%.2f' % (Cp), 'J/mol \\cdot K'))
+        thermoData['Cpdata'] = Cpdata
+        
     elif isinstance(thermo, Wilhoit):
         # Thermo data is in Wilhoit polynomial format
-        thermoData = [
-            'Wilhoit',
-            '%.2f' % (thermo.cp0.value),
-            '%.2f' % (thermo.cpInf.value),
-            '%s' % getLaTeXScientificNotation(thermo.a0.value),
-            '%s' % getLaTeXScientificNotation(thermo.a1.value),
-            '%s' % getLaTeXScientificNotation(thermo.a2.value),
-            '%s' % getLaTeXScientificNotation(thermo.a3.value),
-            '%.2f' % (thermo.H0.value / 1000.),
-            '%.2f' % (thermo.S0.value),
-            '%.2f' % (thermo.B.value),
-            '%s' % ('%g' % (thermo.Tmin.value) if thermo.Tmin is not None else 'None'),
-            '%s' % ('%g' % (thermo.Tmax.value) if thermo.Tmax is not None else 'None'),
-        ]
+        thermoData['format'] = 'Wilhoit'
+        thermoData['cp0'] = ('%.2f' % (thermo.cp0.value),'J/mol \\cdot K')
+        thermoData['cpInf'] = ('%.2f' % (thermo.cpInf.value),'J/mol \\cdot K')
+        thermoData['a0'] = ('%s' % getLaTeXScientificNotation(thermo.a0.value),'')
+        thermoData['a1'] = ('%s' % getLaTeXScientificNotation(thermo.a1.value),'')
+        thermoData['a2'] = ('%s' % getLaTeXScientificNotation(thermo.a2.value),'')
+        thermoData['a3'] = ('%s' % getLaTeXScientificNotation(thermo.a3.value),'')
+        thermoData['B'] = ('%.2f' % (thermo.B.value),'K')
+        thermoData['H0'] = ('%.2f' % (thermo.H0.value / 1000.),'kJ/mol')
+        thermoData['S0'] = ('%.2f' % (thermo.S0.value),'J/mol \\cdot K')
 
     elif isinstance(thermo, MultiNASA):
         # Thermo data is in NASA polynomial format
-        thermoData = ['NASA']
+        thermoData['format'] = 'NASA'
+        thermoData['polynomials'] = []
         for poly in thermo.polynomials:
-            thermoData.append([
-                '%s' % getLaTeXScientificNotation(poly.cm2),
-                '%s' % getLaTeXScientificNotation(poly.cm1),
-                '%s' % getLaTeXScientificNotation(poly.c0),
-                '%s' % getLaTeXScientificNotation(poly.c1),
-                '%s' % getLaTeXScientificNotation(poly.c2),
-                '%s' % getLaTeXScientificNotation(poly.c3),
-                '%s' % getLaTeXScientificNotation(poly.c4),
-                '%s' % getLaTeXScientificNotation(poly.c5),
-                '%s' % getLaTeXScientificNotation(poly.c6),
-                '%s' % ('%g' % (poly.Tmin.value) if poly.Tmin is not None else 'None'),
-                '%s' % ('%g' % (poly.Tmax.value) if poly.Tmax is not None else 'None'),
-            ])
+            thermoData['polynomials'].append({
+                'cm2': '%s' % getLaTeXScientificNotation(poly.cm2),
+                'cm1': '%s' % getLaTeXScientificNotation(poly.cm1),
+                'c0': '%s' % getLaTeXScientificNotation(poly.c0),
+                'c1': '%s' % getLaTeXScientificNotation(poly.c1),
+                'c2': '%s' % getLaTeXScientificNotation(poly.c2),
+                'c3': '%s' % getLaTeXScientificNotation(poly.c3),
+                'c4': '%s' % getLaTeXScientificNotation(poly.c4),
+                'c5': '%s' % getLaTeXScientificNotation(poly.c5),
+                'c6': '%s' % getLaTeXScientificNotation(poly.c6),
+                'Trange': ('%g' % (poly.Tmin.value), '%g' % (poly.Tmax.value), 'K'),
+            })
+
+    if thermo.Tmin is not None and thermo.Tmax is not None:
+        thermoData['Trange'] = ('%g' % (thermo.Tmin.value), '%g' % (thermo.Tmax.value), 'K')
+    else:
+        thermoData['Trange'] = None
 
     return thermoData
 

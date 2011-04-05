@@ -1,22 +1,3 @@
-{% comment %}
-This template expects a variable thermoData as a list in the following form:
-
-thermoData[0]   = The value 'Wilhoit'
-thermoData[1]   = Heat capacity at zero temperature in J/mol*K
-thermoData[2]   = Heat capacity at infinite temperature in J/mol*K
-thermoData[3]   = Wilhoit a0 parameter
-thermoData[4]   = Wilhoit a1 parameter
-thermoData[5]   = Wilhoit a2 parameter
-thermoData[6]   = Wilhoit a3 parameter
-thermoData[7]   = Enthalpy at zero temperature in kJ/mol
-thermoData[8]   = Entropy at zero temperature in J/mol*K
-thermoData[9]   = Intermediate temperature B in K
-thermoData[10]  = Minimum valid temperature in K
-thermoData[11]  = Maximum valid temperature in K
-
-All of these values should be strings in the desired format.
-{% endcomment %}
-
 <div class="math">
 \begin{split}
 C_\mathrm{p}(T) &= C_\mathrm{p}(0) + \left[ C_\mathrm{p}(\infty) -
@@ -31,51 +12,55 @@ y &\equiv \frac{T}{T + B}
     <tr>
         <td class="key"><span class="math">C_\mathrm{p}(0)</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.1 }} \ \mathrm{J/mol \cdot K}</span></td>
+        <td class="value"><span class="math">{{ thermoData.cp0.0 }} \ \mathrm{ {{ thermoData.cp0.1 }} }</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">C_\mathrm{p}(\infty)</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.2 }} \ \mathrm{J/mol \cdot K}</span></td>
+        <td class="value"><span class="math">{{ thermoData.cpInf.0 }} \ \mathrm{ {{ thermoData.cpInf.1 }} }</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">a_0</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.3 }}</span></td>
+        <td class="value"><span class="math">{{ thermoData.a0.0 }}</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">a_1</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.4 }}</span></td>
+        <td class="value"><span class="math">{{ thermoData.a1.0 }}</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">a_2</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.5 }}</span></td>
+        <td class="value"><span class="math">{{ thermoData.a2.0 }}</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">a_3</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.6 }}</span></td>
+        <td class="value"><span class="math">{{ thermoData.a3.0 }}</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">H_0</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.7 }} \ \mathrm{kJ/mol}</span></td>
+        <td class="value"><span class="math">{{ thermoData.H0.0 }} \ \mathrm{ {{ thermoData.H0.1 }} }</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">S_0</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.8 }} \ \mathrm{J/mol \cdot K}</span></td>
+        <td class="value"><span class="math">{{ thermoData.S0.0 }} \ \mathrm{ {{ thermoData.S0.1 }} }</span></td>
     </tr>
     <tr>
         <td class="key"><span class="math">B</span></td>
         <td class="equals">=</td>
-        <td class="value"><span class="math">{{ thermoData.9 }} \ \mathrm{K}</span></td>
+        <td class="value"><span class="math">{{ thermoData.B.0 }} \ \mathrm{ {{ thermoData.B.1 }} }</span></td>
     </tr>
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>
-        <td class="value">{{ thermoData.10 }} to {{ thermoData.11 }} K</td>
+        {% if thermoData.Trange != None %}
+        <td class="value">{{ thermoData.Trange.0 }} to {{ thermoData.Trange.1 }} {{ thermoData.Trange.2 }}</td>
+        {% else %}
+        <td class="value">Not given</td>
+        {% endif %}
     </tr>
 </table>

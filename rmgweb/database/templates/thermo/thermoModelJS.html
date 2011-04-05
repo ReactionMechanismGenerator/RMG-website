@@ -1,4 +1,4 @@
-{% ifequal thermoData.0 "Group additivity" %}
+{% ifequal thermoData.format "Group additivity" %}
 thermoData = new ThermoGAModel(
     [{% for T in entry.data.Tdata.values %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
     [{% for Cp in entry.data.Cpdata.values %}{{ Cp }}{% if not forloop.last %},{% endif %}{% endfor %}],
@@ -7,7 +7,7 @@ thermoData = new ThermoGAModel(
 );
 {% endifequal %}
 
-{% ifequal thermoData.0 "Wilhoit" %}
+{% ifequal thermoData.format "Wilhoit" %}
 thermoData = new WilhoitModel(
     {{ entry.data.cp0.value }},
     {{ entry.data.cpInf.value }},
@@ -21,7 +21,7 @@ thermoData = new WilhoitModel(
 );
 {% endifequal %}
 
-{% ifequal thermoData.0 "NASA" %}
+{% ifequal thermoData.format "NASA" %}
 thermoData = new NASAModel([
     {% for poly in entry.data.polynomials %}
     new NASAPolynomial(
