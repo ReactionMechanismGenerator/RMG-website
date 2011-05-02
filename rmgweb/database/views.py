@@ -405,11 +405,8 @@ def kinetics(request, section='', subsection=''):
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
-        for entry in entries0:
 
-            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-            products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+        for entry in entries0:
 
             dataFormat = ''
             if isinstance(entry.data, KineticsData): dataFormat = 'KineticsData'
@@ -422,9 +419,18 @@ def kinetics(request, section='', subsection=''):
             elif isinstance(entry.data, Troe): dataFormat = 'Troe'
             elif isinstance(entry.data, Lindemann): dataFormat = 'Lindemann'
             elif isinstance(entry.data, ThirdBody): dataFormat = 'ThirdBody'
-            
-            entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
 
+            if section == 'depository' or section == 'libraries':
+                reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
+                products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+                arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+                entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
+            elif section == 'groups':
+                structure = getStructureMarkup(entry.item)
+                entries.append((entry.index,entry.label,structure,dataFormat))
+            else:
+                raise Http404
+        
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
@@ -571,11 +577,11 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     kineticsData['degeneracy'] = '%i' % (degeneracy)
 
     # Set temperature and pressure ranges
-    if kinetics.Tmin is not None and kinetics.Tmax is not None:
+    if kinetics is not None and kinetics.Tmin is not None and kinetics.Tmax is not None:
         kineticsData['Trange'] = ('%g' % (kinetics.Tmin.value), '%g' % (kinetics.Tmax.value), 'K')
     else:
         kineticsData['Trange'] = None
-    if kinetics.Pmin is not None and kinetics.Pmax is not None:
+    if kinetics is not None and kinetics.Pmin is not None and kinetics.Pmax is not None:
         kineticsData['Prange'] = ('%g' % (kinetics.Pmin.value / 1e5), '%g' % (kinetics.Pmax.value / 1e5), 'bar')
     else:
         kineticsData['Prange'] = None
@@ -607,14 +613,30 @@ def kineticsEntry(request, section, subsection, index):
         reference = str(entry.reference)
         referenceLink = entry.reference.url
 
+    numReactants = 0; degeneracy = 1
+    if section in ['depository', 'libraries']:
+        numReactants = len(entry.item.reactants)
+        degeneracy = entry.item.degeneracy
+    elif section == 'groups':
+        numReactants = len(database.forwardTemplate.reactants)
+
     # Prepare the kinetics data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
         kineticsData = ['Link', database.entries[entry.data].index]
     else:
-        kineticsData = prepareKineticsParameters(entry.data, len(entry.item.reactants), entry.item.degeneracy)
+        kineticsData = prepareKineticsParameters(entry.data, numReactants, degeneracy)
 
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    if section in ['depository', 'libraries']:
+        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
+        products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+        arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    elif section == 'groups':
+        structure = getStructureMarkup(entry.item)
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    else:
+        raise Http404
 
 def kineticsSearch(request):
     """

@@ -77,6 +77,14 @@ jQuery(document).ready(function() {
 
 {% block page_body %}
 
+{% if section == 'groups' %}
+<h2>Group</h2>
+<table>
+    <tr>
+        <td>{{ structure|safe }}</td>
+    </tr>
+</table>
+{% else %}
 <h2>Reaction</h2>
 <table>
     <tr>
@@ -85,6 +93,7 @@ jQuery(document).ready(function() {
         <td class="reactants">{{ products|safe }}</td>
     </tr>
 </table>
+{% endif %}
 <br/>
 
 <h2>Kinetic Data</h2>
