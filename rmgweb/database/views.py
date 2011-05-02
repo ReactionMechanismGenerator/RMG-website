@@ -306,11 +306,12 @@ def thermoEntry(request, section, subsection, index):
     else:
         thermoData = prepareThermoParameters(entry.data)
 
-    reference = str(entry.reference)
-    if reference[1:3] == '. ':
-        reference = reference[0:2] + '\ ' + reference[2:]
+    reference = ''; referenceLink = ''; referenceType = ''
+    if entry.reference is not None:
+        reference = str(entry.reference)
+        referenceLink = entry.reference.url
 
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'thermoData': thermoData}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'thermoData': thermoData}, context_instance=RequestContext(request))
 
 def thermoSearch(request):
     """
@@ -601,13 +602,10 @@ def kineticsEntry(request, section, subsection, index):
     else:
         raise Http404
         
-    # Get the structure of the item we are viewing
-    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-    products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-    arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-    reference = entry.reference
-    if reference is not None and reference[1:3] == '. ':
-        reference = reference[0:2] + '\ ' + reference[2:]
+    reference = ''; referenceLink = ''; referenceType = ''
+    if entry.reference is not None:
+        reference = str(entry.reference)
+        referenceLink = entry.reference.url
 
     # Prepare the kinetics data for passing to the template
     # This includes all string formatting, since we can't do that in the template
