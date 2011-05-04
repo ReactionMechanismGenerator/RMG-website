@@ -401,7 +401,16 @@ def kinetics(request, section='', subsection=''):
             raise Http404
 
         # Sort entries by index
-        entries0 = database.entries.values()
+        if database.top is not None and len(database.top) > 0:
+            # If there is a tree in this database, only consider the entries
+            # that are in the tree
+            entries0 = database.top[:]
+            for entry in database.top:
+                entries0.extend(database.descendants(entry))
+        else:
+            # If there is not a tree, consider all entries
+            entries0 = database.entries.values()
+        # No matter how the entries were assembled, sort them by index
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
