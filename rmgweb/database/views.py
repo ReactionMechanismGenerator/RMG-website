@@ -44,7 +44,7 @@ from rmgpy.chem.kinetics import *
 
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
-from rmgpy.data.kinetics import KineticsDatabase
+from rmgpy.data.kinetics import *
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
@@ -711,21 +711,24 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     
     # Get the kinetics data for the reaction
     kineticsDataList = []
-    for reaction, kinetics, library, entry in database.kinetics.generateReactions(reactants, products):
+    for reaction in database.kinetics.generateReactions(reactants, products):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
-        if library in database.kinetics.groups.values():
-            source = '%s (Group additivity)' % (library.name)
+        if isinstance(reaction, TemplateReaction):
+            source = '%s (Group additivity)' % (reaction.family.name)
             href = ''
-            entry = Entry(data=kinetics)
-        elif library in database.kinetics.depository.values():
-            source = '%s (depository)' % (library.name)
-            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
-        elif library in database.kinetics.libraries:
-            source = library.name
-            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
-        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
+            entry = Entry(data=reaction.kinetics)
+        elif isinstance(reaction, DepositoryReaction):
+            source = '%s (depository)' % (reaction.depository.name)
+            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
+            entry = reaction.entry
+        elif isinstance(reaction, LibraryReaction):
+            source = reaction.library.name
+            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
+            entry = reaction.entry
+        print reaction.kinetics, reaction
+        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 

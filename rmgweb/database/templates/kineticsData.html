@@ -14,7 +14,7 @@ jQuery(document).ready(function() {
 
     kineticsModelList = [];
 
-    {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList|slice:":-1" %}
+    {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
     {% include "kineticsModelJS.html" %}
     kineticsModelList.push(["{{ source }}", kineticsModel]);
     {% endfor %}
