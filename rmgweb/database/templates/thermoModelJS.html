@@ -1,0 +1,34 @@
+{% ifequal thermoData.format "Group additivity" %}
+thermoData = new ThermoGAModel(
+    [{% for T in entry.data.Tdata.values %}{{ T }}{% if not forloop.last %},{% endif %}{% endfor %}],
+    [{% for Cp in entry.data.Cpdata.values %}{{ Cp }}{% if not forloop.last %},{% endif %}{% endfor %}],
+    {{ entry.data.H298.value }},
+    {{ entry.data.S298.value }}
+);
+{% endifequal %}
+
+{% ifequal thermoData.format "Wilhoit" %}
+thermoData = new WilhoitModel(
+    {{ entry.data.cp0.value }},
+    {{ entry.data.cpInf.value }},
+    {{ entry.data.a0.value }},
+    {{ entry.data.a1.value }},
+    {{ entry.data.a2.value }},
+    {{ entry.data.a3.value }},
+    {{ entry.data.B.value }},
+    {{ entry.data.H0.value }},
+    {{ entry.data.S0.value }}
+);
+{% endifequal %}
+
+{% ifequal thermoData.format "NASA" %}
+thermoData = new NASAModel([
+    {% for poly in entry.data.polynomials %}
+    new NASAPolynomial(
+        [{{ poly.cm2 }},{{ poly.cm1 }},{{ poly.c0 }},{{ poly.c1 }},{{ poly.c2 }},{{ poly.c3 }},{{ poly.c4 }},{{ poly.c5 }},{{ poly.c6 }}],
+        {{ poly.Tmin.value }},
+        {{ poly.Tmax.value }}
+    ),
+{% endfor %}
+]);
+{% endifequal %}

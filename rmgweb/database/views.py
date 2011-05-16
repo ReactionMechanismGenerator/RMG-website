@@ -43,36 +43,42 @@ from rmgpy.chem.thermo import *
 from rmgpy.chem.kinetics import *
 
 from rmgpy.data.base import Entry
-from rmgpy.data.thermo import ThermoDatabase, convertThermoData
-from rmgpy.data.kinetics import KineticsDatabase
+from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.kinetics import *
+from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
 
 ################################################################################
 
-thermoDatabase = None
+database = None
 
-def loadThermoDatabase():
+def loadDatabase(component='', section=''):
     """
-    Load the thermodynamics database, if necessary. If the thermodynamics
-    database is already loaded, then do nothing.
+    Load the requested `component` of the RMG database if not already done.
     """
-    global thermoDatabase
-    if not thermoDatabase:
-        thermoDatabase = ThermoDatabase()
-        thermoDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'thermo'))
+    global database
+    if not database:
+        database = RMGDatabase()
+        database.thermo = ThermoDatabase()
+        database.kinetics = KineticsDatabase()
 
-kineticsDatabase = None
+    if component in ['thermo', '']:
+        if section in ['depository', ''] and len(database.thermo.depository) == 0:
+            database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
+        if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
+            database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
+        if section in ['groups', ''] and len(database.thermo.groups) == 0:
+            database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
+    if component in ['kinetics', '']:
+        if section in ['depository', ''] and len(database.kinetics.depository) == 0:
+            database.kinetics.loadDepository(os.path.join(settings.DATABASE_PATH, 'kinetics', 'depository'))
+        if section in ['libraries', ''] and len(database.kinetics.libraries) == 0:
+            database.kinetics.loadLibraries(os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries'))
+        if section in ['groups', ''] and len(database.kinetics.groups) == 0:
+            database.kinetics.loadGroups(os.path.join(settings.DATABASE_PATH, 'kinetics', 'groups'))
 
-def loadKineticsDatabase():
-    """
-    Load the kinetics database, if necessary. If the kinetics
-    database is already loaded, then do nothing.
-    """
-    global kineticsDatabase
-    if not kineticsDatabase:
-        kineticsDatabase = KineticsDatabase()
-        kineticsDatabase.load(path=os.path.join(settings.DATABASE_PATH, 'kinetics'))
+    return database
 
 def getThermoDatabase(section, subsection):
     """
@@ -80,25 +86,20 @@ def getThermoDatabase(section, subsection):
     given `section` and `subsection`. If either of these is invalid, a
     :class:`ValueError` is raised.
     """
-    global thermoDatabase
+    global database
 
-    if section == 'depository':
-        try:
-            database = thermoDatabase.depository[subsection]
-        except KeyError:
-            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    elif section == 'libraries':
-        libraries = [library for library in thermoDatabase.libraries if library.label == subsection]
-        if len(libraries) != 1: raise Http404
-        database = libraries[0]
-    elif section == 'groups':
-        try:
-            database = thermoDatabase.groups[subsection]
-        except KeyError:
-            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    else:
-        raise ValueError('Invalid value "%s" for section parameter.' % section)
-    return database
+    try:
+        if section == 'depository':
+            db = database.thermo.depository[subsection]
+        elif section == 'libraries':
+            db = database.thermo.libraries[subsection]
+        elif section == 'groups':
+            db = database.thermo.groups[subsection]
+        else:
+            raise ValueError('Invalid value "%s" for section parameter.' % section)
+    except KeyError:
+        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    return db
 
 def getKineticsDatabase(section, subsection):
     """
@@ -106,25 +107,20 @@ def getKineticsDatabase(section, subsection):
     given `section` and `subsection`. If either of these is invalid, a
     :class:`ValueError` is raised.
     """
-    global kineticsDatabase
+    global database
     
-    if section == 'depository':
-        try:
-            database = kineticsDatabase.depository[subsection]
-        except KeyError:
-            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    elif section == 'libraries':
-        libraries = [library for library in kineticsDatabase.libraries if library.label == subsection]
-        if len(libraries) != 1: raise Http404
-        database = libraries[0]
-    elif section == 'groups':
-        try:
-            database = kineticsDatabase.groups[subsection]
-        except KeyError:
-            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    else:
-        raise ValueError('Invalid value "%s" for section parameter.' % section)
-    return database
+    try:
+        if section == 'depository':
+            db = database.kinetics.depository[subsection]
+        elif section == 'libraries':
+            db = database.kinetics.libraries[subsection]
+        elif section == 'groups':
+            db = database.kinetics.groups[subsection]
+        else:
+            raise ValueError('Invalid value "%s" for section parameter.' % section)
+    except KeyError:
+        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    return db
 
 ################################################################################
 
@@ -180,7 +176,7 @@ def thermo(request, section='', subsection=''):
         raise Http404
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    database = loadDatabase('thermo', section)
 
     if subsection != '':
 
@@ -202,9 +198,9 @@ def thermo(request, section='', subsection=''):
 
             structure = getStructureMarkup(entry.item)
 
-            if isinstance(entry.data, ThermoGAModel): dataFormat = 'Group additivity'
-            elif isinstance(entry.data, WilhoitModel): dataFormat = 'Wilhoit'
-            elif isinstance(entry.data, NASAModel): dataFormat = 'NASA'
+            if isinstance(entry.data, ThermoData): dataFormat = 'Group additivity'
+            elif isinstance(entry.data, Wilhoit): dataFormat = 'Wilhoit'
+            elif isinstance(entry.data, MultiNASA): dataFormat = 'NASA'
             elif isinstance(entry.data, str): dataFormat = 'Link'
 
             entries.append((entry.index,entry.label,structure,dataFormat))
@@ -214,7 +210,13 @@ def thermo(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the thermo
         # database components
-        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDatabase': thermoDatabase}, context_instance=RequestContext(request))
+        thermoDepository = [(label, depository) for label, depository in database.thermo.depository.iteritems()]
+        thermoDepository.sort()
+        thermoLibraries = [(label, library) for label, library in database.thermo.libraries.iteritems()]
+        thermoLibraries.sort()
+        thermoGroups = [(label, groups) for label, groups in database.thermo.groups.iteritems()]
+        thermoGroups.sort()
+        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups}, context_instance=RequestContext(request))
 
 def prepareThermoParameters(thermo):
     """
@@ -224,51 +226,53 @@ def prepareThermoParameters(thermo):
     itself.
     """
 
-    thermoData = []
+    thermoData = {}
     
-    if isinstance(thermo, ThermoGAModel):
+    if isinstance(thermo, ThermoData):
         # Thermo data is in group additivity format
-        thermoData = ['Group additivity']
-        thermoData.extend(['%.2f' % (thermo.H298 / 1000.), '%.2f' % (thermo.S298)])
-        thermoData.append('%g' % (thermo.Tmin))
-        thermoData.append('%g' % (thermo.Tmax))
-        for T, Cp in zip(thermo.Tdata, thermo.Cpdata):
-            thermoData.append(('%g' % T, '%.2f' % Cp))
-
-    elif isinstance(thermo, WilhoitModel):
+        thermoData['format'] = 'Group additivity'
+        thermoData['H298'] = ('%.2f' % (thermo.H298.value / 1000.),'kJ/mol')
+        thermoData['S298'] = ('%.2f' % (thermo.S298.value),'J/mol \\cdot K')
+        Cpdata = []
+        for T, Cp in zip(thermo.Tdata.values, thermo.Cpdata.values):
+            Cpdata.append(('%g' % (T),'K', '%.2f' % (Cp), 'J/mol \\cdot K'))
+        thermoData['Cpdata'] = Cpdata
+        
+    elif isinstance(thermo, Wilhoit):
         # Thermo data is in Wilhoit polynomial format
-        thermoData = [
-            'Wilhoit',
-            '%.2f' % (thermo.cp0),
-            '%.2f' % (thermo.cpInf),
-            '%s' % getLaTeXScientificNotation(thermo.a0),
-            '%s' % getLaTeXScientificNotation(thermo.a1),
-            '%s' % getLaTeXScientificNotation(thermo.a2),
-            '%s' % getLaTeXScientificNotation(thermo.a3),
-            '%.2f' % (thermo.H0 / 1000.),
-            '%.2f' % (thermo.S0),
-            '%.2f' % (thermo.B),
-            '%g' % (thermo.Tmin),
-            '%g' % (thermo.Tmax),
-        ]
+        thermoData['format'] = 'Wilhoit'
+        thermoData['cp0'] = ('%.2f' % (thermo.cp0.value),'J/mol \\cdot K')
+        thermoData['cpInf'] = ('%.2f' % (thermo.cpInf.value),'J/mol \\cdot K')
+        thermoData['a0'] = ('%s' % getLaTeXScientificNotation(thermo.a0.value),'')
+        thermoData['a1'] = ('%s' % getLaTeXScientificNotation(thermo.a1.value),'')
+        thermoData['a2'] = ('%s' % getLaTeXScientificNotation(thermo.a2.value),'')
+        thermoData['a3'] = ('%s' % getLaTeXScientificNotation(thermo.a3.value),'')
+        thermoData['B'] = ('%.2f' % (thermo.B.value),'K')
+        thermoData['H0'] = ('%.2f' % (thermo.H0.value / 1000.),'kJ/mol')
+        thermoData['S0'] = ('%.2f' % (thermo.S0.value),'J/mol \\cdot K')
 
-    elif isinstance(thermo, NASAModel):
+    elif isinstance(thermo, MultiNASA):
         # Thermo data is in NASA polynomial format
-        thermoData = ['NASA']
+        thermoData['format'] = 'NASA'
+        thermoData['polynomials'] = []
         for poly in thermo.polynomials:
-            thermoData.append([
-                '%s' % getLaTeXScientificNotation(poly.cm2),
-                '%s' % getLaTeXScientificNotation(poly.cm1),
-                '%s' % getLaTeXScientificNotation(poly.c0),
-                '%s' % getLaTeXScientificNotation(poly.c1),
-                '%s' % getLaTeXScientificNotation(poly.c2),
-                '%s' % getLaTeXScientificNotation(poly.c3),
-                '%s' % getLaTeXScientificNotation(poly.c4),
-                '%s' % getLaTeXScientificNotation(poly.c5),
-                '%s' % getLaTeXScientificNotation(poly.c6),
-                '%g' % (poly.Tmin),
-                '%g' % (poly.Tmax),
-            ])
+            thermoData['polynomials'].append({
+                'cm2': '%s' % getLaTeXScientificNotation(poly.cm2),
+                'cm1': '%s' % getLaTeXScientificNotation(poly.cm1),
+                'c0': '%s' % getLaTeXScientificNotation(poly.c0),
+                'c1': '%s' % getLaTeXScientificNotation(poly.c1),
+                'c2': '%s' % getLaTeXScientificNotation(poly.c2),
+                'c3': '%s' % getLaTeXScientificNotation(poly.c3),
+                'c4': '%s' % getLaTeXScientificNotation(poly.c4),
+                'c5': '%s' % getLaTeXScientificNotation(poly.c5),
+                'c6': '%s' % getLaTeXScientificNotation(poly.c6),
+                'Trange': ('%g' % (poly.Tmin.value), '%g' % (poly.Tmax.value), 'K'),
+            })
+
+    if thermo.Tmin is not None and thermo.Tmax is not None:
+        thermoData['Trange'] = ('%g' % (thermo.Tmin.value), '%g' % (thermo.Tmax.value), 'K')
+    else:
+        thermoData['Trange'] = None
 
     return thermoData
 
@@ -278,7 +282,7 @@ def thermoEntry(request, section, subsection, index):
     """
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase('thermo', section)
 
     # Determine the entry we wish to view
     try:
@@ -302,11 +306,12 @@ def thermoEntry(request, section, subsection, index):
     else:
         thermoData = prepareThermoParameters(entry.data)
 
-    reference = entry.reference
-    if reference[1:3] == '. ':
-        reference = reference[0:2] + '\ ' + reference[2:]
+    reference = ''; referenceLink = ''; referenceType = ''
+    if entry.reference is not None:
+        reference = str(entry.reference)
+        referenceLink = entry.reference.url
 
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'thermoData': thermoData}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'thermoData': thermoData}, context_instance=RequestContext(request))
 
 def thermoSearch(request):
     """
@@ -315,7 +320,7 @@ def thermoSearch(request):
     """
 
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase('thermo')
 
     if request.method == 'POST':
         form = ThermoSearchForm(request.POST, error_class=DivErrorList)
@@ -338,24 +343,24 @@ def thermoData(request, adjlist):
     from rmgpy.chem.molecule import Molecule
     
     # Load the thermo database if necessary
-    loadThermoDatabase()
+    loadDatabase('thermo')
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
     # Get the thermo data for the molecule
     thermoDataList = []
-    for data, library, entry in thermoDatabase.getAllThermoData(molecule):
+    for data, library, entry in database.thermo.getAllThermoData(molecule):
         if library is None:
             source = 'Group additivity'
             href = ''
-            data = convertThermoData(data, molecule, WilhoitModel)
-            data = convertThermoData(data, molecule, NASAModel)
+            #data = convertThermoData(data, molecule, Wilhoit)
+            #data = convertThermoData(data, molecule, MultiNASA)
             entry = Entry(data=data)
-        elif library in thermoDatabase.depository.values():
+        elif library in database.thermo.depository.values():
             source = 'Depository'
             href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
-        elif library in thermoDatabase.libraries:
+        elif library in database.thermo.libraries:
             source = library.name
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
@@ -382,7 +387,7 @@ def kinetics(request, section='', subsection=''):
         raise Http404
 
     # Load the kinetics database, if necessary
-    loadKineticsDatabase()
+    database = loadDatabase('kinetics', section)
 
     if subsection != '':
 
@@ -396,146 +401,199 @@ def kinetics(request, section='', subsection=''):
             raise Http404
 
         # Sort entries by index
-        entries0 = database.entries.values()
+        if database.top is not None and len(database.top) > 0:
+            # If there is a tree in this database, only consider the entries
+            # that are in the tree
+            entries0 = database.top[:]
+            for entry in database.top:
+                entries0.extend(database.descendants(entry))
+        else:
+            # If there is not a tree, consider all entries
+            entries0 = database.entries.values()
+        # No matter how the entries were assembled, sort them by index
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
+
         for entry in entries0:
 
-            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-            products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-
             dataFormat = ''
-            if isinstance(entry.data, KineticsDataModel): dataFormat = 'KineticsData'
-            elif isinstance(entry.data, ArrheniusModel): dataFormat = 'Arrhenius'
+            if isinstance(entry.data, KineticsData): dataFormat = 'KineticsData'
+            elif isinstance(entry.data, Arrhenius): dataFormat = 'Arrhenius'
             elif isinstance(entry.data, str): dataFormat = 'Link'
-            elif isinstance(entry.data, ArrheniusEPModel): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry.data, MultiArrheniusModel): dataFormat = 'MultiArrhenius'
-            elif isinstance(entry.data, PDepArrheniusModel): dataFormat = 'PDepArrhenius'
-            elif isinstance(entry.data, ChebyshevModel): dataFormat = 'Chebyshev'
-            elif isinstance(entry.data, TroeModel): dataFormat = 'Troe'
-            elif isinstance(entry.data, LindemannModel): dataFormat = 'Lindemann'
-            elif isinstance(entry.data, ThirdBodyModel): dataFormat = 'ThirdBody'
-            
-            entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
+            elif isinstance(entry.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
+            elif isinstance(entry.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
+            elif isinstance(entry.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
+            elif isinstance(entry.data, Chebyshev): dataFormat = 'Chebyshev'
+            elif isinstance(entry.data, Troe): dataFormat = 'Troe'
+            elif isinstance(entry.data, Lindemann): dataFormat = 'Lindemann'
+            elif isinstance(entry.data, ThirdBody): dataFormat = 'ThirdBody'
 
+            if section == 'depository' or section == 'libraries':
+                reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
+                products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+                arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+                entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
+            elif section == 'groups':
+                structure = getStructureMarkup(entry.item)
+                entries.append((entry.index,entry.label,structure,dataFormat))
+            else:
+                raise Http404
+        
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
         # database components
-        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDatabase': kineticsDatabase}, context_instance=RequestContext(request))
-
-def prepareKineticsParameters(kinetics, degeneracy):
+        kineticsDepository = [(label, depository) for label, depository in database.kinetics.depository.iteritems()]
+        kineticsDepository.sort()
+        kineticsLibraries = [(label, library) for label, library in database.kinetics.libraries.iteritems()]
+        kineticsLibraries.sort()
+        kineticsGroups = [(label, groups) for label, groups in database.kinetics.groups.iteritems()]
+        kineticsGroups.sort()
+        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDepository': kineticsDepository, 'kineticsLibraries': kineticsLibraries, 'kineticsGroups': kineticsGroups}, context_instance=RequestContext(request))
+        
+def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     """
-    Collect the thermodynamic parameters for the provided thermodynamics model
-    `thermo` and prepare them for viewing in a template. In particular, we must
-    do any string formatting here because we can't do that in the template
-    itself.
+    Collect the kinetics parameters for the provided kinetics model `kinetics`
+    and prepare them for viewing in a template. In particular, we must do any
+    string formatting here because we can't do that in the template itself.
     """
 
-    kineticsData = []
+    kineticsData = {}
 
-    if isinstance(kinetics, KineticsDataModel):
+    if numReactants == 1:
+        kunits = 's^{-1}'
+    elif numReactants == 2:
+        kunits = 'm^3/mol \\cdot s'
+    else:
+        kunits = 'm^%g/mol^%s \\cdot s' % (3*(numReactants-1), numReactants-1)
+
+    if isinstance(kinetics, KineticsData):
         # Kinetics data is in KineticsData format
-        kineticsData = ['KineticsData']
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        data = []
-        for T, k in zip(kinetics.Tdata, kinetics.kdata):
-            data.append(('%g' % T, getLaTeXScientificNotation(k)))
-        kineticsData.append(data)
+        kineticsData['format'] = 'KineticsData'
+        kineticsData['kdata'] = []
+        for T, k in zip(kinetics.Tdata.values, kinetics.kdata.values):
+            kineticsData['kdata'].append(('%g' % (T),'K', getLaTeXScientificNotation(k), kunits))
 
-    elif isinstance(kinetics, ArrheniusModel):
+    elif isinstance(kinetics, Arrhenius):
         # Kinetics data is in Arrhenius format
-        kineticsData = ['Arrhenius']
-        kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%.2f' % (kinetics.Ea / 1000.), '%g' % (kinetics.T0)])
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData['format'] = 'Arrhenius'
+        kineticsData['A'] = (getLaTeXScientificNotation(kinetics.A.value), kunits)
+        kineticsData['n'] = ('%.2f' % (kinetics.n.value), '')
+        kineticsData['Ea'] = ('%.2f' % (kinetics.Ea.value / 1000.), 'kJ/mol')
+        kineticsData['T0'] = ('%g' % (kinetics.T0.value), 'K')
 
-    elif isinstance(kinetics, ArrheniusEPModel):
+    elif isinstance(kinetics, ArrheniusEP):
         # Kinetics data is in ArrheniusEP format
-        kineticsData = ['Arrhenius']
-        kineticsData.extend([getLaTeXScientificNotation(kinetics.A), '%.2f' % (kinetics.n), '%g' % (kinetics.alpha), '%.2f' % (kinetics.E0 / 1000.)])
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
+        kineticsData['format'] = 'ArrheniusEP'
+        kineticsData['A'] = (getLaTeXScientificNotation(kinetics.A.value), kunits)
+        kineticsData['n'] = ('%.2f' % (kinetics.n.value), '')
+        kineticsData['E0'] = ('%.2f' % (kinetics.E0.value / 1000.), 'kJ/mol')
+        kineticsData['alpha'] = ('%g' % (kinetics.alpha.value), '')
 
-    elif isinstance(kinetics, MultiArrheniusModel):
+    elif isinstance(kinetics, MultiArrhenius):
         # Kinetics data is in MultiArrhenius format
-        kineticsData = ['MultiArrhenius']
-        arrheniusList = []
+        kineticsData['format'] = 'MultiArrhenius'
+        kineticsData['arrheniusList'] = []
         for arrh in kinetics.arrheniusList:
-            arrheniusList.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%.2f' % (arrh.Ea / 1000.), '%g' % (arrh.T0)])
-        kineticsData.append(arrheniusList)
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-
-    elif isinstance(kinetics, PDepArrheniusModel):
+            kineticsData['arrheniusList'].append({
+                'A': (getLaTeXScientificNotation(arrh.A.value), kunits),
+                'n': ('%.2f' % (arrh.n.value), ''),
+                'Ea': ('%.2f' % (arrh.Ea.value / 1000.), 'kJ/mol'),
+                'T0': ('%g' % (arrh.T0.value), 'K'),
+            })
+            
+    elif isinstance(kinetics, PDepArrhenius):
         # Kinetics data is in PDepArrhenius format
-        kineticsData = ['PDepArrhenius']
-        pdeparrhenius = []
+        kineticsData['format'] = 'PDepArrhenius'
         for P, arrh in zip(kinetics.pressures, kinetics.arrhenius):
-            pdeparrhenius.append([getLaTeXScientificNotation(arrh.A), '%.2f' % (arrh.n), '%g' % (arrh.alpha), '%.2f' % (arrh.E0 / 1000.), '%g' % (P / 1.0e5)])
-        kineticsData.append(pdeparrhenius)
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
-        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
-        
-    elif isinstance(kinetics, ChebyshevModel):
+            kineticsData['arrhenius'].append({
+                'A': (getLaTeXScientificNotation(arrh.A.value), kunits),
+                'n': ('%.2f' % (arrh.n.value), ''),
+                'Ea': ('%.2f' % (arrh.Ea.value / 1000.), 'kJ/mol'),
+                'T0': ('%g' % (arrh.T0.value), 'K'),
+                'P': ('%g' % (P.value / 1e5), 'bar'),
+            })
+
+    elif isinstance(kinetics, Chebyshev):
         # Kinetics data is in Chebyshev format
-        kineticsData = ['Chebyshev']
-        chebyshev = []
+        kineticsData['format'] = 'Chebyshev'
+        coeffs = []
         for i in range(kinetics.degreeT):
-            chebyshev.append(['%g' % kinetics.coeffs[i,j] for j in range(kinetics.degreeP)])
-        kineticsData.append(chebyshev)
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
-        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
-
-    elif isinstance(kinetics, TroeModel):
-        # Kinetics data is in Troe format
-        kineticsData = ['Troe']
-        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
-        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusLow.A), '%.2f' % (kinetics.arrheniusLow.n), '%.2f' % (kinetics.arrheniusLow.Ea / 1000.), '%g' % (kinetics.arrheniusLow.T0)])
-        kineticsData.extend(['%g' % kinetics.alpha, '%g' % (kinetics.T3), '%g' % (kinetics.T1), '%g' % (kinetics.T2)])
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
-        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
-
-    elif isinstance(kinetics, LindemannModel):
-        # Kinetics data is in Lindemann format
-        kineticsData = ['Lindemann']
-        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
-        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusLow.A), '%.2f' % (kinetics.arrheniusLow.n), '%.2f' % (kinetics.arrheniusLow.Ea / 1000.), '%g' % (kinetics.arrheniusLow.T0)])
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
-        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+            coeffs.append(['%g' % kinetics.coeffs[i,j] for j in range(kinetics.degreeP)])
+        kineticsData['coeffs'] = (coeffs, kunits)
         
-    elif isinstance(kinetics, ThirdBodyModel):
+    elif isinstance(kinetics, Troe):
+        # Kinetics data is in Troe format
+        kineticsData['format'] = 'Troe'
+        kineticsData['arrheniusHigh'] = {
+            'A': (getLaTeXScientificNotation(kinetics.arrheniusHigh.A.value), kunits),
+            'n': ('%.2f' % (kinetics.arrheniusHigh.n.value), ''),
+            'Ea': ('%.2f' % (kinetics.arrheniusHigh.Ea.value / 1000.), 'kJ/mol'),
+            'T0': ('%g' % (kinetics.arrheniusHigh.T0.value), 'K'),
+        }
+        kineticsData['arrheniusLow'] = {
+            'A': (getLaTeXScientificNotation(kinetics.arrheniusLow.A.value), kunits),
+            'n': ('%.2f' % (kinetics.arrheniusLow.n.value), ''),
+            'Ea': ('%.2f' % (kinetics.arrheniusLow.Ea.value / 1000.), 'kJ/mol'),
+            'T0': ('%g' % (kinetics.arrheniusLow.T0.value), 'K'),
+        }
+        kineticsData['alpha'] = ('%g' % (kinetics.alpha.value),'')
+        kineticsData['T3'] = ('%g' % (kinetics.T3.value),'K')
+        kineticsData['T1'] = ('%g' % (kinetics.T1.value),'K')
+        if kinetics.T2 is not None:
+            kineticsData['T2'] = ('%g' % (kinetics.T2.value),'K')
+        else:
+            kineticsData['T2'] = 'None'
+        
+    elif isinstance(kinetics, Lindemann):
+        # Kinetics data is in Lindemann format
+        kineticsData['format'] = 'Lindemann'
+        kineticsData['arrheniusHigh'] = {
+            'A': (getLaTeXScientificNotation(kinetics.arrheniusHigh.A.value), kunits),
+            'n': ('%.2f' % (kinetics.arrheniusHigh.n.value), ''),
+            'Ea': ('%.2f' % (kinetics.arrheniusHigh.Ea.value / 1000.), 'kJ/mol'),
+            'T0': ('%g' % (kinetics.arrheniusHigh.T0.value), 'K'),
+        }
+        kineticsData['arrheniusLow'] = {
+            'A': (getLaTeXScientificNotation(kinetics.arrheniusLow.A.value), kunits),
+            'n': ('%.2f' % (kinetics.arrheniusLow.n.value), ''),
+            'Ea': ('%.2f' % (kinetics.arrheniusLow.Ea.value / 1000.), 'kJ/mol'),
+            'T0': ('%g' % (kinetics.arrheniusLow.T0.value), 'K'),
+        }
+
+    elif isinstance(kinetics, ThirdBody):
         # Kinetics data is in ThirdBody format
-        kineticsData = ['ThirdBody']
-        kineticsData.append([getLaTeXScientificNotation(kinetics.arrheniusHigh.A), '%.2f' % (kinetics.arrheniusHigh.n), '%.2f' % (kinetics.arrheniusHigh.Ea / 1000.), '%g' % (kinetics.arrheniusHigh.T0)])
-        kineticsData.append('%g' % (kinetics.Tmin))
-        kineticsData.append('%g' % (kinetics.Tmax))
-        kineticsData.append('%g' % (kinetics.Pmin / 1.0e5))
-        kineticsData.append('%g' % (kinetics.Pmax / 1.0e5))
+        kineticsData['format'] = 'ThirdBody'
+        kineticsData['arrheniusHigh'] = {
+            'A': (getLaTeXScientificNotation(kinetics.arrheniusHigh.A.value), kunits),
+            'n': ('%.2f' % (kinetics.arrheniusHigh.n.value), ''),
+            'Ea': ('%.2f' % (kinetics.arrheniusHigh.Ea.value / 1000.), 'kJ/mol'),
+            'T0': ('%g' % (kinetics.arrheniusHigh.T0.value), 'K'),
+        }
 
     # Also include collision efficiencies for the relevant kinetics models
     efficiencies = []
-    if isinstance(kinetics, ThirdBodyModel):
-        for molecule, efficiency in kinetics.efficiencies.iteritems():
-            efficiencies.append((getStructureMarkup(molecule), '%g' % efficiency))
-        kineticsData.append(efficiencies)
+    if isinstance(kinetics, ThirdBody):
+        molecules = [(molecule.getFormula(), molecule) for molecule in kinetics.efficiencies]
+        molecules.sort()
+        for formula, molecule in molecules:
+            efficiencies.append((getStructureMarkup(molecule), '%g' % kinetics.efficiencies[molecule]))
+        kineticsData['efficiencies'] = efficiencies
 
-    # The last item in the list of data is the reaction path degeneracy
-    kineticsData.append('%i' % degeneracy)
+    # Also include the reaction path degeneracy
+    kineticsData['degeneracy'] = '%i' % (degeneracy)
 
-    print kineticsData
+    # Set temperature and pressure ranges
+    if kinetics is not None and kinetics.Tmin is not None and kinetics.Tmax is not None:
+        kineticsData['Trange'] = ('%g' % (kinetics.Tmin.value), '%g' % (kinetics.Tmax.value), 'K')
+    else:
+        kineticsData['Trange'] = None
+    if kinetics is not None and kinetics.Pmin is not None and kinetics.Pmax is not None:
+        kineticsData['Prange'] = ('%g' % (kinetics.Pmin.value / 1e5), '%g' % (kinetics.Pmax.value / 1e5), 'bar')
+    else:
+        kineticsData['Prange'] = None
 
     return kineticsData
 
@@ -545,7 +603,7 @@ def kineticsEntry(request, section, subsection, index):
     """
 
     # Load the kinetics database, if necessary
-    loadKineticsDatabase()
+    loadDatabase('kinetics', section)
 
     # Determine the entry we wish to view
     try:
@@ -559,22 +617,35 @@ def kineticsEntry(request, section, subsection, index):
     else:
         raise Http404
         
-    # Get the structure of the item we are viewing
-    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-    products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-    arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-    reference = entry.reference
-    if reference[1:3] == '. ':
-        reference = reference[0:2] + '\ ' + reference[2:]
+    reference = ''; referenceLink = ''; referenceType = ''
+    if entry.reference is not None:
+        reference = str(entry.reference)
+        referenceLink = entry.reference.url
+
+    numReactants = 0; degeneracy = 1
+    if section in ['depository', 'libraries']:
+        numReactants = len(entry.item.reactants)
+        degeneracy = entry.item.degeneracy
+    elif section == 'groups':
+        numReactants = len(database.forwardTemplate.reactants)
 
     # Prepare the kinetics data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
         kineticsData = ['Link', database.entries[entry.data].index]
     else:
-        kineticsData = prepareKineticsParameters(entry.data, entry.item.degeneracy)
+        kineticsData = prepareKineticsParameters(entry.data, numReactants, degeneracy)
 
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    if section in ['depository', 'libraries']:
+        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
+        products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+        arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    elif section == 'groups':
+        structure = getStructureMarkup(entry.item)
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsData': kineticsData}, context_instance=RequestContext(request))
+    else:
+        raise Http404
 
 def kineticsSearch(request):
     """
@@ -583,7 +654,7 @@ def kineticsSearch(request):
     """
 
     # Load the kinetics database if necessary
-    loadKineticsDatabase()
+    loadDatabase('kinetics')
 
     if request.method == 'POST':
         form = KineticsSearchForm(request.POST, error_class=DivErrorList)
@@ -619,7 +690,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     from rmgpy.chem.molecule import Molecule
 
     # Load the kinetics database if necessary
-    loadKineticsDatabase()
+    loadDatabase('kinetics')
 
     reactants = []
 
@@ -640,21 +711,24 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     
     # Get the kinetics data for the reaction
     kineticsDataList = []
-    for reaction, kinetics, library, entry in kineticsDatabase.generateReactions(reactants, products):
+    for reaction in database.kinetics.generateReactions(reactants, products):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
-        if library in kineticsDatabase.groups.values():
-            source = '%s (Group additivity)' % (library.name)
+        if isinstance(reaction, TemplateReaction):
+            source = '%s (Group additivity)' % (reaction.family.name)
             href = ''
-            entry = Entry(data=kinetics)
-        elif library in kineticsDatabase.depository.values():
-            source = '%s (depository)' % (library.name)
-            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
-        elif library in kineticsDatabase.libraries:
-            source = library.name
-            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
-        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(kinetics, reaction.degeneracy), source, href])
+            entry = Entry(data=reaction.kinetics)
+        elif isinstance(reaction, DepositoryReaction):
+            source = '%s (depository)' % (reaction.depository.name)
+            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
+            entry = reaction.entry
+        elif isinstance(reaction, LibraryReaction):
+            source = reaction.library.name
+            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
+            entry = reaction.entry
+        print reaction.kinetics, reaction
+        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 

@@ -14,8 +14,8 @@ jQuery(document).ready(function() {
 
     kineticsModelList = [];
 
-    {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList|slice:":-1" %}
-    {% include "kinetics/kineticsModelJS.html" %}
+    {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
+    {% include "kineticsModelJS.html" %}
     kineticsModelList.push(["{{ source }}", kineticsModel]);
     {% endfor %}
 
@@ -67,7 +67,7 @@ jQuery(document).ready(function() {
 
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
-{% include "kinetics/kineticsModel.html" %}
+{% include "kineticsModel.html" %}
 <br/>
 {% endfor %}
 
