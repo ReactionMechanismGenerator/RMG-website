@@ -37,7 +37,8 @@ import os.path
 # The full path of the Django project (as determined from the location of this file)
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
-DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', 'database'))
+# The path to the RMG-database project
+DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', '..', 'RMG-database'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
