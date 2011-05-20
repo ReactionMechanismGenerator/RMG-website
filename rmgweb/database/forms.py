@@ -32,7 +32,7 @@ from django import forms
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
-from rmgpy.chem.molecule import Molecule
+from rmgpy.molecule import Molecule
 
 class DivErrorList(ErrorList):
     def __unicode__(self):

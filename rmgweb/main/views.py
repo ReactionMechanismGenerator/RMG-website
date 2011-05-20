@@ -85,8 +85,8 @@ def drawMolecule(request, adjlist):
     Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.chem.molecule import Molecule
-    from rmgpy.chem.ext.molecule_draw import drawMolecule
+    from rmgpy.molecule import Molecule
+    from rmgpy.molecule_draw import drawMolecule
 
     response = HttpResponse(mimetype="image/png")
 
@@ -97,19 +97,19 @@ def drawMolecule(request, adjlist):
 
     return response
 
-def drawMoleculePattern(request, adjlist):
+def drawGroup(request, adjlist):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecular
     pattern. Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.chem.pattern import MoleculePattern
+    from rmgpy.group import Group
     import pydot
 
     response = HttpResponse(mimetype="image/png")
 
     adjlist = str(adjlist.replace(';', '\n'))
-    pattern = MoleculePattern().fromAdjacencyList(adjlist)
+    pattern = Group().fromAdjacencyList(adjlist)
 
     graph = pydot.Dot(graph_type='graph', dpi=75)
     for index, atom in enumerate(pattern.atoms):

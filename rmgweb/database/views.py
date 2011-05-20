@@ -37,10 +37,10 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 import settings
 
-from rmgpy.chem.molecule import Molecule
-from rmgpy.chem.pattern import MoleculePattern
-from rmgpy.chem.thermo import *
-from rmgpy.chem.kinetics import *
+from rmgpy.molecule import Molecule
+from rmgpy.group import Group
+from rmgpy.thermo import *
+from rmgpy.kinetics import *
 
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
@@ -140,7 +140,7 @@ def getStructureMarkup(item):
     """
     Return the HTML used to markup structure information for the given `item`.
     For a :class:`Molecule`, the markup is an ``<img>`` tag so that we can
-    draw the molecule. For a :class:`MoleculePattern`, the markup is the
+    draw the molecule. For a :class:`Group`, the markup is the
     adjacency list, wrapped in ``<pre>`` tags.
     """
     if isinstance(item, Molecule):
@@ -149,12 +149,12 @@ def getStructureMarkup(item):
         adjlist = adjlist.replace('\n', ';')
         adjlist = re.sub('\s+', '%20', adjlist)
         structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
-    elif isinstance(item, MoleculePattern):
-        # We can draw MoleculePattern objects, so use that instead of an adjacency list
+    elif isinstance(item, Group):
+        # We can draw Group objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList()
         adjlist = adjlist.replace('\n', ';')
         adjlist = re.sub('\s+', '%20', adjlist)
-        structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMoleculePattern', kwargs={'adjlist': adjlist})
+        structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': adjlist})
     else:
         structure = ''
     return structure
@@ -340,7 +340,6 @@ def thermoData(request, adjlist):
     Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.chem.molecule import Molecule
     
     # Load the thermo database if necessary
     loadDatabase('thermo')
@@ -687,8 +686,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     A view used to present a list of reactions and the associated kinetics
     for each.
     """
-    from rmgpy.chem.molecule import Molecule
-
+    
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
 
