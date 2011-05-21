@@ -28,7 +28,7 @@
 #
 ################################################################################
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -50,7 +50,7 @@ def start(request):
     network.
     """
     # Create and save a new Network
-    network = Network()
+    network = Network(title='Untitled Network')
     network.save()
     return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
 
@@ -59,4 +59,26 @@ def networkIndex(request, networkKey):
     A view called when a user wants to see the main page for a Network object
     indicated by `networkKey`.
     """
-    raise Http404
+    network = get_object_or_404(Network, pk=networkKey)
+    return render_to_response('networkIndex.html', {'network': network, 'networkKey': networkKey}, context_instance=RequestContext(request))
+
+def networkWizard(request, networkKey):
+    """
+    A view called when a user wants to add/edit Network input parameters using
+    the wizard.
+    """
+    return Http404
+
+def networkEditor(request, networkKey):
+    """
+    A view called when a user wants to add/edit Network input parameters by
+    editing the input file in the broswer
+    """
+    return Http404
+
+def networkUpload(request, networkKey):
+    """
+    A view called when a user wants to add/edit Network input parameters by
+    uploading an input file.
+    """
+    return Http404

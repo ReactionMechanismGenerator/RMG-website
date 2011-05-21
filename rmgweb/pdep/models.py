@@ -43,4 +43,5 @@ class Network(models.Model):
     def upload_input_to(instance, filename):
         # Always name the uploaded input file "input.py"
         return 'pdep/networks/{0}/input.py'.format(instance.pk)
+    title = models.CharField(max_length=50)
     inputFile = models.FileField(upload_to=upload_input_to, verbose_name='MEASURE input file')

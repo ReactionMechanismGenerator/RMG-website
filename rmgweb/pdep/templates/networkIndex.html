@@ -1,0 +1,31 @@
+{% extends "pdepbase.html" %}
+
+{% block title %}{{ network.title }}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url pdep.views.index %}">MEASURE</a> &raquo;
+<a href="{% url pdep.views.networkIndex networkKey=networkKey%}">{{ network.title }}</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{{ network.title }}{% endblock %}
+
+{% block page_body %}
+
+<h2>Input</h2>
+
+{% if network.inputFile == '' %}
+<p>You have not created an input file for this network.</p>
+<div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Create an input file using the wizard</a></div>
+<div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Create an input file manually</a></div>
+<div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload an input file</a></div>
+{% else %}
+<p>input.py</p>
+<div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Edit the input file using the wizard</a></div>
+<div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Edit an input file manually</a></div>
+<div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload a replacement input file</a></div>
+{% endif %}
+
+{% endblock %}
