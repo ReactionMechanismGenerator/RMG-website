@@ -31,6 +31,9 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
+from django.core.urlresolvers import reverse
+
+from models import *
 
 ################################################################################
 
@@ -42,6 +45,18 @@ def index(request):
 
 def start(request):
     """
-    A view called when a user wants to begin a new MEASURE calculation.
+    A view called when a user wants to begin a new MEASURE calculation. This
+    view creates a new Network and redirects the user to the main page for that
+    network.
+    """
+    # Create and save a new Network
+    network = Network()
+    network.save()
+    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+
+def networkIndex(request, networkKey):
+    """
+    A view called when a user wants to see the main page for a Network object
+    indicated by `networkKey`.
     """
     raise Http404

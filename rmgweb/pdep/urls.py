@@ -38,4 +38,7 @@ urlpatterns = patterns('rmgweb.pdep',
     # URL for beginning a new calculation
     (r'^start$', 'views.start'),
 
+    # URL for the main page of an individual Network
+    (r'^networks/(?P<networkKey>[^/]+)$', 'views.networkIndex'),
+    
 )
