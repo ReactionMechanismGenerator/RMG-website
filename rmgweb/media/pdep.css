@@ -13,3 +13,22 @@ form ul {
 .errorlist {
     color: #FF0000;
 }
+
+/* File */
+
+div.file {
+    border: 2px solid #E0E0E0;
+    background-color: #F0F0F0;
+    margin: 1em 0 1em 0;
+    padding: 4px;
+}
+
+span.filename {
+    font-size: 110%;
+    font-weight: bold;
+}
+
+td.filemod {
+    font-size: 80%;
+    font-style: italic;
+}

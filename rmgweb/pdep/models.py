@@ -71,6 +71,12 @@ class Network(models.Model):
         """
         return os.path.join(self.getDirname(), 'output.py')
     
+    def getLogFilename(self):
+        """
+        Return the absolute path of the log file.
+        """
+        return os.path.join(self.getDirname(), 'MEASURE.log')
+    
     def getSurfaceFilenamePNG(self):
         """
         Return the absolute path of the PES image file in PNG format.
@@ -102,6 +108,13 @@ class Network(models.Model):
         not.
         """
         return os.path.exists(self.getOutputFilename())
+        
+    def logFileExists(self):
+        """
+        Return ``True`` if the log file exists on the server or ``False`` if
+        not.
+        """
+        return os.path.exists(self.getLogFilename())
         
     def surfaceFilePNGExists(self):
         """

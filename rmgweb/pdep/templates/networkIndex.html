@@ -16,43 +16,57 @@
 
 <h2>Input</h2>
 
+<div class="file">
 {% if not network.inputFileExists %}
 <p>You have not created an input file for this network.</p>
 <div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Create an input file using the wizard</a></div>
 <div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Create an input file manually</a></div>
 <div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload an input file</a></div>
 {% else %}
-<p>input.py</p>
+{% include "networkFile.html" with filename="input.py" filesize=filesize.inputFile modificationTime=modificationTime.inputFile icon="/media/icons/text-x-python.png" %}
+<br/>
 <div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Edit the input file using the wizard</a></div>
 <div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Edit an input file manually</a></div>
 <div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload a replacement input file</a></div>
 {% endif %}
+</div>
 
 <h2>Output</h2>
 
+<div class="file">
 {% if not network.outputFileExists %}
 <p>MEASURE has not been run on this input file.</p>
 <div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Run MEASURE</a></div>
 {% else %}
-<p>output.py</p>
+{% include "networkFile.html" with filename="output.py" filesize=filesize.outputFile modificationTime=modificationTime.outputFile icon="/media/icons/text-x-python.png" %}
+{% include "networkFile.html" with filename="MEASURE.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
+<br/>
 <div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Rerun MEASURE</a></div>
 {% endif %}
+</div>
 
+<h2>Potential Energy Surface</h2>
+
+<div class="file">
 {% if not network.surfaceFilePNGExists and not network.surfaceFilePDFExists and not network.surfaceFileSVGExists %}
 <p>A potential energy surface has not yet been created for this input file.</p>
 {% endif %}
 {% if network.surfaceFilePNGExists %}
-<p>PES.png</p>
+{% include "networkFile.html" with filename="PES.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
+<br/>
 {% endif %}
 {% if network.surfaceFilePDFExists %}
-<p>PES.pdf</p>
+{% include "networkFile.html" with filename="PES.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
+<br/>
 {% endif %}
 {% if network.surfaceFileSVGExists %}
-<p>PES.svg</p>
+{% include "networkFile.html" with filename="PES.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
+<br/>
 {% endif %}
 <div><a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">{% if network.surfaceFilePNGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PNG</a></div>
 <div><a href="{% url pdep.views.networkDrawPDF networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PDF</a></div>
 <div><a href="{% url pdep.views.networkDrawSVG networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as SVG</a></div>
+</div>
 
 
 {% endblock %}

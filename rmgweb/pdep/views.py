@@ -28,6 +28,9 @@
 #
 ################################################################################
 
+import os.path
+import time
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
@@ -61,7 +64,29 @@ def networkIndex(request, networkKey):
     indicated by `networkKey`.
     """
     network = get_object_or_404(Network, pk=networkKey)
-    return render_to_response('networkIndex.html', {'network': network, 'networkKey': networkKey}, context_instance=RequestContext(request))
+    
+    # Get file sizes of files in 
+    filesize = {}; modificationTime = {}
+    if network.inputFileExists():
+        filesize['inputFile'] = '{0:.1f}'.format(os.path.getsize(network.getInputFilename()))
+        modificationTime['inputFile'] = time.ctime(os.path.getmtime(network.getInputFilename()))
+    if network.outputFileExists():
+        filesize['outputFile'] = '{0:.1f}'.format(os.path.getsize(network.getOutputFilename()))
+        modificationTime['outputFile'] = time.ctime(os.path.getmtime(network.getOutputFilename()))
+    if network.logFileExists():
+        filesize['logFile'] = '{0:.1f}'.format(os.path.getsize(network.getLogFilename()))
+        modificationTime['logFile'] = time.ctime(os.path.getmtime(network.getLogFilename()))
+    if network.surfaceFilePNGExists():
+        filesize['surfaceFilePNG'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenamePNG()))
+        modificationTime['surfaceFilePNG'] = time.ctime(os.path.getmtime(network.getSurfaceFilenamePNG()))
+    if network.surfaceFilePDFExists():
+        filesize['surfaceFilePDF'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenamePDF()))
+        modificationTime['surfaceFilePDF'] = time.ctime(os.path.getmtime(network.getSurfaceFilenamePDF()))
+    if network.surfaceFileSVGExists():
+        filesize['surfaceFileSVG'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenameSVG()))
+        modificationTime['surfaceFileSVG'] = time.ctime(os.path.getmtime(network.getSurfaceFilenameSVG()))
+        
+    return render_to_response('networkIndex.html', {'network': network, 'networkKey': networkKey, 'filesize': filesize, 'modificationTime': modificationTime}, context_instance=RequestContext(request))
 
 def networkWizard(request, networkKey):
     """
