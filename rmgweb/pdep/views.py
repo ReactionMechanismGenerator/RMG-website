@@ -34,6 +34,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 from models import *
+from forms import *
 
 ################################################################################
 
@@ -74,7 +75,22 @@ def networkEditor(request, networkKey):
     A view called when a user wants to add/edit Network input parameters by
     editing the input file in the broswer
     """
-    return Http404
+    network = get_object_or_404(Network, pk=networkKey)
+    if request.method == 'POST':
+        form = EditNetworkForm(request.POST, instance=network)
+        if form.is_valid():
+            # Save the inputText field contents to the input file
+            network.saveInputText()
+            # Save the form
+            network = form.save()
+            # Go back to the network's main page
+            return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    else:
+        # Load the text from the input file into the inputText field
+        network.loadInputText()
+        # Create the form
+        form = EditNetworkForm(instance=network)
+    return render_to_response('networkEditor.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
 
 def networkUpload(request, networkKey):
     """

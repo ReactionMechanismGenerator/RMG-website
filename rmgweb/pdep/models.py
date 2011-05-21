@@ -32,16 +32,76 @@
 This module defines the Django models used by the pdep app.
 """
 
+import os
+import os.path
+
 from django.db import models
+
+import rmgweb.settings as settings
 
 ################################################################################
 
 class Network(models.Model):
     """
-    A Django model of a pressure-dependent reaction network.
+    A Django model of a pressure-dependent reaction network. 
     """
     def upload_input_to(instance, filename):
         # Always name the uploaded input file "input.py"
         return 'pdep/networks/{0}/input.py'.format(instance.pk)
     title = models.CharField(max_length=50)
     inputFile = models.FileField(upload_to=upload_input_to, verbose_name='MEASURE input file')
+    inputText = models.TextField(blank=True, verbose_name='')
+
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the Network object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'pdep', 'networks', str(self.pk))
+    
+    def getInputFilename(self):
+        """
+        Return the absolute path of the input file.
+        """
+        return os.path.join(self.getDirname(), 'input.py')
+    
+    def inputFileExists(self):
+        """
+        Return ``True`` if the input file exists on the server or ``False`` if
+        not.
+        """
+        return os.path.exists(self.getInputFilename())
+        
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
+            os.makedirs(self.getDirname())
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+        
+    def loadInputText(self):
+        """
+        Load the input file text into the inputText field.
+        """
+        self.inputText = ''
+        if self.inputFileExists():
+            f = open(self.getInputFilename(),'r')
+            for line in f:
+                self.inputText += line
+            f.close()
+        
+    def saveInputText(self):
+        """
+        Save the contents of the inputText field to the input file.
+        """
+        fpath = self.getInputFilename()
+        self.createDir()
+        f = open(fpath,'w')
+        for line in self.inputText.splitlines():
+            f.write(line + '\n')
+        f.close()
+        

@@ -16,7 +16,7 @@
 
 <h2>Input</h2>
 
-{% if network.inputFile == '' %}
+{% if not network.inputFileExists %}
 <p>You have not created an input file for this network.</p>
 <div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Create an input file using the wizard</a></div>
 <div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Create an input file manually</a></div>

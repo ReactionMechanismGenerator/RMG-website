@@ -1,0 +1,33 @@
+{% extends "pdepbase.html" %}
+
+{% block title %}Edit {{ network.title }}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url pdep.views.index %}">MEASURE</a> &raquo;
+<a href="{% url pdep.views.networkIndex networkKey=networkKey%}">{{ network.title }}</a> &raquo;
+<a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Edit</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block extrahead %}
+<link href="/media/pdep.css" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+#id_inputText {
+    width: 100%;
+    height: 480px;
+}
+</style>
+{% endblock %}
+
+{% block page_title %}Edit {{ network.title }}{% endblock %}
+
+{% block page_body %}
+
+<form action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Save" id="submit"/></p>
+</form>
+
+{% endblock %}
