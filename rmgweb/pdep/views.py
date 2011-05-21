@@ -97,4 +97,19 @@ def networkUpload(request, networkKey):
     A view called when a user wants to add/edit Network input parameters by
     uploading an input file.
     """
-    return Http404
+    network = get_object_or_404(Network, pk=networkKey)
+    if request.method == 'POST':
+        form = UploadNetworkForm(request.POST, request.FILES, instance=network)
+        if form.is_valid():
+            # Delete the current input file
+            network.deleteInputFile()
+            # Save the form
+            network = form.save()
+            # Load the text from the input file into the inputText field
+            network.loadInputText()
+            # Go back to the network's main page
+            return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    else:
+        # Create the form
+        form = UploadNetworkForm(instance=network)
+    return render_to_response('networkUpload.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))

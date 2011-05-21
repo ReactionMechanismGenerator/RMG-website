@@ -49,7 +49,7 @@ class Network(models.Model):
         # Always name the uploaded input file "input.py"
         return 'pdep/networks/{0}/input.py'.format(instance.pk)
     title = models.CharField(max_length=50)
-    inputFile = models.FileField(upload_to=upload_input_to, verbose_name='MEASURE input file')
+    inputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input file')
     inputText = models.TextField(blank=True, verbose_name='')
 
     def getDirname(self):
@@ -82,6 +82,13 @@ class Network(models.Model):
         except OSError:
             # Fail silently on any OS errors
             pass
+        
+    def deleteInputFile(self):
+        """
+        Delete the input file for this network from the server.
+        """
+        if self.inputFileExists():
+            os.remove(self.getInputFilename())
         
     def loadInputText(self):
         """

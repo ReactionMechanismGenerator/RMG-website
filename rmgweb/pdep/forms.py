@@ -45,3 +45,13 @@ class EditNetworkForm(forms.ModelForm):
     class Meta:
         model = Network
         fields = ('inputText',)
+
+################################################################################
+
+class UploadNetworkForm(forms.ModelForm):
+    """
+    A Django form for uploading a MEASURE input file.
+    """
+    class Meta:
+        model = Network
+        fields = ('inputFile',)
