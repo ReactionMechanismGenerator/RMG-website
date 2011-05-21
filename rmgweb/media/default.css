@@ -116,49 +116,6 @@ h3 {
     font-size: 90%;
 }
 
-/* Forms */
-
-label {
-    float: left;
-    width: 180px;
-    text-align: right;
-    padding-right: 8px;
-}
-
-input, textarea {
-    border: 1px solid #993333;
-    margin: 1px;
-    vertical-align: middle;
-}
-
-select {
-    border: 1px solid #993333;
-    background-color: #FFFFFF;
-    margin: 1px;
-}
-
-.error {
-    color: #FF0000;
-}
-
-.numberInput {
-    width: 100px;
-    margin: 1px -2px 1px 1px;
-}
-
-.lineInput, .textInput {
-    width: 500px;
-}
-
-.textInput {
-    height: 125px;
-}
-
-#submit {
-    display: block;
-    margin: auto;   
-}
-
 .comment, .history {
     width: 100%;
     background-color: #EEEEEE;
