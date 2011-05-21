@@ -28,20 +28,14 @@
 #
 ################################################################################
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from django.http import Http404, HttpResponseRedirect
+from django.conf.urls.defaults import *
 
-################################################################################
+urlpatterns = patterns('rmgweb.pdep',
 
-def index(request):
-    """
-    The MEASURE homepage.
-    """
-    return render_to_response('measure.html', context_instance=RequestContext(request))
+    # Pressure dependence homepage
+    (r'^$', 'views.index'),
 
-def start(request):
-    """
-    A view called when a user wants to begin a new MEASURE calculation.
-    """
-    raise Http404
+    # URL for beginning a new calculation
+    (r'^start$', 'views.start'),
+
+)

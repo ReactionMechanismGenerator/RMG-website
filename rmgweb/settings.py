@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     # RMG website apps
     'main',
     'database',
+    'pdep',
 )
 
 # Settings relating to user account management

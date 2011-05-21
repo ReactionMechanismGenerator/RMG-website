@@ -34,6 +34,11 @@ a:hover {
     text-decoration: underline;
 }
 
+.biglink {
+    font-size: 150%;
+    text-align: center;
+}
+
 /* Headings */
 
 h1, h2, h3 {

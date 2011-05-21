@@ -1,0 +1,24 @@
+{% extends "pdepbase.html" %}
+
+{% block title %}MEASURE{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url pdep.views.index %}">MEASURE</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}<img src="/media/measure-banner.png" alt="MEASURE"/>{% endblock %}
+
+{% block page_body %}
+<p><strong>MEASURE</strong> is a tool for computing pressure-dependent rate
+coefficients <i>k</i>(<i>T</i>,<i>P</i>)</span> for chemical reaction networks.
+You can use it right from your web browser by following the link below:</p>
+
+<p class="biglink"><a href="{% url pdep.views.start %}">Start Here</a></p>
+
+<p>You can also download and install MEASURE on your own computer if you
+prefer. This is recommended if you have lots of calculations to perform.</p>
+
+{% endblock %}
