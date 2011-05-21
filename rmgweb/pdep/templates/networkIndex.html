@@ -28,4 +28,27 @@
 <div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload a replacement input file</a></div>
 {% endif %}
 
+<h2>Output</h2>
+
+{% if not network.outputFileExists %}
+<p>MEASURE has not been run on this input file.</p>
+<div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Run MEASURE</a></div>
+{% else %}
+<p>output.py</p>
+<div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Rerun MEASURE</a></div>
+{% endif %}
+
+{% if not network.surfaceExists %}
+<p>A potential energy surface has not yet been created for this input file.</p>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='png' %}">Draw potential energy surface as PNG</a></div>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='pdf' %}">Draw potential energy surface as PDF</a></div>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='svg' %}">Draw potential energy surface as SVG</a></div>
+{% else %}
+<p>output.py</p>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='png' %}">Redraw potential energy surface as PNG</a></div>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='pdf' %}">Redraw potential energy surface as PDF</a></div>
+<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='svg' %}">Redraw potential energy surface as SVG</a></div>
+{% endif %}
+
+
 {% endblock %}

@@ -45,5 +45,9 @@ urlpatterns = patterns('rmgweb.pdep',
     (r'^networks/(?P<networkKey>[^/]+)/wizard$', 'views.networkWizard'),
     (r'^networks/(?P<networkKey>[^/]+)/edit$', 'views.networkEditor'),
     (r'^networks/(?P<networkKey>[^/]+)/upload$', 'views.networkUpload'),
+
+    # URLs for generating various output files
+    (r'^networks/(?P<networkKey>[^/]+)/draw/(?P<format>[^/]+)$', 'views.networkDraw'),
+    (r'^networks/(?P<networkKey>[^/]+)/run$', 'views.networkRun'),
     
 )

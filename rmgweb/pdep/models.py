@@ -65,12 +65,39 @@ class Network(models.Model):
         """
         return os.path.join(self.getDirname(), 'input.py')
     
+    def getOutputFilename(self):
+        """
+        Return the absolute path of the output file.
+        """
+        return os.path.join(self.getDirname(), 'output.py')
+    
+    def getSurfaceFilename(self, format):
+        """
+        Return the absolute path of the PES image file in the given `format`.
+        """
+        return os.path.join(self.getDirname(), 'PES.{0}'.format(format.lower()))
+    
     def inputFileExists(self):
         """
         Return ``True`` if the input file exists on the server or ``False`` if
         not.
         """
         return os.path.exists(self.getInputFilename())
+        
+    def outputFileExists(self):
+        """
+        Return ``True`` if the output file exists on the server or ``False`` if
+        not.
+        """
+        return os.path.exists(self.getOutputFilename())
+        
+    def surfaceFileExists(self):
+        """
+        Return ``True`` if any potential energy surface image file exists
+        """
+        return (os.path.exists(self.getSurfaceFilename('png')) or
+            os.path.exists(self.getSurfaceFilename('pdf')) or
+            os.path.exists(self.getSurfaceFilename('svg')))
         
     def createDir(self):
         """
@@ -89,6 +116,22 @@ class Network(models.Model):
         """
         if self.inputFileExists():
             os.remove(self.getInputFilename())
+        
+    def deleteOutputFile(self):
+        """
+        Delete the output file for this network from the server.
+        """
+        if self.outputFileExists():
+            os.remove(self.getOutputFilename())
+        
+    def deleteSurfaceFiles(self):
+        """
+        Delete the PES image file(s) for this network from the server.
+        """
+        for ext in ['png', 'pdf', 'svg']:
+            fpath = self.getSurfaceFilename(ext)
+            if os.path.exists(fpath):
+                os.remove(fpath)
         
     def loadInputText(self):
         """

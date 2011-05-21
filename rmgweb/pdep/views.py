@@ -113,3 +113,19 @@ def networkUpload(request, networkKey):
         # Create the form
         form = UploadNetworkForm(instance=network)
     return render_to_response('networkUpload.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
+
+def networkDraw(request, networkKey, format):
+    """
+    A view called when a user wants to draw the potential energy surface for
+    a given Network.
+    """
+    if format.lower() not in ['png', 'pdf', 'svg']:
+        raise Http404
+    raise Http404
+
+def networkRun(request, networkKey):
+    """
+    A view called when a user wants to run MEASURE on the input file for a
+    given Network.
+    """
+    raise Http404
