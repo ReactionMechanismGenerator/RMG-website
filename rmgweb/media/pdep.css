@@ -1,0 +1,15 @@
+@import url("/media/default.css");
+
+/**
+ * This file contains additional styles used within the pdep app only.
+ */
+
+/* Forms */
+
+form ul {
+    list-style-type: none;
+}
+
+.errorlist {
+    color: #FF0000;
+}
