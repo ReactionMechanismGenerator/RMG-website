@@ -114,18 +114,75 @@ def networkUpload(request, networkKey):
         form = UploadNetworkForm(instance=network)
     return render_to_response('networkUpload.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
 
-def networkDraw(request, networkKey, format):
+def networkDrawPNG(request, networkKey):
     """
     A view called when a user wants to draw the potential energy surface for
-    a given Network.
+    a given Network in PNG format.
     """
-    if format.lower() not in ['png', 'pdf', 'svg']:
-        raise Http404
-    raise Http404
+    from rmgpy.measure.main import execute
+    
+    network = get_object_or_404(Network, pk=networkKey)
+    
+    # Run MEASURE to draw the PES
+    execute(
+        inputFile = network.getInputFilename(),
+        drawFile = network.getSurfaceFilenamePNG(),
+    )
+    
+    # Go back to the network's main page
+    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+
+def networkDrawPDF(request, networkKey):
+    """
+    A view called when a user wants to draw the potential energy surface for
+    a given Network in PDF format.
+    """
+    from rmgpy.measure.main import execute
+    
+    network = get_object_or_404(Network, pk=networkKey)
+    
+    # Run MEASURE to draw the PES
+    execute(
+        inputFile = network.getInputFilename(),
+        drawFile = network.getSurfaceFilenamePDF(),
+    )
+    
+    # Go back to the network's main page
+    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+
+def networkDrawSVG(request, networkKey):
+    """
+    A view called when a user wants to draw the potential energy surface for
+    a given Network in SVG format.
+    """
+    from rmgpy.measure.main import execute
+    
+    network = get_object_or_404(Network, pk=networkKey)
+    
+    # Run MEASURE to draw the PES
+    # For some reason SVG drawing seems to be much slower than the other formats
+    execute(
+        inputFile = network.getInputFilename(),
+        drawFile = network.getSurfaceFilenameSVG(),
+    )
+    
+    # Go back to the network's main page
+    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
 
 def networkRun(request, networkKey):
     """
     A view called when a user wants to run MEASURE on the input file for a
     given Network.
     """
-    raise Http404
+    from rmgpy.measure.main import execute
+    
+    network = get_object_or_404(Network, pk=networkKey)
+    
+    # Run MEASURE! This may take some time...
+    execute(
+        inputFile = network.getInputFilename(),
+        outputFile = network.getOutputFilename(),
+    )
+    
+    # Go back to the network's main page
+    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))

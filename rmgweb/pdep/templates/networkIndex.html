@@ -38,17 +38,21 @@
 <div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Rerun MEASURE</a></div>
 {% endif %}
 
-{% if not network.surfaceExists %}
+{% if not network.surfaceFilePNGExists and not network.surfaceFilePDFExists and not network.surfaceFileSVGExists %}
 <p>A potential energy surface has not yet been created for this input file.</p>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='png' %}">Draw potential energy surface as PNG</a></div>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='pdf' %}">Draw potential energy surface as PDF</a></div>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='svg' %}">Draw potential energy surface as SVG</a></div>
-{% else %}
-<p>output.py</p>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='png' %}">Redraw potential energy surface as PNG</a></div>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='pdf' %}">Redraw potential energy surface as PDF</a></div>
-<div><a href="{% url pdep.views.networkDraw networkKey=networkKey format='svg' %}">Redraw potential energy surface as SVG</a></div>
 {% endif %}
+{% if network.surfaceFilePNGExists %}
+<p>PES.png</p>
+{% endif %}
+{% if network.surfaceFilePDFExists %}
+<p>PES.pdf</p>
+{% endif %}
+{% if network.surfaceFileSVGExists %}
+<p>PES.svg</p>
+{% endif %}
+<div><a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">{% if network.surfaceFilePNGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PNG</a></div>
+<div><a href="{% url pdep.views.networkDrawPDF networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PDF</a></div>
+<div><a href="{% url pdep.views.networkDrawSVG networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as SVG</a></div>
 
 
 {% endblock %}

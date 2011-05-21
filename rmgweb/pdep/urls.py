@@ -47,7 +47,9 @@ urlpatterns = patterns('rmgweb.pdep',
     (r'^networks/(?P<networkKey>[^/]+)/upload$', 'views.networkUpload'),
 
     # URLs for generating various output files
-    (r'^networks/(?P<networkKey>[^/]+)/draw/(?P<format>[^/]+)$', 'views.networkDraw'),
+    (r'^networks/(?P<networkKey>[^/]+)/draw/png$', 'views.networkDrawPNG'),
+    (r'^networks/(?P<networkKey>[^/]+)/draw/pdf$', 'views.networkDrawPDF'),
+    (r'^networks/(?P<networkKey>[^/]+)/draw/svg$', 'views.networkDrawSVG'),
     (r'^networks/(?P<networkKey>[^/]+)/run$', 'views.networkRun'),
     
 )

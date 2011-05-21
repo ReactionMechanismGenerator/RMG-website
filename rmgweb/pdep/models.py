@@ -71,11 +71,23 @@ class Network(models.Model):
         """
         return os.path.join(self.getDirname(), 'output.py')
     
-    def getSurfaceFilename(self, format):
+    def getSurfaceFilenamePNG(self):
         """
-        Return the absolute path of the PES image file in the given `format`.
+        Return the absolute path of the PES image file in PNG format.
         """
-        return os.path.join(self.getDirname(), 'PES.{0}'.format(format.lower()))
+        return os.path.join(self.getDirname(), 'PES.png')
+    
+    def getSurfaceFilenamePDF(self):
+        """
+        Return the absolute path of the PES image file in PDF format.
+        """
+        return os.path.join(self.getDirname(), 'PES.pdf')
+    
+    def getSurfaceFilenameSVG(self):
+        """
+        Return the absolute path of the PES image file in SVG format.
+        """
+        return os.path.join(self.getDirname(), 'PES.svg')
     
     def inputFileExists(self):
         """
@@ -91,13 +103,26 @@ class Network(models.Model):
         """
         return os.path.exists(self.getOutputFilename())
         
-    def surfaceFileExists(self):
+    def surfaceFilePNGExists(self):
         """
-        Return ``True`` if any potential energy surface image file exists
+        Return ``True`` if a potential energy surface PNG image file exists or
+        ``False`` if not.
         """
-        return (os.path.exists(self.getSurfaceFilename('png')) or
-            os.path.exists(self.getSurfaceFilename('pdf')) or
-            os.path.exists(self.getSurfaceFilename('svg')))
+        return os.path.exists(self.getSurfaceFilenamePNG())
+        
+    def surfaceFilePDFExists(self):
+        """
+        Return ``True`` if a potential energy surface PDF image file exists or
+        ``False`` if not.
+        """
+        return os.path.exists(self.getSurfaceFilenamePDF())
+        
+    def surfaceFileSVGExists(self):
+        """
+        Return ``True`` if a potential energy surface SVG image file exists or
+        ``False`` if not.
+        """
+        return os.path.exists(self.getSurfaceFilenameSVG())
         
     def createDir(self):
         """
@@ -124,14 +149,29 @@ class Network(models.Model):
         if self.outputFileExists():
             os.remove(self.getOutputFilename())
         
-    def deleteSurfaceFiles(self):
+    def deleteSurfaceFilePNG(self):
         """
-        Delete the PES image file(s) for this network from the server.
+        Delete the PES image file in PNF format for this network from the 
+        server.
         """
-        for ext in ['png', 'pdf', 'svg']:
-            fpath = self.getSurfaceFilename(ext)
-            if os.path.exists(fpath):
-                os.remove(fpath)
+        if os.path.exists(self.getSurfaceFilenamePNG()):
+            os.remove(self.getSurfaceFilenamePNG())
+        
+    def deleteSurfaceFilePDF(self):
+        """
+        Delete the PES image file in PDF format for this network from the 
+        server.
+        """
+        if os.path.exists(self.getSurfaceFilenamePDF()):
+            os.remove(self.getSurfaceFilenamePDF())
+        
+    def deleteSurfaceFileSVG(self):
+        """
+        Delete the PES image file in SVG format for this network from the 
+        server.
+        """
+        if os.path.exists(self.getSurfaceFilenameSVG()):
+            os.remove(self.getSurfaceFilenameSVG())
         
     def loadInputText(self):
         """
