@@ -38,7 +38,7 @@ import os.path
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 
 # The path to the RMG-database project
-DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', '..', 'RMG-database'))
+DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', '..', 'RMG-database', 'input'))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
