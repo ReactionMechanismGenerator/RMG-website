@@ -17,7 +17,7 @@
 
     <div id="sidebar">
         <div id="logo">
-            <img src="/media/rmg-logo-small.png" alt="RMG"/>
+        {% block sidebar_logo %}<img src="/media/rmg-logo-small.png" alt="RMG"/>{% endblock %}
         </div>
         {% block sidebar_items %}{% endblock %}
     </div>
