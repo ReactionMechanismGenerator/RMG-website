@@ -137,6 +137,34 @@ class Network(models.Model):
         """
         return os.path.exists(self.getSurfaceFilenameSVG())
         
+    def outputFileOutOfDate(self):
+        """
+        Return ``True`` if the output file is out of date or ``False`` if
+        not.
+        """
+        return self.outputFileExists() and os.path.getmtime(self.getInputFilename()) > os.path.getmtime(self.getOutputFilename())
+        
+    def surfaceFilePNGOutOfDate(self):
+        """
+        Return ``True`` if a potential energy surface PNG image file is out of 
+        date or ``False`` if not.
+        """
+        return self.surfaceFilePNGExists() and os.path.getmtime(self.getInputFilename()) > os.path.getmtime(self.getSurfaceFilenamePNG())
+        
+    def surfaceFilePDFOutOfDate(self):
+        """
+        Return ``True`` if a potential energy surface PDF image file is out of
+        date or ``False`` if not.
+        """
+        return self.surfaceFilePDFExists() and os.path.getmtime(self.getInputFilename()) > os.path.getmtime(self.getSurfaceFilenamePDF())
+        
+    def surfaceFileSVGOutOfDate(self):
+        """
+        Return ``True`` if a potential energy surface SVG image file is out of
+        date or ``False`` if not.
+        """
+        return self.surfaceFileSVGExists() and os.path.getmtime(self.getInputFilename()) > os.path.getmtime(self.getSurfaceFilenameSVG())
+        
     def createDir(self):
         """
         Create the directory (and any other needed parent directories) that

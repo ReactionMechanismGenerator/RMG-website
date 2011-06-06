@@ -30,6 +30,11 @@
 
 <h2>Potential Energy Surface</h2>
 {% if network.surfaceFilePNGExists %}
+{% if network.surfaceFilePNGOutOfDate %}
+<div class="warning">
+<strong>Warning:</strong> Your potential energy surface may be out of date. You may want to <a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">redraw it</a>.
+</div>
+{% endif %}
 <p style="text-align: center;">
 <a href="/media/pdep/networks/{{ networkKey }}/PES.png"><img src="/media/pdep/networks/{{ networkKey }}/PES.png"/></a>
 </p>
