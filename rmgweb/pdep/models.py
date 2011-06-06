@@ -52,6 +52,19 @@ class Network(models.Model):
     inputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input file')
     inputText = models.TextField(blank=True, verbose_name='')
 
+    def __init__(self, *args, **kwargs):
+        super(Network, self).__init__(*args, **kwargs)
+        self.network = None
+        self.Tlist = None
+        self.Plist = None
+        self.Elist = None
+        self.method = None
+        self.model = None
+        self.Tmin = None
+        self.Tmax = None
+        self.Pmin = None
+        self.Pmax = None
+
     def getDirname(self):
         """
         Return the absolute path of the directory that the Network object uses
@@ -235,4 +248,23 @@ class Network(models.Model):
         for line in self.inputText.splitlines():
             f.write(line + '\n')
         f.close()
+    
+    def load(self):
+        """
+        Load the contents of the input and output files into an
+        rmgpy.measure.network.Network object.
+        """
+        import rmgpy.measure.input
         
+        if self.outputFileExists():
+            params = rmgpy.measure.input.readFile(self.getOutputFilename())
+            if params is not None:
+                self.network, self.Tlist, self.Plist, self.Elist, self.method, self.model, self.Tmin, self.Tmax, self.Pmin, self.Pmax = params
+        elif self.inputFileExists():
+            params = rmgpy.measure.input.readFile(self.getInputFilename())
+            if params is not None:
+                self.network, self.Tlist, self.Plist, self.Elist, self.method, self.model, self.Tmin, self.Tmax, self.Pmin, self.Pmax = params
+        else:
+            self.network = None
+        
+        return self.network
