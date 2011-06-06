@@ -8,49 +8,55 @@
 {% endblock %}
 
 {% block sidebar_items %}
+{% include "networkSidebar.html" %}
 {% endblock %}
 
 {% block page_title %}{{ network.title }}{% endblock %}
 
 {% block page_body %}
 
-<h2>Input</h2>
-
-<div class="file">
 {% if not network.inputFileExists %}
-<p>You have not created an input file for this network.</p>
-<div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Create an input file using the wizard</a></div>
-<div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Create an input file manually</a></div>
-<div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload an input file</a></div>
-{% else %}
-{% include "networkFile.html" with filename="input.py" filesize=filesize.inputFile modificationTime=modificationTime.inputFile icon="/media/icons/text-x-python.png" %}
-<br/>
-<div><a href="{% url pdep.views.networkWizard networkKey=networkKey%}">Edit the input file using the wizard</a></div>
-<div><a href="{% url pdep.views.networkEditor networkKey=networkKey%}">Edit an input file manually</a></div>
-<div><a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload a replacement input file</a></div>
-{% endif %}
+
+<div class="messagebox">
+<p class="bigmessage">No input has been provided for this network.</p>
+<p>You can add input by using
+<a href="{% url pdep.views.networkWizard networkKey=networkKey%}">the wizard</a>,
+<a href="{% url pdep.views.networkEditor networkKey=networkKey%}">the editor</a>, or by
+<a href="{% url pdep.views.networkUpload networkKey=networkKey%}">uploading a file</a>.
+</p>
 </div>
 
-<h2>Output</h2>
-
-<div class="file">
-{% if not network.outputFileExists %}
-<p>MEASURE has not been run on this input file.</p>
-<div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Run MEASURE</a></div>
 {% else %}
-{% include "networkFile.html" with filename="output.py" filesize=filesize.outputFile modificationTime=modificationTime.outputFile icon="/media/icons/text-x-python.png" %}
-{% include "networkFile.html" with filename="MEASURE.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
-<br/>
-<div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Rerun MEASURE</a></div>
-{% endif %}
-</div>
 
 <h2>Potential Energy Surface</h2>
-
-<div class="file">
-{% if not network.surfaceFilePNGExists and not network.surfaceFilePDFExists and not network.surfaceFileSVGExists %}
-<p>A potential energy surface has not yet been created for this input file.</p>
+{% if network.surfaceFilePNGExists %}
+<p style="text-align: center;">
+<a href="/media/pdep/networks/{{ networkKey }}/PES.png"><img src="/media/pdep/networks/{{ networkKey }}/PES.png"/></a>
+</p>
+{% else %}
+<div class="messagebox">
+<p class="bigmessage">No potential energy surface has been drawn for this network.</p>
+<p>To visualize your potential energy surface, <a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">click here</a>.
+</p>
+</div>
 {% endif %}
+
+<h2>Files</h2>
+
+{% if network.inputFileExists %}
+{% include "networkFile.html" with filename="input.py" filesize=filesize.inputFile modificationTime=modificationTime.inputFile icon="/media/icons/text-x-python.png" %}
+<br/>
+{% endif %}
+
+{% if network.outputFileExists %}
+{% include "networkFile.html" with filename="output.py" filesize=filesize.outputFile modificationTime=modificationTime.outputFile icon="/media/icons/text-x-python.png" %}
+<br/>
+{% endif %}
+{% if network.logFileExists %}
+{% include "networkFile.html" with filename="MEASURE.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
+<br/>
+{% endif %}
+
 {% if network.surfaceFilePNGExists %}
 {% include "networkFile.html" with filename="PES.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
 <br/>
@@ -63,10 +69,7 @@
 {% include "networkFile.html" with filename="PES.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
 <br/>
 {% endif %}
-<div><a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">{% if network.surfaceFilePNGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PNG</a></div>
-<div><a href="{% url pdep.views.networkDrawPDF networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} potential energy surface as PDF</a></div>
-<div><a href="{% url pdep.views.networkDrawSVG networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} potential energy surface as SVG</a></div>
-</div>
 
+{% endif %}
 
 {% endblock %}

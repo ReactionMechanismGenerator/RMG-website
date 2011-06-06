@@ -14,13 +14,26 @@ form ul {
     color: #FF0000;
 }
 
-/* File */
+/* Sidebar */
 
-div.file {
+h3.sidebar {
+    font-weight: bold;
+}
+
+/* Network index */
+
+div.messagebox {
     border: 2px solid #E0E0E0;
     background-color: #F0F0F0;
-    margin: 1em 0 1em 0;
     padding: 4px;
+    text-align: center;
+    margin: 1em auto 1em auto;
+    width: 75%;
+}
+
+p.bigmessage {
+    font-size: 125%;
+    font-weight: bold;
 }
 
 span.filename {
