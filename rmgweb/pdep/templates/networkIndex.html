@@ -46,6 +46,78 @@
 </div>
 {% endif %}
 
+{% if network.inputFileExists %}
+<h2>Species</h2>
+<p>
+<table class="networkData">
+<tr>
+    <th>Label</th>
+    <th>Structure</th>
+    <th>Type</th>
+    <th>Collision model?</th>
+    <th>Frequencies?</th>
+    <th>Thermodynamics?</th>
+</tr>
+{% for label, structure, type, collision, states, thermo in speciesList %}
+<tr>
+    <td><a href="{% url pdep.views.networkSpecies networkKey=networkKey species=label %}">{{ label }}</a></td>
+    <td>{{ structure|safe }}</td>
+    <td>{{ type }}</td>
+    <td>{{ collision }}</td>
+    <td>{{ states }}</td>
+    <td>{{ thermo }}</td>
+</tr>
+{% endfor %}
+</table>
+</p>
+
+<h2>Path Reactions</h2>
+<p>
+<table class="networkData">
+<tr>
+    <th>Index</th>
+    <th colspan="3">Path reaction</th>
+    <th>Transition state?</th>
+    <th>High-P kinetics?</th>
+</tr>
+{% for reactants, arrow, products, states, kinetics in pathReactionList %}
+<tr>
+    <td><a href="{% url pdep.views.networkPathReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
+    <td class="reactants">{{ reactants|safe }}</td>
+    <td class="reactionArrow">{{ arrow|safe }}</td>
+    <td class="products">{{ products|safe }}</td>
+    <td>{{ states }}</td>
+    <td>{{ kinetics }}</td>
+</tr>
+{% endfor %}
+</table>
+</p>
+
+{% endif %}
+
+{% if network.outputFileExists %}
+<h2>Net Reactions</h2>
+<p>
+<table class="networkData">
+<tr>
+    <th>Index</th>
+    <th colspan="3">Net reaction</th>
+    <th>Kinetics?</th>
+</tr>
+{% for reactants, arrow, products, kinetics in netReactionList %}
+<tr>
+    <td><a href="{% url pdep.views.networkPathReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
+    <td class="reactants">{{ reactants|safe }}</td>
+    <td class="reactionArrow">{{ arrow|safe }}</td>
+    <td class="products">{{ products|safe }}</td>
+    <td>{{ kinetics }}</td>
+</tr>
+{% endfor %}
+</table>
+</p>
+
+{% endif %}
+
 <h2>Files</h2>
 
 {% if network.inputFileExists %}

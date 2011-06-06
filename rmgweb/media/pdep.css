@@ -53,3 +53,26 @@ td.filemod {
     font-size: 80%;
     font-style: italic;
 }
+
+/* Tables */
+
+table.networkData {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.networkData, table.networkData th, table.networkData td {
+    border: 1px solid #E0E0E0;
+    padding: 2px;
+}
+
+table.networkData th {
+    text-align: left;
+}
+
+table.networkData td.reactants, table.networkData td.reactionArrow {
+    border-right: 0px solid #FFFFFF;
+}
+table.networkData td.products, table.networkData td.reactionArrow {
+    border-left: 0px solid #FFFFFF;
+}

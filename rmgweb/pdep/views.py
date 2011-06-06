@@ -30,12 +30,14 @@
 
 import os.path
 import time
+import re
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
+from rmgweb.main.tools import *
 from models import *
 from forms import *
 
@@ -63,30 +65,83 @@ def networkIndex(request, networkKey):
     A view called when a user wants to see the main page for a Network object
     indicated by `networkKey`.
     """
-    network = get_object_or_404(Network, pk=networkKey)
+    networkModel = get_object_or_404(Network, pk=networkKey)
     
     # Get file sizes of files in 
     filesize = {}; modificationTime = {}
-    if network.inputFileExists():
-        filesize['inputFile'] = '{0:.1f}'.format(os.path.getsize(network.getInputFilename()))
-        modificationTime['inputFile'] = time.ctime(os.path.getmtime(network.getInputFilename()))
-    if network.outputFileExists():
-        filesize['outputFile'] = '{0:.1f}'.format(os.path.getsize(network.getOutputFilename()))
-        modificationTime['outputFile'] = time.ctime(os.path.getmtime(network.getOutputFilename()))
-    if network.logFileExists():
-        filesize['logFile'] = '{0:.1f}'.format(os.path.getsize(network.getLogFilename()))
-        modificationTime['logFile'] = time.ctime(os.path.getmtime(network.getLogFilename()))
-    if network.surfaceFilePNGExists():
-        filesize['surfaceFilePNG'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenamePNG()))
-        modificationTime['surfaceFilePNG'] = time.ctime(os.path.getmtime(network.getSurfaceFilenamePNG()))
-    if network.surfaceFilePDFExists():
-        filesize['surfaceFilePDF'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenamePDF()))
-        modificationTime['surfaceFilePDF'] = time.ctime(os.path.getmtime(network.getSurfaceFilenamePDF()))
-    if network.surfaceFileSVGExists():
-        filesize['surfaceFileSVG'] = '{0:.1f}'.format(os.path.getsize(network.getSurfaceFilenameSVG()))
-        modificationTime['surfaceFileSVG'] = time.ctime(os.path.getmtime(network.getSurfaceFilenameSVG()))
+    if networkModel.inputFileExists():
+        filesize['inputFile'] = '{0:.1f}'.format(os.path.getsize(networkModel.getInputFilename()))
+        modificationTime['inputFile'] = time.ctime(os.path.getmtime(networkModel.getInputFilename()))
+    if networkModel.outputFileExists():
+        filesize['outputFile'] = '{0:.1f}'.format(os.path.getsize(networkModel.getOutputFilename()))
+        modificationTime['outputFile'] = time.ctime(os.path.getmtime(networkModel.getOutputFilename()))
+    if networkModel.logFileExists():
+        filesize['logFile'] = '{0:.1f}'.format(os.path.getsize(networkModel.getLogFilename()))
+        modificationTime['logFile'] = time.ctime(os.path.getmtime(networkModel.getLogFilename()))
+    if networkModel.surfaceFilePNGExists():
+        filesize['surfaceFilePNG'] = '{0:.1f}'.format(os.path.getsize(networkModel.getSurfaceFilenamePNG()))
+        modificationTime['surfaceFilePNG'] = time.ctime(os.path.getmtime(networkModel.getSurfaceFilenamePNG()))
+    if networkModel.surfaceFilePDFExists():
+        filesize['surfaceFilePDF'] = '{0:.1f}'.format(os.path.getsize(networkModel.getSurfaceFilenamePDF()))
+        modificationTime['surfaceFilePDF'] = time.ctime(os.path.getmtime(networkModel.getSurfaceFilenamePDF()))
+    if networkModel.surfaceFileSVGExists():
+        filesize['surfaceFileSVG'] = '{0:.1f}'.format(os.path.getsize(networkModel.getSurfaceFilenameSVG()))
+        modificationTime['surfaceFileSVG'] = time.ctime(os.path.getmtime(networkModel.getSurfaceFilenameSVG()))
+    
+    network = networkModel.load()
         
-    return render_to_response('networkIndex.html', {'network': network, 'networkKey': networkKey, 'filesize': filesize, 'modificationTime': modificationTime}, context_instance=RequestContext(request))
+    # Get species information
+    speciesList = []
+    if network is not None:
+        for spec in network.getAllSpecies():
+            speciesType = []
+            if spec in network.isomers:
+                speciesType.append('isomer')
+            if any([spec in reactants for reactants in network.reactants]):
+                speciesType.append('reactant')
+            if any([spec in products for products in network.products]):
+                speciesType.append('product')
+            if spec in network.bathGas:
+                speciesType.append('bath gas')
+            collision = 'yes' if spec.lennardJones is not None else ''
+            states = 'yes' if spec.states is not None else ''
+            thermo = 'yes' if spec.states is not None or spec.thermo is not None else ''
+            speciesList.append((spec.label, getStructureMarkup(spec), ', '.join(speciesType), collision, states, thermo))
+    
+    # Get path reaction information
+    pathReactionList = []
+    if network is not None:
+        for rxn in network.pathReactions:
+            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.reactants])
+            products = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.products])
+            arrow = '&hArr;' if rxn.reversible else '&rarr;'
+            states = 'yes' if rxn.transitionState.states is not None else ''
+            kinetics = 'yes' if rxn.kinetics is not None else ''
+            pathReactionList.append((reactants, arrow, products, states, kinetics))
+    
+    # Get net reaction information
+    netReactionList = []
+    if network is not None:
+        for rxn in network.netReactions:
+            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.reactants])
+            products = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.products])
+            arrow = '&hArr;' if rxn.reversible else '&rarr;'
+            kinetics = 'yes' if rxn.kinetics is not None else ''
+            netReactionList.append((reactants, arrow, products, kinetics))
+    
+    return render_to_response(
+        'networkIndex.html', 
+        {
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'speciesList': speciesList, 
+            'pathReactionList': pathReactionList, 
+            'netReactionList': netReactionList, 
+            'filesize': filesize, 
+            'modificationTime': modificationTime,
+        }, 
+        context_instance=RequestContext(request),
+    )
 
 def networkWizard(request, networkKey):
     """
@@ -211,3 +266,24 @@ def networkRun(request, networkKey):
     
     # Go back to the network's main page
     return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+
+def networkSpecies(request, networkKey, species):
+    """
+    A view called when a user wants to view details for a single species in
+    a given reaction network.
+    """
+    raise Http404
+
+def networkPathReaction(request, networkKey, reaction):
+    """
+    A view called when a user wants to view details for a single path reaction
+    in a given reaction network.
+    """
+    raise Http404
+
+def networkNetReaction(request, networkKey, reaction):
+    """
+    A view called when a user wants to view details for a single net reaction
+    in a given reaction network.
+    """
+    raise Http404
