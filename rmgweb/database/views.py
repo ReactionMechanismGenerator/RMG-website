@@ -736,3 +736,21 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 
+
+def moleculeSearch(request):
+    """
+    Creates webpage form to display molecule chemgraph upon entering adjacency list.
+    """
+
+    if request.method == 'POST':
+        form = MoleculeSearchForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            adjlist = form.cleaned_data['species']
+            adjlist = adjlist.replace('\n', ';')
+            adjlist = re.sub('\s+', '%20', adjlist)
+            structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+    else:
+         form = MoleculeSearchForm()
+         structure = ''
+    
+    return render_to_response('moleculeSearch.html', {'structure':structure,'form': form}, context_instance=RequestContext(request))

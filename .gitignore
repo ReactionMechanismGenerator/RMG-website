@@ -24,3 +24,6 @@ rmgweb/media/Highcharts/*
 
 # Database files
 database/*
+/rmgweb/nbproject/private/private.xml
+/rmgweb/nbproject/project.properties
+/rmgweb/nbproject/project.xml

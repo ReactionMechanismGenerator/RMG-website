@@ -134,3 +134,23 @@ class KineticsSearchForm(forms.Form):
             traceback.print_exc(e)
             raise forms.ValidationError('Invalid adjacency list.')
         return str(self.cleaned_data['product2'])
+
+class MoleculeSearchForm(forms.Form):
+    """
+    Form for drawing molecule from adjacency list
+    """
+    species = forms.CharField(label ="", widget = forms.Textarea(attrs={'cols': 50, 'rows': 30}))
+
+    def clean_species(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            try:
+                molecule = Molecule()
+                molecule.fromAdjacencyList(str(self.cleaned_data['species']))
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid adjacency list.')
+            return str(self.cleaned_data['species'])

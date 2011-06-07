@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}RMG: Draw Molecule{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block page_title %}Draw Molecule{% endblock %}
+
+{% block page_body %}
+Molecule:
+<P>
+
+{{ structure|safe }}
+
+<P>
+
+Adjacency List:
+<P>
+
+<form method="post">{% csrf_token %}
+{{ form.as_p }}
+
+
+<input type="submit" value="Submit" id="submit"/>
+</form>
+
+{% endblock %}

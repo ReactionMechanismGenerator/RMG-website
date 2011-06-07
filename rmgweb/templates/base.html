@@ -17,7 +17,7 @@
 
     <div id="sidebar">
         <div id="logo">
-            <img src="/media/rmg-logo-small.png" alt="RMG"/>
+            <a href="{% url main.views.index %}"><img src="/media/rmg-logo-small.png" alt="RMG"/></a>
         </div>
         {% block sidebar_items %}{% endblock %}
     </div>
