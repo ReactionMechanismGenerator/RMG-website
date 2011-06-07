@@ -272,7 +272,52 @@ def networkSpecies(request, networkKey, species):
     A view called when a user wants to view details for a single species in
     a given reaction network.
     """
-    raise Http404
+    networkModel = get_object_or_404(Network, pk=networkKey)
+    network = networkModel.load()
+    
+    label = species
+    for spec in network.getAllSpecies():
+        if spec.label == label:
+            species = spec
+            break
+    else:
+        raise Http404
+    
+    structure = getStructureMarkup(species)
+    E0 = '{0:g}'.format(species.E0.value / 1000.)
+    if species.lennardJones is not None:
+        collisionParameters = prepareCollisionParameters(species)
+    else:
+        collisionParameters = None
+    if species.states is not None:
+        statesParameters = prepareStatesParameters(species.states)
+    else:
+        statesParameters = None
+    if species.thermo is not None:
+        thermoParameters = prepareThermoParameters(species.thermo)
+    else:
+        thermoParameters = None
+    statesModel = species.states
+    thermoModel = species.thermo
+    
+    return render_to_response(
+        'networkSpecies.html', 
+        {
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'species': species, 
+            'label': label,
+            'structure': structure,
+            'E0': E0,
+            'collisionParameters': collisionParameters,
+            'statesParameters': statesParameters,
+            'thermoParameters': thermoParameters,
+            'statesModel': statesModel,
+            'thermoModel': thermoModel,
+        }, 
+        context_instance=RequestContext(request),
+    )
+
 
 def networkPathReaction(request, networkKey, reaction):
     """

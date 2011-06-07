@@ -200,7 +200,6 @@ td.reactionArrow {
 }
 
 table.reference {
-    width: 100%;
     margin-bottom: 1em;
 }
 
@@ -208,6 +207,14 @@ table.reference td.label {
     font-weight: bold;
     text-align: right;
     vertical-align: top;
+    white-space: nowrap;
+}
+
+table.reference td.section {
+    text-decoration: underline;
+    font-weight: bold;
+    text-align: left;
+    padding-top: 1em;
 }
 
 table.reference td p {
