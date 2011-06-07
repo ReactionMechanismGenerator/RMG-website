@@ -291,3 +291,62 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
         kineticsParameters['Prange'] = None
 
     return kineticsParameters
+
+################################################################################
+
+def prepareStatesParameters(states):
+    """
+    Collect the molecular degrees of freedom parameters for the provided states
+    model `states` and prepare them for viewing in a template. In particular, 
+    we must do any string formatting here because we can't do that in the 
+    template itself.
+    """
+    from rmgpy.statmech import Translation, RigidRotor, HarmonicOscillator, HinderedRotor
+    from rmgpy.quantity import constants
+    
+    statesParameters = {
+        'translation': None,
+        'rotation': None,
+        'vibration': None,
+        'torsion': None,
+    }
+
+    for mode in states.modes:
+        modeParameters = {}
+        
+        if isinstance(mode, Translation):
+            modeParameters['mass'] = '{0:g}'.format(mode.mass * 1000)
+            statesParameters['rotation'] = modeParameters
+        
+        elif isinstance(mode, RigidRotor):
+            if mode.linear:
+                modeParameters['linearity'] = 'Linear'
+                modeParameters['inertia'] = ['{0:.1f}'.format(mode.inertia.value * constants.Na * 1e23)]
+            else:
+                modeParameters['linearity'] = 'Nonlinear'
+                modeParameters['inertia'] = ['{0:.1f}'.format(inertia * constants.Na * 1e23) for inertia in mode.inertia.values]
+                modeParameters['symmetry'] = '{0:d}'.format(mode.symmetry)
+            statesParameters['rotation'] = modeParameters
+        
+        elif isinstance(mode, HarmonicOscillator):
+            modeParameters['frequencies'] = ['{0:.1f}'.format(freq) for freq in mode.frequencies.values]
+            statesParameters['vibration'] = modeParameters
+        
+        elif isinstance(mode, HinderedRotor):
+            if statesParameters['torsion'] is None:
+                statesParameters['torsion'] = []
+            modeParameters['inertia'] = '{0:.1f}'.format(mode.inertia.value * constants.Na * 1e23)
+            modeParameters['symmetry'] = '{0:d}'.format(mode.symmetry)
+            if mode.fourier is not None:
+                modeParameters['barrier'] = None
+                modeParameters['fourierA'] = ['{0:g}'.format(a_k) for a_k in mode.fourier.values[0,:]]  
+                modeParameters['fourierB'] = ['{0:g}'.format(b_k) for b_k in mode.fourier.values[1,:]]  
+            elif mode.barrier is not None:
+                modeParameters['barrier'] = '{0:.1f}'.format(mode.barrier.value / 1000.)
+                modeParameters['fourierA'] = None
+                modeParameters['fourierB'] = None
+            statesParameters['torsion'].append(modeParameters)
+            
+    statesParameters['spinMultiplicity'] = '{0:d}'.format(states.spinMultiplicity)
+    
+    return statesParameters
