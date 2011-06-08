@@ -33,6 +33,8 @@ import re
 
 from django.core.urlresolvers import reverse
 
+from rmgpy.quantity import constants
+
 ################################################################################
 
 def getLaTeXScientificNotation(value):
@@ -153,7 +155,7 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     and prepare them for viewing in a template. In particular, we must do any
     string formatting here because we can't do that in the template itself.
     """
-    from rmgpy.kinetics import *
+    from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, MultiArrhenius, PDepArrhenius, Chebyshev, ThirdBody, Lindemann, Troe
 
     kineticsParameters = {}
 
@@ -350,3 +352,20 @@ def prepareStatesParameters(states):
     statesParameters['spinMultiplicity'] = '{0:d}'.format(states.spinMultiplicity)
     
     return statesParameters
+
+################################################################################
+
+def prepareCollisionParameters(species):
+    """
+    Collect the collision parameters for the provided `species` and prepare 
+    them for viewing in a template. In particular, we must do any string 
+    formatting here because we can't do that in the template itself.
+    """
+    
+    collisionParameters = {}
+    
+    collisionParameters['molWt'] = '{0:.2f}'.format(species.molecularWeight.value * 1000)
+    collisionParameters['sigmaLJ'] = '{0:.2f}'.format(species.lennardJones.sigma.value * 1e10)
+    collisionParameters['epsilonLJ'] = '{0:g}'.format(species.lennardJones.epsilon.value / constants.kB)
+    
+    return collisionParameters
