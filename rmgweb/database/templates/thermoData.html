@@ -16,7 +16,7 @@ jQuery(document).ready(function() {
     thermoDataList = [];
 
     {% for entry, thermoData, source, href in thermoDataList %}
-    {% include "thermoModelJS.html" %}
+    {% include "thermoModel.js" %}
     thermoDataList.push(["{{ source }}", thermoData]);
     {% endfor %}
 
