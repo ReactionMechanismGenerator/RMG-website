@@ -455,4 +455,38 @@ def networkNetReaction(request, networkKey, reaction):
     A view called when a user wants to view details for a single net reaction
     in a given reaction network.
     """
-    raise Http404
+    networkModel = get_object_or_404(Network, pk=networkKey)
+    network = networkModel.load()
+    
+    try:
+        index = int(reaction)
+    except ValueError:
+        raise Http404
+    try:
+        reaction = network.netReactions[index-1]
+    except IndexError:
+        raise Http404
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
+    arrow = '&hArr;' if reaction.reversible else '&rarr;'
+    
+    if reaction.kinetics is not None:
+        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
+    else:
+        kineticsParameters = None
+    
+    return render_to_response(
+        'networkNetReaction.html', 
+        {
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'reaction': reaction, 
+            'index': index,
+            'reactants': reactants,
+            'products': products,
+            'arrow': arrow,
+            'kineticsParameters': kineticsParameters,
+        }, 
+        context_instance=RequestContext(request),
+    )

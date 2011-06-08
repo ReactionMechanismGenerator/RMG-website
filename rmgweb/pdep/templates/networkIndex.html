@@ -106,7 +106,7 @@
 </tr>
 {% for reactants, arrow, products, kinetics in netReactionList %}
 <tr>
-    <td><a href="{% url pdep.views.networkPathReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
+    <td><a href="{% url pdep.views.networkNetReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
     <td class="reactants">{{ reactants|safe }}</td>
     <td class="reactionArrow">{{ arrow|safe }}</td>
     <td class="products">{{ products|safe }}</td>
