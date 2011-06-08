@@ -24,3 +24,6 @@ rmgweb/media/Highcharts/*
 
 # Database files
 database/*
+
+# Uploaded MEASURE files
+rmgweb/media/pdep/networks/*
