@@ -324,7 +324,131 @@ def networkPathReaction(request, networkKey, reaction):
     A view called when a user wants to view details for a single path reaction
     in a given reaction network.
     """
-    raise Http404
+    networkModel = get_object_or_404(Network, pk=networkKey)
+    network = networkModel.load()
+    
+    try:
+        index = int(reaction)
+    except ValueError:
+        raise Http404
+    try:
+        reaction = network.pathReactions[index-1]
+    except IndexError:
+        raise Http404
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
+    arrow = '&hArr;' if reaction.reversible else '&rarr;'
+    
+    E0 = '{0:g}'.format(reaction.transitionState.E0.value / 1000.)
+    
+    if reaction.transitionState.states is not None:
+        statesParameters = prepareStatesParameters(reaction.transitionState.states)
+    else:
+        statesParameters = None
+    
+    if reaction.kinetics is not None:
+        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
+    else:
+        kineticsParameters = None
+    
+    def computeMicrocanonicalRateCoefficient():
+    
+        # Compute the microcanonical rate coefficient k(E) for this reaction
+        # --------------------------
+        # Automatically choose a suitable set of energy grains if they were not
+        Elist = network.autoGenerateEnergyGrains(Tmax=2000, grainSize=0.5*4184, Ngrains=250)
+
+        # Determine the values of some counters
+        Ngrains = len(Elist)
+        Nisom = len(network.isomers)
+        Nreac = len(network.reactants)
+        Nprod = len(network.products)
+        dE = Elist[1] - Elist[0]
+
+        # Get ground-state energies of all isomers and each reactant channel
+        # that has the necessary parameters
+        # An exception will be raised if a unimolecular isomer is missing
+        # this information
+        E0 = numpy.zeros((Nisom+Nreac), numpy.float64)
+        for i in range(Nisom):
+            E0[i] = network.isomers[i].E0.value
+        for n in range(Nreac):
+            E0[n+Nisom] = sum([spec.E0.value for spec in network.reactants[n]])
+
+        # Get first reactive grain for each isomer
+        Ereac = numpy.ones(Nisom, numpy.float64) * 1e20
+        for i in range(Nisom):
+            for rxn in network.pathReactions:
+                if rxn.reactants[0] == network.isomers[i] or rxn.products[0] == network.isomers[i]:
+                    if rxn.transitionState.E0.value < Ereac[i]:
+                        Ereac[i] = rxn.transitionState.E0.value
+
+        # Shift energy grains such that lowest is zero
+        Emin = Elist[0]
+        for rxn in network.pathReactions:
+            rxn.transitionState.E0.value -= Emin
+        E0 -= Emin
+        Ereac -= Emin
+        Elist -= Emin
+
+        # Calculate density of states for each isomer and each reactant channel
+        # that has the necessary parameters
+        densStates0 = network.calculateDensitiesOfStates(Elist, E0)
+        Kij, Gnj, Fim = network.calculateMicrocanonicalRates(Elist, densStates0, T=1000)
+        if reaction.isIsomerization():
+            reac = network.isomers.index(reaction.reactants[0])
+            prod = network.isomers.index(reaction.products[0])
+            kflist = Kij[prod,reac,:]
+            krlist = Kij[reac,prod,:]
+        elif reaction.isAssociation():
+            if reaction.reactants in network.products:
+                reac = network.products.index(reaction.reactants) + Nreac
+                prod = network.isomers.index(reaction.products[0])
+                kflist = []
+                krlist = Gnj[reac,prod,:]
+            else:
+                reac = network.reactants.index(reaction.reactants)
+                prod = network.isomers.index(reaction.products[0])
+                kflist = []
+                krlist = Gnj[reac,prod,:]
+        elif reaction.isDissociation():
+            if reaction.products in network.products:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.products.index(reaction.products) + Nreac
+                kflist = Gnj[prod,reac,:]
+                krlist = []
+            else:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.reactants.index(reaction.products)
+                kflist = Gnj[prod,reac,:]
+                krlist = []
+
+        return {
+            'Edata': list(Elist),
+            'kfdata': list(kflist),
+            'krdata': list(krlist),
+        }
+        
+    microcanonicalRates = computeMicrocanonicalRateCoefficient()
+    
+    return render_to_response(
+        'networkPathReaction.html', 
+        {
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'reaction': reaction, 
+            'index': index,
+            'reactants': reactants,
+            'products': products,
+            'arrow': arrow,
+            'E0': E0,
+            'statesParameters': statesParameters,
+            'kineticsParameters': kineticsParameters,
+            'microcanonicalRates': microcanonicalRates,
+        }, 
+        context_instance=RequestContext(request),
+    )
 
 def networkNetReaction(request, networkKey, reaction):
     """
