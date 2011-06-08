@@ -172,7 +172,7 @@ def prepareThermoParameters(thermo):
 
 ################################################################################
 
-def prepareKineticsParameters(kinetics, numReactants, degeneracy):
+def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Plist=None):
     """
     Collect the kinetics parameters for the provided kinetics model `kinetics`
     and prepare them for viewing in a template. In particular, we must do any
@@ -329,11 +329,15 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     else:
         Pmin = 1e3
         Pmax = 1e7
+    
     for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.00001):
         Tdata.append(1.0/Tinv)
     if kinetics.isPressureDependent():
-        for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+1, 1):
-            Pdata.append(10**logP)
+        if Plist is not None:
+            Pdata = list(Plist)
+        else:
+            for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
+                Pdata.append(10**logP)
         for P in Pdata:
             klist = []
             for T in Tdata:
@@ -342,10 +346,32 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     else:
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T))
+    
+    Tdata2 = []; Pdata2 = []; kdata2 = []
+    if Tlist is not None:
+        Tdata2 = list(Tlist)
+    else:
+        for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.0005):
+            Tdata2.append(round(1.0/Tinv))
+    if kinetics.isPressureDependent():
+        for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
+            Pdata2.append(10**logP)
+        for P in Pdata2:
+            klist = []
+            for T in Tdata2:
+                klist.append(kinetics.getRateCoefficient(T,P))
+            kdata2.append(klist)
+    else:
+        for T in Tdata2:
+            kdata2.append(kinetics.getRateCoefficient(T))
+    
     kineticsParameters['data'] = {
         'Tdata': Tdata,
         'Pdata': Pdata,
         'kdata': kdata,
+        'Tdata2': Tdata2,
+        'Pdata2': Pdata2,
+        'kdata2': kdata2,
     }
     
     return kineticsParameters
