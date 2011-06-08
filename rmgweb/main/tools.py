@@ -29,6 +29,7 @@
 ################################################################################
 
 import math
+import numpy
 import re
 
 from django.core.urlresolvers import reverse
@@ -144,7 +145,29 @@ def prepareThermoParameters(thermo):
         thermoParameters['Trange'] = ('%g' % (thermo.Tmin.value), '%g' % (thermo.Tmax.value), 'K')
     else:
         thermoParameters['Trange'] = None
-
+    
+    # Generate data to use for plots
+    if thermo.Tmin is not None and thermo.Tmax is not None:
+        Tmin = thermo.Tmin.value
+        Tmax = thermo.Tmax.value
+    else:
+        Tmin = 300
+        Tmax = 2000
+    Tdata = []; Cpdata = []; Hdata = []; Sdata = []; Gdata = []
+    for T in numpy.arange(Tmin, Tmax+1, 10):
+        Tdata.append(T)
+        Cpdata.append(thermo.getHeatCapacity(T))
+        Hdata.append(thermo.getEnthalpy(T))
+        Sdata.append(thermo.getEntropy(T))
+        Gdata.append(thermo.getFreeEnergy(T))
+    thermoParameters['data'] = {
+        'Tdata': Tdata,
+        'Cpdata': Cpdata,
+        'Hdata': Hdata,
+        'Sdata': Sdata,
+        'Gdata': Gdata,
+    }
+    
     return thermoParameters
 
 ################################################################################
