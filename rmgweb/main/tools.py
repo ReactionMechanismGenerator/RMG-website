@@ -315,6 +315,39 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     else:
         kineticsParameters['Prange'] = None
 
+    # Generate data to use for plots
+    Tdata = []; Pdata = []; kdata = []
+    if kinetics.Tmin is not None and kinetics.Tmax is not None:
+        Tmin = kinetics.Tmin.value
+        Tmax = kinetics.Tmax.value
+    else:
+        Tmin = 300
+        Tmax = 2000
+    if kinetics.Pmin is not None and kinetics.Pmax is not None:
+        Pmin = kinetics.Pmin.value
+        Pmax = kinetics.Pmax.value
+    else:
+        Pmin = 1e3
+        Pmax = 1e7
+    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.00001):
+        Tdata.append(1.0/Tinv)
+    if kinetics.isPressureDependent():
+        for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+1, 1):
+            Pdata.append(10**logP)
+        for P in Pdata:
+            klist = []
+            for T in Tdata:
+                klist.append(kinetics.getRateCoefficient(T,P))
+            kdata.append(klist)
+    else:
+        for T in Tdata:
+            kdata.append(kinetics.getRateCoefficient(T))
+    kineticsParameters['data'] = {
+        'Tdata': Tdata,
+        'Pdata': Pdata,
+        'kdata': kdata,
+    }
+    
     return kineticsParameters
 
 ################################################################################
