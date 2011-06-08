@@ -407,6 +407,33 @@ def prepareStatesParameters(states):
             
     statesParameters['spinMultiplicity'] = '{0:d}'.format(states.spinMultiplicity)
     
+    # Generate data to use for plots
+    Tdata = []; Qdata = []
+    for T in numpy.arange(10, 2001, 10):
+        Tdata.append(T)
+        Qdata.append(states.getPartitionFunction(T))
+    
+    Edata = numpy.arange(0, 400001, 1000, numpy.float)
+    rhodata = states.getDensityOfStates(Edata)
+    Edata = list(Edata)
+    rhodata = list(rhodata)
+    
+    phidata = []; Vdata = []
+    for phi in numpy.arange(0, 2*math.pi, math.pi/200):
+        phidata.append(phi)
+    for mode in states.modes:
+        if isinstance(mode, HinderedRotor):
+            Vdata.append([mode.getPotential(phi) for phi in phidata])
+     
+    statesParameters['data'] = {
+        'Tdata': Tdata,
+        'Qdata': Qdata,
+        'Edata': Edata,
+        'rhodata': rhodata,
+        'phidata': phidata,
+        'Vdata': Vdata,
+    }
+    
     return statesParameters
 
 ################################################################################
