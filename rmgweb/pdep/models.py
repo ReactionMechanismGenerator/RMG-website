@@ -267,4 +267,6 @@ class Network(models.Model):
         else:
             self.network = None
         
+        self.title = self.network.title
+        
         return self.network
