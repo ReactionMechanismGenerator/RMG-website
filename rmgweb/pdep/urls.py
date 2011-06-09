@@ -56,5 +56,6 @@ urlpatterns = patterns('rmgweb.pdep',
     (r'^networks/(?P<networkKey>[^/]+)/species/(?P<species>[^/]+)$', 'views.networkSpecies'),
     (r'^networks/(?P<networkKey>[^/]+)/pathReactions/(?P<reaction>[^/]+)$', 'views.networkPathReaction'),
     (r'^networks/(?P<networkKey>[^/]+)/netReactions/(?P<reaction>[^/]+)$', 'views.networkNetReaction'),
+    (r'^networks/(?P<networkKey>[^/]+)/kinetics$', 'views.networkPlotKinetics'),
     
 )

@@ -55,3 +55,19 @@ class UploadNetworkForm(forms.ModelForm):
     class Meta:
         model = Network
         fields = ('inputFile',)
+
+################################################################################
+
+class PlotKineticsForm(forms.Form):
+    """
+    A Django form for choosing parameters for generating k(T,P) vs. T and P
+    plots.
+    """
+    reactant = forms.ChoiceField(choices=[], label='Reactant configuration')
+    T = forms.FloatField(initial=1000, label='Temperature of k(T,P) vs. P plot (K)')
+    P = forms.FloatField(initial=1, label='Pressure of k(T,P) vs. T plot (bar)')
+
+    def __init__(self, configurations, *args, **kwargs):
+        super(PlotKineticsForm, self).__init__(*args, **kwargs)
+        choices = [(config, config) for config in configurations]
+        self.fields['reactant'].choices = choices

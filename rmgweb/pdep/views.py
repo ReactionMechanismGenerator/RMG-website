@@ -490,3 +490,56 @@ def networkNetReaction(request, networkKey, reaction):
         }, 
         context_instance=RequestContext(request),
     )
+
+def networkPlotKinetics(request, networkKey):
+    """
+    Generate k(T,P) vs. T and k(T,P) vs. P plots for all of the net reactions
+    involving a given configuration as the reactant.
+    """
+    networkModel = get_object_or_404(Network, pk=networkKey)
+    network = networkModel.load()
+    
+    configurations = []
+    for isomer in network.isomers:
+        configurations.append([isomer])
+    configurations.extend(network.reactants)
+    #configurations.extend(network.products)
+    configurationLabels = []
+    for configuration in configurations:
+        labels = [spec.label for spec in configuration]
+        labels.sort()
+        configurationLabels.append(u' + '.join(labels))
+    
+    source = configurations[0]
+    T = 1000
+    P = 1e5
+    
+    if request.method == 'POST':
+        form = PlotKineticsForm(configurationLabels, request.POST)
+        if form.is_valid():
+            source = configurations[configurationLabels.index(form.cleaned_data['reactant'])]
+            T = form.cleaned_data['T']
+            P = form.cleaned_data['P'] * 1e5
+    else:
+        form = PlotKineticsForm(configurationLabels)
+    
+    kineticsParameterSet = {}
+    Tlist = 1.0/numpy.arange(0.0005, 0.0035, 0.0005, numpy.float64)
+    Plist = 10**numpy.arange(3, 7.1, 0.25, numpy.float64)
+    for rxn in network.netReactions:
+        if rxn.reactants == source:
+            products = u' + '.join([spec.label for spec in rxn.products])
+            kineticsParameterSet[products] = prepareKineticsParameters(rxn.kinetics, len(rxn.reactants), rxn.degeneracy, Tlist=[T], Plist=[P])
+    
+    return render_to_response(
+        'networkPlotKinetics.html', 
+        {
+            'form': form,
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'configurations': configurations, 
+            'source': source,
+            'kineticsParameterSet': kineticsParameterSet,
+        }, 
+        context_instance=RequestContext(request),
+    )
