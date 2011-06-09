@@ -143,13 +143,6 @@ def networkIndex(request, networkKey):
         context_instance=RequestContext(request),
     )
 
-def networkWizard(request, networkKey):
-    """
-    A view called when a user wants to add/edit Network input parameters using
-    the wizard.
-    """
-    return Http404
-
 def networkEditor(request, networkKey):
     """
     A view called when a user wants to add/edit Network input parameters by
