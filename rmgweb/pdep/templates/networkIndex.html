@@ -27,6 +27,23 @@
 
 {% else %}
 
+{% if errorString != '' %}
+<div class="warning">
+<p class="bigmessage">One or more errors exists in your input file.</p>
+<p>The error messages are shown below:
+</p>
+<p>
+<textarea style="width: 90%; height: 20em; border: 1px solid #E0C0C0; background-color: inherit">
+{{ errorString }}
+</textarea>
+</p>
+<p>To fix these errors, use
+<a href="{% url pdep.views.networkEditor networkKey=networkKey%}">the editor</a>, or
+<a href="{% url pdep.views.networkUpload networkKey=networkKey%}">upload a new file</a>.
+</p>
+</div>
+{% endif %}
+
 <h2>Potential Energy Surface</h2>
 {% if network.surfaceFilePNGExists %}
 {% if network.surfaceFilePNGOutOfDate %}

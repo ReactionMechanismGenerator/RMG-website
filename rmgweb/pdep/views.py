@@ -139,6 +139,7 @@ def networkIndex(request, networkKey):
             'netReactionList': netReactionList, 
             'filesize': filesize, 
             'modificationTime': modificationTime,
+            'errorString': network.errorString,
         }, 
         context_instance=RequestContext(request),
     )
