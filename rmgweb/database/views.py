@@ -365,7 +365,7 @@ def thermoData(request, adjlist):
         elif library in database.thermo.depository.values():
             source = 'Depository'
             href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
-        elif library in database.thermo.libraries:
+        elif library in database.thermo.libraries.values():
             source = library.name
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
@@ -743,12 +743,53 @@ def moleculeSearch(request):
     """
 
     if request.method == 'POST':
-        form = MoleculeSearchForm(request.POST, error_class=DivErrorList)
-        if form.is_valid():
-            adjlist = form.cleaned_data['species']
-            adjlist = adjlist.replace('\n', ';')
-            adjlist = re.sub('\s+', '%20', adjlist)
-            structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+        posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        if posted.is_valid():
+                adjlist = posted.cleaned_data['species']
+                inchi = posted.cleaned_data['species_inchi']
+                smiles = posted.cleaned_data['species_smiles']
+
+                if adjlist != '':
+                    molecule = Molecule()
+                    molecule.fromAdjacencyList(adjlist)
+                    adjlist = adjlist.replace('\n', ';')
+                    adjlist = re.sub('\s+', '%20', adjlist)
+                    structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                    initial['species_inchi'] = molecule.toInChI()
+                    initial['species_smiles'] = molecule.toSMILES()
+
+
+                elif inchi != '':
+                     molecule = Molecule()
+                     molecule.fromInChI(inchi)
+                     adjlist = molecule.toAdjacencyList()
+                     adjlist = adjlist.replace('\n', ';')
+                     adjlist = re.sub('\s+', '%20', adjlist)
+                     structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                     print molecule.toAdjacencyList()
+                     initial['species'] = molecule.toAdjacencyList()
+                     initial['species_smiles'] = molecule.toSMILES()
+
+                elif smiles != '':
+                    molecule = Molecule()
+                    molecule.fromSMILES(smiles)
+                    adjlist = molecule.toAdjacencyList()
+                    adjlist = adjlist.replace('\n', ';')
+                    adjlist = re.sub('\s+', '%20', adjlist)
+                    structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                    initial['species'] = molecule.toAdjacencyList()
+                    initial['species_inchi'] = molecule.toInChI()
+
+                else:
+                    structure = ''
+                    
+        else:
+            structure = ''
+
+        form = MoleculeSearchForm(initial, error_class=DivErrorList)
+
     else:
          form = MoleculeSearchForm()
          structure = ''
