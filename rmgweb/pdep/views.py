@@ -540,3 +540,86 @@ def networkPlotKinetics(request, networkKey):
         }, 
         context_instance=RequestContext(request),
     )
+
+def networkPlotMicro(request, networkKey):
+    """
+    A view for showing plots of items that are functions of energy, i.e.
+    densities of states rho(E) and microcanonical rate coefficients k(E).
+    """
+    networkModel = get_object_or_404(Network, pk=networkKey)
+    network = networkModel.load()
+    
+    Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
+    
+    densityOfStatesData = []
+    for i, species in enumerate(network.isomers):
+        densityOfStatesData.append({
+            'label': species.label,
+            'Edata': list(Elist),
+            'rhodata': list(densStates[i,:]),
+        })
+    for n, reactants in enumerate(network.reactants):
+        densityOfStatesData.append({
+            'label': ' + '.join([species.label for species in reactants]),
+            'Edata': list(Elist),
+            'rhodata': list(densStates[n+Nisom,:]),
+        })
+    
+    microKineticsData = []
+    for reaction in network.pathReactions:
+        
+        reactants = ' + '.join([reactant.label for reactant in reaction.reactants])
+        arrow = '='
+        products = ' + '.join([product.label for product in reaction.products])
+        
+        if reaction.isIsomerization():
+            reac = network.isomers.index(reaction.reactants[0])
+            prod = network.isomers.index(reaction.products[0])
+            kflist = Kij[prod,reac,:]
+            krlist = Kij[reac,prod,:]
+        elif reaction.isAssociation():
+            if reaction.reactants in network.products:
+                reac = network.products.index(reaction.reactants) + Nreac
+                prod = network.isomers.index(reaction.products[0])
+                kflist = []
+                krlist = Gnj[reac,prod,:]
+            else:
+                reac = network.reactants.index(reaction.reactants)
+                prod = network.isomers.index(reaction.products[0])
+                kflist = []
+                krlist = Gnj[reac,prod,:]
+        elif reaction.isDissociation():
+            if reaction.products in network.products:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.products.index(reaction.products) + Nreac
+                kflist = Gnj[prod,reac,:]
+                krlist = []
+            else:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.reactants.index(reaction.products)
+                kflist = Gnj[prod,reac,:]
+                krlist = []
+        
+        if len(kflist) > 0:
+            microKineticsData.append({
+                'label': '{0} {1} {2}'.format(reactants, arrow, products),
+                'Edata': list(Elist),
+                'kdata': list(kflist),
+            })
+        if len(krlist) > 0:
+            microKineticsData.append({
+                'label': '{0} {1} {2}'.format(products, arrow, reactants),
+                'Edata': list(Elist),
+                'kdata': list(krlist),
+            })
+    
+    return render_to_response(
+        'networkPlotMicro.html', 
+        {
+            'network': networkModel, 
+            'networkKey': networkKey, 
+            'densityOfStatesData': densityOfStatesData,
+            'microKineticsData': microKineticsData,
+        }, 
+        context_instance=RequestContext(request),
+    )

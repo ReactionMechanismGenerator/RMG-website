@@ -1,0 +1,170 @@
+{% extends "pdepbase.html" %}
+
+{% block title %}Plot Microcanonical Data - {{ network.title }}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url pdep.views.index %}">MEASURE</a> &raquo;
+<a href="{% url pdep.views.networkIndex networkKey=networkKey%}">{{ network.title }}</a> &raquo;
+<a href="{% url pdep.views.networkPlotMicro networkKey=networkKey%}">Plot Microcanonical Data</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Plot Microcanonical Data - {{ network.title }}{% endblock %}
+
+{% block extrahead %}
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    var rhoseries = new Array();
+    var kseries = new Array();
+    
+    {% for densityOfStates in densityOfStatesData %}
+    label = "{{ densityOfStates.label }}";
+    Elist = {{ densityOfStates.Edata }};
+    rholist = {{ densityOfStates.rhodata }};
+    
+    rhodata = new Array();
+    for (i = 0; i < Elist.length; i++) {
+        if (rholist[i] > 0)
+            rhodata.push([Elist[i]/1000., Math.log(rholist[i]) / Math.LN10]);
+    }
+    rhoseries.push([label, rhodata]);
+    {% endfor %}
+    
+    {% for microKinetics in microKineticsData %}
+    label = "{{ microKinetics.label }}";
+    Elist = {{ microKinetics.Edata }};
+    klist = {{ microKinetics.kdata }};
+    
+    kdata = new Array();
+    for (i = 0; i < Elist.length; i++) {
+        if (klist[i] > 0)
+            kdata.push([Elist[i]/1000., Math.log(klist[i]) / Math.LN10]);
+    }
+    kseries.push([label, kdata]);
+    {% endfor %}
+    
+    plotDensityOfStates = function(id, rhoseries, Emin, Emax) {
+
+        series = [];
+        for (var i = 0; i < rhoseries.length; i++)
+            series.push({
+                name: rhoseries[i][0],
+                data: rhoseries[i][1]
+            });
+        var legendEnabled = true;
+
+        options = {
+            chart: {
+                renderTo: id,
+                defaultSeriesType: 'line'
+            },
+            title: { text: '' },
+            xAxis: {
+                title: { text: 'Energy (kJ/mol)' },
+                min: Emin,
+                max: Emax
+            },
+            yAxis: {
+                title: { text: 'Density of states (mol/J)' },
+                labels: {
+                    formatter: function() {
+                        exponent = Math.floor(this.value);
+                        mantissa = Math.pow(10, this.value) / Math.pow(10, exponent);
+                        return '' + Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
+                    }
+                }
+            },
+            legend: { enabled: legendEnabled },
+            series: series,
+            tooltip: {
+                formatter: function() {
+                    E = this.x; 
+                    exponent = Math.floor(this.y);
+                    mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
+
+                    return 'rho(' + Highcharts.numberFormat(E, 2, '.', '') +' kJ/mol) = ' +
+                        Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' mol/J';
+                }
+            }
+        }
+
+        var chartRho = new Highcharts.Chart(options);
+    };
+    
+    plotMicroKinetics = function(id, kseries) {
+
+        series = [];
+        for (var i = 0; i < kseries.length; i++)
+            series.push({
+                name: kseries[i][0],
+                data: kseries[i][1]
+            });
+        var legendEnabled = true;
+
+        options = {
+            chart: {
+                renderTo: id,
+                defaultSeriesType: 'line'
+            },
+            title: { text: '' },
+            xAxis: {
+                title: { text: 'Energy (kJ/mol)' },
+                min: Emin,
+                max: Emax
+            },
+            yAxis: {
+                title: { text: 'Rate coefficient (s^-1)' },
+                labels: {
+                    formatter: function() {
+                        exponent = Math.floor(this.value);
+                        mantissa = Math.pow(10, this.value) / Math.pow(10, exponent);
+                        return '' + Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
+                    }
+                }
+            },
+            legend: { enabled: legendEnabled },
+            series: series,
+            tooltip: {
+                formatter: function() {
+                    E = this.x; 
+                    exponent = Math.floor(this.y);
+                    mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
+
+                    return 'k(' + Highcharts.numberFormat(E, 2, '.', '') +' kJ/mol) = ' +
+                        Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
+                }
+            }
+        }
+
+        var chartk = new Highcharts.Chart(options);
+    };
+    
+    Emin = Elist[0]/1000.;
+    Emax = Elist[Elist.length-1]/1000.;
+    
+    jsMath.Synchronize(function() {
+        plotDensityOfStates('plotrho', rhoseries, Emin, Emax);
+        plotMicroKinetics('plotk', kseries, Emin, Emax);
+    });
+
+});
+</script>
+{% endblock %}
+
+{% block page_body %}
+
+<h2>Densities of States</h2>
+
+<div id="plotrho" style="width: 80%; height: 40em; margin: auto;"></div>
+
+<h2>Microcanonical Rate Coefficients</h2>
+
+<div id="plotk" style="width: 80%; height: 40em; margin: auto;"></div>
+
+{% endblock %}
