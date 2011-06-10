@@ -90,8 +90,7 @@ plotDensityOfStates = function(id, rhoseries) {
         },
         title: { text: 'Density of states' },
         xAxis: {
-            title: { text: 'Energy (kJ/mol)' },
-            min: 0
+            title: { text: 'Energy (kJ/mol)' }
         },
         yAxis: {
             title: { text: 'Density of states (mol/J)' },
