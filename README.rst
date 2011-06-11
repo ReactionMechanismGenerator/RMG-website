@@ -27,6 +27,9 @@ RMG-Py  (http://github.com/GreenGroup/RMG-Py)
     Development of the website closely mirrors that of RMG-Py, and in general
     you will need to checkout and update the RMG-Py repository whenever you
     update this repository.
+
+Pydot (http://code.google.com/p/pydot/)
+    This can be installed via `pip install pydot` (or `easy_install pydot`).
     
 Once you have successfully installed the above dependencies, fork and/or clone 
 the git repository to your machine. At this point you will need a few more
@@ -43,6 +46,9 @@ jsMath (http://www.math.union.edu/~dpvc/jsMath/)
     the ``rmgweb/media/jsMath`` folder. You will also need to either download
     and install the TeX fonts (recommended) or the jsMath image fonts in order 
     to see the formulas properly in your web browser.
+    
+Highcharts (http://www.highcharts.com/)
+    This should live in a ``rmgweb/media/Highcharts`` folder.
 
 In order to get the web server running, you must first create a secret key for
 Django. This key should be placed in the file ``rmgweb/secretkey.py``. An

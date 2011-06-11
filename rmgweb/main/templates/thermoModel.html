@@ -1,4 +1,4 @@
-{% ifequal thermoData.format 'Wilhoit' %}
+{% ifequal thermoParameters.format 'Wilhoit' %}
 <div class="math">
 \begin{split}
 C_\mathrm{p}(T) &= C_\mathrm{p}(0) + \left[ C_\mathrm{p}(\infty) -
@@ -10,7 +10,7 @@ y &\equiv \frac{T}{T + B}
 </div>
 {% endifequal %}
 
-{% ifequal thermoData.format 'NASA' %}
+{% ifequal thermoParameters.format 'NASA' %}
 <div class="math">
 \frac{C_\mathrm{p}^\circ(T)}{R} = a_{-2} T^{-2} + a_{-1} T^{-1} + a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4
 </div>
@@ -23,18 +23,18 @@ y &\equiv \frac{T}{T + B}
 {% endifequal %}
 
 <table class="thermoEntryData">
-    {% ifequal thermoData.format 'Group additivity' %}
+    {% ifequal thermoParameters.format 'Group additivity' %}
         <tr>
             <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.H298.0 }} \ \mathrm{ {{ thermoData.H298.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.H298.0 }} \ \mathrm{ {{ thermoParameters.H298.1 }} }</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.S298.0 }} \ \mathrm{ {{ thermoData.S298.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.S298.0 }} \ \mathrm{ {{ thermoParameters.S298.1 }} }</span></td>
         </tr>
-        {% for T, Tunits, Cp, Cpunits in thermoData.Cpdata %}
+        {% for T, Tunits, Cp, Cpunits in thermoParameters.Cpdata %}
         <tr>
             <td class="key"><span class="math">C_\mathrm{p}^\circ({{ T }} \ \mathrm{ {{ Tunits }} })</span></td>
             <td class="equals">=</td>
@@ -43,139 +43,139 @@ y &\equiv \frac{T}{T + B}
         {% endfor %}
     {% endifequal %}
 
-    {% ifequal thermoData.format 'Wilhoit' %}
+    {% ifequal thermoParameters.format 'Wilhoit' %}
         <tr>
             <td class="key"><span class="math">C_\mathrm{p}(0)</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.cp0.0 }} \ \mathrm{ {{ thermoData.cp0.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.cp0.0 }} \ \mathrm{ {{ thermoParameters.cp0.1 }} }</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">C_\mathrm{p}(\infty)</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.cpInf.0 }} \ \mathrm{ {{ thermoData.cpInf.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.cpInf.0 }} \ \mathrm{ {{ thermoParameters.cpInf.1 }} }</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">a_0</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.a0.0 }}</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.a0.0 }}</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">a_1</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.a1.0 }}</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.a1.0 }}</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">a_2</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.a2.0 }}</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.a2.0 }}</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">a_3</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.a3.0 }}</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.a3.0 }}</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">H_0</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.H0.0 }} \ \mathrm{ {{ thermoData.H0.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.H0.0 }} \ \mathrm{ {{ thermoParameters.H0.1 }} }</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">S_0</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.S0.0 }} \ \mathrm{ {{ thermoData.S0.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.S0.0 }} \ \mathrm{ {{ thermoParameters.S0.1 }} }</span></td>
         </tr>
         <tr>
             <td class="key"><span class="math">B</span></td>
             <td class="equals">=</td>
-            <td class="value"><span class="math">{{ thermoData.B.0 }} \ \mathrm{ {{ thermoData.B.1 }} }</span></td>
+            <td class="value"><span class="math">{{ thermoParameters.B.0 }} \ \mathrm{ {{ thermoParameters.B.1 }} }</span></td>
         </tr>
     {% endifequal %}
 
-    {% ifequal thermoData.format 'NASA' %}
+    {% ifequal thermoParameters.format 'NASA' %}
         <tr>
             <td class="key">Temperature range</td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value">{{ poly.Trange.0 }} to {{ poly.Trange.1 }} {{ poly.Trange.2 }}</td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_{-2}</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.cm0 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_{-1}</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.cm1 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_0</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c0 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_1</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c1 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_2</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c2 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_3</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c3 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_4</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c4 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_5</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c5 }}</span></td>
             {% endfor %}
         </tr>
         <tr>
             <td class="key"><span class="math">a_6</span></td>
             <td class="equals">=</td>
-            {% for poly in thermoData.polynomials %}
+            {% for poly in thermoParameters.polynomials %}
             <td class="value"><span class="math">{{ poly.c6 }}</span></td>
             {% endfor %}
         </tr>
     {% endifequal %}
 
-    {% ifequal thermoData.format 'Link' %}
+    {% ifequal thermoParameters.format 'Link' %}
         <tr>
             <td class="key">Link:</td>
-            <td class="value"><a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoData.1 %}">{{ entry.data }}</a></td>
+            <td class="value"><a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermoParameters.1 %}">{{ entry.data }}</a></td>
         </tr>
     {% endifequal %}
 
     <tr>
         <td class="key">Temperature range</td>
         <td class="equals">=</td>
-        {% if thermoData.Trange != None %}
-        <td class="value">{{ thermoData.Trange.0 }} to {{ thermoData.Trange.1 }} {{ thermoData.Trange.2 }}</td>
+        {% if thermoParameters.Trange != None %}
+        <td class="value">{{ thermoParameters.Trange.0 }} to {{ thermoParameters.Trange.1 }} {{ thermoParameters.Trange.2 }}</td>
         {% else %}
         <td class="value">Not given</td>
         {% endif %}

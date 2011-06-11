@@ -51,6 +51,8 @@ from django.contrib.auth.models import User
 
 register = template.Library()
 
+import re
+email_search = re.compile('(\w+\@[^> ]+)')
 @register.simple_tag
 def gravatar(username, size=48):
     """
@@ -59,8 +61,12 @@ def gravatar(username, size=48):
     ``{% load gravatar %}`` to the top of the template, then use the syntax
     ``{% gravatar <email> [size] %}``.
     """
-
-    email = User.objects.get(username=username).email
+    match = email_search.search(username)
+    if match:
+        email = match.group()
+    else:
+        # this may fail badly if the username is not in the database
+        email = User.objects.get(username=username).email
 
     url = "http://www.gravatar.com/avatar.php?"
     url += urllib.urlencode({
