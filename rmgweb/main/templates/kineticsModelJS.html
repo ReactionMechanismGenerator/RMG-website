@@ -47,7 +47,7 @@ kineticsModel = new MultiArrheniusModel([
 kineticsModel = new PDepArrheniusModel(
     [{% for P in kineticsModel.pressures.values %}P{% if not forloop.last %},{% endif %}{% endfor %}],
     [
-    {% for arrh in kineticsModel.arrhenius %}
+    {% for arrh in kineticsModel.arrheniusList %}
         new ArrheniusModel({{ arrh.A.value }}, {{ arrh.n.value }}, {{ arrh.Ea.value }}, {{ arrh.T0.value }}){% if not forloop.last %},{% endif %}
     {% endfor %}]
     {% if kineticsModel.Tmin != None and kineticsModel.Tmax != None and kineticsModel.Pmin != None and kineticsModel.Pmax != None %}

@@ -204,13 +204,14 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy):
     elif isinstance(kinetics, PDepArrhenius):
         # Kinetics data is in PDepArrhenius format
         kineticsParameters['format'] = 'PDepArrhenius'
-        for P, arrh in zip(kinetics.pressures, kinetics.arrhenius):
-            kineticsParameters['arrhenius'].append({
+        kineticsParameters['arrheniusList'] = []
+        for P, arrh in zip(kinetics.pressures.values, kinetics.arrhenius):
+            kineticsParameters['arrheniusList'].append({
                 'A': (getLaTeXScientificNotation(arrh.A.value), kunits),
                 'n': ('%.2f' % (arrh.n.value), ''),
                 'Ea': ('%.2f' % (arrh.Ea.value / 1000.), 'kJ/mol'),
                 'T0': ('%g' % (arrh.T0.value), 'K'),
-                'P': ('%g' % (P.value / 1e5), 'bar'),
+                'P': ('%g' % (P / 1e5), 'bar'),
             })
 
     elif isinstance(kinetics, Chebyshev):
