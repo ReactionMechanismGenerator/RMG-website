@@ -172,6 +172,10 @@ table.thermoData, table.kineticsData {
     width: 100%;
 }
 
+table.thermoData tr td , table.kineticsData tr td {
+    border-bottom: 1px solid #808080;
+}
+
 table.thermoData th, table.kineticsData th {
     text-align: left;
 }
