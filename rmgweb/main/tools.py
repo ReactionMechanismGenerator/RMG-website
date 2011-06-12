@@ -77,9 +77,10 @@ def getStructureMarkup(item):
     elif isinstance(item, Group):
         # We can draw Group objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList()
-        adjlist = adjlist.replace('\n', ';')
-        adjlist = re.sub('\s+', '%20', adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': adjlist}), '')
+        adjlist_url = adjlist.replace('\n', ';')
+        adjlist_url = re.sub('\s+', '%20', adjlist_url)
+        structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': adjlist_url}), adjlist)
+        #structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)
     elif isinstance(item, str) or isinstance(item, unicode):
         structure = item
     else:
