@@ -19,7 +19,11 @@
         <div id="logo">
         {% block sidebar_logo %}<a href="{% url main.views.index %}"><img src="/media/rmg-logo-small.png" alt="RMG"/></a>{% endblock %}
         </div>
-        {% block sidebar_items %}{% endblock %}
+        {% block sidebar_items %}
+        <ul>
+         <a href="/database/"><li>Database</li></a>
+        </ul>
+        {% endblock %}
     </div>
 
     <div id="mainbar">

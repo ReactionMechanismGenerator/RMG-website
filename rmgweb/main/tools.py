@@ -78,9 +78,10 @@ def getStructureMarkup(item):
     elif isinstance(item, Group):
         # We can draw Group objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList()
-        adjlist = adjlist.replace('\n', ';')
-        adjlist = re.sub('\s+', '%20', adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': adjlist}), '')
+        adjlist_url = adjlist.replace('\n', ';')
+        adjlist_url = re.sub('\s+', '%20', adjlist_url)
+        structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': adjlist_url}), adjlist)
+        #structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)
     elif isinstance(item, str) or isinstance(item, unicode):
         structure = item
     else:
@@ -227,13 +228,14 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Pl
     elif isinstance(kinetics, PDepArrhenius):
         # Kinetics data is in PDepArrhenius format
         kineticsParameters['format'] = 'PDepArrhenius'
-        for P, arrh in zip(kinetics.pressures, kinetics.arrhenius):
-            kineticsParameters['arrhenius'].append({
+        kineticsParameters['arrheniusList'] = []
+        for P, arrh in zip(kinetics.pressures.values, kinetics.arrhenius):
+            kineticsParameters['arrheniusList'].append({
                 'A': (getLaTeXScientificNotation(arrh.A.value), kunits),
                 'n': ('%.2f' % (arrh.n.value), ''),
                 'Ea': ('%.2f' % (arrh.Ea.value / 1000.), 'kJ/mol'),
                 'T0': ('%g' % (arrh.T0.value), 'K'),
-                'P': ('%g' % (P.value / 1e5), 'bar'),
+                'P': ('%g' % (P / 1e5), 'bar'),
             })
 
     elif isinstance(kinetics, Chebyshev):

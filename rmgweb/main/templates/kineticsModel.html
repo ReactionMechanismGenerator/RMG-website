@@ -17,7 +17,7 @@ k(T) = {{ kineticsParameters.A.0 }}
 {% if kineticsParameters.n.0 != '0.00' %}
 {% if kineticsParameters.T0.0 == '1' %}T{% else %}\left( \frac{T}{ {{ kineticsParameters.T0.0 }} \ \mathrm{ {{ kineticsParameters.T0.1 }} } } \right){% endif %}^{ {{ kineticsParameters.n.0 }} }
 {% endif %}
-{% if kineticsParameters.Ea.0 != '0.00' %}\exp \left( - \frac{ {{ kineticsParameters.Ea.0 }} \ \mathrm{ {{ kineticsParameters.Ea.1 }} } }{ R T } \right){% endif %}
+{% if kineticsParameters.Ea.0 != '0.00' %}\exp \left( - \, \frac{ {{ kineticsParameters.Ea.0 }} \ \mathrm{ {{ kineticsParameters.Ea.1 }} } }{ R T } \right){% endif %}
 \ \mathrm{ {{ kineticsParameters.A.1 }} }
 </div>
 {% endifequal %}
@@ -26,7 +26,7 @@ k(T) = {{ kineticsParameters.A.0 }}
 <div class="math">
 k(T) = {{ kineticsParameters.A.0 }}
 {% if kineticsParameters.n.0 != '0.00' %}T^{ {{ kineticsParameters.n.0 }} }{% endif %}
-\exp \left( - \frac{ {{ kineticsParameters.E0.0 }} \ \mathrm{ {{ kineticsParameters.E0.1 }} } + {{ kineticsParameters.alpha.0 }} \Delta H_\mathrm{rxn}^\circ }{ R T } \right)
+\exp \left( - \, \frac{ {{ kineticsParameters.E0.0 }} \ \mathrm{ {{ kineticsParameters.E0.1 }} } + {{ kineticsParameters.alpha.0 }} \Delta H_\mathrm{rxn}^\circ }{ R T } \right)
 \ \mathrm{ {{ kineticsParameters.A.1 }} }
 </div>
 {% endifequal %}
@@ -42,7 +42,7 @@ k_{ {{ forloop.counter }} }(T) &= {{ arrh.A.0 }}
 {% if arrh.n.0 != '0.00' %}
 {% if arrh.T0.0 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.T0.0 }} \ \mathrm{ {{ arrh.T0.1 }} } } \right){% endif %}^{ {{ arrh.n.0 }} }
 {% endif %}
-{% if arrh.Ea.0 != '0.00' %}\exp \left( - \frac{ {{ arrh.Ea.0 }} \ \mathrm{ {{ arrh.Ea.1 }} } }{ R T } \right){% endif %}
+{% if arrh.Ea.0 != '0.00' %}\exp \left( - \, \frac{ {{ arrh.Ea.0 }} \ \mathrm{ {{ arrh.Ea.1 }} } }{ R T } \right){% endif %}
 \ \mathrm{ {{ arrh.A.1 }} } \\
 {% endfor %}
 \end{split}
@@ -52,12 +52,12 @@ k_{ {{ forloop.counter }} }(T) &= {{ arrh.A.0 }}
 {% ifequal kineticsParameters.format 'PDepArrhenius' %}
 <div class="math">
 \begin{split}
-{% for arrh in kineticsParameters.arrhenius %}
+{% for arrh in kineticsParameters.arrheniusList %}
 k(T, {{ arrh.P.0 }} \ \mathrm{ {{ arrh.P.1 }} }) &= {{ arrh.A.0 }}
 {% if arrh.n.0 != '0.00' %}
 {% if arrh.T0.0 == '1' %}T{% else %}\left( \frac{T}{ {{ arrh.T0.0 }} \ \mathrm{ {{ arrh.T0.1 }} } } \right){% endif %}^{ {{ arrh.n.0 }} }
 {% endif %}
-{% if arrh.Ea.0 != '0.00' %}\exp \left( - \frac{ {{ arrh.Ea.0 }} \ \mathrm{ {{ arrh.Ea.1 }} } }{ R T } \right){% endif %}
+{% if arrh.Ea.0 != '0.00' %}\exp \left( - \, \frac{ {{ arrh.Ea.0 }} \ \mathrm{ {{ arrh.Ea.1 }} } }{ R T } \right){% endif %}
 \ \mathrm{ {{ arrh.A.1 }} } \\
 {% endfor %}
 \end{split}
