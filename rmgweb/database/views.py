@@ -503,7 +503,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
 
 def moleculeSearch(request):
     """
-    Creates webpage form to display molecule chemgraph upon entering adjacency list.
+    Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.
     """
 
     if request.method == 'POST':
@@ -518,9 +518,7 @@ def moleculeSearch(request):
                 if adjlist != '':
                     molecule = Molecule()
                     molecule.fromAdjacencyList(adjlist)
-                    adjlist = adjlist.replace('\n', ';')
-                    adjlist = re.sub('\s+', '%20', adjlist)
-                    structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                    structure = getStructureMarkup(molecule)
                     initial['species_inchi'] = molecule.toInChI()
                     initial['species_smiles'] = molecule.toSMILES()
 
@@ -529,9 +527,7 @@ def moleculeSearch(request):
                      molecule = Molecule()
                      molecule.fromInChI(inchi)
                      adjlist = molecule.toAdjacencyList()
-                     adjlist = adjlist.replace('\n', ';')
-                     adjlist = re.sub('\s+', '%20', adjlist)
-                     structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                     structure = getStructureMarkup(molecule)
                      print molecule.toAdjacencyList()
                      initial['species'] = molecule.toAdjacencyList()
                      initial['species_smiles'] = molecule.toSMILES()
@@ -540,19 +536,23 @@ def moleculeSearch(request):
                     molecule = Molecule()
                     molecule.fromSMILES(smiles)
                     adjlist = molecule.toAdjacencyList()
-                    adjlist = adjlist.replace('\n', ';')
-                    adjlist = re.sub('\s+', '%20', adjlist)
-                    structure = '<img src="%s"/>' % reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist})
+                    structure = getStructureMarkup(molecule)
                     initial['species'] = molecule.toAdjacencyList()
                     initial['species_inchi'] = molecule.toInChI()
 
                 else:
                     structure = ''
-                    
         else:
             structure = ''
 
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
+
+        if 'thermo' in request.POST:
+            return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
+
+        if 'reset' in request.POST:
+            form = MoleculeSearchForm()
+            structure = ''
 
     else:
          form = MoleculeSearchForm()
