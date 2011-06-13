@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% load gravatar %}
 
-{% block title %}RMG: Draw Molecule{% endblock %}
+{% block title %}RMG: Molecule Search{% endblock %}
 
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
-{% block page_title %}Draw Molecule{% endblock %}
+{% block page_title %}Molecule Search{% endblock %}
 
 {% block page_body %}
-Molecule:
+Molecule Structure:
 <P>
 
 {{ structure|safe }}
@@ -24,7 +24,8 @@ Adjacency List:
 {{ form.as_p }}
 
 
-<input type="submit" value="Submit" id="submit"/>
+<input type="submit" value="Draw Molecule" name="draw"/>  |    <input type="submit" value="Search Thermochemistry" name="thermo">
+|    <input type="submit" value="Reset Form" name="reset">
 </form>
 
 {% endblock %}
