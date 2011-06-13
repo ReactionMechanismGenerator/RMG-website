@@ -34,6 +34,8 @@ from django.utils.safestring import mark_safe
 
 from rmgpy.molecule import Molecule
 
+
+
 class DivErrorList(ErrorList):
     def __unicode__(self):
         return self.as_divs()
@@ -61,6 +63,15 @@ class ThermoSearchForm(forms.Form):
             traceback.print_exc(e)
             raise forms.ValidationError('Invalid adjacency list.')
         return str(self.cleaned_data['species'])
+
+    def as_table(self):
+        "Returns this form rendered as HTML <tr>s -- excluding the <table></table>."
+        return self._html_output(
+            normal_row = u'<tr%(html_class_attr)s><th>%(label)s</th><td>%(errors)s%(field)s%(help_text)s</td></tr>',
+            error_row = u'<tr><td colspan="2">%s</td></tr>',
+            row_ender = u'</td></tr>',
+            help_text_html = u'<br />%s',
+            errors_on_separate_row = False)
 
 class KineticsSearchForm(forms.Form):
     """
@@ -134,3 +145,59 @@ class KineticsSearchForm(forms.Form):
             traceback.print_exc(e)
             raise forms.ValidationError('Invalid adjacency list.')
         return str(self.cleaned_data['product2'])
+
+class MoleculeSearchForm(forms.Form):
+    """
+    Form for drawing molecule from adjacency list
+    """
+    species = forms.CharField(label ="", widget = forms.Textarea(attrs={'cols': 50, 'rows': 30}), required=False)
+    species_inchi = forms.CharField(label="InChI", max_length=100, required=False)
+    species_smiles = forms.CharField(label="SMILES", max_length=100, required=False)
+
+    def clean_species(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            try:
+                adjlist = str(self.cleaned_data['species'])
+                if adjlist == '' : return ''
+                molecule = Molecule()
+                molecule.fromAdjacencyList(str(self.cleaned_data['species']))
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid adjacency list.')
+            return adjlist
+
+    def clean_species_inchi(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            try:
+                inchi = str(self.cleaned_data['species_inchi'])
+                if inchi == '' : return ''
+                molecule = Molecule()
+                molecule.fromInChI(str(self.cleaned_data['species_inchi']))
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid InChI.')
+            return inchi
+
+    def clean_species_smiles(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            try:
+                smiles = str(self.cleaned_data['species_smiles'])
+                if smiles =='': return ''
+                molecule = Molecule()
+                molecule.fromSMILES(str(self.cleaned_data['species_smiles']))
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid SMILES.')
+            return smiles

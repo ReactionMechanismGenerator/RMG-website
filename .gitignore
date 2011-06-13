@@ -27,3 +27,7 @@ database/*
 
 # Uploaded MEASURE files
 rmgweb/media/pdep/networks/*
+
+/rmgweb/nbproject/private/private.xml
+/rmgweb/nbproject/project.properties
+/rmgweb/nbproject/project.xml
