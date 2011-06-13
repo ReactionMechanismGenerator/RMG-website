@@ -139,7 +139,7 @@ def networkIndex(request, networkKey):
             'netReactionList': netReactionList, 
             'filesize': filesize, 
             'modificationTime': modificationTime,
-            'errorString': network.errorString,
+            'errorString': network.errorString if network else '',
         }, 
         context_instance=RequestContext(request),
     )
