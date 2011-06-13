@@ -2,7 +2,34 @@
 
 {% block title %}RMG - Reaction Mechanism Generator{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<style type="text/css">
+table.contents {
+    width: 100%;
+    margin-top: 1.3em;
+    margin-bottom: 1.3em;
+}
+
+table.contents td {
+    width: 50%;
+    padding-bottom: 1.3em;
+}
+
+table.contents .icon {
+    float: left;
+}
+table.contents .biglink {
+    font-size: 150%;
+    text-align: left;
+    vertical-align: bottom;
+}
+table.contents .linkdesc {
+    text-align: left;
+    vertical-align: top;
+    font-style: italic;
+}
+</style>
+{% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
@@ -11,7 +38,33 @@
 {% block page_body %}
 <p>RMG is an automatic chemical reaction mechanism generator that constructs
 kinetic models composed of elementary chemical reaction steps using a general
-understanding of how molecules react.
+understanding of how molecules react.</p>
+
+<p>Sections of the website:</p>
+
+<table class="contents">
+    <tr>
+        <td><a href="{% url database.views.index %}">
+            <img src="/media/database-logo-small.png" class="icon" height="48px"/>
+            <div class="biglink">Database</div></a>
+            <div class="linkdesc">The RMG database of chemical parameters</div>
+        </td>
+        <td><a href="{% url pdep.views.index %}">
+            <img src="/media/measure-logo-small.png" class="icon" height="48px"/>
+            <div class="biglink">MEASURE</div></a>
+            <div class="linkdesc">For pressure dependence calculations</div>
+        </td>
+    </tr>
+    <tr>
+        <td><a href="{% url database.views.moleculeSearch %}">
+            <img src="/media/moleculedraw-logo-small.png" class="icon" height="48px"/>
+            <div class="biglink">Draw Molecule</div></a>
+            <div class="linkdesc">Generate an image of a molecule</div>
+        </td>
+        <td width="50%">
+        </td>
+    </tr>
+</table>
 
 <h2>Latest News</h2>
 
