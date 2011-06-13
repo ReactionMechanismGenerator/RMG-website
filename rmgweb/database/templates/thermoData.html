@@ -13,43 +13,14 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
-    thermoDataList = [];
-
-    {% for entry, thermoData, source, href in thermoDataList %}
+    Cpseries = new Array();
+    Hseries = new Array();
+    Sseries = new Array();
+    Gseries = new Array();
+    
+    {% for entry, thermoParameters, source, href in thermoDataList %}
     {% include "thermoModel.js" %}
-    thermoDataList.push(["{{ source }}", thermoData]);
     {% endfor %}
-
-    var Cpseries = [];
-    var Hseries = [];
-    var Sseries = [];
-    var Gseries = [];
-    for (var j = 0; j < thermoDataList.length; j++) {
-        name = thermoDataList[j][0];
-        thermoData = thermoDataList[j][1];
-        var Cplist = [];
-        var Hlist = [];
-        var Slist = [];
-        var Glist = [];
-        for (var i = 1; i < 201; i++) {
-            T = i * 10;
-            Cp = thermoData.getHeatCapacity(T);
-            H = thermoData.getEnthalpy(T);
-            S = thermoData.getEntropy(T);
-            G = thermoData.getFreeEnergy(T);
-            if (T != null && Cp != null && H != null && S != null && G != null) {
-                Cplist.push([T, Cp]);
-                Hlist.push([T, H / 1000.]);
-                Slist.push([T, S]);
-                Glist.push([T, G / 1000.]);
-            }
-
-        }
-        Cpseries.push([name, Cplist]);
-        Hseries.push([name, Hlist]);
-        Sseries.push([name, Slist]);
-        Gseries.push([name, Glist]);
-    }
 
     jsMath.Synchronize(function() {
         plotHeatCapacity('plotCp', Cpseries);
@@ -80,7 +51,7 @@ jQuery(document).ready(function() {
 
 <h2>Thermodynamic Data</h2>
 
-{% for entry, thermoData, source, href in thermoDataList %}
+{% for entry, thermoParameters, source, href in thermoDataList %}
 {% if href != '' %}
 <h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
 {% else %}
