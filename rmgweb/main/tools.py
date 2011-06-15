@@ -345,6 +345,9 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Pl
             for T in Tdata:
                 klist.append(kinetics.getRateCoefficient(T,P))
             kdata.append(klist)
+    elif isinstance(kinetics, ArrheniusEP):
+        for T in Tdata:
+            kdata.append(kinetics.getRateCoefficient(T, dHrxn=0))
     else:
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T))
@@ -363,6 +366,9 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Pl
             for T in Tdata2:
                 klist.append(kinetics.getRateCoefficient(T,P))
             kdata2.append(klist)
+    elif isinstance(kinetics, ArrheniusEP):
+        for T in Tdata2:
+            kdata2.append(kinetics.getRateCoefficient(T, dHrxn=0))
     else:
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T))
