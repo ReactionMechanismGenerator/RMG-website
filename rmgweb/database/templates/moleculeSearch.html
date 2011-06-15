@@ -1,3 +1,11 @@
+<script type="text/javascript">
+
+function clearText(field) {
+  field.value = '';
+}
+
+</script>
+
 {% extends "base.html" %}
 {% load gravatar %}
 
@@ -5,7 +13,9 @@
 
 {% block extrahead %}{% endblock %}
 
-{% block navbar_items %}{% endblock %}
+{% block navbar_items %}
+<a href="{% url database.views.moleculeSearch %}">Molecule Search</a>
+{% endblock %}
 
 {% block page_title %}Molecule Search{% endblock %}
 

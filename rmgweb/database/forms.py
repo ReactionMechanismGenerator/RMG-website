@@ -150,9 +150,10 @@ class MoleculeSearchForm(forms.Form):
     """
     Form for drawing molecule from adjacency list
     """
-    species = forms.CharField(label ="", widget = forms.Textarea(attrs={'cols': 50, 'rows': 30}), required=False)
-    species_inchi = forms.CharField(label="InChI", max_length=100, required=False)
-    species_smiles = forms.CharField(label="SMILES", max_length=100, required=False)
+    species = forms.CharField(label ="", widget = forms.Textarea(attrs={'cols': 50, 'rows': 30, 'onchange':'clearText(species_inchi); clearText(species_smiles);'}), required=False)
+
+    species_inchi = forms.CharField(label="InChI", widget=forms.TextInput(attrs={'onchange':'clearText(species); clearText(species_smiles);'}), required=False)
+    species_smiles = forms.CharField(label="SMILES", widget=forms.TextInput(attrs={'onchange':'clearText(species); clearText(species_inchi);'}), required=False)
 
     def clean_species(self):
             """

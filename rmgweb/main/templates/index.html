@@ -28,6 +28,9 @@ table.contents .linkdesc {
     vertical-align: top;
     font-style: italic;
 }
+img {
+    padding:10px;
+}
 </style>
 {% endblock %}
 
@@ -39,8 +42,6 @@ table.contents .linkdesc {
 <p>RMG is an automatic chemical reaction mechanism generator that constructs
 kinetic models composed of elementary chemical reaction steps using a general
 understanding of how molecules react.</p>
-
-<p>Sections of the website:</p>
 
 <table class="contents">
     <tr>
@@ -58,8 +59,8 @@ understanding of how molecules react.</p>
     <tr>
         <td><a href="{% url database.views.moleculeSearch %}">
             <img src="/media/moleculedraw-logo-small.png" class="icon" height="48px"/>
-            <div class="biglink">Draw Molecule</div></a>
-            <div class="linkdesc">Generate an image of a molecule</div>
+            <div class="biglink">Molecule Search</div></a>
+            <div class="linkdesc">Generate an image of a molecule and search for its thermochemistry</div>
         </td>
         <td width="50%">
         </td>
