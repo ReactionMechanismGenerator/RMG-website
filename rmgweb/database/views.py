@@ -321,36 +321,41 @@ def kinetics(request, section='', subsection=''):
         else:
             # If there is not a tree, consider all entries
             entries0 = database.entries.values()
-        # No matter how the entries were assembled, sort them by index
-        entries0.sort(key=lambda entry: entry.index)
-
+            # Sort the entries by index and label
+            entries0.sort(key=lambda entry: (entry.index, entry.label))
+            
         entries = []
 
-        for entry in entries0:
+        for entry0 in entries0:
 
             dataFormat = ''
-            if isinstance(entry.data, KineticsData): dataFormat = 'KineticsData'
-            elif isinstance(entry.data, Arrhenius): dataFormat = 'Arrhenius'
-            elif isinstance(entry.data, str): dataFormat = 'Link'
-            elif isinstance(entry.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
-            elif isinstance(entry.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
-            elif isinstance(entry.data, Chebyshev): dataFormat = 'Chebyshev'
-            elif isinstance(entry.data, Troe): dataFormat = 'Troe'
-            elif isinstance(entry.data, Lindemann): dataFormat = 'Lindemann'
-            elif isinstance(entry.data, ThirdBody): dataFormat = 'ThirdBody'
+            if isinstance(entry0.data, KineticsData): dataFormat = 'KineticsData'
+            elif isinstance(entry0.data, Arrhenius): dataFormat = 'Arrhenius'
+            elif isinstance(entry0.data, str): dataFormat = 'Link'
+            elif isinstance(entry0.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
+            elif isinstance(entry0.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
+            elif isinstance(entry0.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
+            elif isinstance(entry0.data, Chebyshev): dataFormat = 'Chebyshev'
+            elif isinstance(entry0.data, Troe): dataFormat = 'Troe'
+            elif isinstance(entry0.data, Lindemann): dataFormat = 'Lindemann'
+            elif isinstance(entry0.data, ThirdBody): dataFormat = 'ThirdBody'
 
+            entry = {
+                'index': entry0.index,
+                'label': entry0.label,
+                'dataFormat': dataFormat,
+            }
             if section == 'depository' or section == 'libraries':
-                reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-                products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-                arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-                entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
+                entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
+                entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
             elif section == 'groups':
-                structure = getStructureMarkup(entry.item)
-                entries.append((entry.index,entry.label,structure,dataFormat))
+                entry['structure'] = getStructureMarkup(entry0.item)
             else:
                 raise Http404
-        
+            
+            entries.append(entry)
+            
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:

@@ -31,21 +31,21 @@ RMG Kinetics Database
     <th>Data&nbsp;Format</th>
 </tr>
 {% if section == 'groups' %}
-    {% for index, label, structure, dataFormat in entries %}
+    {% for entry in entries %}
     <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
-        <td>{{ structure|safe }}</td>
-        <td>{{ dataFormat }}</td>
+        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
+        <td>{{ entry.structure|safe }}</td>
+        <td>{{ entry.dataFormat }}</td>
     </tr>
     {% endfor %}
 {% else %}
-    {% for index, label, reactants, arrow, products, dataFormat in entries %}
+    {% for entry in entries %}
     <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
-        <td class="reactants">{{ reactants|safe }}</td>
-        <td class="reactionArrow">{{ arrow|safe }}</td>
-        <td class="products">{{ products|safe }}</td>
-        <td>{{ dataFormat }}</td>
+        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
+        <td class="reactants">{{ entry.reactants|safe }}</td>
+        <td class="reactionArrow">{{ entry.arrow|safe }}</td>
+        <td class="products">{{ entry.products|safe }}</td>
+        <td>{{ entry.dataFormat }}</td>
     </tr>
     {% endfor %}
 {% endif %}
