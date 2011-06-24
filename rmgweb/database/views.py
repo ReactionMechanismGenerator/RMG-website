@@ -317,7 +317,12 @@ def getKineticsTreeHTML(database, section, subsection, entries):
             html += '<img id="button_{0}" class="treeButton" src="/media/tree-collapse.png"/>'.format(entry.index)
         else:
             html += '<img class="treeButton" src="/media/tree-blank.png"/>'
-        html += '<a href="{0}">{1}. {2}</a><div class="kineticsData">[data for {1}]</div></div>'.format(url, entry.index, entry.label)
+        html += '<a href="{0}">{1}. {2}</a>\n'.format(url, entry.index, entry.label)
+        html += '<div class="kineticsData">\n'
+        if entry.data is not None:
+            for T in [300,400,500,600,800,1000,1500,2000]:
+                html += '<span class="kineticsDatum">{0:.2f}</span> '.format(math.log10(entry.data.getRateCoefficient(T, P=1e5)))
+        html += '</div>\n'
         # Recursively descend children (depth-first)
         if len(entry.children) > 0:
             html += '<ul id="children_{0}" class="kineticsSubTree">\n'.format(entry.index)

@@ -33,11 +33,21 @@ div.kineticsLabel {
 
 div.kineticsData {
     float: right;
-    width: 400px;
+    width: 5.3in;
 }
 
 img.treeButton {
     margin-right: 4px;
+}
+
+span.kineticsDatum, span.kineticsDatumLabel {
+    display: inline-block; 
+    width: 0.6in; 
+    text-align: right;
+}
+
+span.kineticsDatumLabel {
+    font-weight: bold;
 }
 </style>
 {% endblock %}
@@ -90,6 +100,20 @@ $(document).ready(function() {
 });
 
 </script>
+
+<div class="kineticsData">
+    <span style="font-weight: bold;">Group additivity corrections (log scale)</span>
+</div>
+<div class="kineticsData">
+<span class="kineticsDatumLabel">300&nbsp;K</span>
+<span class="kineticsDatumLabel">400&nbsp;K</span>
+<span class="kineticsDatumLabel">500&nbsp;K</span>
+<span class="kineticsDatumLabel">600&nbsp;K</span>
+<span class="kineticsDatumLabel">800&nbsp;K</span>
+<span class="kineticsDatumLabel">1000&nbsp;K</span>
+<span class="kineticsDatumLabel">1500&nbsp;K</span>
+<span class="kineticsDatumLabel">2000&nbsp;K</span>
+</div>
 
 {{ tree|safe }}
 
