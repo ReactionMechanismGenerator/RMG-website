@@ -30,8 +30,11 @@ RMG Thermodynamics Database
 
 {% block page_body %}
 
+
+<h2>1. <a href="{% url database.views.thermoSearch %}">Search Thermochemistry</a></h2>
+
 {% if section == '' %}
-<h2><a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></h2>
+<h2>2. <a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></h2>
 {% endif %}
 
 {% if section == 'depository' or section == '' %}
@@ -43,7 +46,7 @@ RMG Thermodynamics Database
 {% endif %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.thermo section='libraries' %}">Thermodynamics Libraries</a></h2>
+<h2>3. <a href="{% url database.views.thermo section='libraries' %}">Thermodynamics Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
@@ -55,7 +58,7 @@ RMG Thermodynamics Database
 {% endif %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></h2>
+<h2>4. <a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></h2>
 {% endif %}
 
 {% if section == 'groups' or section == '' %}

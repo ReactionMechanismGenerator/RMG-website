@@ -54,17 +54,30 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
+
+{% if section != '' %}
 <a href="{% url database.views.index %}">Database</a>
 &raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
 &raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>
 &raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ databaseName }}</a>
 &raquo; <a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+{% endif %}
+
+
 {% endblock %}
 
 {% block sidebar_items %}
 {% endblock %}
 
-{% block page_title %}{{ entry.index }}. {{ entry.label }}{% endblock %}
+{% block page_title %}
+{% if entry.index != -1 %}
+{{ entry.index }}. {{ entry.label }}
+{% else %}
+{{ databaseName }}
+{% endif %}
+
+
+{% endblock %}
 
 {% block page_body %}
 

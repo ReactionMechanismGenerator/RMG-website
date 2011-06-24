@@ -30,8 +30,10 @@ RMG Kinetics Database
 
 {% block page_body %}
 
+<h2>1. <a href="{% url database.views.kineticsSearch %}">Search Reaction Kinetics</a></h2>
+
 {% if section == '' %}
-<h2><a href="{% url database.views.thermo section='depository' %}">Kinetics Depository</a></h2>
+<h2>2. <a href="{% url database.views.kinetics section='depository' %}">Kinetics Depository</a></h2>
 {% endif %}
 
 {% if section == 'depository' or section == '' %}
@@ -43,7 +45,7 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></h2>
+<h2>3. <a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
@@ -55,7 +57,7 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.kinetics section='groups' %}">Kinetics Groups</a></h2>
+<h2>4. <a href="{% url database.views.kinetics section='groups' %}">Kinetics Groups</a></h2>
 {% endif %}
 
 {% if section == 'groups' or section == '' %}
