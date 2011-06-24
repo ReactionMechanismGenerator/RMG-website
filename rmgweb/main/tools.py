@@ -452,13 +452,13 @@ def prepareStatesParameters(states):
     Edata = list(Edata)
     rhodata = list(rhodata)
     
-    phidata = []; Vdata = []
-    for phi in numpy.arange(0, 2*math.pi, math.pi/200):
-        phidata.append(phi)
+    phidata = numpy.arange(0, 2*math.pi, math.pi/200)
+    Vdata = []
     for mode in states.modes:
         if isinstance(mode, HinderedRotor):
-            Vdata.append([mode.getPotential(phi) for phi in phidata])
-     
+            Vdata.append(list(mode.getPotential(phidata)))
+    phidata = list(phidata)
+    
     statesParameters['data'] = {
         'Tdata': Tdata,
         'Qdata': Qdata,
