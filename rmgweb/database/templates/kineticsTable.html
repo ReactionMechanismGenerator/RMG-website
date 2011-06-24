@@ -8,7 +8,35 @@ RMG Kinetics Database
 {% endif %}
 {% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<style type="text/css">
+ul.kineticsTree, ul.kineticsSubTree {
+    list-style-position: inside;
+}
+
+ul.kineticsTree {
+    padding-left: 0em;
+}
+
+ul.kineticsSubTree {
+    padding-left: 2em;
+}
+
+li.kineticsEntry {
+    list-style-type: none;
+}
+
+div.kineticsLabel {
+    clear: right;
+    width: 100%;
+}
+
+div.kineticsData {
+    float: right;
+    width: 400px;
+}
+</style>
+{% endblock %}
 
 {% block navbar_items %}
 <a href="{% url database.views.index %}">Database</a>
@@ -24,21 +52,18 @@ RMG Kinetics Database
 
 {% block page_body %}
 
-<table class="kineticsData">
-<tr>
-    <th>Label</th>
-    {% if section == 'groups' %}<th>Group</th>{% else %}<th colspan="3">Reaction</th>{% endif %}
-    <th>Data&nbsp;Format</th>
-</tr>
 {% if section == 'groups' %}
-    {% for entry in entries %}
-    <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
-        <td>{{ entry.structure|safe }}</td>
-        <td>{{ entry.dataFormat }}</td>
-    </tr>
-    {% endfor %}
+
+{{ tree|safe }}
+
 {% else %}
+
+<table class="kineticsData">
+    <tr>
+        <th>Label</th>
+        {% if section == 'groups' %}<th>Group</th>{% else %}<th colspan="3">Reaction</th>{% endif %}
+        <th>Data&nbsp;Format</th>
+    </tr>
     {% for entry in entries %}
     <tr>
         <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
@@ -48,7 +73,8 @@ RMG Kinetics Database
         <td>{{ entry.dataFormat }}</td>
     </tr>
     {% endfor %}
-{% endif %}
 </table>
+
+{% endif %}
 
 {% endblock %}

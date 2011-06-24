@@ -289,6 +289,36 @@ def thermoData(request, adjlist):
 
 ################################################################################
 
+def getDatabaseTreeAsList(database, entries):
+    """
+    Return a list of entries in a given database, sorted by the order they
+    appear in the tree (as determined via a depth-first search).
+    """
+    tree = []
+    for entry in entries:
+        # Write current node
+        tree.append(entry)
+        # Recursively descend children (depth-first)
+        tree.extend(getDatabaseTreeAsList(database, entry.children))
+    return tree
+
+def getKineticsTreeHTML(database, section, subsection, entries):
+    """
+    Return a string of HTML markup used for displaying information about
+    kinetics entries in a given `database` as a tree of unordered lists.
+    """
+    html = ''
+    for entry in entries:
+        # Write current node
+        url = reverse(kineticsEntry, kwargs={'section': section, 'subsection': subsection, 'index': entry.index})
+        html += '<li class="kineticsEntry"><div class="kineticsLabel"><a href="{0}">{1}. {2}</a><div class="kineticsData">[data for {1}]</div></div></li>\n'.format(url, entry.index, entry.label)
+        # Recursively descend children (depth-first)
+        if len(entry.children) > 0:
+            html += '<ul class="kineticsSubTree">\n'
+            html += getKineticsTreeHTML(database, section, subsection, entry.children)
+            html += '</ul>\n'
+    return html
+
 def kinetics(request, section='', subsection=''):
     """
     The RMG database homepage.
@@ -315,14 +345,14 @@ def kinetics(request, section='', subsection=''):
         if database.top is not None and len(database.top) > 0:
             # If there is a tree in this database, only consider the entries
             # that are in the tree
-            entries0 = database.top[:]
-            for entry in database.top:
-                entries0.extend(database.descendants(entry))
+            entries0 = getDatabaseTreeAsList(database, database.top)
+            tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(database, section, subsection, database.top))
         else:
             # If there is not a tree, consider all entries
             entries0 = database.entries.values()
             # Sort the entries by index and label
             entries0.sort(key=lambda entry: (entry.index, entry.label))
+            tree = ''
             
         entries = []
 
@@ -356,7 +386,7 @@ def kinetics(request, section='', subsection=''):
             
             entries.append(entry)
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
