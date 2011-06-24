@@ -311,12 +311,19 @@ def getKineticsTreeHTML(database, section, subsection, entries):
     for entry in entries:
         # Write current node
         url = reverse(kineticsEntry, kwargs={'section': section, 'subsection': subsection, 'index': entry.index})
-        html += '<li class="kineticsEntry"><div class="kineticsLabel"><a href="{0}">{1}. {2}</a><div class="kineticsData">[data for {1}]</div></div></li>\n'.format(url, entry.index, entry.label)
+        html += '<li class="kineticsEntry">\n'
+        html += '<div class="kineticsLabel">'
+        if len(entry.children) > 0:
+            html += '<img id="button_{0}" class="treeButton" src="/media/tree-collapse.png"/>'.format(entry.index)
+        else:
+            html += '<img class="treeButton" src="/media/tree-blank.png"/>'
+        html += '<a href="{0}">{1}. {2}</a><div class="kineticsData">[data for {1}]</div></div>'.format(url, entry.index, entry.label)
         # Recursively descend children (depth-first)
         if len(entry.children) > 0:
-            html += '<ul class="kineticsSubTree">\n'
+            html += '<ul id="children_{0}" class="kineticsSubTree">\n'.format(entry.index)
             html += getKineticsTreeHTML(database, section, subsection, entry.children)
             html += '</ul>\n'
+        html += '</li>\n'
     return html
 
 def kinetics(request, section='', subsection=''):
@@ -381,6 +388,8 @@ def kinetics(request, section='', subsection=''):
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
             elif section == 'groups':
                 entry['structure'] = getStructureMarkup(entry0.item)
+                entry['parent'] = entry0.parent
+                entry['children'] = entry0.children
             else:
                 raise Http404
             

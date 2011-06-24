@@ -35,6 +35,10 @@ div.kineticsData {
     float: right;
     width: 400px;
 }
+
+img.treeButton {
+    margin-right: 4px;
+}
 </style>
 {% endblock %}
 
@@ -53,6 +57,39 @@ div.kineticsData {
 {% block page_body %}
 
 {% if section == 'groups' %}
+
+<script type="text/javascript">
+var treeParent = new Array();
+var treeChildren = new Array();
+
+{% if section == 'groups' %}
+    {% for entry in entries %}
+        {% ifequal entry.parent None %}
+        treeParent["{{ entry.index }}"] = "";
+        {% else %}
+        treeParent["{{ entry.index }}"] = "{{ entry.parent.index }}";
+        {% endifequal %}
+        treeChildren["{{ entry.index }}"] = [{% for child in entry.children %}"{{ child.index }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    {% endfor %}
+{% endif %}
+
+function toggleVisible(index) {
+    $("#children_" + index).toggle();
+    if ($("#children_" + index).is(":visible")) {
+        $("#button_" + index).attr("src", "/media/tree-collapse.png");
+    }
+    else {
+        $("#button_" + index).attr("src", "/media/tree-expand.png");
+    }
+}
+
+$(document).ready(function() {
+    {% for entry in entries %}
+    $("#button_{{ entry.index }}").click(function () { toggleVisible("{{ entry.index }}"); });
+    {% endfor %}
+});
+
+</script>
 
 {{ tree|safe }}
 
