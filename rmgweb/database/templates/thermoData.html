@@ -52,10 +52,12 @@ jQuery(document).ready(function() {
 <h2>Thermodynamic Data</h2>
 
 {% for entry, thermoParameters, source, href in thermoDataList %}
-{% if href != '' %}
-<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
-{% else %}
+{% if href != '' %}<a href="{{ href }}">{% endif %}
 <h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
+{% if href != '' %}</a>{% endif %}
+
+{% if entry.label != '' %}
+<p>Species label: {{ entry.label }}</p>
 {% endif %}
 
 {% include "thermoModel.html" %}
