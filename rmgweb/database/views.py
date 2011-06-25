@@ -125,6 +125,13 @@ def getKineticsDatabase(section, subsection):
 
 ################################################################################
 
+def load(request):
+    """
+    Load the RMG database and redirect to the database homepage.
+    """
+    loadDatabase()
+    return HttpResponseRedirect(reverse(index))
+    
 def index(request):
     """
     The RMG database homepage.

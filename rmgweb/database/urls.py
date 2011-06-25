@@ -34,6 +34,9 @@ urlpatterns = patterns('rmgweb.database',
 
     # Database homepage
     (r'^$', 'views.index'),
+    
+    # Load the whole database into memory
+    (r'^load/?$', 'views.load'),
 
     # Thermodynamics database
     (r'^thermo/$', 'views.thermo'),
