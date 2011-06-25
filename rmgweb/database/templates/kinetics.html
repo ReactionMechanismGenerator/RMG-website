@@ -31,7 +31,7 @@ RMG Kinetics Database
 {% block page_body %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.thermo section='depository' %}">Kinetics Depository</a></h2>
+<h2><a href="{% url database.views.kinetics section='depository' %}">Kinetics Depository</a></h2>
 {% endif %}
 
 {% if section == 'depository' or section == '' %}

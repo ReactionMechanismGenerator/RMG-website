@@ -60,7 +60,7 @@ RMG Thermodynamics Database
 
 {% if section == 'groups' or section == '' %}
 <ul>
-    <li><a href="{% url database.views.thermo section='groups' subsection='group' %}">{{ thermoDatabase.groups.group.name }}</a> ({{ thermoDatabase.groups.group.entries|length }} entries)</li>
+    {# <li><a href="{% url database.views.thermo section='groups' subsection='group' %}">{{ thermoDatabase.groups.group.name }}</a> ({{ thermoDatabase.groups.group.entries|length }} entries)</li> #}
 {% for subsection, groups in thermoGroups %}
     {% if subsection != 'group' %}
         <li><a href="{% url database.views.thermo section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
