@@ -72,12 +72,10 @@ def loadDatabase(component='', section=''):
         if section in ['groups', ''] and len(database.thermo.groups) == 0:
             database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
     if component in ['kinetics', '']:
-        if section in ['depository', ''] and len(database.kinetics.depository) == 0:
-            database.kinetics.loadDepository(os.path.join(settings.DATABASE_PATH, 'kinetics', 'depository'))
         if section in ['libraries', ''] and len(database.kinetics.libraries) == 0:
             database.kinetics.loadLibraries(os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries'))
-        if section in ['groups', ''] and len(database.kinetics.groups) == 0:
-            database.kinetics.loadGroups(os.path.join(settings.DATABASE_PATH, 'kinetics', 'groups'))
+        if section in ['families', ''] and len(database.kinetics.families) == 0:
+            database.kinetics.loadFamilies(os.path.join(settings.DATABASE_PATH, 'kinetics', 'families'))
 
     return database
 
@@ -110,13 +108,26 @@ def getKineticsDatabase(section, subsection):
     """
     global database
     
+    db = None
     try:
-        if section == 'depository':
-            db = database.kinetics.depository[subsection]
-        elif section == 'libraries':
+        if section == 'libraries':
             db = database.kinetics.libraries[subsection]
-        elif section == 'groups':
-            db = database.kinetics.groups[subsection]
+        elif section == 'families':
+            subsection = subsection.split('/')
+            if subsection[0] != '' and len(subsection) == 2:
+                db = database.kinetics.families[subsection[0]]
+                if subsection[1] == 'groups':
+                    db = db.groups
+                elif subsection[1] == 'rules':
+                    db = db.rules
+                elif subsection[1] == 'training':
+                    db = db.training
+                elif subsection[1] == 'test':
+                    db = db.test
+                elif subsection[1] == 'PrIMe':
+                    db = db.PrIMe
+                else:
+                    db = None
         else:
             raise ValueError('Invalid value "%s" for section parameter.' % section)
     except KeyError:
@@ -301,22 +312,23 @@ def kinetics(request, section='', subsection=''):
     The RMG database homepage.
     """
     # Make sure section has an allowed value
-    if section not in ['depository', 'libraries', 'groups', '']:
+    if section not in ['libraries', 'families', '']:
         raise Http404
 
     # Load the kinetics database, if necessary
-    database = loadDatabase('kinetics', section)
+    rmgDatabase = loadDatabase('kinetics', section)
 
-    if subsection != '':
+    # Determine which subsection we wish to view
+    database = None
+    try:
+        database = getKineticsDatabase(section, subsection)
+    except ValueError:
+        pass
+
+    if database is not None:
 
         # A subsection was specified, so render a table of the entries in
         # that part of the database
-
-        # Determine which subsection we wish to view
-        try:
-            database = getKineticsDatabase(section, subsection)
-        except ValueError:
-            raise Http404
 
         # Sort entries by index
         if database.top is not None and len(database.top) > 0:
@@ -347,29 +359,25 @@ def kinetics(request, section='', subsection=''):
             elif isinstance(entry.data, Lindemann): dataFormat = 'Lindemann'
             elif isinstance(entry.data, ThirdBody): dataFormat = 'ThirdBody'
 
-            if section == 'depository' or section == 'libraries':
+            if isinstance(database, KineticsGroups):
+                structure = getStructureMarkup(entry.item)
+                entries.append((entry.index,entry.label,structure,dataFormat))
+            else:
                 reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
                 products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
                 arrow = '&hArr;' if entry.item.reversible else '&rarr;'
                 entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
-            elif section == 'groups':
-                structure = getStructureMarkup(entry.item)
-                entries.append((entry.index,entry.label,structure,dataFormat))
-            else:
-                raise Http404
-        
+            
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
         # database components
-        kineticsDepository = [(label, depository) for label, depository in database.kinetics.depository.iteritems()]
-        kineticsDepository.sort()
-        kineticsLibraries = [(label, library) for label, library in database.kinetics.libraries.iteritems()]
+        kineticsLibraries = [(label, library) for label, library in rmgDatabase.kinetics.libraries.iteritems() if subsection in label]
         kineticsLibraries.sort()
-        kineticsGroups = [(label, groups) for label, groups in database.kinetics.groups.iteritems()]
-        kineticsGroups.sort()
-        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsDepository': kineticsDepository, 'kineticsLibraries': kineticsLibraries, 'kineticsGroups': kineticsGroups}, context_instance=RequestContext(request))
+        kineticsFamilies = [(label, family) for label, family in rmgDatabase.kinetics.families.iteritems() if subsection in label]
+        kineticsFamilies.sort()
+        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
         
 def kineticsEntry(request, section, subsection, index):
     """
@@ -397,12 +405,12 @@ def kineticsEntry(request, section, subsection, index):
         referenceLink = entry.reference.url
 
     numReactants = 0; degeneracy = 1
-    if section in ['depository', 'libraries']:
+    if isinstance(database, KineticsGroups):
+        numReactants = database.numReactants
+    else:
         numReactants = len(entry.item.reactants)
         degeneracy = entry.item.degeneracy
-    elif section == 'groups':
-        numReactants = len(database.forwardTemplate.reactants)
-
+    
     # Prepare the kinetics data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
@@ -412,17 +420,15 @@ def kineticsEntry(request, section, subsection, index):
         kineticsParameters = prepareKineticsParameters(entry.data, numReactants, degeneracy)
         kineticsModel = entry.data
         
-    if section in ['depository', 'libraries']:
+    if isinstance(database, KineticsGroups):
+        structure = getStructureMarkup(entry.item)
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
+    else:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
         products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
-    elif section == 'groups':
-        structure = getStructureMarkup(entry.item)
-        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
-    else:
-        raise Http404
-
+    
 def kineticsSearch(request):
     """
     A view of a form for specifying a set of reactants to search the database

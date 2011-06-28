@@ -31,18 +31,6 @@ RMG Kinetics Database
 {% block page_body %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.kinetics section='depository' %}">Kinetics Depository</a></h2>
-{% endif %}
-
-{% if section == 'depository' or section == '' %}
-<ul>
-{% for subsection, depository in kineticsDepository %}
-<li><a href="{% url database.views.kinetics section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
-{% endfor %}
-</ul>
-{% endif %}
-
-{% if section == '' %}
 <h2><a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></h2>
 {% endif %}
 
@@ -55,16 +43,23 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == '' %}
-<h2><a href="{% url database.views.kinetics section='groups' %}">Kinetics Groups</a></h2>
+<h2><a href="{% url database.views.kinetics section='families' %}">Kinetics Families</a></h2>
 {% endif %}
 
-{% if section == 'groups' or section == '' %}
+{% if section == 'families' or section == '' %}
 <ul>
-    <li><a href="{% url database.views.kinetics section='groups' subsection='group' %}">{{ kineticsDatabase.groups.group.name }}</a> ({{ thermoDatabase.groups.group.entries|length }} entries)</li>
-{% for subsection, groups in kineticsGroups %}
-    {% if subsection != 'group' %}
-        <li><a href="{% url database.views.kinetics section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
-    {% endif %}
+{% for subsection, family in kineticsFamilies %}
+    <li>
+        <a href="{% url database.views.kinetics section='families' subsection=subsection %}">{{ family.name }}</a>
+        <ul>
+            <li><a href="{% url database.views.kinetics section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
+            <li><a href="{% url database.views.kinetics section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a> ({{ family.rules.entries|length }} entries)</li>
+            <li><a href="{% url database.views.kinetics section='families' subsection=family.training.label %}">{{ family.training.name }}</a> ({{ family.training.entries|length }} entries)</li>
+            <li><a href="{% url database.views.kinetics section='families' subsection=family.test.label %}">{{ family.test.name }}</a> ({{ family.test.entries|length }} entries)</li>
+            {% if family.PrIMe %}<li><a href="{% url database.views.kinetics section='families' subsection=family.PrIMe.label %}">{{ family.PrIMe.name }}</a> ({{ family.PrIMe.entries|length }} entries)</li>{% endif %}
+            
+        </ul>
+    </li>
 {% endfor %}
 </ul>
 {% endif %}
