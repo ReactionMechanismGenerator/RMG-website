@@ -1,0 +1,10 @@
+@import url("/media/default.css");
+
+td.fieldKey {
+    width: 160px;
+    vertical-align: middle;
+}
+
+td.fieldValue img {
+    vertical-align: middle;
+}

@@ -1,20 +1,40 @@
 {% extends "base.html" %}
 {% load gravatar %}
 
-{% block title %}Edit profile - RMG{% endblock %}
+{% block title %}Edit {{ user.username }}'s profile - RMG{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<link href="/media/main.css" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+td.fieldValue input, td.fieldValue textarea {
+    width: 400px;
+}
+</style>
+{% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
-{% block page_title %}Edit Profile{% endblock %}
+{% block page_title %}Edit {{ user.username }}'s Profile{% endblock %}
 
 {% block page_body %}
 
 <form action="profile" method="post">{% csrf_token %}
-{{ form.as_p }}
-<p  class="avatar"><label>Avatar:</label>{% gravatar user.username 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></p>
-<input type="submit" value="Submit" id="submit"/>
+<table>
+{% for field in form %}
+    <tr>
+        <td colspan="2">{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
+    <tr>
+        <td class="fieldKey">Avatar</td>
+        <td class="fieldValue">{% gravatar user.username 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></td>
+    </tr>
+</table>
+<p><input type="submit" value="Submit" id="submit"/></p>
 </form>
 
 {% endblock %}
