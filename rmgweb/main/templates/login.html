@@ -11,6 +11,9 @@
 {% block page_title %}Log in{% endblock %}
 
 {% block page_body %}
+
+<p>Don't have an account yet? <a href="{% url main.views.signup %}?next={{ request.path }}">Create one now!</a></p>
+
 {% if form.errors %}
 <p>Your username and password did not match. Please try again.</p>
 {% endif %}

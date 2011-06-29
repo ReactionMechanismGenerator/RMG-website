@@ -28,6 +28,8 @@
 #
 ################################################################################
 
+import re
+
 from django import forms
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
@@ -58,3 +60,30 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ('organization', 'website', 'bio')
+
+################################################################################
+
+class UserSignupForm(forms.ModelForm):
+    """
+    A form for editing user information when signing up for an account.
+    """
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+        
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        tokens = re.findall(r'[a-zA-Z][a-zA-Z0-9_]*', username)
+        if len(tokens) != 1 or tokens[0] != username:
+            raise forms.ValidationError('Invalid character(s) in username.')
+        if User.objects.filter(username__exact=username).count() > 0:
+            raise forms.ValidationError('Username already in use.')
+        return username
+    
+class UserProfileSignupForm(forms.ModelForm):
+    """
+    A form for editing user profile information when signing up for an account.
+    """
+    class Meta:
+        model = UserProfile
+        fields = ('organization',)

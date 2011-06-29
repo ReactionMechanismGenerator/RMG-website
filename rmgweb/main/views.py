@@ -55,6 +55,26 @@ def logout(request):
     """
     return django.contrib.auth.views.logout(request, template_name='logout.html')
 
+def signup(request):
+    """
+    Called when the user wishes to sign up for an account.
+    """
+    if request.method == 'POST':
+        userForm = UserSignupForm(request.POST, error_class=DivErrorList)
+        userForm.fields['first_name'].required = True
+        userForm.fields['last_name'].required = True
+        userForm.fields['email'].required = True
+        profileForm = UserProfileSignupForm(request.POST, error_class=DivErrorList)
+        if userForm.is_valid() and profileForm.is_valid():
+            #userForm.save()
+            #profileForm.save()
+            return HttpResponseRedirect('/')
+    else:
+        userForm = UserSignupForm(error_class=DivErrorList)
+        profileForm = UserProfileSignupForm(error_class=DivErrorList)
+
+    return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm}, context_instance=RequestContext(request))
+
 def viewProfile(request, username):
     """
     Called when the user wishes to view another user's profile. The other user

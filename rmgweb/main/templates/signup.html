@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}Create a User Account - RMG{% endblock %}
+
+{% block extrahead %}
+<link href="/media/main.css" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+td.fieldValue input, td.fieldValue textarea {
+    width: 200px;
+}
+</style>
+{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block page_title %}Create a User Account{% endblock %}
+
+{% block page_body %}
+
+<form action="signup" method="post">{% csrf_token %}
+<table>
+{% for field in userForm %}
+    <tr>
+        <td></td><td>{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
+{% for field in profileForm %}
+    <tr>
+        <td></td><td>{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
+</table>
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}
