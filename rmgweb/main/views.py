@@ -35,7 +35,7 @@ import django.contrib.auth.views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from forms import UserProfileForm
+from forms import *
 
 def index(request):
     """
@@ -69,15 +69,19 @@ def editProfile(request):
     """
     Called when the user wishes to edit his/her user profile.
     """
+    user_profile = UserProfile.objects.get_or_create(user=request.user)[0]
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
+        userForm = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
+        profileForm = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
+        if userForm.is_valid() and profileForm.is_valid():
+            userForm.save()
+            profileForm.save()
             return HttpResponseRedirect('/') # Redirect after POST
     else:
-        form = UserProfileForm(instance=request.user) # An unbound form
+        userForm = UserForm(instance=request.user, error_class=DivErrorList)
+        profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
 
-    return render_to_response('editProfile.html', {'form': form}, context_instance=RequestContext(request))
+    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm}, context_instance=RequestContext(request))
 
 def drawMolecule(request, adjlist):
     """

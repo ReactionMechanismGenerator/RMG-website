@@ -1,5 +1,9 @@
 @import url("/media/default.css");
 
+div.error {
+    color: red;
+}
+
 td.fieldKey {
     width: 160px;
     vertical-align: middle;

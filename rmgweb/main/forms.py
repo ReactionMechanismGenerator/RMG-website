@@ -29,8 +29,27 @@
 ################################################################################
 
 from django import forms
+from django.forms.util import ErrorList
+from django.utils.safestring import mark_safe
 
-from models import UserProfile
+from models import *
+
+class DivErrorList(ErrorList):
+    def __unicode__(self):
+        return self.as_divs()
+    def as_divs(self):
+        if not self: return u''
+        return mark_safe(u''.join([u'<div class="error">%s</div>' % e for e in self]))
+
+################################################################################
+
+class UserForm(forms.ModelForm):
+    """
+    A form for editing user profile information.
+    """
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
 
 class UserProfileForm(forms.ModelForm):
     """
@@ -38,8 +57,4 @@ class UserProfileForm(forms.ModelForm):
     """
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'last_name', 'organization', 'email', 'website', 'bio')
-
-    first_name = forms.CharField(label="First Name", max_length=30)
-    last_name = forms.CharField(label="Last Name", max_length=30)
-    email = forms.EmailField(label="Email", max_length=50)
+        fields = ('organization', 'website', 'bio')

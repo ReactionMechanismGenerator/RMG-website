@@ -20,9 +20,18 @@ td.fieldValue input, td.fieldValue textarea {
 
 <form action="profile" method="post">{% csrf_token %}
 <table>
-{% for field in form %}
+{% for field in userForm %}
     <tr>
-        <td colspan="2">{{ field.errors }}</td>
+        <td></td><td>{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
+{% for field in profileForm %}
+    <tr>
+        <td></td><td>{{ field.errors }}</td>
     </tr>
     <tr>
         <td class="fieldKey">{{ field.label_tag }}</td>
