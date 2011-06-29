@@ -62,7 +62,8 @@ def viewProfile(request, username):
     not require authentication.
     """
     user0 = User.objects.get(username=username)
-    return render_to_response('viewProfile.html', {'user0': user0}, context_instance=RequestContext(request))
+    userProfile = user0.get_profile()
+    return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile}, context_instance=RequestContext(request))
 
 @login_required
 def editProfile(request):

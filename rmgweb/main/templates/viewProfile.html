@@ -3,7 +3,9 @@
 
 {% block title %}{{ user0.username }}'s Profile - RMG{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<link href="/media/main.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
@@ -13,8 +15,25 @@
 
 <p>{% gravatar user0.username 80 %}</p>
 
+<table>
 {% if user.is_authenticated %}
-<p>Email: {{ user0.email }}</p>
+    <tr>
+        <td class="key">Email:</td>
+        <td class="value">{{ user0.email }}</td>
+    </tr>
+    <tr>
+        <td class="key">Organization:</td>
+        <td class="value">{{ userProfile.organization }}</td>
+    </tr>
+    <tr>
+        <td class="key">Website:</td>
+        <td class="value">{{ userProfile.website }}</td>
+    </tr>
+    <tr>
+        <td class="key">Bio:</td>
+        <td class="value">{{ userProfile.bio }}</td>
+    </tr>
 {% endif %}
+</table>
 
 {% endblock %}

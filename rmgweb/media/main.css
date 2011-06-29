@@ -4,11 +4,12 @@ div.error {
     color: red;
 }
 
-td.fieldKey {
+td.key, td.fieldKey {
     width: 160px;
     vertical-align: middle;
+    font-weight: bold;
 }
 
-td.fieldValue img {
+td.value img, td.fieldValue img {
     vertical-align: middle;
 }
