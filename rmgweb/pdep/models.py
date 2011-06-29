@@ -301,5 +301,6 @@ class Network(models.Model):
         
         if self.network is not None:
             self.title = self.network.title
+            self.save()
         
         return self.network

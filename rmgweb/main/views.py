@@ -81,9 +81,11 @@ def viewProfile(request, username):
     is identified by his/her `username`. Note that viewing user profiles does
     not require authentication.
     """
+    from rmgweb.pdep.models import Network
     user0 = User.objects.get(username=username)
     userProfile = user0.get_profile()
-    return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile}, context_instance=RequestContext(request))
+    networks = Network.objects.filter(user=user0)
+    return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks}, context_instance=RequestContext(request))
 
 @login_required
 def editProfile(request):
