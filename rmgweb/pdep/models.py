@@ -37,6 +37,7 @@ import os.path
 import time
 
 from django.db import models
+from django.contrib.auth.models import User
 
 import rmgweb.settings as settings
 
@@ -58,6 +59,7 @@ class Network(models.Model):
     title = models.CharField(max_length=50)
     inputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input file')
     inputText = models.TextField(blank=True, verbose_name='')
+    user = models.ForeignKey(User)
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)

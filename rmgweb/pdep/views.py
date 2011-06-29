@@ -36,6 +36,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
 
 from rmgweb.main.tools import *
 from models import *
@@ -49,6 +50,7 @@ def index(request):
     """
     return render_to_response('measure.html', context_instance=RequestContext(request))
 
+@login_required
 def start(request):
     """
     A view called when a user wants to begin a new MEASURE calculation. This
@@ -56,7 +58,7 @@ def start(request):
     network.
     """
     # Create and save a new Network
-    network = Network(title='Untitled Network')
+    network = Network(title='Untitled Network', user=request.user)
     network.save()
     return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
 
