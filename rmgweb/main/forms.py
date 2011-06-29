@@ -38,10 +38,8 @@ class UserProfileForm(forms.ModelForm):
     """
     class Meta:
         model = UserProfile
-        exclude = ('user')
-    
-    username = forms.CharField(label="Username", widget=forms.TextInput(attrs={'readonly':'readonly'}))
+        fields = ('first_name', 'last_name', 'organization', 'email', 'website', 'bio')
+
     first_name = forms.CharField(label="First Name", max_length=30)
     last_name = forms.CharField(label="Last Name", max_length=30)
     email = forms.EmailField(label="Email", max_length=50)
-    
