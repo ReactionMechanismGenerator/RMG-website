@@ -37,6 +37,7 @@ import socket
 
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule import Molecule
+from rmgpy.reaction import Reaction
 from rmgpy.data.base import Entry
 from rmgweb.main.tools import *
 
@@ -155,7 +156,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
     """
     
     productList = productList or []
-    kineticsDataList = []
+    reactionList = []
 
     # First send search request to PopulateReactions server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -208,36 +209,15 @@ def getRMGJavaKinetics(reactantList, productList=None):
 
             if indicator1 == True or indicator2 == True:
                 print 'FOUND A REACTION!'
-                reactants, products, kineticsModel, entry = extractkinetics(reactionline)
-                numReactants = len(reactants)
-                numProducts = len(products)
-                kineticsParameters = prepareKineticsParameters(kineticsModel, numReactants, degeneracy)
-
-                # draw figures
-                reactants_structures = [getspeciesstructure(species_dict, speciesname) for speciesname in reactants]
-                products_structures = [getspeciesstructure(species_dict, speciesname) for speciesname in products]
-                if numReactants == 2:
-                    reactants_fig = ' + '.join(reactants_structures)
-                else:
-                    reactants_fig = reactants_structures[0]
-                if numProducts == 2:
-                    products_fig = ' + '.join(products_structures)
-                else:
-                    products_fig = products_structures[0]
-
-                # Unused vars for render_to_response
-                section = ''
-                subsection = ''
-                databaseName = 'RMG-Java Database'
-                reference = ''
-                referenceLink = ''
-                referenceType = ''
-                arrow = '&hArr;'
-
-                #return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
+                reactants, products, kinetics, entry = extractkinetics(reactionline)
                 
-                #href = reverse(kineticsJavaEntry, kwargs={'entry': entry,'reactants_fig': reactants_fig, 'products_fig': products_fig, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel})
-                href = 'dummy link'
-                kineticsDataList.append([reactants_fig, arrow, products_fig, entry, kineticsParameters, source, href])
-    
-    return kineticsDataList
+                reaction = Reaction(
+                    reactants = reactants,
+                    products = products,
+                    kinetics = kinetics,
+                    degeneracy = degeneracy,
+                )
+                
+                reactionList.append(reaction)
+                
+    return reactionList

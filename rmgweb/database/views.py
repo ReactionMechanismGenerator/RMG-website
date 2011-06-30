@@ -555,8 +555,11 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     # Get the kinetics data for the reaction
     kineticsDataList = []
 
+    reactionList = database.kinetics.generateReactions(reactantList, productList)
+    rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
+    reactionList.extend(rmgJavaReactionList)
     # Go through database and group additivity kinetics entries
-    for reaction in database.kinetics.generateReactions(reactantList, productList):
+    for reaction in reactionList:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
@@ -572,12 +575,13 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             source = reaction.library.name
             href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
             entry = reaction.entry
+        elif reaction in rmgJavaReactionList:
+            source = 'RMG-Java'
+            href = ''
+            entry = Entry(data=reaction.kinetics)
         print reaction.kinetics, reaction
         kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
 
-    # Also try to get the kinetics from RMG-Java
-    kineticsDataList.extend(getRMGJavaKinetics(reactantList, productList))
-    
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 
 def moleculeSearch(request):
