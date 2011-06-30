@@ -308,6 +308,48 @@ def thermoData(request, adjlist):
 
 ################################################################################
 
+def getDatabaseTreeAsList(database, entries):
+    """
+    Return a list of entries in a given database, sorted by the order they
+    appear in the tree (as determined via a depth-first search).
+    """
+    tree = []
+    for entry in entries:
+        # Write current node
+        tree.append(entry)
+        # Recursively descend children (depth-first)
+        tree.extend(getDatabaseTreeAsList(database, entry.children))
+    return tree
+
+def getKineticsTreeHTML(database, section, subsection, entries):
+    """
+    Return a string of HTML markup used for displaying information about
+    kinetics entries in a given `database` as a tree of unordered lists.
+    """
+    html = ''
+    for entry in entries:
+        # Write current node
+        url = reverse(kineticsEntry, kwargs={'section': section, 'subsection': subsection, 'index': entry.index})
+        html += '<li class="kineticsEntry">\n'
+        html += '<div class="kineticsLabel">'
+        if len(entry.children) > 0:
+            html += '<img id="button_{0}" class="treeButton" src="/media/tree-collapse.png"/>'.format(entry.index)
+        else:
+            html += '<img class="treeButton" src="/media/tree-blank.png"/>'
+        html += '<a href="{0}">{1}. {2}</a>\n'.format(url, entry.index, entry.label)
+        html += '<div class="kineticsData">\n'
+        if entry.data is not None:
+            for T in [300,400,500,600,800,1000,1500,2000]:
+                html += '<span class="kineticsDatum">{0:.2f}</span> '.format(math.log10(entry.data.getRateCoefficient(T, P=1e5)))
+        html += '</div>\n'
+        # Recursively descend children (depth-first)
+        if len(entry.children) > 0:
+            html += '<ul id="children_{0}" class="kineticsSubTree">\n'.format(entry.index)
+            html += getKineticsTreeHTML(database, section, subsection, entry.children)
+            html += '</ul>\n'
+        html += '</li>\n'
+    return html
+
 def kinetics(request, section='', subsection=''):
     """
     The RMG database homepage.
@@ -335,41 +377,49 @@ def kinetics(request, section='', subsection=''):
         if database.top is not None and len(database.top) > 0:
             # If there is a tree in this database, only consider the entries
             # that are in the tree
-            entries0 = database.top[:]
-            for entry in database.top:
-                entries0.extend(database.descendants(entry))
+            entries0 = getDatabaseTreeAsList(database, database.top)
+            tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(database, section, subsection, database.top))
         else:
             # If there is not a tree, consider all entries
             entries0 = database.entries.values()
-        # No matter how the entries were assembled, sort them by index
-        entries0.sort(key=lambda entry: entry.index)
-
+            # Sort the entries by index and label
+            entries0.sort(key=lambda entry: (entry.index, entry.label))
+            tree = ''
+            
         entries = []
 
-        for entry in entries0:
+        for entry0 in entries0:
 
             dataFormat = ''
-            if isinstance(entry.data, KineticsData): dataFormat = 'KineticsData'
-            elif isinstance(entry.data, Arrhenius): dataFormat = 'Arrhenius'
-            elif isinstance(entry.data, str): dataFormat = 'Link'
-            elif isinstance(entry.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
-            elif isinstance(entry.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
-            elif isinstance(entry.data, Chebyshev): dataFormat = 'Chebyshev'
-            elif isinstance(entry.data, Troe): dataFormat = 'Troe'
-            elif isinstance(entry.data, Lindemann): dataFormat = 'Lindemann'
-            elif isinstance(entry.data, ThirdBody): dataFormat = 'ThirdBody'
 
+            if isinstance(entry0.data, KineticsData): dataFormat = 'KineticsData'
+            elif isinstance(entry0.data, Arrhenius): dataFormat = 'Arrhenius'
+            elif isinstance(entry0.data, str): dataFormat = 'Link'
+            elif isinstance(entry0.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
+            elif isinstance(entry0.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
+            elif isinstance(entry0.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
+            elif isinstance(entry0.data, Chebyshev): dataFormat = 'Chebyshev'
+            elif isinstance(entry0.data, Troe): dataFormat = 'Troe'
+            elif isinstance(entry0.data, Lindemann): dataFormat = 'Lindemann'
+            elif isinstance(entry0.data, ThirdBody): dataFormat = 'ThirdBody'
+
+            entry = {
+                'index': entry0.index,
+                'label': entry0.label,
+                'dataFormat': dataFormat,
+            }
             if isinstance(database, KineticsGroups):
-                structure = getStructureMarkup(entry.item)
-                entries.append((entry.index,entry.label,structure,dataFormat))
+                entry['structure'] = getStructureMarkup(entry0.item)
+                entry['parent'] = entry0.parent
+                entry['children'] = entry0.children
             else:
-                reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-                products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
-                arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-                entries.append((entry.index,entry.label,reactants,arrow,products,dataFormat))
+                entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
+                entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+            entries.append(entry)
+            
+        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics

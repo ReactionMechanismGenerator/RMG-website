@@ -8,7 +8,49 @@ RMG Kinetics Database
 {% endif %}
 {% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<style type="text/css">
+ul.kineticsTree, ul.kineticsSubTree {
+    list-style-position: inside;
+}
+
+ul.kineticsTree {
+    padding-left: 0em;
+}
+
+ul.kineticsSubTree {
+    padding-left: 2em;
+}
+
+li.kineticsEntry {
+    list-style-type: none;
+}
+
+div.kineticsLabel {
+    clear: right;
+    width: 100%;
+}
+
+div.kineticsData {
+    float: right;
+    width: 5.3in;
+}
+
+img.treeButton {
+    margin-right: 4px;
+}
+
+span.kineticsDatum, span.kineticsDatumLabel {
+    display: inline-block; 
+    width: 0.6in; 
+    text-align: right;
+}
+
+span.kineticsDatumLabel {
+    font-weight: bold;
+}
+</style>
+{% endblock %}
 
 {% block navbar_items %}
 <a href="{% url database.views.index %}">Database</a>
@@ -24,31 +66,76 @@ RMG Kinetics Database
 
 {% block page_body %}
 
-<table class="kineticsData">
-<tr>
-    <th>Label</th>
-    {% if section == 'groups' %}<th>Group</th>{% else %}<th colspan="3">Reaction</th>{% endif %}
-    <th>Data&nbsp;Format</th>
-</tr>
 {% if section == 'groups' %}
-    {% for index, label, structure, dataFormat in entries %}
-    <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
-        <td>{{ structure|safe }}</td>
-        <td>{{ dataFormat }}</td>
-    </tr>
-    {% endfor %}
-{% else %}
-    {% for index, label, reactants, arrow, products, dataFormat in entries %}
-    <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
-        <td class="reactants">{{ reactants|safe }}</td>
-        <td class="reactionArrow">{{ arrow|safe }}</td>
-        <td class="products">{{ products|safe }}</td>
-        <td>{{ dataFormat }}</td>
-    </tr>
+
+<script type="text/javascript">
+var treeParent = new Array();
+var treeChildren = new Array();
+
+{% if section == 'groups' %}
+    {% for entry in entries %}
+        {% ifequal entry.parent None %}
+        treeParent["{{ entry.index }}"] = "";
+        {% else %}
+        treeParent["{{ entry.index }}"] = "{{ entry.parent.index }}";
+        {% endifequal %}
+        treeChildren["{{ entry.index }}"] = [{% for child in entry.children %}"{{ child.index }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     {% endfor %}
 {% endif %}
+
+function toggleVisible(index) {
+    $("#children_" + index).toggle();
+    if ($("#children_" + index).is(":visible")) {
+        $("#button_" + index).attr("src", "/media/tree-collapse.png");
+    }
+    else {
+        $("#button_" + index).attr("src", "/media/tree-expand.png");
+    }
+}
+
+$(document).ready(function() {
+    {% for entry in entries %}
+    $("#button_{{ entry.index }}").click(function () { toggleVisible("{{ entry.index }}"); });
+    {% endfor %}
+});
+
+</script>
+
+<div class="kineticsData">
+    <span style="font-weight: bold;">Group additivity corrections (log scale)</span>
+</div>
+<div class="kineticsData">
+<span class="kineticsDatumLabel">300&nbsp;K</span>
+<span class="kineticsDatumLabel">400&nbsp;K</span>
+<span class="kineticsDatumLabel">500&nbsp;K</span>
+<span class="kineticsDatumLabel">600&nbsp;K</span>
+<span class="kineticsDatumLabel">800&nbsp;K</span>
+<span class="kineticsDatumLabel">1000&nbsp;K</span>
+<span class="kineticsDatumLabel">1500&nbsp;K</span>
+<span class="kineticsDatumLabel">2000&nbsp;K</span>
+</div>
+
+{{ tree|safe }}
+
+{% else %}
+
+<table class="kineticsData">
+    <tr>
+        <th>Label</th>
+        {% if section == 'groups' %}<th>Group</th>{% else %}<th colspan="3">Reaction</th>{% endif %}
+        <th>Data&nbsp;Format</th>
+    </tr>
+    {% for entry in entries %}
+    <tr>
+        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
+        <td class="reactants">{{ entry.reactants|safe }}</td>
+        <td class="reactionArrow">{{ entry.arrow|safe }}</td>
+        <td class="products">{{ entry.products|safe }}</td>
+        <td>{{ entry.dataFormat }}</td>
+    </tr>
+    {% endfor %}
 </table>
+
+{% endif %}
 
 {% endblock %}
