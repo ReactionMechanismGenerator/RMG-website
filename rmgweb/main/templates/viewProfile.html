@@ -3,7 +3,18 @@
 
 {% block title %}{{ user0.username }}'s Profile - RMG{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<link href="/media/main.css" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+table.networks {
+    width: 100%;
+}
+
+table.networks th {
+    text-align: left;
+}
+</style>
+{% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
@@ -13,8 +24,46 @@
 
 <p>{% gravatar user0.username 80 %}</p>
 
+<table>
 {% if user.is_authenticated %}
-<p>Email: {{ user0.email }}</p>
+    <tr>
+        <td class="key">Email:</td>
+        <td class="value">{{ user0.email }}</td>
+    </tr>
+    <tr>
+        <td class="key">Organization:</td>
+        <td class="value">{{ userProfile.organization }}</td>
+    </tr>
+    <tr>
+        <td class="key">Website:</td>
+        <td class="value">{{ userProfile.website }}</td>
+    </tr>
+    <tr>
+        <td class="key">Bio:</td>
+        <td class="value">{{ userProfile.bio }}</td>
+    </tr>
+{% endif %}
+</table>
+<br/>
+
+{% if user == user0 %}
+<h2>MEASURE Reaction Networks</h2>
+
+<table class="networks">
+    <tr>
+        <th style="width: 8em;">Network Id</th>
+        <th>Network Title</th>
+        <th style="width: 8em;"></th>
+    </tr>
+{% for network in networks %}
+    <tr>
+        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
+        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.title }}</a></td>
+        <td style="font-size: 80%; white-space: nowrap;">Last modified on {{ network.getLastModifiedDate }}</td>
+    </tr>
+{% endfor %}
+</table>
+<br/>
 {% endif %}
 
 {% endblock %}

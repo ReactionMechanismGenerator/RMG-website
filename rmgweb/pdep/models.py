@@ -34,8 +34,10 @@ This module defines the Django models used by the pdep app.
 
 import os
 import os.path
+import time
 
 from django.db import models
+from django.contrib.auth.models import User
 
 import rmgweb.settings as settings
 
@@ -57,6 +59,7 @@ class Network(models.Model):
     title = models.CharField(max_length=50)
     inputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input file')
     inputText = models.TextField(blank=True, verbose_name='')
+    user = models.ForeignKey(User)
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)
@@ -114,6 +117,29 @@ class Network(models.Model):
         """
         return os.path.join(self.getDirname(), 'PES.svg')
     
+    def getLastModifiedDate(self):
+        """
+        Return the date on which the network was most recently modified.
+        """
+        if not self.inputFileExists(): return 'unknown'
+        
+        mtime = os.path.getmtime(self.getInputFilename())
+        if self.outputFileExists():
+            mtime0 = os.path.getmtime(self.getOutputFilename())
+            if mtime < mtime0: mtime = mtime0
+        if self.surfaceFilePDFExists():
+            mtime0 = os.path.getmtime(self.getSurfaceFilenamePDF())
+            if mtime < mtime0: mtime = mtime0
+        if self.surfaceFilePNGExists():
+            mtime0 = os.path.getmtime(self.getSurfaceFilenamePNG())
+            if mtime < mtime0: mtime = mtime0
+        if self.surfaceFileSVGExists():
+            mtime0 = os.path.getmtime(self.getSurfaceFilenameSVG())
+            if mtime < mtime0: mtime = mtime0
+        
+        gmtime = time.gmtime(mtime)
+        return time.strftime("%d %b %Y", gmtime)
+        
     def inputFileExists(self):
         """
         Return ``True`` if the input file exists on the server or ``False`` if
@@ -275,5 +301,6 @@ class Network(models.Model):
         
         if self.network is not None:
             self.title = self.network.title
+            self.save()
         
         return self.network

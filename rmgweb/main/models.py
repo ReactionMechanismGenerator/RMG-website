@@ -38,4 +38,6 @@ class UserProfile(models.Model):
     extra custom information.
     """
     user = models.ForeignKey(User, unique=True)
-    
+    organization = models.CharField(max_length=100)
+    website = models.CharField(max_length=100, blank=True)
+    bio = models.TextField(blank=True)

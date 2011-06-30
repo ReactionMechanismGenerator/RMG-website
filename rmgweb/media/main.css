@@ -1,0 +1,15 @@
+@import url("/media/default.css");
+
+div.error {
+    color: red;
+}
+
+td.key, td.fieldKey {
+    width: 160px;
+    vertical-align: middle;
+    font-weight: bold;
+}
+
+td.value img, td.fieldValue img {
+    vertical-align: middle;
+}

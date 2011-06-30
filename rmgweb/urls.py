@@ -53,7 +53,8 @@ urlpatterns = patterns('rmgweb',
     (r'^login$', 'main.views.login'),
     (r'^logout$', 'main.views.logout'),
     (r'^profile$', 'main.views.editProfile'),
-
+    (r'^signup', 'main.views.signup'),
+    
     (r'^user/(?P<username>\w+)$', 'main.views.viewProfile'),
 
     # Database

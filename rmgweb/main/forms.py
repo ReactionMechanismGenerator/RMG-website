@@ -28,9 +28,30 @@
 #
 ################################################################################
 
-from django import forms
+import re
 
-from models import UserProfile
+from django import forms
+from django.forms.util import ErrorList
+from django.utils.safestring import mark_safe
+
+from models import *
+
+class DivErrorList(ErrorList):
+    def __unicode__(self):
+        return self.as_divs()
+    def as_divs(self):
+        if not self: return u''
+        return mark_safe(u''.join([u'<div class="error">%s</div>' % e for e in self]))
+
+################################################################################
+
+class UserForm(forms.ModelForm):
+    """
+    A form for editing user profile information.
+    """
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
 
 class UserProfileForm(forms.ModelForm):
     """
@@ -38,10 +59,31 @@ class UserProfileForm(forms.ModelForm):
     """
     class Meta:
         model = UserProfile
-        exclude = ('user')
+        fields = ('organization', 'website', 'bio')
+
+################################################################################
+
+class UserSignupForm(forms.ModelForm):
+    """
+    A form for editing user information when signing up for an account.
+    """
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+        
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        tokens = re.findall(r'[a-zA-Z][a-zA-Z0-9_]*', username)
+        if len(tokens) != 1 or tokens[0] != username:
+            raise forms.ValidationError('Invalid character(s) in username.')
+        if User.objects.filter(username__exact=username).count() > 0:
+            raise forms.ValidationError('Username already in use.')
+        return username
     
-    username = forms.CharField(label="Username", widget=forms.TextInput(attrs={'readonly':'readonly'}))
-    first_name = forms.CharField(label="First Name", max_length=30)
-    last_name = forms.CharField(label="Last Name", max_length=30)
-    email = forms.EmailField(label="Email", max_length=50)
-    
+class UserProfileSignupForm(forms.ModelForm):
+    """
+    A form for editing user profile information when signing up for an account.
+    """
+    class Meta:
+        model = UserProfile
+        fields = ('organization',)

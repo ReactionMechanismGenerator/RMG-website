@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% load gravatar %}
 
-{% block title %}Edit {{ user.username }}'s profile - RMG{% endblock %}
+{% block title %}Create a User Account - RMG{% endblock %}
 
 {% block extrahead %}
 <link href="/media/main.css" rel="stylesheet" type="text/css"/>
 <style type="text/css">
 td.fieldValue input, td.fieldValue textarea {
-    width: 400px;
+    width: 200px;
 }
 </style>
 {% endblock %}
 
 {% block navbar_items %}{% endblock %}
 
-{% block page_title %}Edit {{ user.username }}'s Profile{% endblock %}
+{% block page_title %}Create a User Account{% endblock %}
 
 {% block page_body %}
 
-<form action="profile" method="post">{% csrf_token %}
+<form action="signup" method="post">{% csrf_token %}
 <table>
 {% for field in userForm %}
     <tr>
@@ -38,10 +38,6 @@ td.fieldValue input, td.fieldValue textarea {
         <td class="fieldValue">{{ field }}</td>
     </tr>
 {% endfor %}
-    <tr>
-        <td class="fieldKey">Avatar</td>
-        <td class="fieldValue">{% gravatar user.username 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></td>
-    </tr>
 </table>
 <p><input type="submit" value="Submit" id="submit"/></p>
 </form>
