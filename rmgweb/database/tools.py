@@ -176,6 +176,8 @@ def getRMGJavaKinetics(reactantList, productList=None):
     for index, product in enumerate(productList):
         productNames.append(identifySpecies(species_dict, product))
     
+    species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
+    
     # Both products were actually found in species dictionary or were blank
     if all(productNames):
 
@@ -194,8 +196,8 @@ def getRMGJavaKinetics(reactantList, productList=None):
                 print 'FOUND A REACTION!'
                 reactants, products, kinetics, entry = extractKinetics(reactionline)
                 reaction = Reaction(
-                    reactants = reactants,
-                    products = products,
+                    reactants = [species_dict[reactant] for reactant in reactants],
+                    products = [species_dict[product] for product in products],
                     kinetics = kinetics,
                     degeneracy = degeneracy,
                 )
