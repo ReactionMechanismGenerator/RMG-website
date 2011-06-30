@@ -56,7 +56,6 @@ jQuery(document).ready(function() {
 
 {% block page_body %}
 {% if kineticsDataList|length > 0 %}
-<h2>Kinetic Data</h2>
 
 {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
 {% if href != '' %}

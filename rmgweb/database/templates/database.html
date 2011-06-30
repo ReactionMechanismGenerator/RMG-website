@@ -14,7 +14,7 @@
 {% block page_title %}RMG Database{% endblock %}
 
 {% block page_body %}
-<h2><a href="{% url database.views.thermo %}">Thermodynamics Database</a></h2>
+<h2><a href="{% url database.views.thermo %}">Thermodynamics Database</a> | <a href="{% url database.views.thermoSearch %}">Search</a> </h2>
 
 <ul>
 <li><a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></li>
@@ -22,7 +22,7 @@
 <li><a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></li>
 </ul>
 
-<h2><a href="{% url database.views.kinetics %}">Kinetics Database</a></h2>
+<h2><a href="{% url database.views.kinetics %}">Kinetics Database</a> | <a href="{% url database.views.kineticsSearch %}">Search</a></h2>
 
 <ul>
 <li><a href="{% url database.views.kinetics section='depository' %}">Kinetics Depository</a></li>
