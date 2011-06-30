@@ -14,30 +14,14 @@ jQuery(document).ready(function() {
 
     kineticsModelList = [];
 
-    {% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
+    {% for reactants, arrow, products, entry, kineticsParameters, source, href in kineticsDataList %}
+    kseries = [];
     {% include "kineticsModel.js" %}
-    kineticsModelList.push(["{{ source }}", kineticsModel]);
+    kineticsModelList.push(kseries[kseries.length-1]);
     {% endfor %}
 
-    var kseries = [];
-    for (var j = 0; j < kineticsModelList.length; j++) {
-        name = kineticsModelList[j][0];
-        kineticsModel = kineticsModelList[j][1];
-
-        var klist = [];
-        for (var Tinv = 0.0005; Tinv < 0.0035; Tinv+=0.00001) {
-            T = 1.0 / Tinv;
-            k = kineticsModel.getRateCoefficient(T, 1e5);
-            if (T != null && k != null) {
-                klist.push([Tinv*1000, Math.log(k) / Math.LN10]);
-            }
-        }
-
-        kseries.push([name, klist]);
-    }
-
     jsMath.Synchronize(function() {
-        plotKinetics('plotk', kseries);
+        plotKinetics('plotk', kineticsModelList);
     });
 
 });
@@ -57,7 +41,7 @@ jQuery(document).ready(function() {
 {% block page_body %}
 {% if kineticsDataList|length > 0 %}
 
-{% for reactants, arrow, products, entry, kineticsData, source, href in kineticsDataList %}
+{% for reactants, arrow, products, entry, kineticsParameters, source, href in kineticsDataList %}
 {% if href != '' %}
 <h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
 {% else %}
