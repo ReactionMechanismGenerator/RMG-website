@@ -66,22 +66,20 @@ span.kineticsDatumLabel {
 
 {% block page_body %}
 
-{% if section == 'groups' %}
+{% if isGroupDatabase %}
 
 <script type="text/javascript">
 var treeParent = new Array();
 var treeChildren = new Array();
 
-{% if section == 'groups' %}
-    {% for entry in entries %}
-        {% ifequal entry.parent None %}
-        treeParent["{{ entry.index }}"] = "";
-        {% else %}
-        treeParent["{{ entry.index }}"] = "{{ entry.parent.index }}";
-        {% endifequal %}
-        treeChildren["{{ entry.index }}"] = [{% for child in entry.children %}"{{ child.index }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
-    {% endfor %}
-{% endif %}
+{% for entry in entries %}
+    {% ifequal entry.parent None %}
+    treeParent["{{ entry.index }}"] = "";
+    {% else %}
+    treeParent["{{ entry.index }}"] = "{{ entry.parent.index }}";
+    {% endifequal %}
+    treeChildren["{{ entry.index }}"] = [{% for child in entry.children %}"{{ child.index }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+{% endfor %}
 
 function toggleVisible(index) {
     $("#children_" + index).toggle();
@@ -122,7 +120,7 @@ $(document).ready(function() {
 <table class="kineticsData">
     <tr>
         <th>Label</th>
-        {% if section == 'groups' %}<th>Group</th>{% else %}<th colspan="3">Reaction</th>{% endif %}
+        <th colspan="3">Reaction</th>
         <th>Data&nbsp;Format</th>
     </tr>
     {% for entry in entries %}

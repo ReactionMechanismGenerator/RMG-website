@@ -373,6 +373,8 @@ def kinetics(request, section='', subsection=''):
         # A subsection was specified, so render a table of the entries in
         # that part of the database
 
+        isGroupDatabase = False
+
         # Sort entries by index
         if database.top is not None and len(database.top) > 0:
             # If there is a tree in this database, only consider the entries
@@ -409,6 +411,7 @@ def kinetics(request, section='', subsection=''):
                 'dataFormat': dataFormat,
             }
             if isinstance(database, KineticsGroups):
+                isGroupDatabase = True
                 entry['structure'] = getStructureMarkup(entry0.item)
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
@@ -419,7 +422,7 @@ def kinetics(request, section='', subsection=''):
             
             entries.append(entry)
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree}, context_instance=RequestContext(request))
+        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
