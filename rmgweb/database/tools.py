@@ -72,23 +72,20 @@ def cleanresponse(response):
 
     return species_dict, reactions_list
 
-def searchreaction(reactionline, reactant1, reactant2, product1, product2):
+def searchreaction(reactionline, reactantNames, productNames):
     """
     Reads reaction line and returns True if reaction occurs:
     reactant1 + reactant2 --> product1 + product2
     
     Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product 
     """
-
     lines = reactionline.split("\t")
-
     reaction_string = lines[0]
     reactants, products = reaction_string.split(" --> ")
-
-    if reactants.find(reactant1) == -1 or reactants.find(reactant2) == -1 or products.find(product1) == -1 or products.find(product2) == -1:
-        return False
-    else:
-        return True
+    return not (
+        any([reactants.find(reactant) == -1 for reactant in reactantNames]) or 
+        any([products.find(product) == -1 for product in productNames])
+    )
 
 def extractkinetics(reactionline):
     """
@@ -145,7 +142,7 @@ def getspeciesstructure(species_dict, speciesname):
     return structure
     
 
-def getRMGJavaKinetics(reactant1, reactant2='', product1='', product2=''):
+def getRMGJavaKinetics(reactantList, productList=None):
     """
     Get the kinetics for the given `reaction` as estimated by RMG-Java. The
     reactants and products of the given reaction should be :class:`Molecule`
@@ -157,6 +154,7 @@ def getRMGJavaKinetics(reactant1, reactant2='', product1='', product2=''):
     the reaction we are interested in.
     """
     
+    productList = productList or []
     kineticsDataList = []
 
     # First send search request to PopulateReactions server
@@ -165,13 +163,12 @@ def getRMGJavaKinetics(reactant1, reactant2='', product1='', product2=''):
     client_socket.connect(("localhost", 5000))
         
     # Generate species list for Java request
-    header1 = 'reactant1 (molecule/cm3) 1\n'
-    popreactants = header1 + reactant1 + '\n\n'
-    if reactant2 != '':
-        header2 = 'reactant2 (molecule/cm3) 1\n'
-        popreactants = popreactants + header2 + reactant2 + '\n\n'
-    popreactants = popreactants + 'END' +'\n'
-
+    popreactants = ''
+    for index, reactant in enumerate(reactantList):
+        reactant.clearLabeledAtoms()
+        popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList())
+    popreactants += 'END\n'
+    
     # Send request to server
     print "SENDING REQUEST FOR RMG-JAVA SEARCH TO SERVER"
     client_socket.sendall(popreactants)
@@ -187,24 +184,15 @@ def getRMGJavaKinetics(reactant1, reactant2='', product1='', product2=''):
     species_dict, reactions_list = cleanresponse(response)
 
     # Name the species in reaction
-    reactant1_name = species_dict[0][0]
-
-    reactant2_name = ''
-    if reactant2 != '':
-        reactant2_name = species_dict[1][0]
-        # BIMOLECULAR
-
-    product1_name = ''
-    if product1 != '':
-        product1_name = identifyspecies(species_dict, product1)
-
-    product2_name = ''
-    if product2 != '':
-        product2_name = identifyspecies(species_dict, product2)
-
-
+    reactantNames = []
+    for index, reactant in enumerate(reactantList):
+        reactantNames.append(species_dict[index][0])
+    productNames = []
+    for index, product in enumerate(productList):
+        productNames.append(identifyspecies(species_dict, product))
+    
     # Both products were actually found in species dictionary or were blank
-    if product1_name != False and product2_name != False:
+    if all(productNames):
 
         # Constants for all entries
         degeneracy = 1
@@ -215,8 +203,8 @@ def getRMGJavaKinetics(reactant1, reactant2='', product1='', product2=''):
         for reactionline in reactions_list:
             print reactionline + '\n'
             # Search for both forward and backward reactions
-            indicator1 = searchreaction(reactionline, reactant1_name, reactant2_name, product1_name, product2_name)
-            indicator2 = searchreaction(reactionline, product1_name, product2_name, reactant1_name, reactant2_name)
+            indicator1 = searchreaction(reactionline, reactantNames, productNames)
+            indicator2 = searchreaction(reactionline, productNames, reactantNames)
 
             if indicator1 == True or indicator2 == True:
                 print 'FOUND A REACTION!'

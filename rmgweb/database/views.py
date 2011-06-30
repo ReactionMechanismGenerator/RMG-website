@@ -538,26 +538,25 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
 
-    reactants = []
-    reactant1 = str(reactant1.replace(';', '\n'))
-    reactants.append(Molecule().fromAdjacencyList(reactant1))
+    reactantList = []
+    reactantList.append(Molecule().fromAdjacencyList(str(reactant1.replace(';', '\n'))))
     if reactant2 != '':
-        reactants.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
+        reactantList.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
 
     if product1 != '' or product2 != '':
-        products = []
+        productList = []
         if product1 != '':
-            products.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
+            productList.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
         if product2 != '':
-            products.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
+            productList.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
     else:
-        products = None
+        productList = None
     
     # Get the kinetics data for the reaction
     kineticsDataList = []
 
     # Go through database and group additivity kinetics entries
-    for reaction in database.kinetics.generateReactions(reactants, products):
+    for reaction in database.kinetics.generateReactions(reactantList, productList):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
@@ -577,7 +576,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
         kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
 
     # Also try to get the kinetics from RMG-Java
-    kineticsDataList.extend(getRMGJavaKinetics(reactant1, reactant2, product1, product2))
+    kineticsDataList.extend(getRMGJavaKinetics(reactantList, productList))
     
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 
