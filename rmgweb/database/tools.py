@@ -43,106 +43,6 @@ from rmgweb.main.tools import *
 
 ################################################################################
 
-def cleanresponse(response):
-    """
-    This function cleans up response from PopulateReactions server and gives a
-    species dictionary and reactions list.
-    """
-
-    def formSpecies(species):
-        """
-        This function takes a species string from RMG-Java containing both name
-        and adjlist and returns them separately.
-        """
-        lines = species.split("\n")
-        species_name = lines[0]
-        adjlist = "\n".join(lines[1:])
-        return species_name, adjlist
-
-    # Split species dictionary from reactions list
-    response = response.split("\n\n\n")
-    species_list = response[0].split("\n\n")
-    reactions = response[1].split("\n\n")
-    reactions = reactions[1]
-
-    # split species into adjacency lists with names
-    species_dict = [formSpecies(item) for item in species_list]
-
-    # split reactions into list of single line reactions
-    reactions_list = reactions.split("\n")
-
-    return species_dict, reactions_list
-
-def searchreaction(reactionline, reactantNames, productNames):
-    """
-    Reads reaction line and returns True if reaction occurs:
-    reactant1 + reactant2 --> product1 + product2
-    
-    Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product 
-    """
-    lines = reactionline.split("\t")
-    reaction_string = lines[0]
-    reactants, products = reaction_string.split(" --> ")
-    return not (
-        any([reactants.find(reactant) == -1 for reactant in reactantNames]) or 
-        any([products.find(product) == -1 for product in productNames])
-    )
-
-def extractkinetics(reactionline):
-    """
-    Takes a reaction line from RMG and creates Arrhenius object from
-    the kinetic data, as well as extracts names of reactants, products and comments.
-
-    Units from RMG-Java are in cm3, mol, s.
-    Reference Temperature T0 = 1 K.
-    """
-    lines = reactionline.split("\t")
-
-    reaction_string = lines[0]
-    reactants, products = reaction_string.split(" --> ")
-    reactants = reactants.split(" + ")
-    products = products.split(" + ")
-
-    KineticsModel = Arrhenius(
-        A = (float(lines[1]),"cm**3/mol/s"),
-        n = float(lines[2]),
-        Ea = (float(lines[3]),"kcal/mol"),
-        T0 = (1,"K"),
-    )
-
-    comments = "\t".join(lines[4:])
-    entry = Entry(longDesc=comments)
-
-    return reactants, products, KineticsModel, entry
-
-def identifyspecies(species_dict, species):
-    """
-    Given a species_dict list and the species adjacency list, identifies
-    whether species is found in the list and returns its name if found.
-    """
-    molecule = Molecule().fromAdjacencyList(species)
-    for name, adjlist in species_dict:
-        listmolecule = Molecule().fromAdjacencyList(adjlist)
-        if molecule.isIsomorphic(listmolecule) == True:
-            return name
-
-    return False
-
-def getspeciesstructure(species_dict, speciesname):
-    """
-    Given a species_dict list and the name of the species, returns structure of the species.
-    Returns blank structure if not found.
-    """
-    structure = ''
-    for name, adjlist in species_dict:
-        if speciesname == name:
-            molecule = Molecule().fromAdjacencyList(str(adjlist.replace(';', '\n')))
-            structure = getStructureMarkup(molecule)
-            return structure
-
-    return structure
-    
-
 def getRMGJavaKinetics(reactantList, productList=None):
     """
     Get the kinetics for the given `reaction` as estimated by RMG-Java. The
@@ -155,6 +55,90 @@ def getRMGJavaKinetics(reactantList, productList=None):
     the reaction we are interested in.
     """
     
+    def formSpecies(species):
+        """
+        This function takes a species string from RMG-Java containing both name
+        and adjlist and returns them separately.
+        """
+        lines = species.split("\n")
+        species_name = lines[0]
+        adjlist = "\n".join(lines[1:])
+        return species_name, adjlist
+
+    def cleanResponse(response):
+        """
+        This function cleans up response from PopulateReactions server and gives a
+        species dictionary and reactions list.
+        """
+    
+        # Split species dictionary from reactions list
+        response = response.split("\n\n\n")
+        species_list = response[0].split("\n\n")
+        reactions = response[1].split("\n\n")
+        reactions = reactions[1]
+    
+        # split species into adjacency lists with names
+        species_dict = [formSpecies(item) for item in species_list]
+    
+        # split reactions into list of single line reactions
+        reactions_list = reactions.split("\n")
+    
+        return species_dict, reactions_list
+    
+    def searchReaction(reactionline, reactantNames, productNames):
+        """
+        Reads reaction line and returns True if reaction occurs:
+        reactant1 + reactant2 --> product1 + product2
+        
+        Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product 
+        """
+        lines = reactionline.split("\t")
+        reaction_string = lines[0]
+        reactants, products = reaction_string.split(" --> ")
+        return not (
+            any([reactants.find(reactant) == -1 for reactant in reactantNames]) or 
+            any([products.find(product) == -1 for product in productNames])
+        )
+    
+    def extractKinetics(reactionline):
+        """
+        Takes a reaction line from RMG and creates Arrhenius object from
+        the kinetic data, as well as extracts names of reactants, products and comments.
+    
+        Units from RMG-Java are in cm3, mol, s.
+        Reference Temperature T0 = 1 K.
+        """
+        lines = reactionline.split("\t")
+    
+        reaction_string = lines[0]
+        reactants, products = reaction_string.split(" --> ")
+        reactants = reactants.split(" + ")
+        products = products.split(" + ")
+    
+        kinetics = Arrhenius(
+            A = (float(lines[1]),"cm**3/mol/s"),
+            n = float(lines[2]),
+            Ea = (float(lines[3]),"kcal/mol"),
+            T0 = (1,"K"),
+        )
+    
+        comments = "\t".join(lines[4:])
+        entry = Entry(longDesc=comments)
+    
+        return reactants, products, kinetics, entry
+    
+    def identifySpecies(species_dict, species):
+        """
+        Given a species_dict list and the species adjacency list, identifies
+        whether species is found in the list and returns its name if found.
+        """
+        molecule = Molecule().fromAdjacencyList(species)
+        for name, adjlist in species_dict:
+            listmolecule = Molecule().fromAdjacencyList(adjlist)
+            if molecule.isIsomorphic(listmolecule):
+                return name
+        return False
+
     productList = productList or []
     reactionList = []
 
@@ -182,7 +166,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
     print "FINISHED REQUEST. CLOSED CONNECTION TO SERVER"
 
     # Clean response from server
-    species_dict, reactions_list = cleanresponse(response)
+    species_dict, reactions_list = cleanResponse(response)
 
     # Name the species in reaction
     reactantNames = []
@@ -190,7 +174,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         reactantNames.append(species_dict[index][0])
     productNames = []
     for index, product in enumerate(productList):
-        productNames.append(identifyspecies(species_dict, product))
+        productNames.append(identifySpecies(species_dict, product))
     
     # Both products were actually found in species dictionary or were blank
     if all(productNames):
@@ -204,20 +188,17 @@ def getRMGJavaKinetics(reactantList, productList=None):
         for reactionline in reactions_list:
             print reactionline + '\n'
             # Search for both forward and backward reactions
-            indicator1 = searchreaction(reactionline, reactantNames, productNames)
-            indicator2 = searchreaction(reactionline, productNames, reactantNames)
-
+            indicator1 = searchReaction(reactionline, reactantNames, productNames)
+            indicator2 = searchReaction(reactionline, productNames, reactantNames)
             if indicator1 == True or indicator2 == True:
                 print 'FOUND A REACTION!'
-                reactants, products, kinetics, entry = extractkinetics(reactionline)
-                
+                reactants, products, kinetics, entry = extractKinetics(reactionline)
                 reaction = Reaction(
                     reactants = reactants,
                     products = products,
                     kinetics = kinetics,
                     degeneracy = degeneracy,
                 )
-                
                 reactionList.append(reaction)
                 
     return reactionList
