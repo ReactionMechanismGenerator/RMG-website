@@ -35,6 +35,27 @@ import re
 from django.core.urlresolvers import reverse
 
 from rmgpy.quantity import constants
+from rmgpy.molecule import Molecule
+
+################################################################################
+
+def moleculeToURL(molecule):
+    """
+    Convert a given :class:`Molecule` object `molecule` to a string 
+    representation of its structure suitable for a URL.
+    """
+    molecule.clearLabeledAtoms()
+    adjlist = molecule.toAdjacencyList(removeH=True)
+    adjlist = re.sub('\s+', '%20', adjlist.replace('\n', ';'))
+    return adjlist
+
+def moleculeFromURL(adjlist):
+    """
+    Convert a given adjacency list `adjlist` from a URL to the corresponding
+    :class:`Molecule` object.
+    """
+    molecule = Molecule().fromAdjacencyList(str(adjlist.replace(';', '\n')))
+    return molecule
 
 ################################################################################
 
