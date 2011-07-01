@@ -49,6 +49,7 @@ from rmgpy.data.kinetics import *
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
+from tools import *
 from rmgweb.main.tools import *
 
 ################################################################################
@@ -536,29 +537,31 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
+    # Also load the thermo database so we can generate reverse kinetics if necessary
+    loadDatabase('thermo')
 
-    reactants = []
-
-    reactant1 = str(reactant1.replace(';', '\n'))
-    reactants.append(Molecule().fromAdjacencyList(reactant1))
-
+    reactantList = []
+    reactantList.append(Molecule().fromAdjacencyList(str(reactant1.replace(';', '\n'))))
     if reactant2 != '':
-        reactants.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
+        reactantList.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
 
     if product1 != '' or product2 != '':
-        products = []
+        productList = []
         if product1 != '':
-            products.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
+            productList.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
         if product2 != '':
-            products.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
+            productList.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
     else:
-        products = None
+        productList = None
     
     # Get the kinetics data for the reaction
     kineticsDataList = []
 
+    reactionList = database.kinetics.generateReactions(reactantList, productList)
+    rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
+    reactionList.extend(rmgJavaReactionList)
     # Go through database and group additivity kinetics entries
-    for reaction in database.kinetics.generateReactions(reactants, products):
+    for reaction in reactionList:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
@@ -574,212 +577,36 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             source = reaction.library.name
             href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
             entry = reaction.entry
-        print reaction.kinetics, reaction
-        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
-
-    ########################################
-    # Find the RMG-Java kinetics entries
-
-    #####
-    def cleanresponse(response):
-        """
-        This function cleans up response from PopulateReactions server and gives a
-        species dictionary and reactions list.
-        """
-
-        def formspecies(species):
-            """
-            This function takes a species string from RMG-Java containing both name
-            and adjlist and returns them separately.
-            """
-            lines = species.split("\n")
-            species_name = lines[0]
-            adjlist = "\n".join(lines[1:])
-            return species_name, adjlist
-
-        # Split species dictionary from reactions list
-        response = response.split("\n\n\n")
-        species_list = response[0].split("\n\n")
-        reactions = response[1].split("\n\n")
-        reactions = reactions[1]
-
-        # split species into adjacency lists with names
-        species_dict = [formspecies(item) for item in species_list]
-
-        # split reactions into list of single line reactions
-        reactions_list = reactions.split("\n")
-
-        return species_dict, reactions_list
-
- 
-    #####
-    def searchreaction(reactionline, reactant1, reactant2, product1, product2):
-        """
-        Reads reaction line and returns True if reaction occurs:
-        reactant1 + reactant2 --> product1 + product2
+        elif reaction in rmgJavaReactionList:
+            source = 'RMG-Java'
+            href = ''
+            entry = Entry(data=reaction.kinetics)
+        forwardKinetics = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
         
-        Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product 
-        """
-
-        lines = reactionline.split("\t")
-
-        reaction_string = lines[0]
-        reactants, products = reaction_string.split(" --> ")
-
-        if reactants.find(reactant1) == -1 or reactants.find(reactant2) == -1 or products.find(product1) == -1 or products.find(product2) == -1:
-            return False
+        # Check forward direction
+        forward = True
+        if len(reactantList) == len(reaction.products) == 1:
+            if reaction.products[0].isIsomorphic(reactantList[0]): 
+                forward = False
+        elif len(reactantList) == len(reaction.products) == 2:
+            if reaction.products[0].isIsomorphic(reactantList[0]) and reaction.products[1].isIsomorphic(reactantList[1]):
+                forward = False
+            elif reaction.products[0].isIsomorphic(reactantList[1]) and reaction.products[1].isIsomorphic(reactantList[0]):
+                forward = False
+        
+        if forward:
+            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
-            return True
-
-    def extractkinetics(reactionline):
-        """
-        Takes a reaction line from RMG and creates Arrhenius object from
-        the kinetic data, as well as extracts names of reactants, products and comments.
-
-        Units from RMG-Java are in cm3, mol, s.
-        Reference Temperature T0 = 1 K.
-        """
-        lines = reactionline.split("\t")
-
-        reaction_string = lines[0]
-        reactants, products = reaction_string.split(" --> ")
-        reactants = reactants.split(" + ")
-        products = products.split(" + ")
-
-        KineticsModel = Arrhenius(
-            A = (float(lines[1]),"cm**3/mol/s"),
-            n = float(lines[2]),
-            Ea = (float(lines[3]),"kcal/mol"),
-            T0 = (1,"K"),
-        )
-
-        comments = "\t".join(lines[4:])
-        entry = Entry(longDesc=comments)
-
-        return reactants, products, KineticsModel, entry
-
-    def identifyspecies(species_dict, species):
-        """
-        Given a species_dict list and the species adjacency list, identifies
-        whether species is found in the list and returns its name if found.
-        """
-        molecule = Molecule().fromAdjacencyList(species)
-        for name, adjlist in species_dict:
-            listmolecule = Molecule().fromAdjacencyList(adjlist)
-            if molecule.isIsomorphic(listmolecule) == True:
-                return name
-
-        return False
-
-    def getspeciesstructure(species_dict, speciesname):
-        """
-        Given a species_dict list and the name of the species, returns structure of the species.
-        Returns blank structure if not found.
-        """
-        structure = ''
-        for name, adjlist in species_dict:
-            if speciesname == name:
-                molecule = Molecule().fromAdjacencyList(str(adjlist.replace(';', '\n')))
-                structure = getStructureMarkup(molecule)
-                return structure
-
-        return structure
-
-    # First send search request to PopulateReactions server
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.settimeout(10)
-    client_socket.connect(("localhost", 5000))
-
-    # Generate species list for Java request
-    header1 = 'reactant1 (molecule/cm3) 1\n'
-    popreactants = header1 + reactant1 + '\n\n'
-    if reactant2 != '':
-        header2 = 'reactant2 (molecule/cm3) 1\n'
-        popreactants = popreactants + header2 + reactant2 + '\n\n'
-    popreactants = popreactants + 'END' +'\n'
-
-    # Send request to server
-    print "SENDING REQUEST FOR RMG-JAVA SEARCH TO SERVER"
-    client_socket.sendall(popreactants)
-    partial_response = client_socket.recv(512)
-    response = partial_response
-    while partial_response:
-        partial_response = client_socket.recv(512)
-        response += partial_response
-    client_socket.close()
-    print "FINISHED REQUEST. CLOSED CONNECTION TO SERVER"
-
-    # Clean response from server
-    species_dict, reactions_list = cleanresponse(response)
-
-    # Name the species in reaction
-    reactant1_name = species_dict[0][0]
-
-    reactant2_name = ''
-    if reactant2 != '':
-        reactant2_name = species_dict[1][0]
-        # BIMOLECULAR
-
-    product1_name = ''
-    if product1 != '':
-        product1_name = identifyspecies(species_dict, product1)
-
-    product2_name = ''
-    if product2 != '':
-        product2_name = identifyspecies(species_dict, product2)
-
-
-    # Both products were actually found in species dictionary or were blank
-    if product1_name != False and product2_name != False:
-
-        # Constants for all entries
-        degeneracy = 1
-        source = 'RMG-Java'
-
-        # Search for da Reactions
-        print 'SEARCHING FOR REACTIONS...\n'
-        for reactionline in reactions_list:
-            print reactionline + '\n'
-            # Search for both forward and backward reactions
-            indicator1 = searchreaction(reactionline, reactant1_name, reactant2_name, product1_name, product2_name)
-            indicator2 = searchreaction(reactionline, product1_name, product2_name, reactant1_name, reactant2_name)
-
-            if indicator1 == True or indicator2 == True:
-                print 'FOUND A REACTION!'
-                reactants, products, kineticsModel, entry = extractkinetics(reactionline)
-                numReactants = len(reactants)
-                numProducts = len(products)
-                kineticsParameters = prepareKineticsParameters(kineticsModel, numReactants, degeneracy)
-
-                # draw figures
-                reactants_structures = [getspeciesstructure(species_dict, speciesname) for speciesname in reactants]
-                products_structures = [getspeciesstructure(species_dict, speciesname) for speciesname in products]
-                if numReactants == 2:
-                    reactants_fig = ' + '.join(reactants_structures)
-                else:
-                    reactants_fig = reactants_structures[0]
-                if numProducts == 2:
-                    products_fig = ' + '.join(products_structures)
-                else:
-                    products_fig = products_structures[0]
-
-                # Unused vars for render_to_response
-                section = ''
-                subsection = ''
-                databaseName = 'RMG-Java Database'
-                reference = ''
-                referenceLink = ''
-                referenceType = ''
-                arrow = '&hArr;'
-
-                #return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
-                
-                #href = reverse(kineticsJavaEntry, kwargs={'entry': entry,'reactants_fig': reactants_fig, 'products_fig': products_fig, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel})
-                href = 'dummy link'
-                kineticsDataList.append([reactants_fig, arrow, products_fig, entry, kineticsParameters, source, href])
+            # Generate the kinetics in the reverse direction
+            for reactant in reaction.reactants:
+                generateSpeciesThermo(reactant, database)
+            for product in reaction.products:
+                generateSpeciesThermo(product, database)
+            reverseKinetics = prepareKineticsParameters(reaction.generateReverseRateCoefficient(), len(reaction.products), 1)
+            
+            kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
-
 
 def moleculeSearch(request):
     """

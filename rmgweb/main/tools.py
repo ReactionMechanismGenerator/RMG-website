@@ -296,14 +296,13 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Pl
         }
 
     # Also include collision efficiencies for the relevant kinetics models
-    efficiencies = []
+    kineticsParameters['efficiencies'] = []
     if isinstance(kinetics, ThirdBody):
         molecules = [(molecule.getFormula(), molecule) for molecule in kinetics.efficiencies]
         molecules.sort()
         for formula, molecule in molecules:
-            efficiencies.append((getStructureMarkup(molecule), '%g' % kinetics.efficiencies[molecule]))
-        kineticsParameters['efficiencies'] = efficiencies
-
+            kineticsParameters['efficiencies'].append((getStructureMarkup(molecule), '%g' % kinetics.efficiencies[molecule]))
+        
     # Also include the reaction path degeneracy
     kineticsParameters['degeneracy'] = '%i' % (degeneracy)
 
