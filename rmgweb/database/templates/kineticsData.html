@@ -12,7 +12,7 @@ jQuery(document).ready(function() {
 
     kineticsModelList = [];
 
-    {% for reactants, arrow, products, entry, kineticsParameters, source, href in kineticsDataList %}
+    {% for reactants, arrow, products, entry, kineticsParameters, source, href, forward in kineticsDataList %}
     kseries = [];
     {% include "kineticsModel.js" %}
     kineticsModelList.push(kseries[kseries.length-1]);
@@ -39,17 +39,17 @@ jQuery(document).ready(function() {
 {% block page_body %}
 {% if kineticsDataList|length > 0 %}
 
-{% for reactants, arrow, products, entry, kineticsParameters, source, href in kineticsDataList %}
+{% for reactants, arrow, products, entry, kineticsParameters, source, href, forward in kineticsDataList %}
 {% if href != '' %}
-<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a></h3>
+<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a>{% if not forward %} *{% endif %}</h3>
 {% else %}
-<h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
+<h3>Result #{{ forloop.counter }} &ndash; {{ source }}{% if not forward %} *{% endif %}</h3>
 {% endif %}
 
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
 {% include "kineticsModel.html" %}
-<br/>
+{% if not forward %}<p>* Kinetics fitted from reverse direction</p>{% else %}<br/>{% endif %}
 {% endfor %}
 
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>

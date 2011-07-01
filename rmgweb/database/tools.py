@@ -37,6 +37,7 @@ import socket
 
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule import Molecule
+from rmgpy.species import Species
 from rmgpy.reaction import Reaction
 from rmgpy.data.base import Entry
 from rmgweb.main.tools import *
@@ -224,5 +225,10 @@ def getRMGJavaKinetics(reactantList, productList=None):
                     degeneracy = degeneracy,
                 )
                 reactionList.append(reaction)
-                
+    
+    # Return the reactions as containing Species objects, not Molecule objects
+    for reaction in reactionList:
+        reaction.reactants = [Species(label=reactant.toSMILES(), molecule=[reactant]) for reactant in reaction.reactants]
+        reaction.products = [Species(label=product.toSMILES(), molecule=[product]) for product in reaction.products]
+    
     return reactionList

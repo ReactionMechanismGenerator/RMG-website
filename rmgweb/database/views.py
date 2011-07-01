@@ -537,6 +537,8 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
+    # Also load the thermo database so we can generate reverse kinetics if necessary
+    loadDatabase('thermo')
 
     reactantList = []
     reactantList.append(Molecule().fromAdjacencyList(str(reactant1.replace(';', '\n'))))
@@ -579,8 +581,30 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             source = 'RMG-Java'
             href = ''
             entry = Entry(data=reaction.kinetics)
-        print reaction.kinetics, reaction
-        kineticsDataList.append([reactants, arrow, products, entry, prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy), source, href])
+        forwardKinetics = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
+        
+        # Check forward direction
+        forward = True
+        if len(reactantList) == len(reaction.products) == 1:
+            if reaction.products[0].isIsomorphic(reactantList[0]): 
+                forward = False
+        elif len(reactantList) == len(reaction.products) == 2:
+            if reaction.products[0].isIsomorphic(reactantList[0]) and reaction.products[1].isIsomorphic(reactantList[1]):
+                forward = False
+            elif reaction.products[0].isIsomorphic(reactantList[1]) and reaction.products[1].isIsomorphic(reactantList[0]):
+                forward = False
+        
+        if forward:
+            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
+        else:
+            # Generate the kinetics in the reverse direction
+            for reactant in reaction.reactants:
+                generateSpeciesThermo(reactant, database)
+            for product in reaction.products:
+                generateSpeciesThermo(product, database)
+            reverseKinetics = prepareKineticsParameters(reaction.generateReverseRateCoefficient(), len(reaction.products), 1)
+            
+            kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
 
