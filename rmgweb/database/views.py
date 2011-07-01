@@ -523,11 +523,68 @@ def kineticsSearch(request):
             if product2 != '':
                 kwargs['product2'] = re.sub('\s+', '%20', product2.replace('\n', ';'))
 
-            return HttpResponseRedirect(reverse(kineticsData, kwargs=kwargs))
+            return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
     else:
         form = KineticsSearchForm()
 
     return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
+
+def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
+    """
+    A view used to present a list of unique reactions that result from a
+    valid kinetics search.
+    """
+    
+    # Load the kinetics database if necessary
+    loadDatabase('kinetics')
+    
+    reactantList = []
+    reactantList.append(moleculeFromURL(reactant1))
+    if reactant2 != '':
+        reactantList.append(moleculeFromURL(reactant2))
+
+    if product1 != '' or product2 != '':
+        productList = []
+        if product1 != '':
+            productList.append(moleculeFromURL(product1))
+        if product2 != '':
+            productList.append(moleculeFromURL(product2))
+    else:
+        productList = None
+    
+    reactionList = database.kinetics.generateReactions(reactantList, productList)
+    rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
+    reactionList.extend(rmgJavaReactionList)
+
+    reactionDataList = []
+    
+    # Remove duplicates from the list
+    uniqueReactionList = []
+    uniqueReactionCount = []
+    for reaction in reactionList:
+        for i, rxn in enumerate(uniqueReactionList):
+            if reaction.isIsomorphic(rxn):
+                uniqueReactionCount[i] += 1
+                break
+        else:
+            uniqueReactionList.append(reaction)
+            uniqueReactionCount.append(1)
+    
+    for reaction, count in zip(uniqueReactionList, uniqueReactionCount):
+        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+        arrow = '&hArr;' if reaction.reversible else '&rarr;'
+        products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+        kwargs = {}
+        
+        for index, reactant in enumerate(reaction.reactants):
+            kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(reactant.molecule[0])
+        for index, product in enumerate(reaction.products):
+            kwargs['product{0:d}'.format(index+1)] = moleculeToURL(product.molecule[0])
+        reactionUrl = reverse(kineticsData, kwargs=kwargs)
+        
+        reactionDataList.append([reactants, arrow, products, count, reactionUrl])
+        
+    return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
 
 def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     """
@@ -541,25 +598,25 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     loadDatabase('thermo')
 
     reactantList = []
-    reactantList.append(Molecule().fromAdjacencyList(str(reactant1.replace(';', '\n'))))
+    reactantList.append(moleculeFromURL(reactant1))
     if reactant2 != '':
-        reactantList.append(Molecule().fromAdjacencyList(str(reactant2.replace(';', '\n'))))
+        reactantList.append(moleculeFromURL(reactant2))
 
     if product1 != '' or product2 != '':
         productList = []
         if product1 != '':
-            productList.append(Molecule().fromAdjacencyList(str(product1.replace(';', '\n'))))
+            productList.append(moleculeFromURL(product1))
         if product2 != '':
-            productList.append(Molecule().fromAdjacencyList(str(product2.replace(';', '\n'))))
+            productList.append(moleculeFromURL(product2))
     else:
         productList = None
     
-    # Get the kinetics data for the reaction
-    kineticsDataList = []
-
     reactionList = database.kinetics.generateReactions(reactantList, productList)
     rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
     reactionList.extend(rmgJavaReactionList)
+    
+    kineticsDataList = []
+    
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
@@ -607,7 +664,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
-
+   
 def moleculeSearch(request):
     """
     Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.
