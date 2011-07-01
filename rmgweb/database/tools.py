@@ -145,8 +145,12 @@ def getRMGJavaKinetics(reactantList, productList=None):
     # First send search request to PopulateReactions server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.settimeout(10)
-    client_socket.connect(("localhost", 5000))
-        
+    try:
+        client_socket.connect(("localhost", 5000))
+    except IOError:
+        print 'Unable to query RMG-Java for kinetics. (Is the RMG-Java server running?)'
+        return reactionList
+    
     # Generate species list for Java request
     popreactants = ''
     for index, reactant in enumerate(reactantList):
