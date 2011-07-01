@@ -62,6 +62,21 @@ def generateSpeciesThermo(species, database):
         
 ################################################################################
 
+def reactionHasReactants(reaction, reactants):
+    """
+    Return ``True`` if the given `reaction` has all of the specified
+    `reactants` (and no others), or ``False if not.
+    """
+    if len(reactants) == len(reaction.products) == 1:
+        if reaction.products[0].isIsomorphic(reactants[0]): 
+            return False
+    elif len(reactants) == len(reaction.products) == 2:
+        if reaction.products[0].isIsomorphic(reactants[0]) and reaction.products[1].isIsomorphic(reactants[1]):
+            return False
+        elif reaction.products[0].isIsomorphic(reactants[1]) and reaction.products[1].isIsomorphic(reactants[0]):
+            return False
+    return True   
+
 def getRMGJavaKinetics(reactantList, productList=None):
     """
     Get the kinetics for the given `reaction` as estimated by RMG-Java. The
@@ -146,12 +161,11 @@ def getRMGJavaKinetics(reactantList, productList=None):
     
         return reactants, products, kinetics, entry
     
-    def identifySpecies(species_dict, species):
+    def identifySpecies(species_dict, molecule):
         """
         Given a species_dict list and the species adjacency list, identifies
         whether species is found in the list and returns its name if found.
         """
-        molecule = Molecule().fromAdjacencyList(species)
         for name, adjlist in species_dict:
             listmolecule = Molecule().fromAdjacencyList(adjlist)
             if molecule.isIsomorphic(listmolecule):

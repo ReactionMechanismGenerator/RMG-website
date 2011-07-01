@@ -582,7 +582,11 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
             kwargs['product{0:d}'.format(index+1)] = moleculeToURL(product.molecule[0])
         reactionUrl = reverse(kineticsData, kwargs=kwargs)
         
-        reactionDataList.append([reactants, arrow, products, count, reactionUrl])
+        forward = reactionHasReactants(reaction, reactantList)
+        if forward:
+            reactionDataList.append([reactants, arrow, products, count, reactionUrl])
+        else:
+            reactionDataList.append([products, arrow, reactants, count, reactionUrl])
         
     return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
 
@@ -640,17 +644,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             entry = Entry(data=reaction.kinetics)
         forwardKinetics = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
         
-        # Check forward direction
-        forward = True
-        if len(reactantList) == len(reaction.products) == 1:
-            if reaction.products[0].isIsomorphic(reactantList[0]): 
-                forward = False
-        elif len(reactantList) == len(reaction.products) == 2:
-            if reaction.products[0].isIsomorphic(reactantList[0]) and reaction.products[1].isIsomorphic(reactantList[1]):
-                forward = False
-            elif reaction.products[0].isIsomorphic(reactantList[1]) and reaction.products[1].isIsomorphic(reactantList[0]):
-                forward = False
-        
+        forward = reactionHasReactants(reaction, reactantList)
         if forward:
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
