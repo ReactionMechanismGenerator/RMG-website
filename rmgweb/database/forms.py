@@ -150,10 +150,8 @@ class MoleculeSearchForm(forms.Form):
     """
     Form for drawing molecule from adjacency list
     """
-    species = forms.CharField(label ="", widget = forms.Textarea(attrs={'cols': 50, 'rows': 30, 'onchange':'clearText(species_inchi); clearText(species_smiles);'}), required=False)
-
-    species_inchi = forms.CharField(label="InChI", widget=forms.TextInput(attrs={'onchange':'clearText(species); clearText(species_smiles);'}), required=False)
-    species_smiles = forms.CharField(label="SMILES", widget=forms.TextInput(attrs={'onchange':'clearText(species); clearText(species_inchi);'}), required=False)
+    species_identifier = forms.CharField(label="Species Identifier", widget=forms.TextInput(attrs={'onchange':'resolve();', 'style':'width:100%;'}), required=False)
+    species = forms.CharField(label ="Adjacency List", widget = forms.Textarea(attrs={'cols': 50, 'rows': 20, 'onchange':"$('.result').hide();" }), required=True)
 
     def clean_species(self):
             """
@@ -170,35 +168,3 @@ class MoleculeSearchForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid adjacency list.')
             return adjlist
-
-    def clean_species_inchi(self):
-            """
-            Custom validation for the species field to ensure that a valid adjacency
-            list has been provided.
-            """
-            try:
-                inchi = str(self.cleaned_data['species_inchi'])
-                if inchi == '' : return ''
-                molecule = Molecule()
-                molecule.fromInChI(str(self.cleaned_data['species_inchi']))
-            except Exception, e:
-                import traceback
-                traceback.print_exc(e)
-                raise forms.ValidationError('Invalid InChI.')
-            return inchi
-
-    def clean_species_smiles(self):
-            """
-            Custom validation for the species field to ensure that a valid adjacency
-            list has been provided.
-            """
-            try:
-                smiles = str(self.cleaned_data['species_smiles'])
-                if smiles =='': return ''
-                molecule = Molecule()
-                molecule.fromSMILES(str(self.cleaned_data['species_smiles']))
-            except Exception, e:
-                import traceback
-                traceback.print_exc(e)
-                raise forms.ValidationError('Invalid SMILES.')
-            return smiles

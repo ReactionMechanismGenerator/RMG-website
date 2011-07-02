@@ -663,57 +663,27 @@ def moleculeSearch(request):
     """
     Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.
     """
-
+    form = MoleculeSearchForm()
+    structure_markup = ''
+    molecule = Molecule()
     if request.method == 'POST':
         posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
         initial = request.POST.copy()
 
         if posted.is_valid():
                 adjlist = posted.cleaned_data['species']
-                inchi = posted.cleaned_data['species_inchi']
-                smiles = posted.cleaned_data['species_smiles']
-
                 if adjlist != '':
-                    molecule = Molecule()
                     molecule.fromAdjacencyList(adjlist)
-                    structure = getStructureMarkup(molecule)
-                    initial['species_inchi'] = molecule.toInChI()
-                    initial['species_smiles'] = molecule.toSMILES()
-
-
-                elif inchi != '':
-                     molecule = Molecule()
-                     molecule.fromInChI(inchi)
-                     adjlist = molecule.toAdjacencyList()
-                     structure = getStructureMarkup(molecule)
-                     print molecule.toAdjacencyList()
-                     initial['species'] = molecule.toAdjacencyList()
-                     initial['species_smiles'] = molecule.toSMILES()
-
-                elif smiles != '':
-                    molecule = Molecule()
-                    molecule.fromSMILES(smiles)
-                    adjlist = molecule.toAdjacencyList()
-                    structure = getStructureMarkup(molecule)
-                    initial['species'] = molecule.toAdjacencyList()
-                    initial['species_inchi'] = molecule.toInChI()
-
-                else:
-                    structure = ''
-        else:
-            structure = ''
-
+                    structure_markup = getStructureMarkup(molecule)
+        
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
-
+        
         if 'thermo' in request.POST:
             return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
-
+        
         if 'reset' in request.POST:
             form = MoleculeSearchForm()
-            structure = ''
-
-    else:
-         form = MoleculeSearchForm()
-         structure = ''
+            structure_markup = ''
+            molecule = Molecule()
     
-    return render_to_response('moleculeSearch.html', {'structure':structure,'form': form}, context_instance=RequestContext(request))
+    return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
