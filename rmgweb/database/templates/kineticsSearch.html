@@ -4,7 +4,37 @@
 
 {% block title %}Search Kinetics Database{% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(fieldName){
+   var spField = $('#id_'+fieldName);
+   var identifier = $('#id_'+fieldName+'_identifier').val();
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                  })
+               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+};
+
+// prevent "enter" keypress in the form fields from submitting the form,
+// but instead make them select the submit button.
+$(document).ready(function() {
+   $("form").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       if ($("input:submit").is(":focus")) { return true;}
+       else {
+          $("input:submit:first").focus();
+          return false;
+       };
+    }
+   });
+})
+</script>
+
+{% endblock %}
 
 {% block navbar_items %}
 <a href="{% url database.views.index %}">Database</a>
@@ -18,9 +48,16 @@
 {% block page_title %}Search Kinetics Database{% endblock %}
 
 {% block page_body %}
-<form action="" method="POST">{% csrf_token %}
+
 <p>You can search either by reactants only or by both reactants and products.</p>
-{{ form.as_p }}
-<p><input type="submit" value="Search" name="submit"></p>
+<p>Use the identifier fields to quickly fill the adjacency list boxes; they accept SMILES, InChI, species name
+ <a href="http://cactus.nci.nih.gov/chemical/structure/documentation" title="Chemical identifier resolver documentation.">etc.</a></p>
+
+<form action="" method="POST">{% csrf_token %}
+<table>
+{{ form.as_table }}
+<tr>
+<th></th><td><input type="submit" value="Search" name="submit"></td></tr>
+</table>
 </form>
 {% endblock %}
