@@ -30,10 +30,11 @@
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 import django.contrib.auth.views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+import urllib, urllib2
 
 from forms import *
 
@@ -106,6 +107,28 @@ def editProfile(request):
 
     return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm}, context_instance=RequestContext(request))
 
+def getAdjacencyList(request, identifier):
+    """
+    Returns an adjacency list of the species corresponding to `identifier`.
+    
+    `identifier` should be something recognized by NCI resolver, eg.
+    SMILES, InChI, CACTVS, chemical name, etc.
+    
+    The NCI resolver has some bugs regarding reading SMILES of radicals.
+    E.g. it thinks CC[CH] is CCC
+    """
+    from rmgpy.molecule import Molecule
+    url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+    try:
+        f = urllib2.urlopen(url)
+    except urllib2.URLError:
+        return HttpResponseNotFound("404: Couldn't identify {0}".format(identifier))
+    smiles = f.read()
+    molecule = Molecule()
+    molecule.fromSMILES(smiles)
+    adjlist = molecule.toAdjacencyList(removeH=True)
+    return HttpResponse(adjlist, mimetype="text/plain")
+    
 def drawMolecule(request, adjlist):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
