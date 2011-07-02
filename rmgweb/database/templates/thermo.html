@@ -30,8 +30,9 @@ RMG Thermodynamics Database
 
 {% block page_body %}
 
-
+{% if section == '' %}
 <h2>1. <a href="{% url database.views.thermoSearch %}">Search Thermochemistry</a></h2>
+{% endif %}
 
 {% if section == '' %}
 <h2>2. <a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></h2>
