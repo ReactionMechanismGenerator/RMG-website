@@ -115,17 +115,25 @@ def getAdjacencyList(request, identifier):
     SMILES, InChI, CACTVS, chemical name, etc.
     
     The NCI resolver has some bugs regarding reading SMILES of radicals.
-    E.g. it thinks CC[CH] is CCC
+    E.g. it thinks CC[CH] is CCC, so we first try to use the identifier
+    directly as a SMILES string, and only pass it through the resolver
+    if that does not work. 
     """
     from rmgpy.molecule import Molecule
-    url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
-    try:
-        f = urllib2.urlopen(url)
-    except urllib2.URLError:
-        return HttpResponseNotFound("404: Couldn't identify {0}".format(identifier))
-    smiles = f.read()
     molecule = Molecule()
-    molecule.fromSMILES(smiles)
+    try:
+        # try using the string as a SMILES directly
+        molecule.fromSMILES(str(identifier))
+    except IOError:
+        # try converting it to a SMILES using the NCI chemical resolver 
+        url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+        try:
+            f = urllib2.urlopen(url)
+        except urllib2.URLError:
+            return HttpResponseNotFound("404: Couldn't identify {0}".format(identifier))
+        smiles = f.read()
+        molecule.fromSMILES(smiles)
+    
     adjlist = molecule.toAdjacencyList(removeH=True)
     return HttpResponse(adjlist, mimetype="text/plain")
     
