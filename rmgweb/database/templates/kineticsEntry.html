@@ -12,6 +12,13 @@ RMG Kinetics Database
 
 {% block extrahead %}
 <style>
+table.reaction {
+   margin: auto;
+}
+table.reaction td {
+   padding: 10px;
+}
+
 table.kineticsEntryData {
     text-align: center;
     margin-bottom: 1em;
@@ -90,7 +97,7 @@ jQuery(document).ready(function() {
 </table>
 {% else %}
 <h2>Reaction</h2>
-<table>
+<table class="reaction">
     <tr>
         <td class="reactants">{{ reactants|safe }}</td>
         <td class="reactionArrow">{{ arrow|safe }}</td>
