@@ -433,7 +433,19 @@ def kinetics(request, section='', subsection=''):
         kineticsFamilies = [(label, family) for label, family in rmgDatabase.kinetics.families.iteritems() if subsection in label]
         kineticsFamilies.sort()
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
-        
+
+def getReactionUrl(reaction):
+    """Get the URL (for kinetics data) of a reaction"""
+    kwargs = dict()
+    for index, reactant in enumerate(reaction.reactants):
+        mol = reactant if isinstance(reactant,Molecule) else reactant.molecule[0]
+        kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(mol)
+    for index, product in enumerate(reaction.products):
+        mol = product if isinstance(product,Molecule) else product.molecule[0]
+        kwargs['product{0:d}'.format(index+1)] = moleculeToURL(mol)
+    reactionUrl = reverse(kineticsData, kwargs=kwargs)
+    return reactionUrl
+    
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
@@ -574,13 +586,7 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
-        kwargs = {}
-        
-        for index, reactant in enumerate(reaction.reactants):
-            kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(reactant.molecule[0])
-        for index, product in enumerate(reaction.products):
-            kwargs['product{0:d}'.format(index+1)] = moleculeToURL(product.molecule[0])
-        reactionUrl = reverse(kineticsData, kwargs=kwargs)
+        reactionUrl = getReactionUrl(reaction)
         
         forward = reactionHasReactants(reaction, reactantList)
         if forward:
