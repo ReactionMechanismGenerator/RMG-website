@@ -119,6 +119,8 @@ def getAdjacencyList(request, identifier):
     directly as a SMILES string, and only pass it through the resolver
     if that does not work. 
     """
+    if identifier.strip() == '':
+        return HttpResponse('', mimetype="text/plain")
     from rmgpy.molecule import Molecule
     molecule = Molecule()
     try:
@@ -128,9 +130,9 @@ def getAdjacencyList(request, identifier):
         # try converting it to a SMILES using the NCI chemical resolver 
         url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
         try:
-            f = urllib2.urlopen(url)
-        except urllib2.URLError:
-            return HttpResponseNotFound("404: Couldn't identify {0}".format(identifier))
+            f = urllib2.urlopen(url, timeout=5)
+        except urllib2.URLError, e:
+            return HttpResponseNotFound("404: Couldn't identify {0}. {1}".format(identifier, e.reason))
         smiles = f.read()
         molecule.fromSMILES(smiles)
     
