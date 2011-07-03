@@ -494,7 +494,23 @@ def kineticsEntry(request, section, subsection, index):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
         products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'reactants': reactants, 'arrow': arrow, 'products': products, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))    
+        
+        reactionUrl = getReactionUrl(entry.item)
+        
+        return render_to_response('kineticsEntry.html', {'section': section,
+                                                        'subsection': subsection,
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'reactants': reactants,
+                                                        'arrow': arrow,
+                                                        'products': products,
+                                                        'reference': reference,
+                                                        'referenceLink': referenceLink,
+                                                        'referenceType': referenceType,
+                                                        'kineticsParameters': kineticsParameters,
+                                                        'kineticsModel': kineticsModel,
+                                                        'reactionUrl': reactionUrl },
+                                  context_instance=RequestContext(request))
 
 def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
     section = ''
