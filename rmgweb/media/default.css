@@ -16,7 +16,10 @@ body, #document {
     border-right: 0px;
 }
 
-a, h1, h2, h3, #logo {
+h1, h2, h3 {
+      color: #333333;
+}
+a, #logo {
     color: #993333;
 }
 
