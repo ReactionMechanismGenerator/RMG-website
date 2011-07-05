@@ -12,7 +12,7 @@ if (Plist.length > 0) {
         for (var i = 0; i < Tlist.length; i++) {
             kdata.push([1000./Tlist[i], Math.log(klist[j][i]) / Math.LN10]);
         }
-        kseries.push([(Plist[j]/1e5) + ' bar', kdata]);
+        kseries.push(['{{ source }} (' + (Plist[j]/1e5) + ' bar)', kdata]);
     }
 }
 else {
@@ -72,9 +72,13 @@ plotKinetics = function(id, kseries) {
                 T = 1000.0/this.x; 
                 exponent = Math.floor(this.y);
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
-                
-                return  this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
+                if (legendEnabled == 0) {
+                    return  'k(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
+                    } else {
+                    return  this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
+                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
+                    }
             }
         }
     }
