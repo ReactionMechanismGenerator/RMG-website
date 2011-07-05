@@ -73,7 +73,7 @@ plotKinetics = function(id, kseries) {
                 exponent = Math.floor(this.y);
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
                 
-                return 'k(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
+                return  this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
             }
         }
