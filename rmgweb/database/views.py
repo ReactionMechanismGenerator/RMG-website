@@ -525,7 +525,7 @@ def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParam
 def kineticsSearch(request):
     """
     A view of a form for specifying a set of reactants to search the database
-    for reactions.
+    for reactions. Redirects to kineticsResults to view the results of the search.
     """
 
     # Load the kinetics database if necessary
@@ -579,11 +579,19 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
             productList.append(moleculeFromURL(product2))
     else:
         productList = None
-    
+    # get RMG-py reactions
     reactionList = database.kinetics.generateReactions(reactantList, productList)
+    # get RMG-java reactions
     rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
-    reactionList.extend(rmgJavaReactionList)
 
+    if len(reactantList) == 1:
+        # if only one reactant, react it with itself bimolecularly, with RMG-py
+        # the java version will already have done this (it includes A+A reactions when you react A)
+        reactantList.extend(reactantList)
+        reactionList.extend(database.kinetics.generateReactions(reactantList, productList))
+    
+    # add the RMG-java reactions to the overall reactionList
+    reactionList.extend(rmgJavaReactionList)
     reactionDataList = []
     
     # Remove duplicates from the list

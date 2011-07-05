@@ -213,10 +213,10 @@ def getRMGJavaKinetics(reactantList, productList=None):
 
     # Name the species in reaction
     reactantNames = []
-    for index, reactant in enumerate(reactantList):
-        reactantNames.append(species_dict[index][0])
+    for reactant in reactantList:
+        reactantNames.append(identifySpecies(species_dict, reactant))
     productNames = []
-    for index, product in enumerate(productList):
+    for product in productList:
         productNames.append(identifySpecies(species_dict, product))
     
     species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
