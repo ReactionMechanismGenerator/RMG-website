@@ -78,13 +78,13 @@ class KineticsSearchForm(forms.Form):
     This form provides a means of specifying a set of reactants to get
     kinetic data for.
     """
-    reactant1_identifier = forms.CharField(label="Reactant #1 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("reactant1");'}), required=False)
+    reactant1_identifier = forms.CharField(label="Reactant #1 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("reactant1");','class':'identifier'}), required=False)
     reactant1 = forms.CharField(label="Reactant #1", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
-    reactant2_identifier = forms.CharField(label="Reactant #2 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("reactant2");'}), required=False)
+    reactant2_identifier = forms.CharField(label="Reactant #2 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("reactant2");','class':'identifier'}), required=False)
     reactant2 = forms.CharField(label="Reactant #2", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
-    product1_identifier = forms.CharField(label="Product #1 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("product1");'}), required=False)
+    product1_identifier = forms.CharField(label="Product #1 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("product1");','class':'identifier'}), required=False)
     product1 = forms.CharField(label="Product #1", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
-    product2_identifier = forms.CharField(label="Product #2 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("product2");'}), required=False)
+    product2_identifier = forms.CharField(label="Product #2 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("product2");','class':'identifier'}), required=False)
     product2 = forms.CharField(label="Product #2", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
 
     def clean_reactant1(self):

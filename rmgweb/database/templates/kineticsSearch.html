@@ -21,7 +21,7 @@ function resolve(fieldName){
 // prevent "enter" keypress in the form fields from submitting the form,
 // but instead make them select the submit button.
 $(document).ready(function() {
-   $("form").bind("keypress", function(e) {
+   $(".identifier").bind("keypress", function(e) {
     var c = e.which ? e.which : e.keyCode;
     if (c == 13) {
        if ($("input:submit").is(":focus")) { return true;}
