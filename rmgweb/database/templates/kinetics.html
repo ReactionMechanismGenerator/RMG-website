@@ -30,9 +30,10 @@ RMG Kinetics Database
 
 {% block page_body %}
 
-<h2>1. <a href="{% url database.views.kineticsSearch %}">Search Reaction Kinetics</a></h2>
 
 {% if section == '' %}
+<h2>1. <a href="{% url database.views.kineticsSearch %}">Search Reaction Kinetics</a></h2>
+
 <h2>2. <a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></h2>
 {% endif %}
 
