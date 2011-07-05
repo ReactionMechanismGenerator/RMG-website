@@ -47,7 +47,11 @@ plotHeatCapacity = function(id, Cpseries) {
         series: series,
         tooltip: {
             formatter: function() {
-                return 'Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                if (legendEnabled == 0) {
+                    return 'Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    } else {
+                    return this.series.name + ': Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    }        
             }
         }
     }
@@ -87,7 +91,11 @@ plotEnthalpy = function(id, Hseries) {
         },
         tooltip: {
             formatter: function() {
-                return 'H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                if (legendEnabled == 0) {
+                    return 'H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    } else {
+                    return this.series.name + ': H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    }
             }
         }
     }
@@ -127,7 +135,11 @@ plotEntropy = function(id, Sseries) {
         },
         tooltip: {
             formatter: function() {
-                return 'S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    if (legendEnabled == 0) {
+                    return 'S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    } else {
+                    return this.series.name + ': S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    }
             }
         }
     }
@@ -167,7 +179,11 @@ plotFreeEnergy = function(id, Gseries) {
         },
         tooltip: {
             formatter: function() {
-                return 'G(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                if (legendEnabled == 0) {
+                    return 'G(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    } else {
+                    return this.series.name + ': G(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    }
             }
         }
     }
