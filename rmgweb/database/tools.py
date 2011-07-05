@@ -186,9 +186,15 @@ def getRMGJavaKinetics(reactantList, productList=None):
     
     # Generate species list for Java request
     popreactants = ''
+    added_reactants = set()
     for index, reactant in enumerate(reactantList):
         reactant.clearLabeledAtoms()
-        popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList())
+        for r in added_reactants:
+            if r.isIsomorphic(reactant):
+                break # already added this reactant
+        else: # exhausted the added_reactants list without finding duplicate and breaking
+            added_reactants.add(reactant)
+            popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList())
     popreactants += 'END\n'
     
     # Send request to server
