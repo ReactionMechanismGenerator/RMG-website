@@ -218,6 +218,10 @@ def getRMGJavaKinetics(reactantList, productList=None):
     productNames = []
     for product in productList:
         productNames.append(identifySpecies(species_dict, product))
+        # identifySpecies(species_dict, product) returns "False" if it can't find product
+        if not identifySpecies(species_dict, product):
+            print "Could not find this requested product in the species dictionary from RMG-Java:"
+            print str(product)
     
     species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
     
