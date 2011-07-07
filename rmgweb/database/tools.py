@@ -75,8 +75,27 @@ def reactionHasReactants(reaction, reactants):
             return False
         elif reaction.products[0].isIsomorphic(reactants[1]) and reaction.products[1].isIsomorphic(reactants[0]):
             return False
-    return True   
+    return True
 
+def getRMGJavaKineticsFromReaction(reaction):
+    """
+    Get the kinetics for the given `reaction` (with reactants and products as :class:`Species`)
+    
+    Returns a copy of the reaction, with kinetics estimated by Java.
+    """
+    reactantList = [species.molecule[0] for species in reaction.reactants]
+    productList = [species.molecule[0] for species in reaction.products]
+    reactionList = getRMGJavaKinetics(reactantList, productList)
+    #assert len(reactionList) == 1
+    if len(reactionList) > 1:
+        print "WARNING - RMG-Java identified {0} reactions that match {1!s} instead of 1".format(len(reactionlist),reaction)
+        reactionList[0].kinetics.comment += "WARNING - RMG-Java identified {0} reactions that match this. These kinetics are just from one of them.".format(len(reactionlist))
+    if len(reactionList) == 0:
+        print "WARNING - RMG-Java could not find the reaction {0!s}".format(reaction)
+        return None
+    return reactionList[0]
+    
+    
 def getRMGJavaKinetics(reactantList, productList=None):
     """
     Get the kinetics for the given `reaction` as estimated by RMG-Java. The
