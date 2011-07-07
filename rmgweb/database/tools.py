@@ -238,7 +238,14 @@ def getRMGJavaKinetics(reactantList, productList=None):
         # Search for da Reactions
         print 'SEARCHING FOR REACTIONS...\n'
         for reactionline in reactions_list:
+            if reactionline.strip().startswith('DUP'):
+                print "WARNING - DUPLICATE REACTION KINETICS ARE NOT BEING SUMMED"
+                # if set, the `reaction` variable should still point to the reaction from the previous reactionline iteration
+                if reaction:
+                    reaction.kinetics.comment += "\nWARNING - DUPLICATE REACTION KINETICS IDENTIFIED BUT NOT SUMMED"
+                continue # to next reaction line.
             print reactionline + '\n'
+            reaction = None
             # Search for both forward and backward reactions
             indicator1 = searchReaction(reactionline, reactantNames, productNames)
             indicator2 = searchReaction(reactionline, productNames, reactantNames)
