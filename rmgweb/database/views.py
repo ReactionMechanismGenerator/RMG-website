@@ -128,6 +128,8 @@ def getKineticsDatabase(section, subsection):
                     db = db.test
                 elif subsection[1] == 'PrIMe':
                     db = db.PrIMe
+                elif subsection[1] == 'PrIMe_RMG_Java':
+                    db = db.PrIMe_RMG_Java
                 else:
                     db = None
         else:
