@@ -143,14 +143,15 @@ def getRMGJavaKinetics(reactantList, productList=None):
         Reads reaction line and returns True if reaction occurs:
         reactant1 + reactant2 --> product1 + product2
         
-        Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product 
+        Finds both bimolecular and unimolecular reactions for only 1 reactant input, or only 1 product.
+        (reactants and products could be in either order 1,2 or 2,1)
         """
         lines = reactionline.split("\t")
         reaction_string = lines[0]
         reactants, products = reaction_string.split(" --> ")
-        return not (
-            any([reactants.find(reactant) == -1 for reactant in reactantNames]) or 
-            any([products.find(product) == -1 for product in productNames])
+        return (
+            sorted(reactants.split(' + ')) == sorted(reactantNames) and
+            sorted(products.split(' + ')) == sorted(productNames)
         )
     
     def extractKinetics(reactionline):
