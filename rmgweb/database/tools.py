@@ -88,8 +88,8 @@ def getRMGJavaKineticsFromReaction(reaction):
     reactionList = getRMGJavaKinetics(reactantList, productList)
     #assert len(reactionList) == 1
     if len(reactionList) > 1:
-        print "WARNING - RMG-Java identified {0} reactions that match {1!s} instead of 1".format(len(reactionlist),reaction)
-        reactionList[0].kinetics.comment += "WARNING - RMG-Java identified {0} reactions that match this. These kinetics are just from one of them.".format(len(reactionlist))
+        print "WARNING - RMG-Java identified {0} reactions that match {1!s} instead of 1".format(len(reactionList),reaction)
+        reactionList[0].kinetics.comment += "\nWARNING - RMG-Java identified {0} reactions that match this. These kinetics are just from one of them.".format(len(reactionList))
     if len(reactionList) == 0:
         print "WARNING - RMG-Java could not find the reaction {0!s}".format(reaction)
         return None
