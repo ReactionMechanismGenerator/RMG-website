@@ -75,8 +75,27 @@ def reactionHasReactants(reaction, reactants):
             return False
         elif reaction.products[0].isIsomorphic(reactants[1]) and reaction.products[1].isIsomorphic(reactants[0]):
             return False
-    return True   
+    return True
 
+def getRMGJavaKineticsFromReaction(reaction):
+    """
+    Get the kinetics for the given `reaction` (with reactants and products as :class:`Species`)
+    
+    Returns a copy of the reaction, with kinetics estimated by Java.
+    """
+    reactantList = [species.molecule[0] for species in reaction.reactants]
+    productList = [species.molecule[0] for species in reaction.products]
+    reactionList = getRMGJavaKinetics(reactantList, productList)
+    #assert len(reactionList) == 1
+    if len(reactionList) > 1:
+        print "WARNING - RMG-Java identified {0} reactions that match {1!s} instead of 1".format(len(reactionlist),reaction)
+        reactionList[0].kinetics.comment += "WARNING - RMG-Java identified {0} reactions that match this. These kinetics are just from one of them.".format(len(reactionlist))
+    if len(reactionList) == 0:
+        print "WARNING - RMG-Java could not find the reaction {0!s}".format(reaction)
+        return None
+    return reactionList[0]
+    
+    
 def getRMGJavaKinetics(reactantList, productList=None):
     """
     Get the kinetics for the given `reaction` as estimated by RMG-Java. The
@@ -157,6 +176,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         )
     
         comments = "\t".join(lines[4:])
+        kinetics.comment = "Estimated by RMG-Java:\n"+comments
         entry = Entry(longDesc=comments)
     
         return reactants, products, kinetics, entry
@@ -166,10 +186,12 @@ def getRMGJavaKinetics(reactantList, productList=None):
         Given a species_dict list and the species adjacency list, identifies
         whether species is found in the list and returns its name if found.
         """
+        resonance_isomers = molecule.generateResonanceIsomers()
         for name, adjlist in species_dict:
             listmolecule = Molecule().fromAdjacencyList(adjlist)
-            if molecule.isIsomorphic(listmolecule):
-                return name
+            for isomer in resonance_isomers:
+                if isomer.isIsomorphic(listmolecule):
+                    return name
         return False
 
     productList = productList or []
@@ -218,6 +240,10 @@ def getRMGJavaKinetics(reactantList, productList=None):
     productNames = []
     for product in productList:
         productNames.append(identifySpecies(species_dict, product))
+        # identifySpecies(species_dict, product) returns "False" if it can't find product
+        if not identifySpecies(species_dict, product):
+            print "Could not find this requested product in the species dictionary from RMG-Java:"
+            print str(product)
     
     species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
     
@@ -231,7 +257,14 @@ def getRMGJavaKinetics(reactantList, productList=None):
         # Search for da Reactions
         print 'SEARCHING FOR REACTIONS...\n'
         for reactionline in reactions_list:
+            if reactionline.strip().startswith('DUP'):
+                print "WARNING - DUPLICATE REACTION KINETICS ARE NOT BEING SUMMED"
+                # if set, the `reaction` variable should still point to the reaction from the previous reactionline iteration
+                if reaction:
+                    reaction.kinetics.comment += "\nWARNING - DUPLICATE REACTION KINETICS IDENTIFIED BUT NOT SUMMED"
+                continue # to next reaction line.
             print reactionline + '\n'
+            reaction = None
             # Search for both forward and backward reactions
             indicator1 = searchReaction(reactionline, reactantNames, productNames)
             indicator2 = searchReaction(reactionline, productNames, reactantNames)
