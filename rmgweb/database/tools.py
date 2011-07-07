@@ -166,10 +166,12 @@ def getRMGJavaKinetics(reactantList, productList=None):
         Given a species_dict list and the species adjacency list, identifies
         whether species is found in the list and returns its name if found.
         """
+        resonance_isomers = molecule.generateResonanceIsomers()
         for name, adjlist in species_dict:
             listmolecule = Molecule().fromAdjacencyList(adjlist)
-            if molecule.isIsomorphic(listmolecule):
-                return name
+            for isomer in resonance_isomers:
+                if isomer.isIsomorphic(listmolecule):
+                    return name
         return False
 
     productList = productList or []
