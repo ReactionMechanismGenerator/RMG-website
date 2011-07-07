@@ -157,6 +157,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         )
     
         comments = "\t".join(lines[4:])
+        kinetics.comment = "Estimated by RMG-Java:\n"+comments
         entry = Entry(longDesc=comments)
     
         return reactants, products, kinetics, entry
