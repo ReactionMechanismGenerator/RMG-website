@@ -651,7 +651,9 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     else:
         productList = None
     
-    reactionList = database.kinetics.generateReactions(reactantList, productList)
+    reactionList = []
+    reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactantList, productList))
+    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactantList, productList, searchAll=True))
     rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
     reactionList.extend(rmgJavaReactionList)
     
@@ -667,8 +669,8 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             href = ''
             entry = Entry(data=reaction.kinetics)
         elif isinstance(reaction, DepositoryReaction):
-            source = '%s (depository)' % (reaction.depository.name)
-            href = reverse(kineticsEntry, kwargs={'section': 'depository', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
+            source = '%s' % (reaction.depository.name)
+            href = reverse(kineticsEntry, kwargs={'section': 'families', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
             entry = reaction.entry
         elif isinstance(reaction, LibraryReaction):
             source = reaction.library.name
