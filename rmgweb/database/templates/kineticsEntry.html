@@ -104,7 +104,9 @@ jQuery(document).ready(function() {
         <td class="reactants">{{ products|safe }}</td>
     </tr>
 </table>
+{% if reactionUrl != '' %}
 <p><a href="{{ reactionUrl }}">Search other kinetics sources for this reaction.</a></p>
+{% endif %}
 {% endif %}
 <br/>
 

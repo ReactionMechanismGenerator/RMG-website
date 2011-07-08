@@ -497,7 +497,11 @@ def kineticsEntry(request, section, subsection, index):
         products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         
-        reactionUrl = getReactionUrl(entry.item)
+        # Searching for other instances of the reaction only valid for real reactions, not groups
+        if not any([isinstance(reactant, Group) for reactant in entry.item.reactants]):
+            reactionUrl = getReactionUrl(entry.item)
+        else:
+            reactionUrl = ''
         
         return render_to_response('kineticsEntry.html', {'section': section,
                                                         'subsection': subsection,
