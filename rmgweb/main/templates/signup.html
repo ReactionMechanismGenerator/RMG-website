@@ -20,6 +20,9 @@ td.fieldValue input, td.fieldValue textarea {
 
 <form action="signup" method="post">{% csrf_token %}
 <table>
+<tr>
+    <td></td><td>{{ userForm.non_field_errors }}</td>
+</tr>
 {% for field in userForm %}
     <tr>
         <td></td><td>{{ field.errors }}</td>
@@ -29,7 +32,22 @@ td.fieldValue input, td.fieldValue textarea {
         <td class="fieldValue">{{ field }}</td>
     </tr>
 {% endfor %}
+<tr>
+    <td></td><td>{{ profileForm.non_field_errors }}</td>
+</tr>
 {% for field in profileForm %}
+    <tr>
+        <td></td><td>{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
+<tr>
+    <td></td><td>{{ passwordForm.non_field_errors }}</td>
+</tr>
+{% for field in passwordForm %}
     <tr>
         <td></td><td>{{ field.errors }}</td>
     </tr>

@@ -87,3 +87,17 @@ class UserProfileSignupForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ('organization',)
+
+class PasswordCreateForm(forms.Form):
+    """
+    A form for creating your password.
+    """
+    password = forms.CharField(min_length=5, max_length=30, widget=forms.PasswordInput(render_value=False))
+    confirm_password = forms.CharField(max_length=30, widget=forms.PasswordInput(render_value=False))
+
+    def clean(self):
+        password1 = self.cleaned_data.get('password', '')
+        password2 = self.cleaned_data.get('confirm_password', '')
+        if password1 != password2:
+            raise forms.ValidationError('Passwords do not match.') 
+        return self.cleaned_data

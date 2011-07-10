@@ -66,15 +66,17 @@ def signup(request):
         userForm.fields['last_name'].required = True
         userForm.fields['email'].required = True
         profileForm = UserProfileSignupForm(request.POST, error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid():
+        passwordForm = PasswordCreateForm(request.POST, error_class=DivErrorList)
+        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
             #userForm.save()
             #profileForm.save()
             return HttpResponseRedirect('/')
     else:
         userForm = UserSignupForm(error_class=DivErrorList)
         profileForm = UserProfileSignupForm(error_class=DivErrorList)
-
-    return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm}, context_instance=RequestContext(request))
+        passwordForm = PasswordCreateForm(error_class=DivErrorList)
+        
+    return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
 
 def viewProfile(request, username):
     """
