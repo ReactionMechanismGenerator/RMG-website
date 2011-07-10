@@ -32,6 +32,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 import django.contrib.auth.views
+from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 import urllib, urllib2
@@ -66,10 +67,18 @@ def signup(request):
         userForm.fields['last_name'].required = True
         userForm.fields['email'].required = True
         profileForm = UserProfileSignupForm(request.POST, error_class=DivErrorList)
-        passwordForm = PasswordCreateForm(request.POST, error_class=DivErrorList)
+        passwordForm = PasswordCreateForm(request.POST, username='', error_class=DivErrorList)
         if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            #userForm.save()
-            #profileForm.save()
+            username = userForm.cleaned_data['username']
+            password = passwordForm.cleaned_data['password']
+            userForm.save()
+            passwordForm.username = username
+            passwordForm.save()
+            user = auth.authenticate(username=username, password=password)
+            user_profile = UserProfile.objects.get_or_create(user=user)[0]
+            profileForm2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
+            profileForm2.save()
+            auth.login(request, user)
             return HttpResponseRedirect('/')
     else:
         userForm = UserSignupForm(error_class=DivErrorList)

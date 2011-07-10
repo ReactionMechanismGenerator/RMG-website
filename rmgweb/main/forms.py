@@ -33,6 +33,7 @@ import re
 from django import forms
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
+from django.contrib import auth
 
 from models import *
 
@@ -95,9 +96,22 @@ class PasswordCreateForm(forms.Form):
     password = forms.CharField(min_length=5, max_length=30, widget=forms.PasswordInput(render_value=False))
     confirm_password = forms.CharField(max_length=30, widget=forms.PasswordInput(render_value=False))
 
+    def __init__(self, *args, **kwargs):
+        if 'username' in kwargs:
+            self.username = kwargs['username']
+            del kwargs['username']
+        else:
+            self.username = ''
+        super(PasswordCreateForm, self).__init__(*args, **kwargs)
+        
     def clean(self):
         password1 = self.cleaned_data.get('password', '')
         password2 = self.cleaned_data.get('confirm_password', '')
         if password1 != password2:
             raise forms.ValidationError('Passwords do not match.') 
         return self.cleaned_data
+    
+    def save(self):
+        user = User.objects.get(username__exact=self.username)
+        user.set_password(self.cleaned_data['password'])
+        user.save()
