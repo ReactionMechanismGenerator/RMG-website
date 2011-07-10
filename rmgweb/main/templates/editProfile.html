@@ -9,6 +9,12 @@
 td.fieldValue input, td.fieldValue textarea {
     width: 400px;
 }
+
+td.section {
+    color: #993333;
+    font-size: 125%;
+    font-weight: bold;
+}
 </style>
 {% endblock %}
 
@@ -20,6 +26,12 @@ td.fieldValue input, td.fieldValue textarea {
 
 <form action="profile" method="post">{% csrf_token %}
 <table>
+<tr>
+    <td class="section" colspan="2">User information</td>
+</tr>
+<tr>
+    <td></td><td>{{ userForm.non_field_errors }}</td>
+</tr>
 {% for field in userForm %}
     <tr>
         <td></td><td>{{ field.errors }}</td>
@@ -29,6 +41,9 @@ td.fieldValue input, td.fieldValue textarea {
         <td class="fieldValue">{{ field }}</td>
     </tr>
 {% endfor %}
+<tr>
+    <td></td><td>{{ profileForm.non_field_errors }}</td>
+</tr>
 {% for field in profileForm %}
     <tr>
         <td></td><td>{{ field.errors }}</td>
@@ -42,6 +57,21 @@ td.fieldValue input, td.fieldValue textarea {
         <td class="fieldKey">Avatar</td>
         <td class="fieldValue">{% gravatar user.username 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></td>
     </tr>
+<tr>
+    <td class="section" colspan="2"><br/>Change password</td>
+</tr>
+<tr>
+    <td></td><td>{{ passwordForm.non_field_errors }}</td>
+</tr>
+{% for field in passwordForm %}
+    <tr>
+        <td></td><td>{{ field.errors }}</td>
+    </tr>
+    <tr>
+        <td class="fieldKey">{{ field.label_tag }}</td>
+        <td class="fieldValue">{{ field }}</td>
+    </tr>
+{% endfor %}
 </table>
 <p><input type="submit" value="Submit" id="submit"/></p>
 </form>

@@ -115,3 +115,45 @@ class PasswordCreateForm(forms.Form):
         user = User.objects.get(username__exact=self.username)
         user.set_password(self.cleaned_data['password'])
         user.save()
+
+class PasswordChangeForm(PasswordCreateForm):
+    """
+    A form for creating your password.
+    """
+    current_password = forms.CharField(required=False, min_length=5, max_length=30, widget=forms.PasswordInput(render_value=False))
+    
+    def __init__(self, *args, **kwargs):
+        super(PasswordChangeForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = ['current_password', 'password', 'confirm_password']
+        self.fields['password'].label = mark_safe('New&nbsp;password')
+        self.fields['confirm_password'].label = mark_safe('Confirm&nbsp;new&nbsp;password')
+        self.fields['password'].required = False
+        self.fields['confirm_password'].required = False
+    
+    def clean(self):
+        passwords = [
+            self.cleaned_data.get('current_password', ''),
+            self.cleaned_data.get('password', ''),
+            self.cleaned_data.get('confirm_password', ''),
+        ]
+        if any([p != '' for p in passwords]) and not all([p != '' for p in passwords]):
+            raise forms.ValidationError('To change your password, all three fields must be given.') 
+        password1 = self.cleaned_data.get('password', '')
+        password2 = self.cleaned_data.get('confirm_password', '')
+        if password1 != password2:
+            raise forms.ValidationError('New passwords do not match.') 
+        return self.cleaned_data
+    
+    def clean_current_password(self):
+        password = self.cleaned_data['current_password']
+        if password != '':
+            user = auth.authenticate(username=self.username, password=password)
+            if user is None:
+                raise forms.ValidationError('Current password is incorrect.') 
+        return password
+    
+    def save(self):
+        if self.cleaned_data['password'] != '':
+            user = User.objects.get(username__exact=self.username)
+            user.set_password(self.cleaned_data['password'])
+            user.save()

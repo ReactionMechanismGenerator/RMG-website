@@ -108,15 +108,18 @@ def editProfile(request):
     if request.method == 'POST':
         userForm = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid():
+        passwordForm = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
+        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
             userForm.save()
             profileForm.save()
+            passwordForm.save()
             return HttpResponseRedirect('/') # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
-
-    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm}, context_instance=RequestContext(request))
+        passwordForm = PasswordChangeForm(error_class=DivErrorList)
+        
+    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
 
 def getAdjacencyList(request, identifier):
     """
