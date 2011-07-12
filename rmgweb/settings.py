@@ -100,10 +100,10 @@ ADMIN_MEDIA_PREFIX = '/admin/media/'
 
 # Make this unique, and don't share it with anybody.
 try:
-    from secretkey import SECRET_KEY
+    from secretsettings import SECRET_KEY
 except ImportError:
-    print 'secretkey.py not found!'
-    print 'Please create a file named secretkey.py that contains the SECRET_KEY setting.'
+    print 'secretsettings.py not found!'
+    print 'Please create a file named secretsettings.py that contains the SECRET_KEY setting.'
     quit()
    
 # List of callables that know how to import templates from various sources.

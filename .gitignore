@@ -10,8 +10,8 @@
 # SQLite database files
 rmgweb/*.db
 
-# The secret key module
-rmgweb/secretkey.py
+# The secret settings module
+rmgweb/secretsettings.py
 
 # jQuery
 rmgweb/media/jquery.js
