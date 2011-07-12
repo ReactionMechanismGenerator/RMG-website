@@ -34,14 +34,8 @@ The Django settings for the RMG website.
 
 import os.path
 
-# The full path of the Django project (as determined from the location of this file)
-PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
-
-# The path to the RMG-database project
-DATABASE_PATH = os.path.realpath(os.path.join(PROJECT_PATH, '..', '..', 'RMG-database', 'input'))
-
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+# Secret and per-configuration settings
+from secretsettings import DEBUG, TEMPLATE_DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY
 
 ADMINS = (
     ('Josh Allen', 'jwallen@mit.edu')
@@ -98,14 +92,6 @@ MEDIA_URL = '/media/'
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/admin/media/'
 
-# Make this unique, and don't share it with anybody.
-try:
-    from secretsettings import SECRET_KEY
-except ImportError:
-    print 'secretsettings.py not found!'
-    print 'Please create a file named secretsettings.py that contains the SECRET_KEY setting.'
-    quit()
-   
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
