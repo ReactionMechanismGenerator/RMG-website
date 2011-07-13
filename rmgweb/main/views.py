@@ -146,7 +146,7 @@ def getAdjacencyList(request, identifier):
         try:
             f = urllib2.urlopen(url, timeout=5)
         except urllib2.URLError, e:
-            return HttpResponseNotFound("404: Couldn't identify {0}. {1}".format(identifier, e.reason))
+            return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(identifier, e, url))
         smiles = f.read()
         molecule.fromSMILES(smiles)
     
