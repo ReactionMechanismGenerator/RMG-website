@@ -38,6 +38,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
+
 from rmgweb.main.tools import *
 from models import *
 from forms import *
@@ -48,7 +49,11 @@ def index(request):
     """
     The MEASURE homepage.
     """
-    return render_to_response('measure.html', context_instance=RequestContext(request))
+    if request.user.is_authenticated():
+        networks = Network.objects.filter(user=request.user)
+    else:
+        networks = []
+    return render_to_response('measure.html', {'networks': networks}, context_instance=RequestContext(request))
 
 @login_required
 def start(request):
