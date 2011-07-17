@@ -30,8 +30,40 @@
         <div id="logo">
         {% block sidebar_logo %}<a href="{% url main.views.index %}"><img src="/media/rmg-logo-small.png" alt="RMG"/></a>{% endblock %}
         </div>
+        
         {% block sidebar_items %}{% endblock %}
+        
+        <p>
+        <a href="http://rmg.sourceforge.net/"><img src="/media/rmg-logo-small.png" class="icon" width="32px"/>
+        <div class="biglink">RMG</div></a>
+        <div class="linkdesc">Learn more about the RMG software</div>
+        </p>
+        
+        <p>
+        <a href="{% url pdep.views.index %}"><img src="/media/measure-logo-small.png" class="icon" height="32px"/>
+        <div class="biglink">MEASURE</div></a>
+        <div class="linkdesc">Conduct pressure dependence calculations</div>
+        </p>
+        
+        <p>
+        <a href="{% url database.views.index %}"><img src="/media/database-logo-small.png" class="icon" height="32px"/>
+        <div class="biglink">Database</div></a>
+        <div class="linkdesc">Browse the RMG database of chemical parameters</div>
+        </p>
+        
+        <p>
+        <a href="{% url database.views.moleculeSearch %}"><img src="/media/moleculedraw-logo-small.png" class="icon" height="32px"/>
+        <div class="biglink">Molecule Search</div></a>
+        <div class="linkdesc">Generate an image of a molecule and search for its thermochemistry</div>
+        </p>
+                    
+        <p>
+        <a href="{% url database.views.kineticsSearch %}"><img src="/media/kinetics-search-logo-small.png" class="icon" height="32px"/>
+        <div class="biglink">Kinetics Search</div></a>
+        <div class="linkdesc">Search for the kinetics of a chemical reaction</div>
+        </p>
     </div>
+
 
     <div id="mainbar">
         <div id="header">

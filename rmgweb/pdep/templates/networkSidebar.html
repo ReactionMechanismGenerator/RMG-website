@@ -27,4 +27,7 @@
 <div><a href="{% url pdep.views.networkDrawPDF networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} surface as PDF</a></div>
 <div><a href="{% url pdep.views.networkDrawSVG networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} surface as SVG</a></div>
 </p>
+
+<h3 class="sidebar">Quick Links</h3>
+
 {% endif %}
