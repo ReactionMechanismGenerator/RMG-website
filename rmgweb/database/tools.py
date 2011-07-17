@@ -62,6 +62,35 @@ def generateSpeciesThermo(species, database):
         
 ################################################################################
 
+def generateReactions(database, reactants, products=None):
+    """
+    Generate the reactions (and associated kinetics) for a given set of
+    `reactants` and an optional set of `products`. A list of reactions is
+    returned, with a reaction for each matching kinetics entry in any part of
+    the database. This means that the same reaction may appear multiple times
+    with different kinetics in the output. If the RMG-Java server is running,
+    this function will also query it for reactions and kinetics.
+    """
+    
+    # get RMG-py reactions
+    reactionList = []
+    reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
+    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, searchAll=True))
+    if len(reactants) == 1:
+        # if only one reactant, react it with itself bimolecularly, with RMG-py
+        # the java version already does this (it includes A+A reactions when you react A)
+        reactants.extend(reactants)
+        reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
+        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, searchAll=True))
+    
+    # get RMG-java reactions
+    rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
+    reactionList.extend(rmgJavaReactionList)
+    
+    return reactionList
+    
+################################################################################
+
 def reactionHasReactants(reaction, reactants):
     """
     Return ``True`` if the given `reaction` has all of the specified

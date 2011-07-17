@@ -585,22 +585,11 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
             productList.append(moleculeFromURL(product2))
     else:
         productList = None
-    # get RMG-py reactions
-    reactionList = database.kinetics.generateReactions(reactantList, productList)
-    # get RMG-java reactions
-    rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
-
-    if len(reactantList) == 1:
-        # if only one reactant, react it with itself bimolecularly, with RMG-py
-        # the java version will already have done this (it includes A+A reactions when you react A)
-        reactantList.extend(reactantList)
-        reactionList.extend(database.kinetics.generateReactions(reactantList, productList))
     
-    # add the RMG-java reactions to the overall reactionList
-    reactionList.extend(rmgJavaReactionList)
-    reactionDataList = []
+    # Search for the corresponding reaction(s)
+    reactionList = generateReactions(database, reactantList, productList)
     
-    # Remove duplicates from the list
+    # Remove duplicates from the list and count the number of results
     uniqueReactionList = []
     uniqueReactionCount = []
     for reaction in reactionList:
@@ -612,6 +601,7 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
             uniqueReactionList.append(reaction)
             uniqueReactionCount.append(1)
     
+    reactionDataList = []
     for reaction, count in zip(uniqueReactionList, uniqueReactionCount):
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
@@ -651,11 +641,8 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     else:
         productList = None
     
-    reactionList = []
-    reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactantList, productList))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactantList, productList, searchAll=True))
-    rmgJavaReactionList = getRMGJavaKinetics(reactantList, productList)
-    reactionList.extend(rmgJavaReactionList)
+    # Search for the corresponding reaction(s)
+    reactionList = generateReactions(database, reactantList, productList)
     
     kineticsDataList = []
     
