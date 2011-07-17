@@ -180,10 +180,22 @@ def getRMGJavaKinetics(reactantList, productList=None):
         lines = reactionline.split("\t")
         reaction_string = lines[0]
         reactants, products = reaction_string.split(" --> ")
-        return (
-            sorted(reactants.split(' + ')) == sorted(reactantNames) and
-            sorted(products.split(' + ')) == sorted(productNames)
-        )
+        reactants = reactants.split(' + ')
+        products = products.split(' + ')
+        
+        reactantsMatch = len(reactantNames) == 0
+        if len(reactantNames) == len(reactants):
+            reactantsMatch = sorted(reactants) == sorted(reactantNames)
+        elif len(reactantNames) == 1 and len(reactants) > 1:
+            reactantsMatch = all([r == reactantNames[0] for r in reactants])
+            
+        productsMatch = len(productNames) == 0
+        if len(productNames) == len(products):
+            productsMatch = sorted(products) == sorted(productNames)
+        elif len(productNames) == 1 and len(products) > 1:
+            productsMatch = all([p == productNames[0] for p in products])
+
+        return (reactantsMatch and productsMatch)
     
     def extractKinetics(reactionline):
         """
