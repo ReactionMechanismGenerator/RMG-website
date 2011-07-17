@@ -648,6 +648,16 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
+        # Generate the kinetics in the reverse direction
+        for reactant in reaction.reactants:
+            generateSpeciesThermo(reactant, database)
+        for product in reaction.products:
+            generateSpeciesThermo(product, database)
+            
+        # If the kinetics are ArrheniusEP, replace them with Arrhenius
+        if isinstance(reaction.kinetics, ArrheniusEP):
+            reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+        
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
@@ -673,13 +683,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
         if forward:
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
-            # Generate the kinetics in the reverse direction
-            for reactant in reaction.reactants:
-                generateSpeciesThermo(reactant, database)
-            for product in reaction.products:
-                generateSpeciesThermo(product, database)
             reverseKinetics = prepareKineticsParameters(reaction.generateReverseRateCoefficient(), len(reaction.products), 1)
-            
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
