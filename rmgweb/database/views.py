@@ -587,8 +587,9 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
         productList = None
     
     # Search for the corresponding reaction(s)
-    reactionList = generateReactions(database, reactantList, productList)
-    
+    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
+    reactionList.extend(rmgJavaReactionList)
+        
     # Remove duplicates from the list and count the number of results
     uniqueReactionList = []
     uniqueReactionCount = []
@@ -642,7 +643,8 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
         productList = None
     
     # Search for the corresponding reaction(s)
-    reactionList = generateReactions(database, reactantList, productList)
+    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
+    reactionList.extend(rmgJavaReactionList)
     
     kineticsDataList = []
     

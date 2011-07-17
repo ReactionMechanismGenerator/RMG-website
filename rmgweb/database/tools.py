@@ -85,9 +85,8 @@ def generateReactions(database, reactants, products=None):
     
     # get RMG-java reactions
     rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
-    reactionList.extend(rmgJavaReactionList)
     
-    return reactionList
+    return reactionList, rmgJavaReactionList
     
 ################################################################################
 
