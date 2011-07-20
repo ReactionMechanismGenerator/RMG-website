@@ -1,13 +1,17 @@
 {% load markup %}
 <table class="reference">
+   {% if reference %}
     <tr>
         <td class="label">Reference:</td>
         <td class="reference">{{ reference|restructuredtext }}</td>
     </tr>
+{% endif %}
+{% if reference.url %}
     <tr>
         <td class="label">Reference&nbsp;link:</td>
-        <td><a href="{{ entry.referenceLink }}">{{ entry.referenceLink }}</a></td>
+        <td><a href="{{ reference.url }}">{{ reference.url }}</a></td>
     </tr>
+{% endif %}
     <tr>
         <td class="label">Reference&nbsp;type:</td>
         <td>{{ entry.referenceType|title }}</td>
