@@ -241,25 +241,25 @@ table.reference td p {
   IPHONE
 \*------------------------------------*/
 @media screen and (max-device-width: 960px){
-body{
+  body{
     -webkit-text-size-adjust: auto;
     font-family:Helvetica, Arial, Verdana, sans-serif;
     padding:5px;
-}
-#main {
+  }
+  #main {
     clear: left;
-}
-#mainbar {
+  }
+  #mainbar {
     margin: 0px;
-}
-#sidebar {
+  }
+  #sidebar {
     float:none;
     width:100%
-}
-#document{
+  }
+  #document{
     width:100%
-}
-
-}
-
+  }
+  #sidebar .linkdesc {
+    display: none;
+  }
 } /* End of iPhone-specific bit */
