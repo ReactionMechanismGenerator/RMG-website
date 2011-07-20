@@ -63,16 +63,7 @@ class Network(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)
-        self.network = None
-        self.Tlist = None
-        self.Plist = None
-        self.Elist = None
-        self.method = None
-        self.model = None
-        self.Tmin = None
-        self.Tmax = None
-        self.Pmin = None
-        self.Pmax = None
+        self.measure = None
 
     def getDirname(self):
         """
@@ -283,24 +274,20 @@ class Network(models.Model):
     
     def load(self):
         """
-        Load the contents of the input and output files into an
-        rmgpy.measure.network.Network object.
+        Load the contents of the input and output files into a MEASURE object.
         """
-        import rmgpy.measure.input
+        from rmgpy.measure.main import MEASURE
+        
+        self.measure = MEASURE()
         
         if self.outputFileExists():
-            params = rmgpy.measure.input.readFile(self.getOutputFilename())
-            if params is not None:
-                self.network, self.Tlist, self.Plist, self.Elist, self.method, self.model, self.Tmin, self.Tmax, self.Pmin, self.Pmax = params
+            self.measure.loadOutput(self.getOutputFilename())
         elif self.inputFileExists():
-            params = rmgpy.measure.input.readFile(self.getInputFilename())
-            if params is not None:
-                self.network, self.Tlist, self.Plist, self.Elist, self.method, self.model, self.Tmin, self.Tmax, self.Pmin, self.Pmax = params
-        else:
-            self.network = None
+            self.measure.loadInput(self.getInputFilename())
         
-        if self.network is not None:
-            self.title = self.network.title
+        if self.measure.network is not None:
+            self.title = self.measure.network.title
             self.save()
         
-        return self.network
+        return self.measure.network
+    
