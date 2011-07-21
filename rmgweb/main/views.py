@@ -152,6 +152,24 @@ def getAdjacencyList(request, identifier):
     
     adjlist = molecule.toAdjacencyList(removeH=True)
     return HttpResponse(adjlist, mimetype="text/plain")
+
+def cactusResolver(request, query):
+    """
+    Forwards the query to the cactus.nci.nih.gov/chemical/structure resolver.
+    
+    The reason we have to forward the request from our own server is so that we can 
+    use it via ajax, avoiding cross-domain scripting security constraints.
+    """
+    if query.strip() == '':
+        return HttpResponse('', mimetype="text/plain")
+   
+    url = "http://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
+    try:
+        f = urllib2.urlopen(url, timeout=5)
+    except urllib2.URLError, e:
+        return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(query, e, url))
+    response = f.read()
+    return HttpResponse(response, mimetype="text/plain")
     
 def drawMolecule(request, adjlist):
     """

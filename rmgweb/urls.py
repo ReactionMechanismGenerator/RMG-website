@@ -68,6 +68,7 @@ urlpatterns = patterns('rmgweb',
     (r'^group/(?P<adjlist>[\S\s]+)$', 'main.views.drawGroup'),
     
     (r'^adjacencylist/(?P<identifier>.*)$', 'main.views.getAdjacencyList'),
+    (r'^cactus/(?P<query>.*)$', 'main.views.cactusResolver'),
 
     # Molecule drawing webpage
     (r'^molecule_search$', 'database.views.moleculeSearch'),
