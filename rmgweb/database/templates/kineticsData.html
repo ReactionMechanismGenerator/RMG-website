@@ -21,9 +21,55 @@ jQuery(document).ready(function() {
     jsMath.Synchronize(function() {
         plotKinetics('plotk', kineticsModelList);
     });
+    
+    
+   /* For the kinetics search form */
+   
+   /* sort CAS numbers numerically by what's up to the first hyphen */
+   /* The NIST kinetics site seems to usually choose the lowest assigned CAS number */
+   function sortCAS(a,b){
+     return a.split('-')[0] - b.split('-')[0];
+   }
+   
+   function resolve(fieldName){
+      var field = $('input[name="'+fieldName+'"]')
+      var value = field.val();
+      if (value != "") {
+         var url = '/cactus/'+escape(value)+'/cas'; /* try resolving by CAS number */
+         var jqxhr =  $.get(url,function(resolved_name) {
+            field.val(resolved_name.split('\n').sort(sortCAS)[0]);
+            }).error( function() { /* no CAS number assigned (or some other problem) so use chemical formula */
+            url = '/cactus/'+escape(value)+'/formula';
+            $.get(url,function(resolved_name) {
+               field.val(resolved_name);
+            })
+         })
+      }
+   }
+   resolve("text1");
+   resolve("text2");
+   resolve("text3");
+   resolve("text4");
+   /* End of code for the kinetics search form */
 
 });
 </script>
+
+<style>
+   .NIST_query {
+    background-image: url('http://webbook.nist.gov/chemistry/img/nist-link-left.gif');
+    background-repeat: no-repeat;
+    background-position: left center;
+    border: 1px solid #993333;
+    padding: 5px;
+    padding-left: 138px;
+    margin: 5px;
+    height: 30px;
+   }
+   .NIST_query input {
+      width: 16%;
+   }
+</style>
 {% endblock %}
 
 {% block navbar_items %}
@@ -38,6 +84,48 @@ jQuery(document).ready(function() {
 {% block page_title %}Kinetics Data{% endblock %}
 
 {% block page_body %}
+<div class="NIST_query">
+         <form name="UserForm" action="http://kinetics.nist.gov/kinetics/Search.jsp" method="POST" target="_blank">
+            <input type=hidden name="doc" VALUE="SearchForm">
+            <input type=hidden name="type" VALUE="java">
+            <input type=hidden name="Units" VALUE="">
+            <input type=hidden name="database" VALUE="kinetics">
+            <input type=hidden name="numberOfFields" VALUE="5">
+            <input type=hidden name="boolean1" value="">
+            <input type=hidden name="lp1" value=" ">
+            <input type=hidden name="field1" value="reactants">
+            <input type=hidden name="relate1" value="=">
+            <input type=text   name="text1" value="{{ reactantList.0.toSMILES }}">
+            <input type=hidden name="rp1" value=" ">
+            <input type=hidden name="boolean2" value="and">
+            <input type=hidden name="lp2" value=" ">
+            <input type=hidden name="field2" value="reactants">
+            <input type=hidden name="relate2" value="=">+
+            <input type=text   name="text2" value="{{ reactantList.1.toSMILES }}">
+            <input type=hidden name="rp2" value=" ">
+            <input type=hidden name="boolean3" value="and">
+            <input type=hidden name="lp3" value=" ">
+            <input type=hidden name="field3" value="products">
+            <input type=hidden name="relate3" value="=">=
+            <input type=text   name="text3" value="{{ productList.0.toSMILES }}">
+            <input type=hidden name="rp3" value=" ">
+            <input type=hidden name="boolean4" value="and">
+            <input type=hidden name="lp4" value=" ">
+            <input type=hidden name="field4" value="products">
+            <input type=hidden name="relate4" value="=">+
+            <input type=text   name="text4" value="{{ productList.1.toSMILES }}">
+            <input type=hidden name="rp4" value=" ">
+            <input type=hidden name="boolean5" value="and">
+            <input type=hidden name="lp5" value=" ">
+            <input type=hidden name="field5" value="kinetics.squib">
+            <input type=hidden name="relate5" VALUE="~*">
+            <input type=hidden name="text5" value="">
+            <input type=hidden name="rp1" value=" ">
+            <input type=submit value="Search NIST kinetics">
+            <input type=hidden name="category" value="0">
+         </form>
+</div>
+
 {% if kineticsDataList|length > 0 %}
 
 {% for reactants, arrow, products, entry, kineticsParameters, source, href, forward in kineticsDataList %}

@@ -661,7 +661,7 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
-            source = '%s (Group additivity)' % (reaction.family.name)
+            source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
             href = ''
             entry = Entry(data=reaction.kinetics)
         elif isinstance(reaction, DepositoryReaction):
@@ -685,7 +685,13 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             reverseKinetics = prepareKineticsParameters(reaction.generateReverseRateCoefficient(), len(reaction.products), 1)
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
-    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(kineticsDataList)}, context_instance=RequestContext(request))
+    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList,
+                                                    'plotWidth': 500,
+                                                    'plotHeight': 400 + 15 * len(kineticsDataList),
+                                                    'reactantList': reactantList,
+                                                    'productList': productList,
+                                                    },
+                                             context_instance=RequestContext(request))
    
 def moleculeSearch(request):
     """
