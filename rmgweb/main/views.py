@@ -153,6 +153,25 @@ def getAdjacencyList(request, identifier):
     adjlist = molecule.toAdjacencyList(removeH=True)
     return HttpResponse(adjlist, mimetype="text/plain")
 
+def getNISTcas(request, inchi):
+    """
+    Get the CAS number as used by NIST, from an InChI
+    """
+    url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.quote(inchi))
+    try:
+        f = urllib2.urlopen(url, timeout=5)
+    except urllib2.URLError, e:
+        return HttpResponseNotFound("404: Couldn't identify {0}. NIST responded {1} to request for {2}".format(inchi, e, url))
+    searcher = re.compile('<li><a href="/cgi/inchi\?GetInChI=C(\d+)')
+    for line in f:
+        m = searcher.match(line)
+        if m:
+            number = m.group(1)
+            break
+    else:
+        return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
+    return HttpResponse(number, mimetype="text/plain")
+    
 def cactusResolver(request, query):
     """
     Forwards the query to the cactus.nci.nih.gov/chemical/structure resolver.
