@@ -39,10 +39,8 @@ jQuery(document).ready(function() {
          var jqxhr =  $.get(url,function(resolved_name) {
             field.val(resolved_name.split('\n').sort(sortCAS)[0]);
             }).error( function() { /* no CAS number assigned (or some other problem) so use chemical formula */
-            url = '/cactus/'+escape(value)+'/formula';
-            $.get(url,function(resolved_name) {
-               field.val(resolved_name);
-            })
+            var formula = value.split('/')[1]; /* formula is first layer of InChI */
+            field.val(formula);
          })
       }
    }
@@ -68,6 +66,7 @@ jQuery(document).ready(function() {
    }
    .NIST_query input {
       width: 16%;
+      font-size: 75%;
    }
 </style>
 {% endblock %}
@@ -95,25 +94,25 @@ jQuery(document).ready(function() {
             <input type=hidden name="lp1" value=" ">
             <input type=hidden name="field1" value="reactants">
             <input type=hidden name="relate1" value="=">
-            <input type=text   name="text1" value="{{ reactantList.0.toSMILES }}">
+            <input type=text   name="text1" value="{{ reactantList.0.toInChI }}">
             <input type=hidden name="rp1" value=" ">
             <input type=hidden name="boolean2" value="and">
             <input type=hidden name="lp2" value=" ">
             <input type=hidden name="field2" value="reactants">
             <input type=hidden name="relate2" value="=">+
-            <input type=text   name="text2" value="{{ reactantList.1.toSMILES }}">
+            <input type=text   name="text2" value="{{ reactantList.1.toInChI }}">
             <input type=hidden name="rp2" value=" ">
             <input type=hidden name="boolean3" value="and">
             <input type=hidden name="lp3" value=" ">
             <input type=hidden name="field3" value="products">
             <input type=hidden name="relate3" value="=">=
-            <input type=text   name="text3" value="{{ productList.0.toSMILES }}">
+            <input type=text   name="text3" value="{{ productList.0.toInChI }}">
             <input type=hidden name="rp3" value=" ">
             <input type=hidden name="boolean4" value="and">
             <input type=hidden name="lp4" value=" ">
             <input type=hidden name="field4" value="products">
             <input type=hidden name="relate4" value="=">+
-            <input type=text   name="text4" value="{{ productList.1.toSMILES }}">
+            <input type=text   name="text4" value="{{ productList.1.toInChI }}">
             <input type=hidden name="rp4" value=" ">
             <input type=hidden name="boolean5" value="and">
             <input type=hidden name="lp5" value=" ">
