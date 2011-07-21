@@ -57,19 +57,23 @@ jQuery(document).ready(function() {
 
 <style>
    .NIST_query {
+    background: #eee;
     background-image: url('http://webbook.nist.gov/chemistry/img/nist-link-left.gif');
     background-repeat: no-repeat;
-    background-position: left center;
+    background-position: 2px center;
     border: 1px solid #993333;
-    padding: 5px;
+    padding: 6px;
     padding-left: 138px;
     margin: 5px;
-    height: 30px;
+    min-height: 30px;
+    text-align: right;
    }
-   .NIST_query input {
-      width: 16%;
+   .NIST_query input[type=text] {
+      width: 18%;
       font-size: 75%;
+      background: transparent;
    }
+
 </style>
 {% endblock %}
 
@@ -121,8 +125,8 @@ jQuery(document).ready(function() {
             <input type=hidden name="field5" value="kinetics.squib">
             <input type=hidden name="relate5" VALUE="~*">
             <input type=hidden name="text5" value="">
-            <input type=hidden name="rp1" value=" ">
-            <input type=submit value="Search NIST kinetics">
+            <input type=hidden name="rp1" value=" "> <br />
+            <input type=submit value="Search NIST kinetics" id="submit">
             <input type=hidden name="category" value="0">
          </form>
 </div>
