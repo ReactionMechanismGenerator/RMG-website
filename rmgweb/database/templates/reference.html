@@ -1,13 +1,57 @@
 {% load markup %}
 <table class="reference">
+   {% if reference %}
     <tr>
         <td class="label">Reference:</td>
-        <td class="reference">{{ reference|restructuredtext }}</td>
+        <td class="reference">{{ reference|restructuredtext }}
+         <form name="UserForm" action="http://kinetics.nist.gov/kinetics/Search.jsp" method="POST">
+            <input type=hidden name="doc" VALUE="SearchForm">
+            <input type=hidden name="type" VALUE="java">
+            <input type=hidden name="Units" VALUE="">
+            <input type=hidden name="database" VALUE="kinetics">
+            <input type=hidden name="numberOfFields" VALUE="5">
+            <input type=hidden name="boolean1" value="">
+            <input type=hidden name="lp1" value=" ">
+            <input type=hidden name="field1" value="reactants">
+            <input type=hidden name="relate1" value="=">
+            <input type=hidden name="text1" value="">
+            <input type=hidden name="rp1" value=" ">
+            <input type=hidden name="boolean2" value="and">
+            <input type=hidden name="lp2" value=" ">
+            <input type=hidden name="field2" value="reactants">
+            <input type=hidden name="relate2" value="=">
+            <input type=hidden name="text2" value="">
+            <input type=hidden name="rp2" value=" ">
+            <input type=hidden name="boolean3" value="and">
+            <input type=hidden name="lp3" value=" ">
+            <input type=hidden name="field3" value="reactants">
+            <input type=hidden name="relate3" value="=">
+            <input type=hidden name="text3" value="">
+            <input type=hidden name="rp3" value=" ">
+            <input type=hidden name="boolean4" value="and">
+            <input type=hidden name="lp4" value=" ">
+            <input type=hidden name="field4" value="reactants">
+            <input type=hidden name="relate4" value="=">
+            <input type=hidden name="text4" value="">
+            <input type=hidden name="rp4" value=" ">
+            <input type=hidden name="boolean5" value="and">
+            <input type=hidden name="lp5" value=" ">
+            <input type=hidden name="field5" value="kinetics.squib">
+            <input type=hidden name="relate5" VALUE="~*">
+            <input type=hidden name="text5" value="{{ reference.year }}{{ reference.authors|first|slice:":3" }}">
+            <input type=hidden name="rp1" value=" ">
+            <input type=submit value="Search NIST kinetics for {{ reference.year }}{{ reference.authors|first|slice:":3" }}">
+            <input type=hidden name="category" value="0">
+         </form>
+           </td>
     </tr>
+{% endif %}
+{% if reference.url %}
     <tr>
         <td class="label">Reference&nbsp;link:</td>
-        <td><a href="{{ entry.referenceLink }}">{{ entry.referenceLink }}</a></td>
+        <td><a href="{{ reference.url }}">{{ reference.url }}</a></td>
     </tr>
+{% endif %}
     <tr>
         <td class="label">Reference&nbsp;type:</td>
         <td>{{ entry.referenceType|title }}</td>

@@ -468,10 +468,8 @@ def kineticsEntry(request, section, subsection, index):
     else:
         raise Http404
         
-    reference = ''; referenceLink = ''; referenceType = ''
-    if entry.reference is not None:
-        reference = str(entry.reference)
-        referenceLink = entry.reference.url
+    reference = entry.reference
+    referenceType = ''
 
     numReactants = 0; degeneracy = 1
     if isinstance(database, KineticsGroups):
@@ -511,7 +509,6 @@ def kineticsEntry(request, section, subsection, index):
                                                         'arrow': arrow,
                                                         'products': products,
                                                         'reference': reference,
-                                                        'referenceLink': referenceLink,
                                                         'referenceType': referenceType,
                                                         'kineticsParameters': kineticsParameters,
                                                         'kineticsModel': kineticsModel,
