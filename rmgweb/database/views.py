@@ -65,6 +65,7 @@ def loadDatabase(component='', section=''):
         database = RMGDatabase()
         database.thermo = ThermoDatabase()
         database.kinetics = KineticsDatabase()
+        database.loadForbiddenStructures(os.path.join(settings.DATABASE_PATH, 'forbiddenStructures.py'))
 
     if component in ['thermo', '']:
         if section in ['depository', ''] and len(database.thermo.depository) == 0:
