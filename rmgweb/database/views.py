@@ -118,21 +118,13 @@ def getKineticsDatabase(section, subsection):
         elif section == 'families':
             subsection = subsection.split('/')
             if subsection[0] != '' and len(subsection) == 2:
-                db = database.kinetics.families[subsection[0]]
+                family = database.kinetics.families[subsection[0]]
                 if subsection[1] == 'groups':
-                    db = db.groups
+                    db = family.groups
                 elif subsection[1] == 'rules':
-                    db = db.rules
-                elif subsection[1] == 'training':
-                    db = db.training
-                elif subsection[1] == 'test':
-                    db = db.test
-                elif subsection[1] == 'PrIMe':
-                    db = db.PrIMe
-                elif subsection[1] == 'PrIMe_RMG_Java':
-                    db = db.PrIMe_RMG_Java
+                    db = family.rules
                 else:
-                    db = None
+                    db = family.depositories['{0}/{1}'.format(family.label, subsection[1])]
         else:
             raise ValueError('Invalid value "%s" for section parameter.' % section)
     except KeyError:
