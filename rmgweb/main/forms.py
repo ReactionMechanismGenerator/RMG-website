@@ -60,7 +60,7 @@ class UserProfileForm(forms.ModelForm):
     """
     class Meta:
         model = UserProfile
-        fields = ('organization', 'website', 'bio')
+        fields = ('organization', 'website', 'bio', 'energyUnits', 'heatCapacityUnits', 'rateCoefficientUnits', 'temperatureUnits', 'pressureUnits')
 
 ################################################################################
 

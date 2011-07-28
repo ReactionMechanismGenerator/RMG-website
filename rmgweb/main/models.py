@@ -31,6 +31,44 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+################################################################################
+
+ENERGY_UNITS = [
+    ('J/mol', 'J/mol'),
+    ('kJ/mol', 'kJ/mol'),
+    ('cal/mol', 'cal/mol'),
+    ('kcal/mol', 'kcal/mol'),
+    ('cm^-1', 'cm^-1'),
+]
+
+HEATCAPACITY_UNITS = [
+    ('J/(mol*K)', 'J/mol*K'),
+    ('kJ/(mol*K)', 'kJ/mol*K'),
+    ('cal/(mol*K)', 'cal/mol*K'),
+    ('kcal/(mol*K)', 'kcal/mol*K'),
+]
+
+
+RATECOEFFICIENT_UNITS = [
+    ('m^3,mol,s', 'm^3, mol, s'),
+    ('cm^3,mol,s', 'cm^3, mol, s'),
+    ('m^3,molecule,s', 'm^3, molecule, s'),
+    ('cm^3,molecule,s', 'cm^3, molecule, s'),
+]
+
+TEMPERATURE_UNITS = [
+    ('K', 'K'),
+]
+
+PRESSURE_UNITS = [
+    ('Pa', 'Pa'),
+    ('bar', 'bar'),
+    ('atm', 'atm'),
+    ('torr', 'torr'),
+]
+
+################################################################################
+
 class UserProfile(models.Model):
     """
     A model containing user profile information. Some of the information is
@@ -41,3 +79,9 @@ class UserProfile(models.Model):
     organization = models.CharField(max_length=100)
     website = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True)
+    # Preferred units
+    energyUnits = models.CharField(verbose_name='Energy units', max_length=100, choices=ENERGY_UNITS, default='kcal/mol')
+    heatCapacityUnits = models.CharField(verbose_name='Heat capacity units', max_length=100, choices=HEATCAPACITY_UNITS, default='cal/(mol*K)')
+    rateCoefficientUnits = models.CharField(verbose_name='Rate coefficient units', max_length=100, choices=RATECOEFFICIENT_UNITS, default='cm^3,mol,s')
+    temperatureUnits = models.CharField(verbose_name='Temperature units', max_length=100, choices=TEMPERATURE_UNITS, default='K')
+    pressureUnits = models.CharField(verbose_name='Pressure units', max_length=100, choices=PRESSURE_UNITS, default='bar')
