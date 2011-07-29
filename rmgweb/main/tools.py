@@ -203,7 +203,7 @@ def prepareKineticsParameters(kinetics, numReactants, degeneracy, Tlist=None, Pl
     and prepare them for viewing in a template. In particular, we must do any
     string formatting here because we can't do that in the template itself.
     """
-    from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, MultiArrhenius, PDepArrhenius, Chebyshev, ThirdBody, Lindemann, Troe
+    from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, MultiKinetics, PDepArrhenius, Chebyshev, ThirdBody, Lindemann, Troe
 
     kineticsParameters = {}
 

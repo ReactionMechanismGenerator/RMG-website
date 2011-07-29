@@ -57,7 +57,7 @@ RMG Kinetics Database
         <ul>
             <li><a href="{% url database.views.kinetics section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
             <li><a href="{% url database.views.kinetics section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a> ({{ family.rules.entries|length }} entries)</li>
-            {% for label, depository in family.depositories.items %}
+            {% for depository in family.depositories %}
             <li><a href="{% url database.views.kinetics section='families' subsection=depository.label %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
             {% endfor %}
         </ul>

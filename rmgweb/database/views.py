@@ -45,7 +45,7 @@ from rmgpy.kinetics import *
 
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
-from rmgpy.data.kinetics import *
+from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction, DepositoryReaction, LibraryReaction, KineticsGroups
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
@@ -124,10 +124,11 @@ def getKineticsDatabase(section, subsection):
                 elif subsection[1] == 'rules':
                     db = family.rules
                 else:
-                    db = family.depositories['{0}/{1}'.format(family.label, subsection[1])]
+                    label = '{0}/{1}'.format(family.label, subsection[1])
+                    db = (d for d in family.depositories if d.label==label).next()
         else:
             raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError:
+    except (KeyError, StopIteration):
         raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
     return db
 

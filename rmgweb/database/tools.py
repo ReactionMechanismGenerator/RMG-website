@@ -75,13 +75,13 @@ def generateReactions(database, reactants, products=None):
     # get RMG-py reactions
     reactionList = []
     reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, searchAll=True))
+    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, returnAllKinetics=True))
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
         reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
-        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, searchAll=True))
+        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, returnAllKinetics=True))
     
     # get RMG-java reactions
     rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
