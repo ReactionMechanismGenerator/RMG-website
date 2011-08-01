@@ -40,6 +40,7 @@ from rmgpy.molecule import Molecule
 from rmgpy.species import Species
 from rmgpy.reaction import Reaction
 from rmgpy.data.base import Entry
+from rmgpy.data.kinetics import TemplateReaction, DepositoryReaction
 from rmgweb.main.tools import *
 
 ################################################################################
@@ -75,13 +76,69 @@ def generateReactions(database, reactants, products=None):
     # get RMG-py reactions
     reactionList = []
     reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, returnAllKinetics=True))
+    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products))
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
         reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
-        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, returnAllKinetics=True))
+        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products))
+    
+    # get RMG-py kinetics
+    reactionList0 = reactionList; reactionList = []
+    for reaction in reactionList0:
+        # If the reaction already has kinetics (e.g. from a library),
+        # assume the kinetics are satisfactory
+        if reaction.kinetics is not None:
+            reactionList.append(reaction)
+        else:
+            # Set the reaction kinetics
+            # Only reactions from families should be missing kinetics
+            assert isinstance(reaction, TemplateReaction)
+            # Get all of the kinetics for the reaction
+            kineticsList = reaction.family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
+            if reaction.family.ownReverse and hasattr(reaction,'reverse'):
+                kineticsListReverse = reaction.family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
+                for kinetics, source, entry, isForward in kineticsListReverse:
+                    for kinetics0, source0, entry0, isForward0 in kineticsList:
+                        if source0 is not None and source is not None and entry0 is entry and isForward != isForward0:
+                            # We already have this estimate from the forward direction, so don't duplicate it in the results
+                            break
+                    else:
+                        kineticsList.append([kinetics, source, entry, not isForward])
+                # We're done with the "reverse" attribute, so delete it to save a bit of memory
+                delattr(reaction,'reverse')
+            # Make a new reaction object for each kinetics result
+            for kinetics, source, entry, isForward in kineticsList:
+                if isForward:
+                    reactants = reaction.reactants[:]
+                    products = reaction.products[:]
+                else:
+                    reactants = reaction.products[:]
+                    products = reaction.reactants[:]
+                if source is not None:
+                    rxn = DepositoryReaction(
+                        reactants = reactants,
+                        products = products,
+                        kinetics = kinetics,
+                        #degeneracy = reaction.degeneracy,
+                        thirdBody = reaction.thirdBody,
+                        reversible = reaction.reversible,
+                        depository = source,
+                        family = reaction.family,
+                        entry = entry,
+                    )
+                else:
+                    rxn = TemplateReaction(
+                        reactants = reactants,
+                        products = products,
+                        kinetics = kinetics,
+                        #degeneracy = reaction.degeneracy,
+                        thirdBody = reaction.thirdBody,
+                        reversible = reaction.reversible,
+                        family = reaction.family,
+                    )
+                reactionList.append(rxn)
     
     # get RMG-java reactions
     rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
