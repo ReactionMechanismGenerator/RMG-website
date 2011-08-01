@@ -41,6 +41,7 @@ from django.utils.safestring import mark_safe
 import numpy
 
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
+from rmgweb.main.models import UserProfile
 
 from rmgpy.quantity import Quantity
 from rmgpy.kinetics import *
@@ -69,11 +70,13 @@ def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
     result += ' \ \mathrm{{ {0!s} }}'.format(Aunits)
     return result
 
-def getRateCoefficientUnits(kinetics):
+def getRateCoefficientUnits(kinetics, user=None):
     """
     For a given `kinetics` model, return the desired rate coefficient units
     at high and low pressures, the conversion factor from SI to those units
-    (high pressure), and the number of reactant species.    
+    (high pressure), and the number of reactant species. If a `user` is 
+    specified, the user's preferred units will be used; otherwise default units
+    will be used.
     """
     
     # Determine the number of reactants based on the units of one of the
@@ -95,19 +98,45 @@ def getRateCoefficientUnits(kinetics):
         return getRateCoefficientUnits(kinetics.kineticsList[0])
     
     # Use the number of reactants to get the rate coefficient units and conversion factor
-    if numReactants == 1:
-        kunits = 's^-1'
-        kunits_low = 'cm^3/(mol*s)'
-    elif numReactants == 2:
-        kunits = 'cm^3/(mol*s)'
-        kunits_low = 'cm^6/(mol^2*s)'
-    elif numReactants == 3:
-        kunits = 'cm^6/(mol^2*s)'
-        kunits_low = 'cm^9/(mol^3*s)'
-    else:
-        kunits = ''
-        kunits_low = ''
-        
+    kunitsDict = {
+        1: 's^-1',
+        2: 'cm^3/(mol*s)',
+        3: 'cm^6/(mol^2*s)',
+        4: 'cm^9/(mol^3*s)',
+    }
+    if user and user.is_authenticated():
+        user_profile = UserProfile.objects.get(user=user)
+        if user_profile.rateCoefficientUnits == 'm^3,mol,s':
+            kunitsDict = {
+                1: 's^-1',
+                2: 'm^3/(mol*s)',
+                3: 'm^6/(mol^2*s)',
+                4: 'm^9/(mol^3*s)',
+            }
+        elif user_profile.rateCoefficientUnits == 'cm^3,mol,s':
+            kunitsDict = {
+                1: 's^-1',
+                2: 'cm^3/(mol*s)',
+                3: 'cm^6/(mol^2*s)',
+                4: 'cm^9/(mol^3*s)',
+            }
+        elif user_profile.rateCoefficientUnits == 'm^3,molecule,s':
+            kunitsDict = {
+                1: 's^-1',
+                2: 'm^3/(molecule*s)',
+                3: 'm^6/(molecule^2*s)',
+                4: 'm^9/(molecule^3*s)',
+            }
+        elif user_profile.rateCoefficientUnits == 'cm^3,molecule,s':
+            kunitsDict = {
+                1: 's^-1',
+                2: 'cm^3/(molecule*s)',
+                3: 'cm^6/(molecule^2*s)',
+                4: 'cm^9/(molecule^3*s)',
+            }
+            
+    kunits = kunitsDict[numReactants]
+    kunits_low = kunitsDict[numReactants+1]
     kfactor = Quantity(1, kunits).getConversionFactorFromSI()
     
     return kunits, kunits_low, kfactor, numReactants
@@ -115,19 +144,26 @@ def getRateCoefficientUnits(kinetics):
 ################################################################################
 
 @register.filter
-def render_kinetics_math(kinetics):
+def render_kinetics_math(kinetics, user=None):
     """
-    Return a math representation of the given `kinetics` using jsMath.
+    Return a math representation of the given `kinetics` using jsMath. If a 
+    `user` is specified, the user's preferred units will be used; otherwise 
+    default units will be used.
     """
-    
     # Define other units and conversion factors to use
-    Tunits = 'K'
+    if user and user.is_authenticated():
+        user_profile = UserProfile.objects.get(user=user)
+        Tunits = str(user_profile.temperatureUnits)
+        Punits = str(user_profile.pressureUnits)
+        Eunits = str(user_profile.energyUnits)
+    else:
+        Tunits = 'K'
+        Punits = 'bar'
+        Eunits = 'kcal/mol'
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Punits = 'bar'
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    Eunits = 'kcal/mol'
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
     if kunits == 's^-1':
         kunits = 's^{-1}'   
     
@@ -267,7 +303,7 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
         result = ''
         start = ''
         for i, k in enumerate(kinetics.kineticsList):
-            res = render_kinetics_math(k)
+            res = render_kinetics_math(k, user=user)
             start += '{0} + '.format(res.split(' = ')[0].replace('<div class="math">k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1))
             result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1) + '<br/>'
         
@@ -297,18 +333,27 @@ k(T,P) = {0!s}
 ################################################################################
 
 @register.filter
-def get_rate_coefficients(kinetics):
+def get_rate_coefficients(kinetics, user=None):
     """
     Generate and return a set of :math:`k(T,P)` data suitable for plotting
-    using Highcharts.
+    using Highcharts. If a `user` is specified, the user's preferred units
+    will be used; otherwise default units will be used.
     """
     
     # Define other units and conversion factors to use
-    Tunits = 'K'
+    if user and user.is_authenticated():
+        user_profile = UserProfile.objects.get(user=user)
+        Tunits = str(user_profile.temperatureUnits)
+        Punits = str(user_profile.pressureUnits)
+        Eunits = str(user_profile.energyUnits)
+    else:
+        Tunits = 'K'
+        Punits = 'bar'
+        Eunits = 'kcal/mol'
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Punits = 'bar'
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
+    Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
         
     # Generate data to use for plots
     Tdata = []; Pdata = []; kdata = []
