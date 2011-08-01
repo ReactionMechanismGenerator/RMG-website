@@ -15,7 +15,7 @@ jQuery(document).ready(function() {
 
     {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
     kseries = [];
-    {{ kinetics|get_rate_coefficients }}
+    {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
     kineticsModelList.push(kseries[kseries.length-1]);
     {% endfor %}
@@ -145,7 +145,7 @@ jQuery(document).ready(function() {
 
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
-{{ kinetics|render_kinetics_math }}
+{{ kinetics|render_kinetics_math:user }}
 {% if not forward %}<p>* Kinetics fitted from reverse direction</p>{% else %}<br/>{% endif %}
 {% endfor %}
 

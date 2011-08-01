@@ -24,7 +24,7 @@ jQuery(document).ready(function() {
     {% if kinetics %}
     var kseries = new Array();
     var kseries2 = new Array();
-    {{ kinetics|get_rate_coefficients }}
+    {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
     {% endif %}
     
@@ -60,7 +60,7 @@ jQuery(document).ready(function() {
 
 {% if kinetics %}
 <h2>Pressure-Dependent Kinetics</h2>
-{{ kinetics|render_kinetics_math }}
+{{ kinetics|render_kinetics_math:user }}
 
 <div id="plotk" style="width: 500px; height: 400px; margin: auto;"></div>
 <div id="plotkvsP" style="width: 500px; height: 400px; margin: auto;"></div>
