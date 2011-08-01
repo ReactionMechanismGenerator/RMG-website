@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load gravatar %}
+{% load render_kinetics %}
 
 {% block title %}Kinetics Data{% endblock %}
 {% block extrahead %}
@@ -12,8 +13,9 @@ jQuery(document).ready(function() {
 
     kineticsModelList = [];
 
-    {% for reactants, arrow, products, entry, kineticsParameters, source, href, forward in kineticsDataList %}
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
     kseries = [];
+    {{ kinetics|get_rate_coefficients }}
     {% include "kineticsModel.js" %}
     kineticsModelList.push(kseries[kseries.length-1]);
     {% endfor %}
@@ -134,7 +136,7 @@ jQuery(document).ready(function() {
 
 {% if kineticsDataList|length > 0 %}
 
-{% for reactants, arrow, products, entry, kineticsParameters, source, href, forward in kineticsDataList %}
+{% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
 {% if href != '' %}
 <h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ source }}</a>{% if not forward %} *{% endif %}</h3>
 {% else %}
@@ -143,7 +145,7 @@ jQuery(document).ready(function() {
 
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
-{% include "kineticsModel.html" %}
+{{ kinetics|render_kinetics_math }}
 {% if not forward %}<p>* Kinetics fitted from reverse direction</p>{% else %}<br/>{% endif %}
 {% endfor %}
 

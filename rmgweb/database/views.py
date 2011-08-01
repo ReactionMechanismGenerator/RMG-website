@@ -395,7 +395,7 @@ def kinetics(request, section='', subsection=''):
             elif isinstance(entry0.data, Arrhenius): dataFormat = 'Arrhenius'
             elif isinstance(entry0.data, str): dataFormat = 'Link'
             elif isinstance(entry0.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry0.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
+            elif isinstance(entry0.data, MultiKinetics): dataFormat = 'MultiKinetics'
             elif isinstance(entry0.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
             elif isinstance(entry0.data, Chebyshev): dataFormat = 'Chebyshev'
             elif isinstance(entry0.data, Troe): dataFormat = 'Troe'
@@ -472,15 +472,6 @@ def kineticsEntry(request, section, subsection, index):
         numReactants = len(entry.item.reactants)
         degeneracy = entry.item.degeneracy
     
-    # Prepare the kinetics data for passing to the template
-    # This includes all string formatting, since we can't do that in the template
-    if isinstance(entry.data, str):
-        kineticsParameters = ['Link', database.entries[entry.data].index]
-        kineticsModel = None
-    else:
-        kineticsParameters = prepareKineticsParameters(entry.data, numReactants, degeneracy)
-        kineticsModel = entry.data
-        
     if isinstance(database, KineticsGroups):
         structure = getStructureMarkup(entry.item)
         return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
@@ -504,8 +495,7 @@ def kineticsEntry(request, section, subsection, index):
                                                         'products': products,
                                                         'reference': reference,
                                                         'referenceType': referenceType,
-                                                        'kineticsParameters': kineticsParameters,
-                                                        'kineticsModel': kineticsModel,
+                                                        'kinetics': entry.data,
                                                         'reactionUrl': reactionUrl },
                                   context_instance=RequestContext(request))
 
@@ -517,7 +507,7 @@ def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParam
     referenceLink = ''
     referenceType = ''
     arrow = '&hArr;'
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
+    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kinetics': entry.data}, context_instance=RequestContext(request))
 
 def kineticsSearch(request):
     """
@@ -670,13 +660,13 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
             source = 'RMG-Java'
             href = ''
             entry = Entry(data=reaction.kinetics)
-        forwardKinetics = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
+        forwardKinetics = reaction.kinetics
         
         forward = reactionHasReactants(reaction, reactantList)
         if forward:
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
-            reverseKinetics = prepareKineticsParameters(reaction.generateReverseRateCoefficient(), len(reaction.products), 1)
+            reverseKinetics = reaction.generateReverseRateCoefficient()
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList,
