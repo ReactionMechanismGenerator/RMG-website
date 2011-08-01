@@ -23,8 +23,9 @@ jQuery(document).ready(function() {
     var k_series = new Array();
     var k_series2 = new Array();
     
-    {% for products, kineticsParameters in kineticsParameterSet.items %}
+    {% for products, kinetics in kineticsSet.items %}
     var kseries = new Array();
+    {{ kinetics|get_rate_coefficients }}
     {% include "kineticsModel.js" %}
     k_series.push(['{{ products }}', kseries[0][1]]);
     k_series2.push(['{{ products }}', kseries2[0][1]]);

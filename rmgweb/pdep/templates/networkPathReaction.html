@@ -1,4 +1,5 @@
 {% extends "pdepbase.html" %}
+{% load render_kinetics %}
 
 {% block title %}Path Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
@@ -20,8 +21,9 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
-    {% if kineticsParameters %}
+    {% if kinetics %}
     var kseries = new Array();
+    {{ kinetics|get_rate_coefficients }}
     {% include "kineticsModel.js" %}
     {% endif %}
     
@@ -103,7 +105,7 @@ jQuery(document).ready(function() {
 
     
     jsMath.Synchronize(function() {
-        {% if kineticsParameters %}
+        {% if kinetics %}
         plotKinetics('plotk', kseries);
         {% endif %}
         {% if statesParameters %}
@@ -142,9 +144,9 @@ jQuery(document).ready(function() {
 
 <p>{{ E0 }} kJ/mol</p>
 
-{% if kineticsParameters %}
+{% if kinetics %}
 <h2>High-Pressure Limit Kinetics</h2>
-{% include "kineticsModel.html" %}
+{{ kinetics|render_kinetics_math }}
 
 <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
 

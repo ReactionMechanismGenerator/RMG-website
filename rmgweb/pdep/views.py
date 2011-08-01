@@ -396,10 +396,7 @@ def networkPathReaction(request, networkKey, reaction):
     else:
         statesParameters = None
     
-    if reaction.kinetics is not None:
-        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
-    else:
-        kineticsParameters = None
+    kinetics = reaction.kinetics
     
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
     
@@ -449,7 +446,7 @@ def networkPathReaction(request, networkKey, reaction):
             'arrow': arrow,
             'E0': E0,
             'statesParameters': statesParameters,
-            'kineticsParameters': kineticsParameters,
+            'kinetics': kinetics,
             'microcanonicalRates': microcanonicalRates,
         }, 
         context_instance=RequestContext(request),
@@ -476,10 +473,7 @@ def networkNetReaction(request, networkKey, reaction):
     products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
     
-    if reaction.kinetics is not None:
-        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
-    else:
-        kineticsParameters = None
+    kinetics = reaction.kinetics
     
     return render_to_response(
         'networkNetReaction.html', 
@@ -491,7 +485,7 @@ def networkNetReaction(request, networkKey, reaction):
             'reactants': reactants,
             'products': products,
             'arrow': arrow,
-            'kineticsParameters': kineticsParameters,
+            'kinetics': kinetics,
         }, 
         context_instance=RequestContext(request),
     )
@@ -528,13 +522,11 @@ def networkPlotKinetics(request, networkKey):
     else:
         form = PlotKineticsForm(configurationLabels)
     
-    kineticsParameterSet = {}
-    Tlist = 1.0/numpy.arange(0.0005, 0.0035, 0.0005, numpy.float64)
-    Plist = 10**numpy.arange(3, 7.1, 0.25, numpy.float64)
+    kineticsSet = {}
     for rxn in network.netReactions:
         if rxn.reactants == source:
             products = u' + '.join([spec.label for spec in rxn.products])
-            kineticsParameterSet[products] = prepareKineticsParameters(rxn.kinetics, len(rxn.reactants), rxn.degeneracy, Tlist=[T], Plist=[P])
+            kineticsSet[products] = rxn.kinetics
     
     return render_to_response(
         'networkPlotKinetics.html', 
@@ -544,7 +536,9 @@ def networkPlotKinetics(request, networkKey):
             'networkKey': networkKey, 
             'configurations': configurations, 
             'source': source,
-            'kineticsParameterSet': kineticsParameterSet,
+            'kineticsSet': kineticsSet,
+            'T': T,
+            'P': P,
         }, 
         context_instance=RequestContext(request),
     )

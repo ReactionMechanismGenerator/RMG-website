@@ -1,4 +1,5 @@
 {% extends "pdepbase.html" %}
+{% load render_kinetics %}
 
 {% block title %}Net Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
@@ -20,14 +21,15 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
-    {% if kineticsParameters %}
+    {% if kinetics %}
     var kseries = new Array();
     var kseries2 = new Array();
+    {{ kinetics|get_rate_coefficients }}
     {% include "kineticsModel.js" %}
     {% endif %}
     
     jsMath.Synchronize(function() {
-        {% if kineticsParameters %}
+        {% if kinetics %}
         plotKinetics('plotk', kseries);
         plotKineticsVsP('plotkvsP', kseries2);
         {% endif %}
@@ -56,9 +58,9 @@ jQuery(document).ready(function() {
 </table>
 </p>
 
-{% if kineticsParameters %}
+{% if kinetics %}
 <h2>Pressure-Dependent Kinetics</h2>
-{% include "kineticsModel.html" %}
+{{ kinetics|render_kinetics_math }}
 
 <div id="plotk" style="width: 500px; height: 400px; margin: auto;"></div>
 <div id="plotkvsP" style="width: 500px; height: 400px; margin: auto;"></div>
