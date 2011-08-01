@@ -38,6 +38,8 @@ register = template.Library()
 
 from django.utils.safestring import mark_safe
 
+import numpy
+
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
 
 from rmgpy.quantity import Quantity
@@ -291,3 +293,91 @@ k(T,P) = {0!s}
     result += '</table>'
 
     return mark_safe(result)
+
+################################################################################
+
+@register.filter
+def get_rate_coefficients(kinetics):
+    """
+    Generate and return a set of :math:`k(T,P)` data suitable for plotting
+    using Highcharts.
+    """
+    
+    # Define other units and conversion factors to use
+    Tunits = 'K'
+    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
+    Punits = 'bar'
+    Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
+        
+    # Generate data to use for plots
+    Tdata = []; Pdata = []; kdata = []
+    if kinetics.Tmin is not None and kinetics.Tmax is not None:
+        Tmin = kinetics.Tmin.value
+        Tmax = kinetics.Tmax.value
+    else:
+        Tmin = 300
+        Tmax = 2000
+    if kinetics.Pmin is not None and kinetics.Pmax is not None:
+        Pmin = kinetics.Pmin.value
+        Pmax = kinetics.Pmax.value
+    else:
+        Pmin = 1e3
+        Pmax = 1e7
+    
+    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.00001):
+        Tdata.append(1.0/Tinv)
+    if kinetics.isPressureDependent():
+        for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
+            Pdata.append(10**logP)
+        for P in Pdata:
+            klist = []
+            for T in Tdata:
+                klist.append(kinetics.getRateCoefficient(T,P) * kfactor)
+            kdata.append(klist)
+    elif isinstance(kinetics, ArrheniusEP):
+        for T in Tdata:
+            kdata.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    else:
+        for T in Tdata:
+            kdata.append(kinetics.getRateCoefficient(T) * kfactor)
+    
+    Tdata2 = []; Pdata2 = []; kdata2 = []
+    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.0005):
+        Tdata2.append(round(1.0/Tinv))
+    if kinetics.isPressureDependent():
+        for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
+            Pdata2.append(10**logP)
+        for P in Pdata2:
+            klist = []
+            for T in Tdata2:
+                klist.append(kinetics.getRateCoefficient(T,P) * kfactor)
+            kdata2.append(klist)
+    elif isinstance(kinetics, ArrheniusEP):
+        for T in Tdata2:
+            kdata2.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    else:
+        for T in Tdata2:
+            kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
+    
+    return mark_safe("""
+Tlist = {0};
+Plist = {1};
+klist = {2};
+Tlist2 = {3};
+Plist2 = {4};
+klist2 = {5};
+Tunits = "{6}";
+Punits = "{7}";
+kunits = "{8}";
+    """.format(
+        [T * Tfactor for T in Tdata], 
+        [P * Pfactor for P in Pdata], 
+        kdata, 
+        [T * Tfactor for T in Tdata2], 
+        [P * Pfactor for P in Pdata2], 
+        kdata2, 
+        Tunits, 
+        Punits, 
+        kunits,
+    ))
