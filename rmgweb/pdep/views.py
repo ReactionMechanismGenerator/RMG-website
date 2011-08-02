@@ -294,12 +294,8 @@ def networkSpecies(request, networkKey, species):
         statesParameters = prepareStatesParameters(species.states)
     else:
         statesParameters = None
-    if species.thermo is not None:
-        thermoParameters = prepareThermoParameters(species.thermo)
-    else:
-        thermoParameters = None
+    thermo = species.thermo
     statesModel = species.states
-    thermoModel = species.thermo
     
     return render_to_response(
         'networkSpecies.html', 
@@ -312,9 +308,8 @@ def networkSpecies(request, networkKey, species):
             'E0': E0,
             'collisionParameters': collisionParameters,
             'statesParameters': statesParameters,
-            'thermoParameters': thermoParameters,
+            'thermo': thermo,
             'statesModel': statesModel,
-            'thermoModel': thermoModel,
         }, 
         context_instance=RequestContext(request),
     )
