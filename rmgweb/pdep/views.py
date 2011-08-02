@@ -38,6 +38,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
+from rmgpy.statmech import *
 
 from rmgweb.main.tools import *
 from models import *
@@ -290,12 +291,9 @@ def networkSpecies(request, networkKey, species):
         collisionParameters = prepareCollisionParameters(species)
     else:
         collisionParameters = None
-    if species.states is not None:
-        statesParameters = prepareStatesParameters(species.states)
-    else:
-        statesParameters = None
+    states = species.states
+    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
     thermo = species.thermo
-    statesModel = species.states
     
     return render_to_response(
         'networkSpecies.html', 
@@ -307,9 +305,9 @@ def networkSpecies(request, networkKey, species):
             'structure': structure,
             'E0': E0,
             'collisionParameters': collisionParameters,
-            'statesParameters': statesParameters,
+            'states': states,
+            'hasTorsions': hasTorsions,
             'thermo': thermo,
-            'statesModel': statesModel,
         }, 
         context_instance=RequestContext(request),
     )
@@ -386,11 +384,8 @@ def networkPathReaction(request, networkKey, reaction):
     
     E0 = '{0:g}'.format(reaction.transitionState.E0.value / 1000.)
     
-    if reaction.transitionState.states is not None:
-        statesParameters = prepareStatesParameters(reaction.transitionState.states)
-    else:
-        statesParameters = None
-    
+    states = reaction.transitionState.states
+    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
     kinetics = reaction.kinetics
     
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
@@ -440,7 +435,8 @@ def networkPathReaction(request, networkKey, reaction):
             'products': products,
             'arrow': arrow,
             'E0': E0,
-            'statesParameters': statesParameters,
+            'states': states,
+            'hasTorsions': hasTorsions,
             'kinetics': kinetics,
             'microcanonicalRates': microcanonicalRates,
         }, 
