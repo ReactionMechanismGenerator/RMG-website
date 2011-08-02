@@ -1,10 +1,3 @@
-var Tlist = {{ statesParameters.data.Tdata }};
-var Qlist = {{ statesParameters.data.Qdata }};
-var Elist = {{ statesParameters.data.Edata }};
-var rholist = {{ statesParameters.data.rhodata }};
-var philist = {{ statesParameters.data.phidata }};
-var Vlist = {{ statesParameters.data.Vdata }};
-
 var Qdata = new Array();
 for (var i = 0; i < Tlist.length; i++) {
     Qdata.push([Tlist[i], Math.log(Qlist[i]) / Math.LN10]);
@@ -14,14 +7,14 @@ Qseries.push(['{{ source }}', Qdata]);
 var rhodata = new Array();
 for (var i = 0; i < Elist.length; i++) {
     if (rholist[i] > 0)
-        rhodata.push([Elist[i]/1000., Math.log(rholist[i]) / Math.LN10]);
+        rhodata.push([Elist[i], Math.log(rholist[i]) / Math.LN10]);
 }
 rhoseries.push(['{{ source }}', rhodata]);
 
 for (var j = 0; j < Vlist.length; j++) {
     var Vdata = new Array();
     for (var i = 0; i < philist.length; i++) {
-        Vdata.push([philist[i], Vlist[j][i] / 1000.]);
+        Vdata.push([philist[i], Vlist[j][i]]);
     }
     Vseries.push(['Rotor #' + (j+1), Vdata]);
 }
@@ -43,7 +36,7 @@ plotPartitionFunction = function(id, Qseries) {
         },
         title: { text: 'Partition function' },
         xAxis: {
-            title: { text: 'Temperature (K)' },
+            title: { text: 'Temperature (' + Tunits + ')' },
             min: 0
         },
         yAxis: {
@@ -64,7 +57,7 @@ plotPartitionFunction = function(id, Qseries) {
                 exponent = Math.floor(this.y);
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
                 
-                return 'Q(' + Highcharts.numberFormat(T, 0, '.', '') +' K) = ' +
+                return 'Q(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
                     Highcharts.numberFormat(mantissa, 1, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
             }
         }
@@ -90,10 +83,10 @@ plotDensityOfStates = function(id, rhoseries) {
         },
         title: { text: 'Density of states' },
         xAxis: {
-            title: { text: 'Energy (kJ/mol)' }
+            title: { text: 'Energy (' + Eunits + ')' }
         },
         yAxis: {
-            title: { text: 'Density of states (mol/J)' },
+            title: { text: 'Density of states (' + rhounits + ')' },
             labels: {
                 formatter: function() {
                     exponent = Math.floor(this.value);
@@ -110,8 +103,8 @@ plotDensityOfStates = function(id, rhoseries) {
                 exponent = Math.floor(this.y);
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
                 
-                return 'rho(' + Highcharts.numberFormat(E, 2, '.', '') +' kJ/mol) = ' +
-                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' mol/J';
+                return 'rho(' + Highcharts.numberFormat(E, 2, '.', '') +' ' + Eunits + ') = ' +
+                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + rhounits;
             }
         }
     }
@@ -136,17 +129,17 @@ plotHinderedRotorPotential = function(id, Vseries) {
         },
         title: { text: 'Hindered rotor potentials' },
         xAxis: {
-            title: { text: 'Angle (rad)' },
+            title: { text: 'Angle (' + phiunits + ')' },
             min: 0
         },
         yAxis: {
-            title: { text: 'Potential (kJ/mol)' }
+            title: { text: 'Potential (' + Vunits + ')' }
         },
         legend: { enabled: legendEnabled },
         series: series,
         tooltip: {
             formatter: function() {
-                return 'V(' + Highcharts.numberFormat(this.x, 2, '.', '') +') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                return 'V(' + Highcharts.numberFormat(this.x, 2, '.', '') + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Vunits;
             }
         }
     }
