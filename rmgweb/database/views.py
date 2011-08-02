@@ -228,18 +228,16 @@ def thermoEntry(request, section, subsection, index):
     # Prepare the thermo data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
-        thermoParameters = ['Link', database.entries[entry.data].index]
-        thermoModel = None
+        thermo = ['Link', database.entries[entry.data].index]
     else:
-        thermoParameters = prepareThermoParameters(entry.data)
-        thermoModel = entry.data
+        thermo = entry.data
         
     reference = ''; referenceLink = ''; referenceType = ''
     if entry.reference is not None:
         reference = str(entry.reference)
         referenceLink = entry.reference.url
 
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'thermoParameters': thermoParameters, 'thermoModel': thermoModel}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'thermo': thermo}, context_instance=RequestContext(request))
 
 def thermoSearch(request):
     """
@@ -292,11 +290,10 @@ def thermoData(request, adjlist):
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
             entry,
-            prepareThermoParameters(data),
+            entry.data,
             source,
             href,
         ))
-        print entry.data
     
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)

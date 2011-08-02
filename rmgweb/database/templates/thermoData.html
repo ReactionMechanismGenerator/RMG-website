@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load gravatar %}
+{% load render_thermo %}
 
 {% block title %}Thermodynamics Data{% endblock %}
 
@@ -15,7 +16,8 @@ jQuery(document).ready(function() {
     Sseries = new Array();
     Gseries = new Array();
     
-    {% for entry, thermoParameters, source, href in thermoDataList %}
+    {% for entry, thermo, source, href in thermoDataList %}
+    {{ thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
     {% endfor %}
 
@@ -48,7 +50,7 @@ jQuery(document).ready(function() {
 
 <h2>Thermodynamic Data</h2>
 
-{% for entry, thermoParameters, source, href in thermoDataList %}
+{% for entry, thermo, source, href in thermoDataList %}
 {% if href != '' %}<a href="{{ href }}">{% endif %}
 <h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
 {% if href != '' %}</a>{% endif %}
@@ -57,7 +59,7 @@ jQuery(document).ready(function() {
 <p>Species label: {{ entry.label }}</p>
 {% endif %}
 
-{% include "thermoModel.html" %}
+{{ thermo|render_thermo_math:user }}
 <br/>
 {% endfor %}
 
