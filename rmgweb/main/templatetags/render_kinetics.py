@@ -51,10 +51,23 @@ from rmgpy.kinetics import *
 def getNumberOfReactantsFromUnits(units):
     si_units = {
         's^-1': 1,
+        's**-1': 1,
         'm^3/(mol*s)': 2,
+        'm**3/(mol*s)': 2,
+        'm^3/mol/s': 2,
+        'm**3/mol/s': 2,
         'cm^3/(mol*s)': 2,
+        'cm**3/(mol*s)': 2,
+        'cm^3/mol/s': 2,
+        'cm**3/mol/s': 2,
         'm^3/(molecule*s)': 2,
-        'cm^3/(molcule*s)': 2,
+        'm**3/(molecule*s)': 2,
+        'm^3/molecule/s': 2,
+        'm**3/molecule/s': 2,
+        'cm^3/(molecule*s)': 2,
+        'cm**3/(molecule*s)': 2,
+        'cm^3/molecule/s': 2,
+        'cm**3/molecule/s': 2,
     }
     return si_units[units]
 
