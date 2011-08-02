@@ -1,18 +1,12 @@
-var Tlist = {{ thermoParameters.data.Tdata }};
-var Cplist = {{ thermoParameters.data.Cpdata }};
-var Hlist = {{ thermoParameters.data.Hdata }};
-var Slist = {{ thermoParameters.data.Sdata }};
-var Glist = {{ thermoParameters.data.Gdata }};
-
 var Cpdata = new Array();
 var Hdata = new Array();
 var Sdata = new Array();
 var Gdata = new Array();
 for (var i = 0; i < Tlist.length; i++) {
     Cpdata.push([Tlist[i], Cplist[i]]);
-    Hdata.push([Tlist[i], Hlist[i]/1000.]);
+    Hdata.push([Tlist[i], Hlist[i]]);
     Sdata.push([Tlist[i], Slist[i]]);
-    Gdata.push([Tlist[i], Glist[i]/1000.]);
+    Gdata.push([Tlist[i], Glist[i]]);
 }
 
 Cpseries.push(['{{ source }}', Cpdata]);
@@ -37,11 +31,11 @@ plotHeatCapacity = function(id, Cpseries) {
         },
         title: { text: 'Heat capacity' },
         xAxis: {
-            title: { text: 'Temperature (K)' },
+            title: { text: 'Temperature (' + Tunits + ')' },
             min: 0
         },
         yAxis: {
-            title: { text: 'Heat capacity (J/mol*K)' }
+            title: { text: 'Heat capacity (' + Cpunits + ')' }
         },
         legend: { enabled: legendEnabled },
         series: series,
@@ -50,7 +44,7 @@ plotHeatCapacity = function(id, Cpseries) {
                 if (legendEnabled == 0) {
                     return 'Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
                     } else {
-                    return this.series.name + ': Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    return this.series.name + ': Cp(' + Highcharts.numberFormat(this.x, 0, '.', '') +' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Cpunits + '';
                     }        
             }
         }
@@ -76,11 +70,11 @@ plotEnthalpy = function(id, Hseries) {
         },
         title: { text: 'Enthalpy' },
         xAxis: {
-            title: { text: 'Temperature (K)' },
+            title: { text: 'Temperature (' + Tunits + ')' },
             min: 0
         },
         yAxis: {
-            title: { text: 'Enthalpy (kJ/mol)' }
+            title: { text: 'Enthalpy (' + Hunits + ')' }
         },
         legend: { enabled: legendEnabled },
         series: series,
@@ -92,9 +86,9 @@ plotEnthalpy = function(id, Hseries) {
         tooltip: {
             formatter: function() {
                 if (legendEnabled == 0) {
-                    return 'H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    return 'H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Hunits + '';
                     } else {
-                    return this.series.name + ': H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    return this.series.name + ': H(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Hunits + '';
                     }
             }
         }
@@ -120,11 +114,11 @@ plotEntropy = function(id, Sseries) {
         },
         title: { text: 'Entropy' },
         xAxis: {
-            title: { text: 'Temperature (K)' },
+            title: { text: 'Temperature (' + Tunits + ')' },
             min: 0
         },
         yAxis: {
-            title: { text: 'Entropy (J/mol*K)' }
+            title: { text: 'Entropy (' + Sunits + ')' }
         },
         legend: { enabled: legendEnabled },
         series: series,
@@ -136,9 +130,9 @@ plotEntropy = function(id, Sseries) {
         tooltip: {
             formatter: function() {
                     if (legendEnabled == 0) {
-                    return 'S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    return 'S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Sunits + '';
                     } else {
-                    return this.series.name + ': S(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' J/mol*K';
+                    return this.series.name + ': S(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Sunits + '';
                     }
             }
         }
@@ -164,11 +158,11 @@ plotFreeEnergy = function(id, Gseries) {
         },
         title: { text: 'Gibbs free energy' },
         xAxis: {
-            title: { text: 'Temperature (K)' },
+            title: { text: 'Temperature (' + Tunits + ')' },
             min: 0
         },
         yAxis: {
-            title: { text: 'Free energy (kJ/mol)' }
+            title: { text: 'Free energy (' + Gunits + ')' }
         },
         legend: { enabled: legendEnabled },
         series: series,
@@ -180,9 +174,9 @@ plotFreeEnergy = function(id, Gseries) {
         tooltip: {
             formatter: function() {
                 if (legendEnabled == 0) {
-                    return 'G(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    return 'G(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Gunits + '';
                     } else {
-                    return this.series.name + ': G(' + Highcharts.numberFormat(this.x, 0, '.', '') +' K) = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' kJ/mol';
+                    return this.series.name + ': G(' + Highcharts.numberFormat(this.x, 0, '.', '') + ' ' + Tunits + ') = ' + Highcharts.numberFormat(this.y, 2, '.', '') + ' ' + Gunits + '';
                     }
             }
         }

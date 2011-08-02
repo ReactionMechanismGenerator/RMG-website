@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load gravatar %}
+{% load render_thermo %}
 
 {% block title %}
 {% if section != '' %}
@@ -46,6 +47,7 @@ jQuery(document).ready(function() {
     var Sseries = new Array();
     var Gseries = new Array();
 
+    {{ thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
     
     jsMath.Synchronize(function() {
@@ -80,7 +82,17 @@ jQuery(document).ready(function() {
 </p>
 
 <h2>Thermodynamic Data</h2>
-{% include "thermoModel.html" %}
+{% ifequal thermo.0 'Link' %}
+<table class="thermoEntryData">
+<tr>
+    <td class="key">Link:</td>
+    <td class="value"><a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermo.1 %}">{{ entry.data }}</a></td>
+</tr>
+</table>
+{% else %}
+{{ thermo|render_thermo_math:user }}
+{% endifequal %}
+    
 
 <div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>

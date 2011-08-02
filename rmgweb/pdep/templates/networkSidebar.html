@@ -16,7 +16,7 @@
 <div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Run MEASURE</a></div>
 {% else %}
 <div><a href="{% url pdep.views.networkPlotMicro networkKey=networkKey%}">Plot k(E) and &rho;(E) values</a></div>
-<div><a href="{% url pdep.views.networkPlotKinetics networkKey=networkKey%}">Plot k(T,P) values</a></div>
+<!-- <div><a href="{% url pdep.views.networkPlotKinetics networkKey=networkKey%}">Plot k(T,P) values</a></div>  -->
 <div><a href="{% url pdep.views.networkRun networkKey=networkKey%}">Rerun MEASURE</a></div>
 {% endif %}
 </p>

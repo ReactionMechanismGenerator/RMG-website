@@ -1,4 +1,6 @@
 {% extends "pdepbase.html" %}
+{% load render_kinetics %}
+{% load render_states %}
 
 {% block title %}Path Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
@@ -20,15 +22,17 @@
 <script type="text/javascript">
 jQuery(document).ready(function() {
 
-    {% if kineticsParameters %}
+    {% if kinetics %}
     var kseries = new Array();
+    {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
     {% endif %}
     
-    {% if statesParameters %}
+    {% if states %}
     var Qseries = new Array();
     var rhoseries = new Array();
     var Vseries = new Array();
+    {{ states|get_states_data:user }}
     {% include "statesModel.js" %}
     {% endif %}
     
@@ -103,7 +107,7 @@ jQuery(document).ready(function() {
 
     
     jsMath.Synchronize(function() {
-        {% if kineticsParameters %}
+        {% if kinetics %}
         plotKinetics('plotk', kseries);
         {% endif %}
         {% if statesParameters %}
@@ -142,21 +146,21 @@ jQuery(document).ready(function() {
 
 <p>{{ E0 }} kJ/mol</p>
 
-{% if kineticsParameters %}
+{% if kinetics %}
 <h2>High-Pressure Limit Kinetics</h2>
-{% include "kineticsModel.html" %}
+{{ kinetics|render_kinetics_math:user }}
 
 <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
 
 {% endif %}
 
-{% if statesParameters %}
+{% if states %}
 <h2>Transition State Degrees of Freedom</h2>
-{% include "statesModel.html" %}
-
+{{ states|render_states_math:user }}
+    
 <div id="plotQ" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotRho" style="width: 500px; height: 300px; margin: auto;"></div>
-{% if statesParameters.torsion %}
+{% if hasTorsions %}
 <div id="plotV" style="width: 500px; height: 400px; margin: auto;"></div>
 {% endif %}
 

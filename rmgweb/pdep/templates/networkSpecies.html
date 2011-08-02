@@ -1,4 +1,7 @@
 {% extends "pdepbase.html" %}
+{% load render_thermo %}
+{% load render_states %}
+{% load render_collision %}
 
 {% block title %}{{ label }} - {{ network.title }}{% endblock %}
 
@@ -28,19 +31,29 @@ jQuery(document).ready(function() {
     var rhoseries = new Array();
     var Vseries = new Array();
     
+    {% if species.thermo %}
+    {{ species.thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
+    {% endif %}
     
+    {% if species.states %}
+    {{ species.states|get_states_data:user }}
     {% include "statesModel.js" %}
+    {% endif %}
     
     jsMath.Synchronize(function() {
+        {% if species.thermo %}
         plotHeatCapacity('plotCp', Cpseries);
         plotEnthalpy('plotH', Hseries);
         plotEntropy('plotS', Sseries);
         plotFreeEnergy('plotG', Gseries);
+        {% endif %}
+        {% if species.states %}
         plotPartitionFunction('plotQ', Qseries);
         plotDensityOfStates('plotRho', rhoseries);
         if (Vseries.length > 0)
             plotHinderedRotorPotential('plotV', Vseries);
+        {% endif %}
     });
     
     
@@ -58,19 +71,19 @@ jQuery(document).ready(function() {
 
 <p>{{ E0 }} kJ/mol</p>
 
-{% if collisionParameters %}
+{% if species.lennardJones %}
 <h2>Collision Parameters</h2>
-{% include "collisionModel.html" %}
+{{ species|render_collision_math:user }}
 
 {% endif %}
 
 {% if species.states %}
 <h2>Molecular Degrees of Freedom</h2>
-{% include "statesModel.html" %}
+{{ species.states|render_states_math:user }}
 
 <div id="plotQ" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotRho" style="width: 500px; height: 300px; margin: auto;"></div>
-{% if statesParameters.torsion %}
+{% if hasTorsions %}
 <div id="plotV" style="width: 500px; height: 400px; margin: auto;"></div>
 {% endif %}
 
@@ -78,7 +91,7 @@ jQuery(document).ready(function() {
 
 {% if species.thermo %}
 <h2>Thermodynamics</h2>
-{% include "thermoModel.html" %}
+{{ species.thermo|render_thermo_math }}
 
 <div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>

@@ -38,6 +38,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 
+from rmgpy.statmech import *
 
 from rmgweb.main.tools import *
 from models import *
@@ -286,20 +287,9 @@ def networkSpecies(request, networkKey, species):
     
     structure = getStructureMarkup(species)
     E0 = '{0:g}'.format(species.E0.value / 1000.)
-    if species.lennardJones is not None:
-        collisionParameters = prepareCollisionParameters(species)
-    else:
-        collisionParameters = None
-    if species.states is not None:
-        statesParameters = prepareStatesParameters(species.states)
-    else:
-        statesParameters = None
-    if species.thermo is not None:
-        thermoParameters = prepareThermoParameters(species.thermo)
-    else:
-        thermoParameters = None
-    statesModel = species.states
-    thermoModel = species.thermo
+    states = species.states
+    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
+    thermo = species.thermo
     
     return render_to_response(
         'networkSpecies.html', 
@@ -310,11 +300,9 @@ def networkSpecies(request, networkKey, species):
             'label': label,
             'structure': structure,
             'E0': E0,
-            'collisionParameters': collisionParameters,
-            'statesParameters': statesParameters,
-            'thermoParameters': thermoParameters,
-            'statesModel': statesModel,
-            'thermoModel': thermoModel,
+            'states': states,
+            'hasTorsions': hasTorsions,
+            'thermo': thermo,
         }, 
         context_instance=RequestContext(request),
     )
@@ -391,15 +379,9 @@ def networkPathReaction(request, networkKey, reaction):
     
     E0 = '{0:g}'.format(reaction.transitionState.E0.value / 1000.)
     
-    if reaction.transitionState.states is not None:
-        statesParameters = prepareStatesParameters(reaction.transitionState.states)
-    else:
-        statesParameters = None
-    
-    if reaction.kinetics is not None:
-        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
-    else:
-        kineticsParameters = None
+    states = reaction.transitionState.states
+    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
+    kinetics = reaction.kinetics
     
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
     
@@ -448,8 +430,9 @@ def networkPathReaction(request, networkKey, reaction):
             'products': products,
             'arrow': arrow,
             'E0': E0,
-            'statesParameters': statesParameters,
-            'kineticsParameters': kineticsParameters,
+            'states': states,
+            'hasTorsions': hasTorsions,
+            'kinetics': kinetics,
             'microcanonicalRates': microcanonicalRates,
         }, 
         context_instance=RequestContext(request),
@@ -476,10 +459,7 @@ def networkNetReaction(request, networkKey, reaction):
     products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
     
-    if reaction.kinetics is not None:
-        kineticsParameters = prepareKineticsParameters(reaction.kinetics, len(reaction.reactants), reaction.degeneracy)
-    else:
-        kineticsParameters = None
+    kinetics = reaction.kinetics
     
     return render_to_response(
         'networkNetReaction.html', 
@@ -491,7 +471,7 @@ def networkNetReaction(request, networkKey, reaction):
             'reactants': reactants,
             'products': products,
             'arrow': arrow,
-            'kineticsParameters': kineticsParameters,
+            'kinetics': kinetics,
         }, 
         context_instance=RequestContext(request),
     )
@@ -528,13 +508,11 @@ def networkPlotKinetics(request, networkKey):
     else:
         form = PlotKineticsForm(configurationLabels)
     
-    kineticsParameterSet = {}
-    Tlist = 1.0/numpy.arange(0.0005, 0.0035, 0.0005, numpy.float64)
-    Plist = 10**numpy.arange(3, 7.1, 0.25, numpy.float64)
+    kineticsSet = {}
     for rxn in network.netReactions:
         if rxn.reactants == source:
             products = u' + '.join([spec.label for spec in rxn.products])
-            kineticsParameterSet[products] = prepareKineticsParameters(rxn.kinetics, len(rxn.reactants), rxn.degeneracy, Tlist=[T], Plist=[P])
+            kineticsSet[products] = rxn.kinetics
     
     return render_to_response(
         'networkPlotKinetics.html', 
@@ -544,7 +522,9 @@ def networkPlotKinetics(request, networkKey):
             'networkKey': networkKey, 
             'configurations': configurations, 
             'source': source,
-            'kineticsParameterSet': kineticsParameterSet,
+            'kineticsSet': kineticsSet,
+            'T': T,
+            'P': P,
         }, 
         context_instance=RequestContext(request),
     )

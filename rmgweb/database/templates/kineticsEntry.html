@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load gravatar %}
+{% load render_kinetics %}
 
 {% block title %}
 {% if section != '' %}
@@ -50,6 +51,7 @@ jQuery(document).ready(function() {
 
     var kseries = new Array();
     
+    {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
 
     jsMath.Synchronize(function() {
@@ -111,7 +113,7 @@ jQuery(document).ready(function() {
 <br/>
 
 <h2>Kinetic Data</h2>
-{% include "kineticsModel.html" %}
+{{ kinetics|render_kinetics_math:user }}
 
 <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
 
