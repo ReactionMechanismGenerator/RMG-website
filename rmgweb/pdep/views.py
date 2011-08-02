@@ -287,10 +287,6 @@ def networkSpecies(request, networkKey, species):
     
     structure = getStructureMarkup(species)
     E0 = '{0:g}'.format(species.E0.value / 1000.)
-    if species.lennardJones is not None:
-        collisionParameters = prepareCollisionParameters(species)
-    else:
-        collisionParameters = None
     states = species.states
     hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
     thermo = species.thermo
@@ -304,7 +300,6 @@ def networkSpecies(request, networkKey, species):
             'label': label,
             'structure': structure,
             'E0': E0,
-            'collisionParameters': collisionParameters,
             'states': states,
             'hasTorsions': hasTorsions,
             'thermo': thermo,

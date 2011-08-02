@@ -1,6 +1,7 @@
 {% extends "pdepbase.html" %}
 {% load render_thermo %}
 {% load render_states %}
+{% load render_collision %}
 
 {% block title %}{{ label }} - {{ network.title }}{% endblock %}
 
@@ -70,9 +71,9 @@ jQuery(document).ready(function() {
 
 <p>{{ E0 }} kJ/mol</p>
 
-{% if collisionParameters %}
+{% if species.lennardJones %}
 <h2>Collision Parameters</h2>
-{% include "collisionModel.html" %}
+{{ species|render_collision_math:user }}
 
 {% endif %}
 
