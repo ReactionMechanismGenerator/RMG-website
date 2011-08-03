@@ -98,7 +98,7 @@ def generateReactions(database, reactants, products=None):
             # Get all of the kinetics for the reaction
             kineticsList = reaction.family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
             if reaction.family.ownReverse and hasattr(reaction,'reverse'):
-                kineticsListReverse = reaction.family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
+                kineticsListReverse = reaction.family.getKinetics(reaction.reverse, template=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, returnAllKinetics=True)
                 for kinetics, source, entry, isForward in kineticsListReverse:
                     for kinetics0, source0, entry0, isForward0 in kineticsList:
                         if source0 is not None and source is not None and entry0 is entry and isForward != isForward0:
