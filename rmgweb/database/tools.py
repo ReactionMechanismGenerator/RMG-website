@@ -111,15 +111,15 @@ def generateReactions(database, reactants, products=None):
             # Make a new reaction object for each kinetics result
             for kinetics, source, entry, isForward in kineticsList:
                 if isForward:
-                    reactants = reaction.reactants[:]
-                    products = reaction.products[:]
+                    reactant_species = reaction.reactants[:]
+                    product_species = reaction.products[:]
                 else:
-                    reactants = reaction.products[:]
-                    products = reaction.reactants[:]
+                    reactant_species = reaction.products[:]
+                    product_species = reaction.reactants[:]
                 if source is not None:
                     rxn = DepositoryReaction(
-                        reactants = reactants,
-                        products = products,
+                        reactants = reactant_species,
+                        products = product_species,
                         kinetics = kinetics,
                         #degeneracy = reaction.degeneracy,
                         thirdBody = reaction.thirdBody,
@@ -130,8 +130,8 @@ def generateReactions(database, reactants, products=None):
                     )
                 else:
                     rxn = TemplateReaction(
-                        reactants = reactants,
-                        products = products,
+                        reactants = reactant_species,
+                        products = product_species,
                         kinetics = kinetics,
                         #degeneracy = reaction.degeneracy,
                         thirdBody = reaction.thirdBody,
