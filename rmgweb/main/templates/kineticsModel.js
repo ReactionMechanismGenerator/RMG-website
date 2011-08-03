@@ -58,7 +58,12 @@ plotKinetics = function(id, kseries) {
                 }
             }
         },
-        legend: { enabled: legendEnabled },
+        legend: { 
+            enabled: legendEnabled,
+            labelFormatter: function() {
+                return (this.index+1) + '. ' + this.name;
+                }
+        },
         series: series,
         tooltip: {
             formatter: function() {
@@ -69,7 +74,7 @@ plotKinetics = function(id, kseries) {
                     return  'k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
                     } else {
-                    return  this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
+                    return  (this.series.index+1) +'. ' + this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
                     }
             }
