@@ -34,7 +34,7 @@ app that don't belong to any other module.
 """
 
 import socket
-
+import sys
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule import Molecule
 from rmgpy.species import Species
@@ -298,19 +298,11 @@ def getRMGJavaKinetics(reactantList, productList=None):
     productList = productList or []
     reactionList = []
 
-    # First send search request to PopulateReactions server
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.settimeout(10)
-    try:
-        client_socket.connect(("localhost", 5000))
-    except IOError:
-        print 'Unable to query RMG-Java for kinetics. (Is the RMG-Java server running?)'
-        return reactionList
-    
     # Generate species list for Java request
     popreactants = ''
     added_reactants = set()
     for index, reactant in enumerate(reactantList):
+        assert isinstance(reactant, Molecule)
         reactant.clearLabeledAtoms()
         for r in added_reactants:
             if r.isIsomorphic(reactant):
@@ -319,6 +311,17 @@ def getRMGJavaKinetics(reactantList, productList=None):
             added_reactants.add(reactant)
             popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList())
     popreactants += 'END\n'
+    
+    
+    # First send search request to PopulateReactions server
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.settimeout(10)
+    try:
+        client_socket.connect(("localhost", 5000))
+    except IOError:
+        print >> sys.stderr, 'Unable to query RMG-Java for kinetics. (Is the RMG-Java server running?)'
+        sys.stderr.flush()
+        return reactionList
     
     # Send request to server
     print "SENDING REQUEST FOR RMG-JAVA SEARCH TO SERVER"
