@@ -561,10 +561,21 @@ def networkPlotMicro(request, networkKey):
         products = ' + '.join([product.label for product in reaction.products])
         
         if reaction.isIsomerization():
-            reac = network.isomers.index(reaction.reactants[0])
-            prod = network.isomers.index(reaction.products[0])
-            kflist = Kij[prod,reac,:]
-            krlist = Kij[reac,prod,:]
+            if reaction.reactants[0] in network.isomers and reaction.products[0] in network.isomers:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.isomers.index(reaction.products[0])
+                kflist = Kij[prod,reac,:]
+                krlist = Kij[reac,prod,:]
+            elif reaction.reactants[0] in network.isomers and reaction.products in network.products:
+                reac = network.isomers.index(reaction.reactants[0])
+                prod = network.products.index(reaction.products) + Nreac
+                kflist = Gnj[prod,reac,:]
+                krlist = []
+            elif reaction.reactants in network.products and reaction.products[0] in network.isomers:
+                reac = network.products.index(reaction.reactants) + Nreac
+                prod = network.isomers.index(reaction.products[0])
+                kflist = []
+                krlist = Gnj[reac,prod,:]
         elif reaction.isAssociation():
             if reaction.reactants in network.products:
                 reac = network.products.index(reaction.reactants) + Nreac
