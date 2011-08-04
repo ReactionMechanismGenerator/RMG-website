@@ -72,6 +72,14 @@ def loadDatabase(component='', section=''):
             database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
         if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
             database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
+            # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
+            # we use our favourite values first.
+            preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
+            new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
+            for i in database.thermo.libraryOrder:
+                if i not in new_order: new_order.append(i) 
+            database.thermo.libraryOrder = new_order
+            print new_order
         if section in ['groups', ''] and len(database.thermo.groups) == 0:
             database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
     if component in ['kinetics', '']:
@@ -196,8 +204,8 @@ def thermo(request, section='', subsection=''):
         # database components
         thermoDepository = [(label, depository) for label, depository in database.thermo.depository.iteritems()]
         thermoDepository.sort()
-        thermoLibraries = [(label, library) for label, library in database.thermo.libraries.iteritems()]
-        thermoLibraries.sort()
+        thermoLibraries = [(label, database.thermo.libraries[label]) for label in database.thermo.libraryOrder]
+        #If they weren't already sorted in our preferred order, we'd call thermoLibraries.sort()
         thermoGroups = [(label, groups) for label, groups in database.thermo.groups.iteritems()]
         thermoGroups.sort()
         return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups}, context_instance=RequestContext(request))
@@ -641,7 +649,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
-        # Generate the kinetics in the reverse direction
+        # Generate the thermo data for the species involved
         for reactant in reaction.reactants:
             generateSpeciesThermo(reactant, database)
         for product in reaction.products:
