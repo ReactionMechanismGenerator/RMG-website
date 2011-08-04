@@ -546,7 +546,7 @@ def kineticsSearch(request):
 
     return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
 
-def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
+def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
     """
     A view used to present a list of unique reactions that result from a
     valid kinetics search.
@@ -559,13 +559,17 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
     reactantList.append(moleculeFromURL(reactant1))
     if reactant2 != '':
         reactantList.append(moleculeFromURL(reactant2))
+    if reactant3 != '':
+        reactantList.append(moleculeFromURL(reactant3))
 
-    if product1 != '' or product2 != '':
+    if product1 != '' or product2 != '' or product3 != '':
         productList = []
         if product1 != '':
             productList.append(moleculeFromURL(product1))
         if product2 != '':
             productList.append(moleculeFromURL(product2))
+        if product3 != '':
+            productList.append(moleculeFromURL(product3))
     else:
         productList = None
     
@@ -600,7 +604,7 @@ def kineticsResults(request, reactant1, reactant2='', product1='', product2=''):
         
     return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
 
-def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
+def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
     """
     A view used to present a list of reactions and the associated kinetics
     for each.
@@ -615,13 +619,17 @@ def kineticsData(request, reactant1, reactant2='', product1='', product2=''):
     reactantList.append(moleculeFromURL(reactant1))
     if reactant2 != '':
         reactantList.append(moleculeFromURL(reactant2))
+    if reactant3 != '':
+        reactantList.append(moleculeFromURL(reactant3))
 
-    if product1 != '' or product2 != '':
+    if product1 != '' or product2 != '' or product3 != '':
         productList = []
         if product1 != '':
             productList.append(moleculeFromURL(product1))
         if product2 != '':
             productList.append(moleculeFromURL(product2))
+        if product3 != '':
+            productList.append(moleculeFromURL(product3))
     else:
         productList = None
     
