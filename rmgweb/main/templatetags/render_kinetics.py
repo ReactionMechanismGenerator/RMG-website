@@ -75,7 +75,7 @@ def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
     result = '{0!s}'.format(getLaTeXScientificNotation(A))
     if n != 0:
         if T0 != 1:
-            result += r' \left( \frac{T}{{ {0:g} \ \mathrm{{ {1!s} }} }} \right)^{{ {2:.2f} }}'.format(T0, T0units, n)
+            result += r' \left( \frac{{T}}{{ {0:g} \ \mathrm{{ {1!s} }} }} \right)^{{ {2:.2f} }}'.format(T0, T0units, n)
         else:
             result += r' T^{{ {0:.2f} }}'.format(n)
     if Ea != 0:
