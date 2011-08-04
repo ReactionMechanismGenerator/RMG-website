@@ -204,11 +204,20 @@ def render_kinetics_math(kinetics, user=None):
     
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
-        result += r'<table>'
+        result += r'<table class="KineticsData">'
         result += r'<tr><th>Temperature</th><th>Rate coefficient</th></tr>'
         for T, k in zip(kinetics.Tdata.values, kinetics.kdata.values):
             result += r'<tr><td><span class="math">{0:g} \ \mathrm{{ {1!s} }}</span></td><td><span class="math">{2!s} \ \mathrm{{ {3!s} }}</span></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
         result += r'</table>'
+        # fit to an arrhenius
+        arr = kinetics.toArrhenius()
+        result += "Fitted to an Arrhenius:"
+        result += r'<div class="math">k(T) = {0!s}</div>'.format(getArrheniusJSMath(
+            arr.A.value * kfactor, kunits, 
+            arr.n.value, '', 
+            arr.Ea.value * Efactor, Eunits, 
+            arr.T0.value * Tfactor, Tunits,
+        ))
         
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format

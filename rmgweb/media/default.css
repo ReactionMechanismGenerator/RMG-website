@@ -237,6 +237,10 @@ table.reference td p {
     margin: 0px;
 }
 
+table.KineticsData {
+    margin: auto;
+}
+
 /*------------------------------------*\
   IPHONE
 \*------------------------------------*/
