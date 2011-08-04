@@ -163,6 +163,8 @@ def render_kinetics_math(kinetics, user=None):
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """
+    if kinetics is None:
+        return mark_safe("<p>There are no kinetics for this entry.</p>")
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -352,7 +354,8 @@ def get_rate_coefficients(kinetics, user=None):
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
     """
-    
+    if kinetics is None:
+        return "// There are no kinetics for this entry."
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
