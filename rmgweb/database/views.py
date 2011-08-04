@@ -42,6 +42,7 @@ from rmgpy.molecule import Molecule
 from rmgpy.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
+from rmgpy.reaction import Reaction
 
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
@@ -630,9 +631,14 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             productList.append(moleculeFromURL(product2))
         if product3 != '':
             productList.append(moleculeFromURL(product3))
+            
+        reverseReaction = Reaction(reactants = productList, products = reactantList)
+        reverseReactionURL = getReactionUrl(reverseReaction)
     else:
         productList = None
-    
+
+
+
     # Search for the corresponding reaction(s)
     reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
     reactionList.extend(rmgJavaReactionList)
@@ -679,11 +685,14 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             reverseKinetics = reaction.generateReverseRateCoefficient()
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
+
+
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList,
                                                     'plotWidth': 500,
                                                     'plotHeight': 400 + 15 * len(kineticsDataList),
                                                     'reactantList': reactantList,
                                                     'productList': productList,
+                                                    'reverseReactionURL':reverseReactionURL,
                                                     },
                                              context_instance=RequestContext(request))
    
