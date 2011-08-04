@@ -468,7 +468,16 @@ def kineticsEntry(request, section, subsection, index):
     
     if isinstance(database, KineticsGroups):
         structure = getStructureMarkup(entry.item)
-        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
+        return render_to_response('kineticsEntry.html', {'section': section,
+                                                         'subsection': subsection,
+                                                         'databaseName': database.name,
+                                                         'entry': entry,
+                                                         'structure': structure,
+                                                         'reference': reference,
+                                                         'referenceType': referenceType,
+                                                         'kinetics': entry.data,
+                                                         },
+                                  context_instance=RequestContext(request))
     else:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
         products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
