@@ -90,7 +90,7 @@ jQuery(document).ready(function() {
 
 {% block page_body %}
 
-{% if section == 'groups' %}
+{% if structure %}
 <h2>Group</h2>
 <table>
     <tr>
@@ -115,7 +115,9 @@ jQuery(document).ready(function() {
 <h2>Kinetic Data</h2>
 {{ kinetics|render_kinetics_math:user }}
 
+{% if kinetics %}
 <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
+{% endif %}
 
 <h2>Reference</h2>
 {% include "reference.html" %}
