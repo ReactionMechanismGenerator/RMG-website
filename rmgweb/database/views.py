@@ -34,6 +34,7 @@ import socket
 import StringIO # cStringIO is faster, but can't do Unicode
 import copy
 import time
+import subprocess
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -488,10 +489,14 @@ def kineticsEntryEdit(request, section, subsection, index):
             rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
-            return HttpResponse(entry_string, mimetype="text/plain")
-        
-            # for now, just render it 
-            return render_to_response('kineticsEntry.html', {'section': section,
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            
+            if False:
+                # Render it as if it were saved.
+                return render_to_response('kineticsEntry.html', {'section': section,
                                                          'subsection': subsection,
                                                          'databaseName': database.name,
                                                          'entry': new_entry,
@@ -499,8 +504,20 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                          'kinetics': entry.data,
                                                          },
                               context_instance=RequestContext(request))
-            # save it
-            database.entries[index] = new_entry
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'kinetics', section, subsection + '.py' )
+                database.save(path)
+                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+                commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                
+                return HttpResponse(commit_result, mimetype="text/plain")
             
             # redirect
             kwargs = { section: section,
