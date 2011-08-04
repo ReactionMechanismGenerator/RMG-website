@@ -33,8 +33,9 @@ from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
 from rmgpy.molecule import Molecule
-
-
+import rmgpy
+import copy
+import sys
 
 class DivErrorList(ErrorList):
     def __unicode__(self):
@@ -171,3 +172,33 @@ class MoleculeSearchForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid adjacency list.')
             return adjlist
+
+class KineticsEntryEditForm(forms.Form):
+    """
+    Form for editing kinetics database entries
+    """
+    entry = forms.CharField(label="Database Entry", widget = forms.Textarea(attrs={'cols': 100, 'rows': 50}), required=True)
+    change = forms.CharField(label="Summary of changes", widget=forms.TextInput(attrs={'style':'width:100%;'}), required=True)
+
+    def clean_entry(self):
+            """
+            Custom validation for the entry field to ensure that a valid 
+            entry has been provided.
+            """
+            new_database = rmgpy.data.kinetics.KineticsDatabase()
+            new_depository = rmgpy.data.kinetics.KineticsDepository()
+            global_context = {'__builtins__': False} # disable even builtins
+            local_context = copy.copy(new_database.local_context)
+            local_context['entry'] = new_depository.loadEntry
+            print local_context
+            try:
+                entry_string = str(self.cleaned_data['entry'])
+                entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
+            except Exception, e:
+                print "Invalid entry from KineticsEntryEditForm."
+                print repr(entry_string)
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid entry.'+ str(sys.exc_info()[1]))
+            return entry
+            

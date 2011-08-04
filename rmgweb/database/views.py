@@ -31,10 +31,14 @@
 import os.path
 import re
 import socket
+import StringIO # cStringIO is faster, but can't do Unicode
+import copy
+import time
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 import settings
 
@@ -444,6 +448,92 @@ def getReactionUrl(reaction):
     reactionUrl = reverse(kineticsData, kwargs=kwargs)
     return reactionUrl
     
+
+@login_required
+def kineticsEntryEdit(request, section, subsection, index):
+    """
+    A view for editing an entry in a kinetics database.
+    """
+
+    # Load the kinetics database, if necessary
+    loadDatabase('kinetics', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getKineticsDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    index = int(index)
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
+        raise Http404
+    
+    if request.method == 'POST':
+        form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+            new_entry.index = index
+            new_entry.history = copy.copy(entry.history)
+            new_history = (time.strftime('%Y-%m-%d'),
+                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
+                         'action',
+                         form.cleaned_data['change']
+                            )
+            new_entry.history.append(new_history)
+            
+            # Get the entry as a entry_string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            return HttpResponse(entry_string, mimetype="text/plain")
+        
+            # for now, just render it 
+            return render_to_response('kineticsEntry.html', {'section': section,
+                                                         'subsection': subsection,
+                                                         'databaseName': database.name,
+                                                         'entry': new_entry,
+                                                         'reference': entry.reference,
+                                                         'kinetics': entry.data,
+                                                         },
+                              context_instance=RequestContext(request))
+            # save it
+            database.entries[index] = new_entry
+            
+            # redirect
+            kwargs = { section: section,
+                       subsection: subsection,
+                       index: index,
+                      }
+            return HttpResponseRedirect(reverse(kineticsEntry, kwargs=kwargs))
+    
+    else: # not POST
+        # Get the entry as a entry_string
+        entry_buffer = StringIO.StringIO(u'')
+        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+        entry_string = entry_buffer.getvalue()
+        entry_buffer.close()
+        
+        # remove leading 'entry('
+        entry_string = re.sub('^entry\(\n','',entry_string)
+        # remove the 'index = 23,' line
+        entry_string = re.sub('\s*index = \d+,\n','',entry_string)
+        # remove the history and everything after it (including the final ')' )
+        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL)
+        
+        form = KineticsEntryEditForm(initial={'entry':entry_string })
+    
+    return render_to_response('kineticsEntryEdit.html', {'section': section,
+                                                        'subsection': subsection,
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
+
+
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
