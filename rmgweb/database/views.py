@@ -231,13 +231,10 @@ def thermoEntry(request, section, subsection, index):
         thermo = ['Link', database.entries[entry.data].index]
     else:
         thermo = entry.data
-        
-    reference = ''; referenceLink = ''; referenceType = ''
-    if entry.reference is not None:
-        reference = str(entry.reference)
-        referenceLink = entry.reference.url
-
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'thermo': thermo}, context_instance=RequestContext(request))
+    
+    referenceType = ''
+    reference = entry.reference
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo}, context_instance=RequestContext(request))
 
 def thermoSearch(request):
     """
@@ -471,7 +468,7 @@ def kineticsEntry(request, section, subsection, index):
     
     if isinstance(database, KineticsGroups):
         structure = getStructureMarkup(entry.item)
-        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
+        return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'kineticsParameters': kineticsParameters, 'kineticsModel': kineticsModel}, context_instance=RequestContext(request))
     else:
         reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
         products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
@@ -501,10 +498,9 @@ def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParam
     subsection = ''
     databaseName = 'RMG-Java Database'
     reference = ''
-    referenceLink = ''
     referenceType = ''
     arrow = '&hArr;'
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceLink': referenceLink, 'referenceType': referenceType, 'kinetics': entry.data}, context_instance=RequestContext(request))
+    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': referenceType, 'kinetics': entry.data}, context_instance=RequestContext(request))
 
 def kineticsSearch(request):
     """
