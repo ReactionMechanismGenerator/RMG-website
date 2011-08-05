@@ -187,9 +187,11 @@ class KineticsEntryEditForm(forms.Form):
             """
             new_database = rmgpy.data.kinetics.KineticsDatabase()
             new_depository = rmgpy.data.kinetics.KineticsDepository()
-            global_context = {'__builtins__': False} # disable even builtins
+            global_context = {'__builtins__': None} # disable even builtins
             local_context = copy.copy(new_database.local_context)
             local_context['entry'] = new_depository.loadEntry
+            for key,value in rmgpy.data.base.Database.local_context.iteritems():
+                local_context[key]=value
             print local_context
             try:
                 entry_string = str(self.cleaned_data['entry'])
