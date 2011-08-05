@@ -123,6 +123,7 @@ jQuery(document).ready(function() {
 <h2>Reference</h2>
 {% include "reference.html" %}
 
+{% if entry.history %}
 <h2>History</h2>
 {% for date, username, action, description in entry.history %}
 <table class="history">
@@ -135,6 +136,7 @@ jQuery(document).ready(function() {
 </tr>
 </table>
 {% endfor %}
+{% endif %}
 
 {% if new_entry_form %}
 <form method="post" id="entry_form" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
