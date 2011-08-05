@@ -48,6 +48,7 @@ from rmgpy.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
 
+import rmgpy
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction, DepositoryReaction, LibraryReaction, KineticsGroups
@@ -437,7 +438,7 @@ def kinetics(request, section='', subsection=''):
         kineticsFamilies.sort()
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
 
-def getReactionUrl(reaction):
+def getReactionUrl(reaction, family=None):
     """Get the URL (for kinetics data) of a reaction"""
     kwargs = dict()
     for index, reactant in enumerate(reaction.reactants):
@@ -446,7 +447,11 @@ def getReactionUrl(reaction):
     for index, product in enumerate(reaction.products):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
         kwargs['product{0:d}'.format(index+1)] = moleculeToURL(mol)
-    reactionUrl = reverse(kineticsData, kwargs=kwargs)
+    if family:
+        kwargs['family']=family
+        reactionUrl = reverse(kineticsGroupEstimateEntry, kwargs=kwargs)
+    else:
+        reactionUrl = reverse(kineticsData, kwargs=kwargs)
     return reactionUrl
     
 
@@ -533,6 +538,7 @@ def kineticsEntryEdit(request, section, subsection, index):
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
         
+        #entry_string = entry.item.reactants[0].toAdjacencyList()
         # remove leading 'entry('
         entry_string = re.sub('^entry\(\n','',entry_string)
         # remove the 'index = 23,' line
@@ -616,6 +622,98 @@ def kineticsEntry(request, section, subsection, index):
                                                         'kinetics': entry.data,
                                                         'reactionUrl': reactionUrl },
                                   context_instance=RequestContext(request))
+
+
+def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
+    """
+    View a kinetics group estimate as an entry.
+    """
+    # Load the kinetics database if necessary
+    loadDatabase('kinetics')
+    # Also load the thermo database so we can generate reverse kinetics if necessary
+    loadDatabase('thermo')
+    
+    # check the family exists
+    try:
+        getKineticsDatabase('families', family+'/groups')
+    except ValueError:
+        raise Http404
+
+    reactantList = []
+    reactantList.append(moleculeFromURL(reactant1))
+    if reactant2 != '':
+        reactantList.append(moleculeFromURL(reactant2))
+    if reactant3 != '':
+        reactantList.append(moleculeFromURL(reactant3))
+
+    productList = []
+    productList.append(moleculeFromURL(product1))
+    if product2 != '':
+        productList.append(moleculeFromURL(product2))
+    if product3 != '':
+        productList.append(moleculeFromURL(product3))    
+    
+    # Search for the corresponding reaction(s)
+    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family])
+    
+    kineticsDataList = []
+    
+    # discard all the rates from depositories and rules
+    reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
+    
+    assert len(reactionList)==1, "Was expceting one group estimate rate, not {0}".format(len(reactionList))
+    reaction = reactionList[0]
+    
+    # Generate the thermo data for the species involved
+    for reactant in reaction.reactants:
+        generateSpeciesThermo(reactant, database)
+    for product in reaction.products:
+        generateSpeciesThermo(product, database)
+    
+    # If the kinetics are ArrheniusEP, replace them with Arrhenius
+    if isinstance(reaction.kinetics, ArrheniusEP):
+        reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    arrow = '&hArr;' if reaction.reversible else '&rarr;'
+    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    assert isinstance(reaction, TemplateReaction), "Expected group additive kinetics to be a TemplateReaction"
+    
+    source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
+    entry = Entry(data=reaction.kinetics,
+                  longDesc=reaction.kinetics.comment,
+                  shortDesc="Estimated by RMG-Py Group Additivity",
+                  )
+
+    forwardKinetics = reaction.kinetics
+    reverseKinetics = reaction.generateReverseRateCoefficient()
+    
+    forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
+                )
+    referenceType = ''
+    entry.index=-1
+
+    reactionUrl = getReactionUrl(reaction)
+
+    return render_to_response('kineticsEntry.html', {'section': 'families',
+                                                    'subsection': family,
+                                                    'databaseName': family,
+                                                    'entry': entry,
+                                                    'reactants': reactants,
+                                                    'arrow': arrow,
+                                                    'products': products,
+                                                    'reference': reference,
+                                                    'referenceType': referenceType,
+                                                    'kinetics': reaction.kinetics,
+                                                    'reactionUrl': reactionUrl,
+                                                    'reaction': reaction },
+                              context_instance=RequestContext(request))
+    
 
 def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
     section = ''
@@ -771,7 +869,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
-            href = ''
+            href = getReactionUrl(reaction, family=reaction.family.name)
             entry = Entry(data=reaction.kinetics)
         elif isinstance(reaction, DepositoryReaction):
             source = '%s' % (reaction.depository.name)
