@@ -135,6 +135,17 @@ jQuery(document).ready(function() {
 </tr>
 </table>
 {% endfor %}
+
+{% if new_entry_form %}
+<form method="post" id="entry_form" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<div style="display: none;">{{ new_entry_form.entry }}</div>
+{% csrf_token %}
+If this reaction is not in the training set for {{ subsection }} and you have a rate for it, then add it here:
+<input type="submit" value="Add new rate to training set" name="Add" />
+</form>
+
+{% endif %}
+
 <br/>
 
 {% endblock %}

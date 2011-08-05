@@ -524,7 +524,7 @@ def kineticsEntryNewTraining(request, family):
         
     return render_to_response('kineticsEntryEdit.html', {'section': 'families',
                                                         'subsection': family+'/training',
-                                                        'databaseName': database.name,
+                                                        'databaseName': family,
                                                         'entry': entry,
                                                         'form': form,
                                                         },
@@ -756,10 +756,22 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     assert isinstance(reaction, TemplateReaction), "Expected group additive kinetics to be a TemplateReaction"
     
     source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
-    entry = Entry(data=reaction.kinetics,
+    entry = Entry(
+                  item=reaction,
+                  data=reaction.kinetics,
                   longDesc=reaction.kinetics.comment,
                   shortDesc="Estimated by RMG-Py Group Additivity",
                   )
+                  
+    # Get the entry as a entry_string, to populate the New Entry form
+    entry_buffer = StringIO.StringIO(u'')
+    rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+    entry_string = entry_buffer.getvalue()
+    entry_buffer.close()
+    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
+    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
+    entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
+    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
 
     forwardKinetics = reaction.kinetics
     reverseKinetics = reaction.generateReverseRateCoefficient()
@@ -787,7 +799,8 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
                                                     'referenceType': referenceType,
                                                     'kinetics': reaction.kinetics,
                                                     'reactionUrl': reactionUrl,
-                                                    'reaction': reaction },
+                                                    'reaction': reaction,
+                                                    'new_entry_form': new_entry_form},
                               context_instance=RequestContext(request))
     
 
