@@ -456,6 +456,81 @@ def getReactionUrl(reaction, family=None):
     
 
 @login_required
+def kineticsEntryNewTraining(request, family):
+    """
+    A view for creating a new entry in a kinetics family training depository.
+    """
+    # Load the kinetics database, if necessary
+    loadDatabase('kinetics', 'families')
+    try:
+        database = getKineticsDatabase('families', family+'/training')
+    except ValueError:
+        raise Http404
+    
+    entry = None
+    if request.method == 'POST':
+        form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+            
+            # determine index for new entry (1 higher than highest)
+            max_index = max(database.entries.keys() or [0])
+            index = max_index + 1
+            
+            new_entry.index = index
+            new_history = (time.strftime('%Y-%m-%d'),
+                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
+                         'action',
+                         "New entry. "+form.cleaned_data['change']
+                            )
+            new_entry.history = [new_history]
+            
+            # Get the entry as a entry_string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            
+            # redirect when done
+            kwargs = { 'section': 'families',
+                       'subsection': family+'/training',
+                       'index': index,
+                      }
+            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families', family, 'training.py' )
+                database.save(path)
+                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+                commit_message = "New {family}/training/{index} reaction: {msg}\n\nNew kinetics/families/{family}/training entry number {index} submitted through RMG website:\n{msg}\n{author}".format(family=family, index=index, msg=form.cleaned_data['change'], author=commit_author)
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                
+                
+                return HttpResponse(commit_result + "\n check it out at "+forward_url, mimetype="text/plain")
+                
+
+            
+    else: # not POST
+        form = KineticsEntryEditForm()
+        
+    return render_to_response('kineticsEntryEdit.html', {'section': 'families',
+                                                        'subsection': family+'/training',
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
+    
+@login_required
 def kineticsEntryEdit(request, section, subsection, index):
     """
     A view for editing an entry in a kinetics database.
@@ -525,11 +600,12 @@ def kineticsEntryEdit(request, section, subsection, index):
                 return HttpResponse(commit_result, mimetype="text/plain")
             
             # redirect
-            kwargs = { section: section,
-                       subsection: subsection,
-                       index: index,
+            kwargs = { 'section': section,
+                       'subsection': subsection,
+                       'index': index,
                       }
-            return HttpResponseRedirect(reverse(kineticsEntry, kwargs=kwargs))
+            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+            return HttpResponseRedirect(forward_url)
     
     else: # not POST
         # Get the entry as a entry_string

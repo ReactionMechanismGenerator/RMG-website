@@ -73,6 +73,8 @@ urlpatterns = patterns('rmgweb.database',
     (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
     (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
     
+    (r'^kinetics/families/(?P<family>[^/]+)/training/new$', 'views.kineticsEntryNewTraining'),
+    
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/edit$', 'views.kineticsEntryEdit'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/$', 'views.kineticsEntry'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.kinetics'),
