@@ -63,7 +63,7 @@ def generateSpeciesThermo(species, database):
         
 ################################################################################
 
-def generateReactions(database, reactants, products=None):
+def generateReactions(database, reactants, products=None, only_families=None):
     """
     Generate the reactions (and associated kinetics) for a given set of
     `reactants` and an optional set of `products`. A list of reactions is
@@ -71,18 +71,22 @@ def generateReactions(database, reactants, products=None):
     the database. This means that the same reaction may appear multiple times
     with different kinetics in the output. If the RMG-Java server is running,
     this function will also query it for reactions and kinetics.
+    If `only_families` is a list of strings, only those labeled families are 
+    used: no libraries and no RMG-Java kinetics are returned.
     """
     
     # get RMG-py reactions
     reactionList = []
-    reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products))
+    if only_families is None:
+        reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
+    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, only_families=only_families))
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
-        reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
-        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products))
+        if only_families is None:
+            reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
+        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, only_families=only_families))
     
     # get RMG-py kinetics
     reactionList0 = reactionList; reactionList = []
@@ -141,7 +145,10 @@ def generateReactions(database, reactants, products=None):
                 reactionList.append(rxn)
     
     # get RMG-java reactions
-    rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
+    if only_families is None:
+        rmgJavaReactionList = []
+    else:
+        rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
     
     return reactionList, rmgJavaReactionList
     

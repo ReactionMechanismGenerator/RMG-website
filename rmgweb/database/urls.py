@@ -65,6 +65,17 @@ urlpatterns = patterns('rmgweb.database',
     (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', 'views.kineticsData'),
     (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', 'views.kineticsData'),
     (r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)$', 'views.kineticsData'),
+    
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    (r'^kinetics/families/(?P<family>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)$', 'views.kineticsGroupEstimateEntry'),
+    
+    (r'^kinetics/families/(?P<family>[^/]+)/training/new$', 'views.kineticsEntryNewTraining'),
+    
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/edit$', 'views.kineticsEntryEdit'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/$', 'views.kineticsEntry'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.kinetics'),
     (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
