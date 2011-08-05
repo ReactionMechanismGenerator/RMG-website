@@ -477,6 +477,17 @@ def kineticsEntryNewTraining(request, family):
             max_index = max(database.entries.keys() or [0])
             index = max_index + 1
             
+            # check it's not already there
+            for entry in database.entries.values():
+                if entry.item.isIsomorphic(new_entry.item):
+                    kwargs = { 'section': 'families',
+                       'subsection': family+'/training',
+                       'index': entry.index,
+                      }
+                    forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                    return HttpResponse("This reaction is already in the training set\n\nCheck it out at "+forward_url, mimetype="text/plain")
+                    
+            
             new_entry.index = index
             new_history = (time.strftime('%Y-%m-%d'),
                          "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
