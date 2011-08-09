@@ -255,6 +255,12 @@ table.KineticsData {
 #entry_form li {
     list-style: none;
 }
+#entry_form .data_entry {
+    font-family: 'Menlo', 'Andalae Mono', 'Lucida Console', 'Monaco', monospace;
+}
+#entry_form .change_summary{
+    width: 100%;
+}
 
 /*------------------------------------*\
   IPHONE
