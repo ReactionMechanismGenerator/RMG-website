@@ -31,10 +31,15 @@
 import os.path
 import re
 import socket
+import StringIO # cStringIO is faster, but can't do Unicode
+import copy
+import time
+import subprocess
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 import settings
 
@@ -44,6 +49,7 @@ from rmgpy.thermo import *
 from rmgpy.kinetics import *
 from rmgpy.reaction import Reaction
 
+import rmgpy
 from rmgpy.data.base import Entry
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction, DepositoryReaction, LibraryReaction, KineticsGroups
@@ -73,6 +79,14 @@ def loadDatabase(component='', section=''):
             database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
         if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
             database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
+            # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
+            # we use our favourite values first.
+            preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
+            new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
+            for i in database.thermo.libraryOrder:
+                if i not in new_order: new_order.append(i) 
+            database.thermo.libraryOrder = new_order
+            print new_order
         if section in ['groups', ''] and len(database.thermo.groups) == 0:
             database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
     if component in ['kinetics', '']:
@@ -197,8 +211,8 @@ def thermo(request, section='', subsection=''):
         # database components
         thermoDepository = [(label, depository) for label, depository in database.thermo.depository.iteritems()]
         thermoDepository.sort()
-        thermoLibraries = [(label, library) for label, library in database.thermo.libraries.iteritems()]
-        thermoLibraries.sort()
+        thermoLibraries = [(label, database.thermo.libraries[label]) for label in database.thermo.libraryOrder]
+        #If they weren't already sorted in our preferred order, we'd call thermoLibraries.sort()
         thermoGroups = [(label, groups) for label, groups in database.thermo.groups.iteritems()]
         thermoGroups.sort()
         return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups}, context_instance=RequestContext(request))
@@ -425,7 +439,7 @@ def kinetics(request, section='', subsection=''):
         kineticsFamilies.sort()
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
 
-def getReactionUrl(reaction):
+def getReactionUrl(reaction, family=None):
     """Get the URL (for kinetics data) of a reaction"""
     kwargs = dict()
     for index, reactant in enumerate(reaction.reactants):
@@ -434,9 +448,203 @@ def getReactionUrl(reaction):
     for index, product in enumerate(reaction.products):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
         kwargs['product{0:d}'.format(index+1)] = moleculeToURL(mol)
-    reactionUrl = reverse(kineticsData, kwargs=kwargs)
+    if family:
+        kwargs['family']=family
+        reactionUrl = reverse(kineticsGroupEstimateEntry, kwargs=kwargs)
+    else:
+        reactionUrl = reverse(kineticsData, kwargs=kwargs)
     return reactionUrl
     
+
+@login_required
+def kineticsEntryNewTraining(request, family):
+    """
+    A view for creating a new entry in a kinetics family training depository.
+    """
+    # Load the kinetics database, if necessary
+    loadDatabase('kinetics', 'families')
+    try:
+        database = getKineticsDatabase('families', family+'/training')
+    except ValueError:
+        raise Http404
+    
+    entry = None
+    if request.method == 'POST':
+        form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+            
+            # determine index for new entry (1 higher than highest)
+            max_index = max(database.entries.keys() or [0])
+            index = max_index + 1
+            
+            # check it's not already there
+            for entry in database.entries.values():
+                if entry.item.isIsomorphic(new_entry.item):
+                    kwargs = { 'section': 'families',
+                       'subsection': family+'/training',
+                       'index': entry.index,
+                      }
+                    forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                    return HttpResponse("This reaction is already in the training set\n\nCheck it out at "+forward_url, mimetype="text/plain")
+                    
+            
+            new_entry.index = index
+            new_history = (time.strftime('%Y-%m-%d'),
+                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
+                         'action',
+                         "New entry. "+form.cleaned_data['change']
+                            )
+            new_entry.history = [new_history]
+            
+            # Get the entry as a entry_string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            
+            # redirect when done
+            kwargs = { 'section': 'families',
+                       'subsection': family+'/training',
+                       'index': index,
+                      }
+            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families', family, 'training.py' )
+                database.save(path)
+                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+                commit_message = "New {family}/training/{index} reaction: {msg}\n\nNew kinetics/families/{family}/training entry number {index} submitted through RMG website:\n{msg}\n{author}".format(family=family, index=index, msg=form.cleaned_data['change'], author=commit_author)
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                
+                
+                return HttpResponse(commit_result + "\n check it out at "+forward_url, mimetype="text/plain")
+                
+
+            
+    else: # not POST
+        form = KineticsEntryEditForm()
+        
+    return render_to_response('kineticsEntryEdit.html', {'section': 'families',
+                                                        'subsection': family+'/training',
+                                                        'databaseName': family,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
+    
+@login_required
+def kineticsEntryEdit(request, section, subsection, index):
+    """
+    A view for editing an entry in a kinetics database.
+    """
+
+    # Load the kinetics database, if necessary
+    loadDatabase('kinetics', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getKineticsDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    index = int(index)
+    for entry in database.entries.values():
+        if entry.index == index:
+            break
+    else:
+        raise Http404
+    
+    if request.method == 'POST':
+        form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+            new_entry.index = index
+            new_entry.history = copy.copy(entry.history)
+            new_history = (time.strftime('%Y-%m-%d'),
+                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
+                         'action',
+                         form.cleaned_data['change']
+                            )
+            new_entry.history.append(new_history)
+            
+            # Get the entry as a entry_string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            
+            if False:
+                # Render it as if it were saved.
+                return render_to_response('kineticsEntry.html', {'section': section,
+                                                         'subsection': subsection,
+                                                         'databaseName': database.name,
+                                                         'entry': new_entry,
+                                                         'reference': entry.reference,
+                                                         'kinetics': entry.data,
+                                                         },
+                              context_instance=RequestContext(request))
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'kinetics', section, subsection + '.py' )
+                database.save(path)
+                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+                commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                
+                return HttpResponse(commit_result, mimetype="text/plain")
+            
+            # redirect
+            kwargs = { 'section': section,
+                       'subsection': subsection,
+                       'index': index,
+                      }
+            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+            return HttpResponseRedirect(forward_url)
+    
+    else: # not POST
+        # Get the entry as a entry_string
+        entry_buffer = StringIO.StringIO(u'')
+        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+        entry_string = entry_buffer.getvalue()
+        entry_buffer.close()
+        
+        #entry_string = entry.item.reactants[0].toAdjacencyList()
+        # remove leading 'entry('
+        entry_string = re.sub('^entry\(\n','',entry_string)
+        # remove the 'index = 23,' line
+        entry_string = re.sub('\s*index = \d+,\n','',entry_string)
+        # remove the history and everything after it (including the final ')' )
+        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL)
+        
+        form = KineticsEntryEditForm(initial={'entry':entry_string })
+    
+    return render_to_response('kineticsEntryEdit.html', {'section': section,
+                                                        'subsection': subsection,
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
+
+
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
@@ -502,6 +710,116 @@ def kineticsEntry(request, section, subsection, index):
                                                         'kinetics': entry.data,
                                                         'reactionUrl': reactionUrl },
                                   context_instance=RequestContext(request))
+
+
+def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
+    """
+    View a kinetics group estimate as an entry.
+    """
+    # Load the kinetics database if necessary
+    loadDatabase('kinetics')
+    # Also load the thermo database so we can generate reverse kinetics if necessary
+    loadDatabase('thermo')
+    
+    # check the family exists
+    try:
+        getKineticsDatabase('families', family+'/groups')
+    except ValueError:
+        raise Http404
+
+    reactantList = []
+    reactantList.append(moleculeFromURL(reactant1))
+    if reactant2 != '':
+        reactantList.append(moleculeFromURL(reactant2))
+    if reactant3 != '':
+        reactantList.append(moleculeFromURL(reactant3))
+
+    productList = []
+    productList.append(moleculeFromURL(product1))
+    if product2 != '':
+        productList.append(moleculeFromURL(product2))
+    if product3 != '':
+        productList.append(moleculeFromURL(product3))    
+    
+    # Search for the corresponding reaction(s)
+    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family])
+    
+    kineticsDataList = []
+    
+    # discard all the rates from depositories and rules
+    reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
+    
+    assert len(reactionList)==1, "Was expceting one group estimate rate, not {0}".format(len(reactionList))
+    reaction = reactionList[0]
+    
+    # Generate the thermo data for the species involved
+    for reactant in reaction.reactants:
+        generateSpeciesThermo(reactant, database)
+    for product in reaction.products:
+        generateSpeciesThermo(product, database)
+    
+    # If the kinetics are ArrheniusEP, replace them with Arrhenius
+    if isinstance(reaction.kinetics, ArrheniusEP):
+        reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    arrow = '&hArr;' if reaction.reversible else '&rarr;'
+    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    assert isinstance(reaction, TemplateReaction), "Expected group additive kinetics to be a TemplateReaction"
+    
+    source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
+    entry = Entry(
+                  item=reaction,
+                  data=reaction.kinetics,
+                  longDesc=reaction.kinetics.comment,
+                  shortDesc="Estimated by RMG-Py Group Additivity",
+                  )
+                  
+    # Get the entry as a entry_string, to populate the New Entry form
+    # first, replace the kinetics with a fitted arrhenius form with no comment
+    entry.data = reaction.kinetics.toArrhenius()
+    entry.data.comment = ''
+    entry_buffer = StringIO.StringIO(u'')
+    rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+    entry_string = entry_buffer.getvalue()
+    entry_buffer.close()
+    # replace the kinetics with the original ones
+    entry.data = reaction.kinetics
+    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
+    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
+    entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
+    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
+
+    forwardKinetics = reaction.kinetics
+    reverseKinetics = reaction.generateReverseRateCoefficient()
+    
+    forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
+    
+    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
+                )
+    referenceType = ''
+    entry.index=-1
+
+    reactionUrl = getReactionUrl(reaction)
+
+    return render_to_response('kineticsEntry.html', {'section': 'families',
+                                                    'subsection': family,
+                                                    'databaseName': family,
+                                                    'entry': entry,
+                                                    'reactants': reactants,
+                                                    'arrow': arrow,
+                                                    'products': products,
+                                                    'reference': reference,
+                                                    'referenceType': referenceType,
+                                                    'kinetics': reaction.kinetics,
+                                                    'reactionUrl': reactionUrl,
+                                                    'reaction': reaction,
+                                                    'new_entry_form': new_entry_form},
+                              context_instance=RequestContext(request))
+    
 
 def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
     section = ''
@@ -647,7 +965,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
-        # Generate the kinetics in the reverse direction
+        # Generate the thermo data for the species involved
         for reactant in reaction.reactants:
             generateSpeciesThermo(reactant, database)
         for product in reaction.products:
@@ -662,7 +980,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
-            href = ''
+            href = getReactionUrl(reaction, family=reaction.family.name)
             entry = Entry(data=reaction.kinetics)
         elif isinstance(reaction, DepositoryReaction):
             source = '%s' % (reaction.depository.name)

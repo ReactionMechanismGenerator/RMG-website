@@ -133,6 +133,13 @@ h3 {
 
 /* Database styles */
 
+div.error {
+    color: #993333;
+    border: 2px solid #993333;
+    padding: 0.5em;
+    margin: 0.5em;
+}
+
 .comment, .history {
     width: 100%;
     background-color: #EEEEEE;
@@ -239,6 +246,14 @@ table.reference td p {
 
 table.KineticsData {
     margin: auto;
+}
+
+#entry_form label {
+    display: block;
+    font-weight: bold;
+}
+#entry_form li {
+    list-style: none;
 }
 
 /*------------------------------------*\

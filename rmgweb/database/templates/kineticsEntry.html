@@ -69,7 +69,8 @@ jQuery(document).ready(function() {
 &raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
 &raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>
 &raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ databaseName }}</a>
-&raquo; <a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+{% if entry.index and entry.index != -1 %}&raquo; <a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
+{% if reaction %}&raquo; {{ reaction }}{% endif %}
 {% endif %}
 
 
@@ -122,6 +123,7 @@ jQuery(document).ready(function() {
 <h2>Reference</h2>
 {% include "reference.html" %}
 
+{% if entry.history %}
 <h2>History</h2>
 {% for date, username, action, description in entry.history %}
 <table class="history">
@@ -134,6 +136,18 @@ jQuery(document).ready(function() {
 </tr>
 </table>
 {% endfor %}
+{% endif %}
+
+{% if new_entry_form %}
+<form method="post" id="entry_form" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<div style="display: none;">{{ new_entry_form.entry }}</div>
+{% csrf_token %}
+If this reaction is not in the training set for {{ subsection }} and you have a rate for it, then add it here:
+<input type="submit" value="Add new rate to training set" name="Add" />
+</form>
+
+{% endif %}
+
 <br/>
 
 {% endblock %}

@@ -4,6 +4,7 @@
     <tr>
         <td class="label">Reference:</td>
         <td class="reference">{{ reference|restructuredtext }}
+           {% if reference.year and reference.authors %}
          <form name="UserForm" action="http://kinetics.nist.gov/kinetics/Search.jsp" method="POST" target="_BLANK">
             <input type=hidden name="doc" VALUE="SearchForm">
             <input type=hidden name="type" VALUE="java">
@@ -43,6 +44,7 @@
             <input type=submit value="Search NIST kinetics for {{ reference.year }}{{ reference.authors|first|slice:":3" }}">
             <input type=hidden name="category" value="0">
          </form>
+         {% endif %}
            </td>
     </tr>
 {% endif %}
@@ -58,10 +60,10 @@
     </tr>
     <tr>
         <td class="label">Short&nbsp;description:</td>
-        <td>{{ entry.shortDesc|restructuredtext }}</td>
+        <td>{{ entry.shortDesc }}</td>
     </tr>
     <tr>
         <td class="label">Long&nbsp;description:</td>
-        <td>{{ entry.longDesc|restructuredtext }}</td>
+        <td style="white-space: pre-wrap;">{{ entry.longDesc }}</td>
     </tr>
 </table>
