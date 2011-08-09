@@ -775,10 +775,15 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
                   )
                   
     # Get the entry as a entry_string, to populate the New Entry form
+    # first, replace the kinetics with a fitted arrhenius form with no comment
+    entry.data = reaction.kinetics.toArrhenius()
+    entry.data.comment = ''
     entry_buffer = StringIO.StringIO(u'')
     rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
     entry_string = entry_buffer.getvalue()
     entry_buffer.close()
+    # replace the kinetics with the original ones
+    entry.data = reaction.kinetics
     entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
     entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
     entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
