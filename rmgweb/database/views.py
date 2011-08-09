@@ -557,7 +557,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                         },
                                   context_instance=RequestContext(request))
 
-def gitHistory(request,dbtype='',section='',subsection='',index=''):
+def gitHistory(request,dbtype='',section='',subsection=''):
     """
     A view for seeing the history of the given part of the database.
     dbtype = thermo / kinetics
@@ -566,18 +566,17 @@ def gitHistory(request,dbtype='',section='',subsection='',index=''):
     """
     
     path = os.path.join(settings.DATABASE_PATH, dbtype, section, subsection + '*' )
-
     history_result = subprocess.check_output(['git', 'log',
-                '--follow',
-                '--', path
+                '--', os.path.split(path)[0],
                 ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-    
+
     history = []
     re_commit = re.compile('commit ([a-f0-9]{40})')
     re_author = re.compile('Author: (.*) \<(\w+\@[^> ]+)\>')
     re_date = re.compile('Date:\s+(.*)')
     re_message = re.compile('    (.*)$')
     for line in history_result.split('\n'):
+        # print line
         m = re_commit.match(line)
         if m:
             commit = {}
@@ -605,8 +604,6 @@ def gitHistory(request,dbtype='',section='',subsection='',index=''):
                                                 'subsection': subsection,
                                                 'history': history,
                                                 }, context_instance=RequestContext(request))
-
-
 
 
 def kineticsEntry(request, section, subsection, index):

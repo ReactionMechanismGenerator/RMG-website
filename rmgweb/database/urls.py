@@ -40,9 +40,10 @@ urlpatterns = patterns('rmgweb.database',
     
     # History
     # These are up front to avoid it being interpreted as the 'history' section or subsection.
-    (r'(?P<dbtype>kinetics|thermo)/history', 'views.gitHistory'),
-    (r'(?P<dbtype>kinetics|thermo)/(?P<section>\w+)/history', 'views.gitHistory'),
-    (r'(?P<dbtype>kinetics|thermo)/(?P<section>\w+)/(?P<subsection>.+)/history', 'views.gitHistory'),
+    (r'^history', 'views.gitHistory'),
+    (r'^(?P<dbtype>kinetics|thermo)/history', 'views.gitHistory'),
+    (r'^(?P<dbtype>kinetics|thermo)/(?P<section>\w+)/history', 'views.gitHistory'),
+    (r'^(?P<dbtype>kinetics|thermo)/(?P<section>\w+)/(?P<subsection>.+)/history', 'views.gitHistory'),
 
     # Thermodynamics database
     (r'^thermo/$', 'views.thermo'),
