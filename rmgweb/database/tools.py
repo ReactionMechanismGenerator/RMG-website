@@ -78,6 +78,7 @@ def generateReactions(database, reactants, products=None, only_families=None):
     # get RMG-py reactions
     reactionList = []
     if only_families is None:
+        # Not restricted to certain families, so also check libraries.
         reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
     reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, only_families=only_families))
     if len(reactants) == 1:
@@ -85,6 +86,7 @@ def generateReactions(database, reactants, products=None, only_families=None):
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
         if only_families is None:
+            # Not restricted to certain families, so also check libraries.
             reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
         reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, only_families=only_families))
     
@@ -146,9 +148,10 @@ def generateReactions(database, reactants, products=None, only_families=None):
     
     # get RMG-java reactions
     if only_families is None:
-        rmgJavaReactionList = []
-    else:
+        # Not restricted to certain families, so also check RMG-Java.
         rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
+    else:
+        rmgJavaReactionList = []
     
     return reactionList, rmgJavaReactionList
     
