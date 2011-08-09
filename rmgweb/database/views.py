@@ -28,6 +28,7 @@
 #
 ################################################################################
 
+import os
 import os.path
 import re
 import socket
@@ -58,94 +59,6 @@ from rmgpy.data.rmg import RMGDatabase
 from forms import *
 from tools import *
 from rmgweb.main.tools import *
-
-################################################################################
-
-database = None
-
-def loadDatabase(component='', section=''):
-    """
-    Load the requested `component` of the RMG database if not already done.
-    """
-    global database
-    if not database:
-        database = RMGDatabase()
-        database.thermo = ThermoDatabase()
-        database.kinetics = KineticsDatabase()
-        database.loadForbiddenStructures(os.path.join(settings.DATABASE_PATH, 'forbiddenStructures.py'))
-
-    if component in ['thermo', '']:
-        if section in ['depository', ''] and len(database.thermo.depository) == 0:
-            database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
-        if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
-            database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
-            # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
-            # we use our favourite values first.
-            preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
-            new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
-            for i in database.thermo.libraryOrder:
-                if i not in new_order: new_order.append(i) 
-            database.thermo.libraryOrder = new_order
-            print new_order
-        if section in ['groups', ''] and len(database.thermo.groups) == 0:
-            database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
-    if component in ['kinetics', '']:
-        if section in ['libraries', ''] and len(database.kinetics.libraries) == 0:
-            database.kinetics.loadLibraries(os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries'))
-        if section in ['families', ''] and len(database.kinetics.families) == 0:
-            database.kinetics.loadFamilies(os.path.join(settings.DATABASE_PATH, 'kinetics', 'families'))
-
-    return database
-
-def getThermoDatabase(section, subsection):
-    """
-    Return the component of the thermodynamics database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-
-    try:
-        if section == 'depository':
-            db = database.thermo.depository[subsection]
-        elif section == 'libraries':
-            db = database.thermo.libraries[subsection]
-        elif section == 'groups':
-            db = database.thermo.groups[subsection]
-        else:
-            raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError:
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    return db
-
-def getKineticsDatabase(section, subsection):
-    """
-    Return the component of the kinetics database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-    
-    db = None
-    try:
-        if section == 'libraries':
-            db = database.kinetics.libraries[subsection]
-        elif section == 'families':
-            subsection = subsection.split('/')
-            if subsection[0] != '' and len(subsection) == 2:
-                family = database.kinetics.families[subsection[0]]
-                if subsection[1] == 'groups':
-                    db = family.groups
-                elif subsection[1] == 'rules':
-                    db = family.rules
-                else:
-                    label = '{0}/{1}'.format(family.label, subsection[1])
-                    db = (d for d in family.depositories if d.label==label).next()
-        else:
-            raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except (KeyError, StopIteration):
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    return db
 
 ################################################################################
 
@@ -644,6 +557,54 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                         },
                                   context_instance=RequestContext(request))
 
+def gitHistory(request,dbtype='',section='',subsection=''):
+    """
+    A view for seeing the history of the given part of the database.
+    dbtype = thermo / kinetics
+    section = libraries / families
+    subsection = 'Glarborg/C3', etc.
+    """
+    
+    path = os.path.join(settings.DATABASE_PATH, dbtype, section, subsection + '*' )
+    history_result = subprocess.check_output(['git', 'log',
+                '--', os.path.split(path)[0],
+                ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+
+    history = []
+    re_commit = re.compile('commit ([a-f0-9]{40})')
+    re_author = re.compile('Author: (.*) \<(\w+\@[^> ]+)\>')
+    re_date = re.compile('Date:\s+(.*)')
+    re_message = re.compile('    (.*)$')
+    for line in history_result.split('\n'):
+        # print line
+        m = re_commit.match(line)
+        if m:
+            commit = {}
+            commit['hash'] = m.group(1)
+            commit['message'] = ''
+            history.append(commit)
+            continue
+        m = re_author.match(line)
+        if m:
+            commit['author_name'] = m.group(1)
+            commit['author_email'] = m.group(2)
+            commit['author_name_email'] = "{0} <{1}>".format(m.group(1),m.group(2))
+            continue
+        m = re_date.match(line)
+        if m:
+            commit['date'] = m.group(1)
+            continue
+        m = re_message.match(line)
+        if m:
+            commit['message'] += m.group(1) + '\n'
+            continue
+            
+    return render_to_response('history.html', { 'dbtype': dbtype,
+                                                'section': section,
+                                                'subsection': subsection,
+                                                'history': history,
+                                                }, context_instance=RequestContext(request))
+
 
 def kineticsEntry(request, section, subsection, index):
     """
@@ -717,7 +678,7 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     View a kinetics group estimate as an entry.
     """
     # Load the kinetics database if necessary
-    loadDatabase('kinetics')
+    loadDatabase('kinetics','families')
     # Also load the thermo database so we can generate reverse kinetics if necessary
     loadDatabase('thermo')
     
