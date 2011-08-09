@@ -682,6 +682,9 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     # Also load the thermo database so we can generate reverse kinetics if necessary
     loadDatabase('thermo')
     
+    # we need 'database' to reference the top level object that we pass to generateReactions
+    from tools import database
+    
     # check the family exists
     try:
         getKineticsDatabase('families', family+'/groups')
@@ -710,7 +713,11 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     # discard all the rates from depositories and rules
     reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
     
-    assert len(reactionList)==1, "Was expceting one group estimate rate, not {0}".format(len(reactionList))
+    # if there are still two, only keep the forward direction
+    if len(reactionList)==2:
+        reactionList = [reaction for reaction in reactionList if reactionHasReactants(reaction, reactantList)]
+    
+    assert len(reactionList)==1, "Was expecting one group estimate rate, not {0}".format(len(reactionList))
     reaction = reactionList[0]
     
     # Generate the thermo data for the species involved
