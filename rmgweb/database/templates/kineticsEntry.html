@@ -86,7 +86,7 @@ jQuery(document).ready(function() {
 {{ databaseName }}
 {% endif %}
 
-(<a href="{% url database.views.kineticsEntryEdit section=section subsection=subsection index=entry.index %}">edit entry</a>)
+
 
 {% endblock %}
 
@@ -140,6 +140,7 @@ jQuery(document).ready(function() {
 {% endfor %}
 {% endif %}
 
+<h2>Update database</h2>
 {% if new_entry_form %}
 <form method="post" id="entry_form" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
 <div style="display: none;">{{ new_entry_form.entry }}</div>
@@ -147,9 +148,15 @@ jQuery(document).ready(function() {
 If this reaction is not in the training set for {{ subsection }} and you have a rate for it, then add it here:
 <input type="submit" value="Add new rate to training set" name="Add" />
 </form>
-
 {% endif %}
-
+{% if entry.index and entry.index != -1 %}
+If you noticed a mistake or have better data, then edit this entry here: <a href="{% url database.views.kineticsEntryEdit section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
+{% endif %}
+{% if user.is_authenticated %}
+You are logged in as {{ user.get_full_name }}</a> 
+{% else %}
+You must <a href="{% url main.views.login %}?next={{ request.path }}">log in first.</a>
+{% endif %}
 <br/>
 
 {% endblock %}
