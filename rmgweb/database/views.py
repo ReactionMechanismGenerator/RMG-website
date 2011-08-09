@@ -61,10 +61,77 @@ from rmgweb.main.tools import *
 ################################################################################
 
 database = None
+_timestamps = {}
+
+# Some functions to determine if the database files have changed on disk since
+# they were last loaded. 
+def resetTimestamp(path):
+    """
+    Reset the files timestamp in the stored dictionary of timestamps.
+    """
+    mtime = os.stat(path).st_mtime
+    _timestamps[path] = mtime
+
+def resetDirTimestamps(dirpath):
+    """
+    Walk the directory tree from dirpath, calling resetTimestamp(file) on each file.
+    """
+    print "Resetting 'last loaded' timestamps for {0}".format(dirpath)
+    for root, dirs, files in os.walk(dirpath):
+        for name in files:
+            resetTimestamp(os.path.join(root,name))
+
+def isFileModified(path):
+    """
+    Return True if the file at `path` has been modified since `resetTimestamp(path)` was last called.
+    """
+    try:
+        # If path doesn't denote a file and were previously
+        # tracking it, then it has been removed or the file type
+        # has changed, so return True.
+        if not os.path.isfile(path):
+            return path in _timestamps
+        
+        # If path wasn't being tracked then it's new, so return True
+        mtime = os.stat(path).st_mtime
+        if path not in _timestamps:
+            return True
+        
+        # Force restart when modification time has changed, even
+        # if time now older, as that could indicate older file
+        # has been restored.
+        if mtime != _timestamps[path]:
+            return True
+    except:
+        # for debugging, raise the exception
+        # If any exception occured, likely that file has been
+        # been removed just before stat(), so force a restart.
+        raise
+        return True
+    # passed all tests
+    return False
+
+def isDirModified(dirpath):
+    """
+    Returns True if anything in the directory at dirpath has been modified since resetDirTimestamps(dirpath).
+    """
+    to_check = set([path for path in _timestamps if path.startswith(dirpath)])
+    for root, dirs, files in os.walk(dirpath):
+        for name in files:
+            path = os.path.join(root,name)
+            if isFileModified(path):
+                return True
+            to_check.remove(path)
+    # If there's anything left in to_check, it's probably now gone and this will return True:
+    for path in to_check:
+        if isFileModified(path):
+            return True
+    # Passed all tests.
+    return False
 
 def loadDatabase(component='', section=''):
     """
-    Load the requested `component` of the RMG database if not already done.
+    Load the requested `component` of the RMG database if modified since last loaded.
     """
     global database
     if not database:
@@ -74,25 +141,39 @@ def loadDatabase(component='', section=''):
         database.loadForbiddenStructures(os.path.join(settings.DATABASE_PATH, 'forbiddenStructures.py'))
 
     if component in ['thermo', '']:
-        if section in ['depository', ''] and len(database.thermo.depository) == 0:
-            database.thermo.loadDepository(os.path.join(settings.DATABASE_PATH, 'thermo', 'depository'))
-        if section in ['libraries', ''] and len(database.thermo.libraries) == 0:
-            database.thermo.loadLibraries(os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries'))
-            # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
-            # we use our favourite values first.
-            preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
-            new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
-            for i in database.thermo.libraryOrder:
-                if i not in new_order: new_order.append(i) 
-            database.thermo.libraryOrder = new_order
-            print new_order
-        if section in ['groups', ''] and len(database.thermo.groups) == 0:
-            database.thermo.loadGroups(os.path.join(settings.DATABASE_PATH, 'thermo', 'groups'))
+        if section in ['depository', '']:
+            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'depository')
+            if isDirModified(dirpath):
+                database.thermo.loadDepository(dirpath)
+                resetDirTimestamps(dirpath)
+        if section in ['libraries', '']:
+            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries')
+            if isDirModified(dirpath):
+                database.thermo.loadLibraries(dirpath)
+                # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
+                # we use our favourite values first.
+                preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
+                new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
+                for i in database.thermo.libraryOrder:
+                    if i not in new_order: new_order.append(i) 
+                database.thermo.libraryOrder = new_order
+                resetDirTimestamps(dirpath)
+        if section in ['groups', '']:
+            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'groups')
+            if isDirModified(dirpath):
+                database.thermo.loadGroups(dirpath)
+                resetDirTimestamps(dirpath)
     if component in ['kinetics', '']:
-        if section in ['libraries', ''] and len(database.kinetics.libraries) == 0:
-            database.kinetics.loadLibraries(os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries'))
-        if section in ['families', ''] and len(database.kinetics.families) == 0:
-            database.kinetics.loadFamilies(os.path.join(settings.DATABASE_PATH, 'kinetics', 'families'))
+        if section in ['libraries', '']:
+            dirpath = os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries')
+            if isDirModified(dirpath):
+                database.kinetics.loadLibraries(dirpath)
+                resetDirTimestamps(dirpath)
+        if section in ['families', '']:
+            dirpath = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families')
+            if isDirModified(dirpath):
+                database.kinetics.loadFamilies(dirpath)
+                resetDirTimestamps(dirpath)
 
     return database
 
@@ -716,7 +797,7 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     View a kinetics group estimate as an entry.
     """
     # Load the kinetics database if necessary
-    loadDatabase('kinetics')
+    loadDatabase('kinetics','families')
     # Also load the thermo database so we can generate reverse kinetics if necessary
     loadDatabase('thermo')
     
