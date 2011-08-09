@@ -91,6 +91,11 @@ jQuery(document).ready(function() {
 {% block page_title %}Kinetics Data{% endblock %}
 
 {% block page_body %}
+
+{% if reactionUrl != '' %}
+<p><a href="{{ reverseReactionURL }}">Search reverse reaction kinetics.</a></p>
+{% endif %}
+
 <div class="NIST_query">
          <form name="UserForm" action="http://kinetics.nist.gov/kinetics/Search.jsp" method="POST" target="_blank">
             <input type=hidden name="doc" VALUE="SearchForm">
