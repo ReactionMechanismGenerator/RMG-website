@@ -86,6 +86,7 @@ jQuery(document).ready(function() {
 {{ databaseName }}
 {% endif %}
 
+(<a href="{% url database.views.kineticsEntryEdit section=section subsection=subsection index=entry.index %}">edit entry</a>)
 
 {% endblock %}
 
@@ -113,7 +114,8 @@ jQuery(document).ready(function() {
 {% endif %}
 <br/>
 
-<h2>Kinetic Data</h2>
+<h2>Kinetic Data 
+</h2>
 {{ kinetics|render_kinetics_math:user }}
 
 {% if kinetics %}
