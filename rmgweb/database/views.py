@@ -51,7 +51,7 @@ from rmgpy.kinetics import *
 from rmgpy.reaction import Reaction
 
 import rmgpy
-from rmgpy.data.base import Entry
+from rmgpy.data.base import Entry, LogicNode
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction, DepositoryReaction, LibraryReaction, KineticsGroups
 from rmgpy.data.rmg import RMGDatabase
@@ -353,9 +353,16 @@ def kinetics(request, section='', subsection=''):
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
 
 def getReactionUrl(reaction, family=None):
-    """Get the URL (for kinetics data) of a reaction"""
+    """
+    Get the URL (for kinetics data) of a reaction.
+    
+    Returns '' if the reaction contains functional Groups or LogicNodes instead
+    of real Species or Molecules."""
     kwargs = dict()
     for index, reactant in enumerate(reaction.reactants):
+        if isinstance(reactant, Group) or isinstance(reactant, LogicNode):
+            return ''
+        
         mol = reactant if isinstance(reactant,Molecule) else reactant.molecule[0]
         kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(mol)
     for index, product in enumerate(reaction.products):
@@ -654,10 +661,9 @@ def kineticsEntry(request, section, subsection, index):
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         
         # Searching for other instances of the reaction only valid for real reactions, not groups
-        if not any([isinstance(reactant, Group) for reactant in entry.item.reactants]):
-            reactionUrl = getReactionUrl(entry.item)
-        else:
-            reactionUrl = ''
+        # If a Group or LogicNode shows up in the reaction, getReactionUrl will return ''
+        reactionUrl = getReactionUrl(entry.item)
+
         
         return render_to_response('kineticsEntry.html', {'section': section,
                                                         'subsection': subsection,
