@@ -834,6 +834,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
     
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
+    from tools import database # the global one with both thermo and kinetics
     
     reactantList = []
     reactantList.append(moleculeFromURL(reactant1))
@@ -894,6 +895,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     loadDatabase('kinetics')
     # Also load the thermo database so we can generate reverse kinetics if necessary
     loadDatabase('thermo')
+    from tools import database # the global one with both thermo and kinetics
 
     reactantList = []
     reactantList.append(moleculeFromURL(reactant1))
@@ -915,8 +917,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         reverseReactionURL = getReactionUrl(reverseReaction)
     else:
         productList = None
-
-
 
     # Search for the corresponding reaction(s)
     reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
