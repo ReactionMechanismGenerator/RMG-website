@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}
+{% if section != '' %}
+RMG {{ dbtype|title }}  {{ section|title }} {{ subsection|title }} History
+{% else %}
+RMG {{ dbtype|title }} Database History
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.index %}">Database</a>
+{% if dbtype == 'kinetics' %}
+&raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
+{% if section != '' %}&raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>{% endif %}
+{% if subsection != '' %}&raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+{% endif %}
+{% if dbtype == 'thermo' %}
+&raquo; <a href="{% url database.views.thermo %}">Thermo</a>
+{% if section != '' %}&raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>{% endif %}
+{% if subsection != '' %}&raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}
+{% if section != '' %}
+RMG {{ dbtype|title }}  {{ section|title }} {{ subsection|title }} History
+{% else %}
+RMG {{ dbtype|title }} Database History
+{% endif %}
+{% endblock %}
+
+{% block page_body %}
+
+<ul>
+{% for item in history %}
+
+<table class="history">
+<tr>
+    <td rowspan="2" class="historyIcon">{% gravatar item.author_email 40 %}</td>
+    <td class="historyText" style="white-space: pre-line">{{ item.message }}</td>
+</tr>
+<tr>
+    <td class="historyMeta">Action by {{ item.author_name_email }} on {{ item.date }} </td>
+</tr>
+</table>
+{% endfor %}
+
+
+{% endblock %}

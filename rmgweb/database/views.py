@@ -556,6 +556,57 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                         },
                                   context_instance=RequestContext(request))
 
+def gitHistory(request,dbtype='',section='',subsection='',index=''):
+    """
+    A view for seeing the history of the given part of the database.
+    dbtype = thermo / kinetics
+    section = libraries / families
+    subsection = 'Glarborg/C3', etc.
+    """
+    
+    path = os.path.join(settings.DATABASE_PATH, dbtype, section, subsection + '*' )
+
+    history_result = subprocess.check_output(['git', 'log',
+                '--follow',
+                '--', path
+                ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+    
+    history = []
+    re_commit = re.compile('commit ([a-f0-9]{40})')
+    re_author = re.compile('Author: (.*) \<(\w+\@[^> ]+)\>')
+    re_date = re.compile('Date:\s+(.*)')
+    re_message = re.compile('    (.*)$')
+    for line in history_result.split('\n'):
+        m = re_commit.match(line)
+        if m:
+            commit = {}
+            commit['hash'] = m.group(1)
+            commit['message'] = ''
+            history.append(commit)
+            continue
+        m = re_author.match(line)
+        if m:
+            commit['author_name'] = m.group(1)
+            commit['author_email'] = m.group(2)
+            commit['author_name_email'] = "{0} <{1}>".format(m.group(1),m.group(2))
+            continue
+        m = re_date.match(line)
+        if m:
+            commit['date'] = m.group(1)
+            continue
+        m = re_message.match(line)
+        if m:
+            commit['message'] += m.group(1) + '\n'
+            continue
+            
+    return render_to_response('history.html', { 'dbtype': dbtype,
+                                                'section': section,
+                                                'subsection': subsection,
+                                                'history': history,
+                                                }, context_instance=RequestContext(request))
+
+
+
 
 def kineticsEntry(request, section, subsection, index):
     """
