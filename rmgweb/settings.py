@@ -96,6 +96,18 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+# default ones
+"django.contrib.auth.context_processors.auth",
+"django.core.context_processors.debug",
+"django.core.context_processors.i18n",
+"django.core.context_processors.media",
+"django.core.context_processors.static",
+"django.contrib.messages.context_processors.messages",
+# extra ones
+"django.core.context_processors.request", # adds 'request' to every view
+)
+
 ROOT_URLCONF = 'rmgweb.urls'
 
 TEMPLATE_DIRS = (

@@ -177,8 +177,8 @@ class KineticsEntryEditForm(forms.Form):
     """
     Form for editing kinetics database entries
     """
-    entry = forms.CharField(label="Database Entry", widget = forms.Textarea(attrs={'cols': 100, 'rows': 50}), required=True)
-    change = forms.CharField(label="Summary of changes", widget=forms.TextInput(attrs={'style':'width:100%;'}), required=True)
+    entry = forms.CharField(label="Database Entry", widget = forms.Textarea(attrs={'cols': 80, 'rows': 40, 'class':'data_entry'}), required=True)
+    change = forms.CharField(label="Summary of changes", widget=forms.TextInput(attrs={'class':'change_summary'}), required=True)
 
     def clean_entry(self):
             """
