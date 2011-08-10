@@ -406,9 +406,15 @@ def kineticsEntryNewTraining(request, family):
                        'index': entry.index,
                       }
                     forward_url = reverse(kineticsEntry, kwargs=kwargs)
-                    return HttpResponse("This reaction is already in the training set\n\nCheck it out at "+forward_url, mimetype="text/plain")
-                    
-            
+                    message = """
+                    This reaction is already in the {0} training set.
+                    View or edit it at <a href="{1}">{1}</a>.
+                    """.format(family, forward_url)
+                    return render_to_response('simple.html', { 
+                        'title': 'Reaction already in training set.',
+                        'body': message,
+                        },
+                        context_instance=RequestContext(request))
             new_entry.index = index
             new_history = (time.strftime('%Y-%m-%d'),
                          "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
@@ -447,10 +453,17 @@ def kineticsEntryNewTraining(request, family):
                     ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
                 
-                return HttpResponse(commit_result + "\n check it out at "+forward_url, mimetype="text/plain")
-                
-
-            
+                message = """
+                New training reaction saved succesfully:<br>
+                <pre>{0}</pre><br>
+                See result at <a href="{1}">{1}</a>.
+                """.format(commit_result, forward_url)
+                return render_to_response('simple.html', { 
+                    'title': 'New rate saved successfully.',
+                    'body': message,
+                    },
+                    context_instance=RequestContext(request))
+    
     else: # not POST
         form = KineticsEntryEditForm()
         
@@ -505,7 +518,6 @@ def kineticsEntryEdit(request, section, subsection, index):
             if False:
                 # Just return the text.
                 return HttpResponse(entry_string, mimetype="text/plain")
-            
             if False:
                 # Render it as if it were saved.
                 return render_to_response('kineticsEntry.html', {'section': section,
@@ -529,14 +541,26 @@ def kineticsEntryEdit(request, section, subsection, index):
                     path
                     ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
-                return HttpResponse(commit_result, mimetype="text/plain")
-            
-            # redirect
-            kwargs = { 'section': section,
+                
+                #return HttpResponse(commit_result, mimetype="text/plain")
+                
+                kwargs = { 'section': section,
                        'subsection': subsection,
                        'index': index,
                       }
-            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                message = """
+                Changes saved succesfully:<br>
+                <pre>{0}</pre><br>
+                See result at <a href="{1}">{1}</a>.
+                """.format(commit_result, forward_url)
+                return render_to_response('simple.html', { 
+                    'title': 'Change saved successfully.',
+                    'body': message,
+                    },
+                    context_instance=RequestContext(request))
+            
+            # redirect
             return HttpResponseRedirect(forward_url)
     
     else: # not POST
