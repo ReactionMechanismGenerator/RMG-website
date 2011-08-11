@@ -45,6 +45,10 @@ $(document).ready(function() {
       var src = adjlist2img( $(this).val() );
       $(this).closest('tr').find('img').attr('src',src);
     });
+// if you got to the page with pre-filled fields (eg. by hitting the back or forward button) the images will be stale
+   $("textarea").each(function(){
+      if ($(this).val()) { $(this).change(); }
+      })
 // end of $(document).ready(function() {
 })
 </script>
