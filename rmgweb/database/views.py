@@ -194,6 +194,7 @@ def thermoData(request, adjlist):
     
     # Load the thermo database if necessary
     loadDatabase('thermo')
+    from tools import database
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
