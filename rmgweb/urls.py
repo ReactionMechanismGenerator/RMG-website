@@ -74,6 +74,8 @@ urlpatterns = patterns('rmgweb',
     # Molecule drawing webpage
     (r'^molecule_search$', 'database.views.moleculeSearch'),
 
+    # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
+    
 )
 
 # When developing in Django we generally don't have a web server available to
@@ -84,5 +86,8 @@ if settings.DEBUG:
         (r'^media/(.*)$', 'django.views.static.serve',
             {'document_root': os.path.join(settings.PROJECT_PATH, 'media'),
              'show_indexes': True, }
+        ),
+        (r'^(robots\.txt)$', 'django.views.static.serve',
+            {'document_root': os.path.join(settings.PROJECT_PATH, 'media')}
         ),
     )
