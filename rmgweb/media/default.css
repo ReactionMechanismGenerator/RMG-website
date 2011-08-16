@@ -92,6 +92,13 @@ h3 {
     padding: 4px;
 }
 
+html, body, #document, #mainbar {
+    height: 100%;
+}
+#main {
+    min-height: 90%;
+}
+
 /* Header and footer */
 
 #header, #footer {
