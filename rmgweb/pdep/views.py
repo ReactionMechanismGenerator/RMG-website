@@ -321,16 +321,9 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
     Nprod = len(network.products)
     dE = Elist[1] - Elist[0]
 
-    # Get ground-state energies of all isomers and each reactant channel
-    # that has the necessary parameters
-    # An exception will be raised if a unimolecular isomer is missing
-    # this information
-    E0 = numpy.zeros((Nisom+Nreac), numpy.float64)
-    for i in range(Nisom):
-        E0[i] = network.isomers[i].E0.value
-    for n in range(Nreac):
-        E0[n+Nisom] = sum([spec.E0.value for spec in network.reactants[n]])
-
+    # Get ground-state energies of all configurations
+    E0 = network.calculateGroundStateEnergies()
+    
     # Get first reactive grain for each isomer
     Ereac = numpy.ones(Nisom, numpy.float64) * 1e20
     for i in range(Nisom):
