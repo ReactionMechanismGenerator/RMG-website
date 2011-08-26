@@ -546,7 +546,6 @@ def getRMGJavaKinetics(reactantList, productList=None):
 
         # Constants for all entries
         degeneracy = 1
-        source = 'RMG-Java'
 
         # Search for da Reactions
         print 'Searching output for desired reaction...\n'
@@ -566,12 +565,14 @@ def getRMGJavaKinetics(reactantList, productList=None):
                 print 'Found a matching reaction:'
                 print reactionline
                 reactants, products, kinetics, entry = extractKinetics(reactionline)
-                reaction = Reaction(
+                reaction = DepositoryReaction(
                     reactants = [species_dict[reactant] for reactant in reactants],
                     products = [species_dict[product] for product in products],
                     kinetics = kinetics,
                     degeneracy = degeneracy,
+                    entry = entry,
                 )
+
                 reactionList.append(reaction)
     
     # Return the reactions as containing Species objects, not Molecule objects

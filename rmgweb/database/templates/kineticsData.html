@@ -151,6 +151,11 @@ jQuery(document).ready(function() {
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
 {{ kinetics|render_kinetics_math:user }}
+
+{% if source == 'RMG-Java' %}
+<P>Comments: {{ entry.longDesc }}
+{% endif %}
+
 {% if not forward %}<p>* Kinetics fitted from reverse direction</p>{% else %}<br/>{% endif %}
 {% endfor %}
 

@@ -981,6 +981,10 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
             href = getReactionUrl(reaction, family=reaction.family.name)
             entry = Entry(data=reaction.kinetics)
+        elif reaction in rmgJavaReactionList:
+            source = 'RMG-Java'
+            href = ''
+            entry = reaction.entry
         elif isinstance(reaction, DepositoryReaction):
             source = '%s' % (reaction.depository.name)
             href = reverse(kineticsEntry, kwargs={'section': 'families', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
@@ -989,10 +993,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             source = reaction.library.name
             href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
             entry = reaction.entry
-        elif reaction in rmgJavaReactionList:
-            source = 'RMG-Java'
-            href = ''
-            entry = Entry(data=reaction.kinetics)
+        
         forwardKinetics = reaction.kinetics
         
         forward = reactionHasReactants(reaction, reactantList)
