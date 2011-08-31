@@ -27,6 +27,10 @@ table.networks th {
 <table>
 {% if user.is_authenticated %}
     <tr>
+        <td class="key">Name:</td>
+        <td class="value">{{ user0.get_full_name }}</td>
+    </tr>
+    <tr>
         <td class="key">Email:</td>
         <td class="value">{{ user0.email }}</td>
     </tr>
@@ -36,7 +40,7 @@ table.networks th {
     </tr>
     <tr>
         <td class="key">Website:</td>
-        <td class="value">{{ userProfile.website }}</td>
+        <td class="value"><a href="{{ userProfile.website }}" target="_blank">{{ userProfile.website }}</a></td>
     </tr>
     <tr>
         <td class="key">Bio:</td>
@@ -45,6 +49,13 @@ table.networks th {
 {% endif %}
 </table>
 <br/>
+
+{% if user == user0 %}
+<p>
+   <a href="{% url rmgweb.main.views.editProfile %}" title="Edit profile"><button>Edit Profile</button></a>
+</p>
+{% endif %}
+
 
 {% if user == user0 %}
 <h2>MEASURE Reaction Networks</h2>

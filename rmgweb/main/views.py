@@ -32,6 +32,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 import django.contrib.auth.views
+from django.core.urlresolvers import reverse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -113,7 +114,7 @@ def editProfile(request):
             userForm.save()
             profileForm.save()
             passwordForm.save()
-            return HttpResponseRedirect('/') # Redirect after POST
+            return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
