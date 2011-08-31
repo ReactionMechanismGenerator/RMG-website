@@ -74,6 +74,9 @@ urlpatterns = patterns('rmgweb',
     # Molecule drawing webpage
     (r'^molecule_search$', 'database.views.moleculeSearch'),
 
+    # RMG-Py Stuff
+    (r'^simulate/', include('rmg.urls')),
+
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
     
 )

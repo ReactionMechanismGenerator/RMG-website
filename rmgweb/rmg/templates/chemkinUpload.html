@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Convert Chemkin File{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulate</a> &raquo;
+<a href="{% url rmg.views.convertChemkin %}">Convert Chemkin File</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Convert Chemkin File{% endblock %}
+
+{% block page_body %}
+
+<p>
+Upload your chemkin file and its associated RMG Dictionary text file to generate an output HTML
+page of species and reactions.
+</p>
+<hr/>
+
+{% if path %}
+<a href ="../{{path}}">Click here for your generated output file.</a>
+{% endif %}
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}

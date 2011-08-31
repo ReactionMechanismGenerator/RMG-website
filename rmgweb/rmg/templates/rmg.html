@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}RMG: Simulate{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulate</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{% endblock %}
+
+{% block page_body %}
+<h2>RMG-Python</h2>
+
+
+<ol>
+        <li><a href="not yet in this git branch">Create Input File</a><P>
+        <li><a href="submit job link">Submit Job</a><P>
+        <li><a href="documentation link">Documentation</a><P>
+    </ol>
+
+<h2>Useful Tools</h2>
+    <ol>
+        <li><a href ="{% url rmg.views.convertChemkin %}">Generate Output File Using Chemkin File</a>
+    </ol>
+{% endblock %}

@@ -132,6 +132,7 @@ INSTALLED_APPS = (
     'main',
     'database',
     'pdep',
+    'rmg',
 )
 
 # Settings relating to user account management
