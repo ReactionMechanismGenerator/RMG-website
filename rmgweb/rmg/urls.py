@@ -39,6 +39,9 @@ urlpatterns = patterns('rmgweb.rmg',
     #(r'^input', 'views.input'),
 
     # Convert Chemkin File to Output File
-    (r'^chemkin','views.convertChemkin')
+    (r'^chemkin','views.convertChemkin'),
+
+    # Compare 2 RMG Models
+    (r'^compare','views.compareModels')
 
 )

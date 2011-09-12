@@ -72,7 +72,6 @@ class Chemkin(models.Model):
         Generate output html file from the path containing chemkin and dictionary files.
         """
         from rmgpy.chemkin import saveHTMLFile
-        print self.path
         saveHTMLFile(self.path)
 
     def createDir(self):
@@ -82,6 +81,67 @@ class Chemkin(models.Model):
         """
         try:
             os.makedirs(os.path.join(self.getDirname(),'chemkin'))
+            os.makedirs(os.path.join(self.getDirname(),'species'))
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+
+    def deleteDir(self):
+        """
+        Clean up everything by deleting the directory
+        """
+        import shutil
+        try:
+            shutil.rmtree(self.getDirname())
+        except OSError:
+            pass
+
+
+class Diff(models.Model):
+    """
+    A Django model for storing 2 RMG models and comparing them.
+    """
+    def __init__(self, *args, **kwargs):
+        super(Diff, self).__init__(*args, **kwargs)
+        self.path = self.getDirname()
+        self.chemkin1 = self.path + '/chem1.inp'
+        self.dict1 = self.path + '/RMG_Dictionary1.txt'
+        self.chemkin2 = self.path + '/chem2.inp'
+        self.dict2 = self.path + '/RMG_Dictionary2.txt'
+
+    def upload_chemkin1_to(instance, filename):
+        return instance.path + '/chem1.inp'
+    def upload_dictionary1_to(instance, filename):
+        return instance.path + '/RMG_Dictionary1.txt'
+    def upload_chemkin2_to(instance, filename):
+        return instance.path + '/chem2.inp'
+    def upload_dictionary2_to(instance, filename):
+        return instance.path + '/RMG_Dictionary2.txt'
+    ChemkinFile1 = models.FileField(upload_to=upload_chemkin1_to, verbose_name='Model 1: Chemkin File')
+    DictionaryFile1 = models.FileField(upload_to=upload_dictionary1_to,verbose_name='Model 1: RMG Dictionary')
+    ChemkinFile2 = models.FileField(upload_to=upload_chemkin2_to, verbose_name='Model 2: Chemkin File')
+    DictionaryFile2 = models.FileField(upload_to=upload_dictionary2_to,verbose_name='Model 2: RMG Dictionary')
+
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','compare/')
+
+    def createOutput(self):
+        """
+        Generate output html file from the path containing chemkin and dictionary files.
+        """
+        from diffModels import saveCompareHTML
+        saveCompareHTML(self.path, self.chemkin1, self.dict1, self.chemkin2, self.dict2)
+
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
             os.makedirs(os.path.join(self.getDirname(),'species'))
         except OSError:
             # Fail silently on any OS errors

@@ -25,6 +25,9 @@
 
 <h2>Useful Tools</h2>
     <ol>
-        <li><a href ="{% url rmg.views.convertChemkin %}">Generate Output File Using Chemkin File</a>
+        <li><a href ="{% url rmg.views.convertChemkin %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
+            and RMG-generated species dictionary.<P>
+        <li><a href ="{% url rmg.views.compareModels %}">Model Comparison</a>: compare two RMG-generated models by supplying
+            their individual chemkin files and species dictionaries.<P>
     </ol>
 {% endblock %}

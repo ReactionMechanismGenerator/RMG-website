@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Model Comparison{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.compareModels %}">Model Comparison</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Model Comparison{% endblock %}
+
+{% block page_body %}
+
+<p>
+<P>Compare two RMG models by uploading two chemkin files and their associated RMG Dictionary text files to generate an output HTML
+page comparing the two models..  You must include an adjacency list for all species in each chemkin file, including
+inerts.
+</p>
+<hr/>
+
+{% if path %}
+<a href ="../{{path}}">Click here for your generated output file.</a>
+{% endif %}
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}

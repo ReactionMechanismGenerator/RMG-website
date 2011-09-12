@@ -87,3 +87,29 @@ def convertChemkin(request):
         
     return render_to_response('chemkinUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
+def compareModels(request):
+    """
+    Allows user to compare 2 RMG models with their chemkin and species dictionaries and generate
+    a pretty HTML diff file.
+    """
+    diff = Diff()
+    path = ''
+    diff.deleteDir()
+
+    if request.method == 'POST':
+        diff.createDir()
+        form = ModelCompareForm(request.POST, request.FILES, instance=diff)
+        if form.is_valid():
+            form.save()
+            path = 'media/rmg/tools/compare/diff.html'
+            # Generate the output HTML file
+            diff.createOutput()
+            # Go back to the network's main page
+            return render_to_response('modelCompare.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+
+
+    # Otherwise create the form
+    else:
+        form = ModelCompareForm(instance=diff)
+
+    return render_to_response('modelCompare.html', {'form': form,'path':path}, context_instance=RequestContext(request))

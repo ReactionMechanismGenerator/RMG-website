@@ -46,3 +46,10 @@ class UploadChemkinForm(forms.ModelForm):
     """
     class Meta:
         model = Chemkin
+
+class ModelCompareForm(forms.ModelForm):
+    """
+    A Django form for comparing 2 RMG models using their chemkin and associated dictionary files.
+    """
+    class Meta:
+        model = Diff
