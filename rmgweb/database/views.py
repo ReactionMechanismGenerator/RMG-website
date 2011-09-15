@@ -1004,6 +1004,13 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
 
+    form = TemperatureForm()
+    temperature = ''
+    if request.method == 'POST':
+        form = TemperatureForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+        if form.is_valid():
+                temperature = form.cleaned_data['temperature']
 
     return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList,
                                                     'plotWidth': 500,
@@ -1011,9 +1018,11 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
                                                     'reactantList': reactantList,
                                                     'productList': productList,
                                                     'reverseReactionURL':reverseReactionURL,
+                                                    'form':form,
+                                                    'temperature':temperature,
                                                     },
                                              context_instance=RequestContext(request))
-   
+
 def moleculeSearch(request):
     """
     Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.

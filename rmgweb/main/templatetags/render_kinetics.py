@@ -451,3 +451,19 @@ kunits = "{8}";
         Punits, 
         kunits,
     ))
+
+###############################################################################
+
+@register.filter
+def get_temp_specific_rate(kinetics, temperature):
+    """
+    Return the rate in nice units given a specified temperature.
+    Outputs in pretty Latex scientific notation.
+    """
+    if kinetics is None:
+        return "// There are no kinetics for this entry."
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
+    rate = kinetics.getRateCoefficient(temperature)*kfactor
+    result = '<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(rate))
+    result += '\ \mathrm{{ {0!s} }}</div>'.format(kunits)
+    return mark_safe(result)

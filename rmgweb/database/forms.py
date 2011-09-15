@@ -203,4 +203,11 @@ class KineticsEntryEditForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid entry.'+ str(sys.exc_info()[1]))
             return entry
-            
+
+
+class TemperatureForm(forms.Form):
+    """
+    This form allows the user to enter a specific temperature and display the resulting rates
+    on a collection of kinetics search results
+    """
+    temperature = forms.FloatField(label="Specify Temperature (K)")
