@@ -1051,3 +1051,18 @@ def moleculeSearch(request):
             molecule = Molecule()
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
+
+def moleculeEntry(request,adjlist):
+    """
+    Returns an html page which includes the image of the molecule
+    and its corresponding adjacency list/SMILES/InChI, as well
+    as molecular weight info and a button to retrieve thermo data.
+
+    Basically works as an equivalent of the molecule search function.
+    """
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+    structure = getStructureMarkup(molecule)
+
+    return render_to_response('moleculeEntry.html',{'structure':structure,'molecule':molecule}, context_instance=RequestContext(request))

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{% block title %}RMG: Molecule Information{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(){
+   var spField = $('#id_species');
+   var identifier = $('#id_species_identifier').val();
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+   $('.result').hide();
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                  })
+               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+};
+
+// prevent "enter" keypress in the identifier field from submitting the form,
+// but instead make it resolve the identifier and select the submit button.
+$(document).ready(function() {
+   $("#id_species_identifier").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       resolve();
+       $("input:submit:first").focus();
+       return false;
+    }
+   });
+
+{% if molecule.toSMILES %}
+// update list of names
+var url = '/cactus/{{ molecule.toSMILES }}/names'
+var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
+               .error(function(j,t,e) { $('#species_names').html(t+'\n'+e) })
+{% endif %}
+}) // end of document.ready
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url database.views.moleculeSearch %}">Molecule Search</a>
+{% endblock %}
+
+{% block page_title %}Molecule Information{% endblock %}
+
+{% block page_body %}
+
+
+<table cellspacing="10">
+<tr>
+<th>Molecule Structure:</th>
+<td style="padding: 40px;">{{ structure|safe }}</td>
+</tr>
+<tr class ="result">
+    <th>Molecular Weight:</th>
+    <td>{{ molecule.getMolecularWeight|renderMW }}</td>
+</tr>
+<tr class ="result">
+    <th>Thermochemistry:</th>
+    <td>
+<a href="{% url database.views.thermoData molecule.toAdjacencyList %}">Click here</a></td>
+</tr>
+
+<tr class="result">
+<th>InChI:</th>
+<td>{{ molecule.toInChI }}</td>
+</tr>
+
+
+<tr class="result">
+<th>SMILES:</th>
+<td>{{ molecule.toSMILES }}</td>
+</tr>
+
+
+
+<tr class="result">
+<th valign="top">Adjacency List:</th>
+<td>{{ molecule.toAdjacencyList|renderAdjlist }}</td>
+</tr>
+
+<tr class="result" style="white-space: pre-wrap;">
+<th style="vertical-align: top;">Names:</th>
+<td id="species_names"></td>
+</tr>
+</table>
+
+{% endblock %}

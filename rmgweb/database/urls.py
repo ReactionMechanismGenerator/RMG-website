@@ -89,5 +89,9 @@ urlpatterns = patterns('rmgweb.database',
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.kinetics'),
     (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
     
+    # Molecule Information Page
+
+    (r'^molecule/(?P<adjlist>[\S\s]+)$', 'views.moleculeEntry'),
+    
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
 )
