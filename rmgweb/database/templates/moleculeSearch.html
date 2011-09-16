@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load gravatar %}
+{% load databasefilters %}
 
 {% block title %}RMG: Molecule Search{% endblock %}
 
@@ -80,6 +81,10 @@ Do not submit the form until the adjacency list has loaded.
 <tr class="result">
 <th>Molecule Structure:</th>
 <td style="padding: 40px;">{{ structure_markup|safe }}</td>
+</tr>
+<tr class ="result">
+    <th>Molecular Weight:</th>
+    <td>{{ molecule.getMolecularWeight|renderMW }}</td>
 </tr>
 <tr class="result">
 <th>InChI:</th>
