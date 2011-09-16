@@ -49,6 +49,18 @@ def moleculeToURL(molecule):
     adjlist = re.sub('\s+', '%20', adjlist.replace('\n', ';'))
     return adjlist
 
+def moleculeToInfo(molecule):
+    """
+    Creates an html rendering which includes molecule structure image but
+    also allows you to click on it to enter a molecule info page.
+    """
+
+    from rmgweb.database.views import moleculeEntry
+    href = reverse(moleculeEntry, kwargs={'adjlist': molecule.toAdjacencyList()})
+    structureMarkup = getStructureMarkup(molecule)
+    markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
+    return markup
+
 def moleculeFromURL(adjlist):
     """
     Convert a given adjacency list `adjlist` from a URL to the corresponding

@@ -60,6 +60,8 @@ from forms import *
 from tools import *
 from rmgweb.main.tools import *
 
+#from rmgweb.main.tools import moleculeToURL, moleculeFromURL
+
 ################################################################################
 
 def load(request):
@@ -336,8 +338,8 @@ def kinetics(request, section='', subsection=''):
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
             else:
-                entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
-                entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
+                entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
             
             entries.append(entry)
@@ -681,8 +683,8 @@ def kineticsEntry(request, section, subsection, index):
                                                          },
                                   context_instance=RequestContext(request))
     else:
-        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-        products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
+        products = ' + '.join([moleculToInfo(reactant) for reactant in entry.item.products])
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         
         # Searching for other instances of the reaction only valid for real reactions, not groups
@@ -761,9 +763,9 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     if isinstance(reaction.kinetics, ArrheniusEP):
         reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
     
-    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+    reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
     assert isinstance(reaction, TemplateReaction), "Expected group additive kinetics to be a TemplateReaction"
     
     source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
@@ -794,8 +796,8 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     
     forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
     
-    reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
-    products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+    reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
     reference = rmgpy.data.reference.Reference(
                     url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
                 )
@@ -910,9 +912,9 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
     
     reactionDataList = []
     for reaction, count in zip(uniqueReactionList, uniqueReactionCount):
-        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
-        products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+        products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
         reactionUrl = getReactionUrl(reaction)
         
         forward = reactionHasReactants(reaction, reactantList)
@@ -973,10 +975,11 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         # If the kinetics are ArrheniusEP, replace them with Arrhenius
         if isinstance(reaction.kinetics, ArrheniusEP):
             reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
-        
-        reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
+
+        #reactants = [getStructureMarkup(reactant) for reactant in reaction.reactants]
+        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
-        products = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.products])
+        products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
             href = getReactionUrl(reaction, family=reaction.family.name)
