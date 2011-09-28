@@ -53,7 +53,7 @@ def renderMW(MW):
     """
     mass = Quantity(MW,'kg/mol').value
     multfactor = Quantity(1,'g/mol').getConversionFactorFromSI()
-    return mark_safe(mass*multfactor)
+    return mark_safe("{0:.2f}".format(mass*multfactor))
 
 @register.filter
 def renderAdjlist(adjlist):
