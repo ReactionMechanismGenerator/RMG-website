@@ -684,7 +684,7 @@ def kineticsEntry(request, section, subsection, index):
                                   context_instance=RequestContext(request))
     else:
         reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
-        products = ' + '.join([moleculToInfo(reactant) for reactant in entry.item.products])
+        products = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.products])
         arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         
         # Searching for other instances of the reaction only valid for real reactions, not groups
