@@ -1055,6 +1055,48 @@ def moleculeSearch(request):
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
 
+def EniSearch(request):
+    """
+    Creates webpage form to display detergent and deposit structures upon entering smiles as well as returns binding constants
+    between the detergent and deposit
+    """
+    from tools import getAbrahamAB
+    if request.method == 'POST':
+        form = EniSearchForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            detergent_adjlist = form.cleaned_data['detergent']
+            deposit_adjlist = form.cleaned_data['deposit']
+
+            detergent = Molecule()
+            detergent.fromAdjacencyList(detergent_adjlist)
+            detergent_smiles = detergent.toSMILES()
+            detergent_structure = getStructureMarkup(detergent)
+
+            deposit = Molecule()
+            deposit.fromAdjacencyList(deposit_adjlist)
+            deposit_smiles = deposit.toSMILES()
+            deposit_structure = getStructureMarkup(deposit)
+            
+            detergentA, detergentB = getAbrahamAB(detergent_smiles)
+            depositA, depositB = getAbrahamAB(deposit_smiles)
+            
+            # Estimating the binding strength assuming the the detergent to be the donor and dirt to be acceptor            
+            logK_AB = 7.354*detergentA*depositB
+            # Estimating the binding strength assuming the the detergent to be the acceptor and dirt to be donor
+            logK_BA = 7.354*detergentB*depositA
+    
+    else:
+        detergentA = 0
+        detergentB = 0
+        depositA = 0
+        depositB = 0
+        logK_AB = 0
+        logK_BA = 0        
+        form = EniSearchForm()            
+            
+    return render_to_response('EniSearch.html', {'detergentA': detergentA, 'detergentB': detergentB, 'depositA': depositA, 'depositB': depositB, 'logKAB': logK_AB, 'logKBA': logK_BA, 'form': form}, context_instance=RequestContext(request))
+
+
 def moleculeEntry(request,adjlist):
     """
     Returns an html page which includes the image of the molecule

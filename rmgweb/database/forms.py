@@ -172,6 +172,40 @@ class MoleculeSearchForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid adjacency list.')
             return adjlist
+        
+class EniSearchForm(forms.Form):
+    """
+    Form for drawing molecule from adjacency list
+    """
+    detergent_identifier = forms.CharField(label="Detergent Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("detergent");','class':'identifier'}), required=False)
+    detergent = forms.CharField(label="Detergent", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}))
+    deposit_identifier = forms.CharField(label="Deposit Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("deposit");','class':'identifier'}), required=False)
+    deposit = forms.CharField(label="Deposit", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+    
+    def clean_detergent(self):
+        """
+        Return molecular representation of input detergent structure        """
+        try:
+            detergent = Molecule()
+            detergent.fromAdjacencyList(str(self.cleaned_data['detergent']))
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid SMILES entry.')
+        return str(self.cleaned_data['detergent'])
+
+    def clean_deposit(self):
+        """
+        Return molecular representation of input deposit structure
+        """
+        try:
+            deposit = Molecule()
+            deposit.fromAdjacencyList(str(self.cleaned_data['deposit']))
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid SMILES entry.')
+        return str(self.cleaned_data['deposit'])
 
 class KineticsEntryEditForm(forms.Form):
     """

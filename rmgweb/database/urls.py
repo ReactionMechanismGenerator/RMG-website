@@ -93,5 +93,8 @@ urlpatterns = patterns('rmgweb.database',
 
     (r'^molecule/(?P<adjlist>[\S\s]+)$', 'views.moleculeEntry'),
     
+    # Eni detergent-dirt binding strength
+    (r'^eni', 'views.EniSearch'),    
+    
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
 )
