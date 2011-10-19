@@ -200,10 +200,12 @@ def thermoData(request, adjlist):
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-
+    species = Species(molecule=[molecule])
+    species.generateResonanceIsomers()
+    
     # Get the thermo data for the molecule
     thermoDataList = []
-    for data, library, entry in database.thermo.getAllThermoData(molecule):
+    for data, library, entry in database.thermo.getAllThermoData(species):
         if library is None:
             source = 'Group additivity'
             href = ''
