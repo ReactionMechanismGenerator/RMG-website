@@ -209,3 +209,62 @@ class FluxDiagram(models.Model):
         except OSError:
             pass
 
+
+class PopulateReactions(models.Model):
+    """
+    A Django model for a PopulateReactions input file.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(PopulateReactions, self).__init__(*args, **kwargs)        
+        self.path = self.getDirname()
+        self.input = self.path + '/input.txt'
+
+    def upload_input_to(instance, filename):
+        return instance.path + '/input.txt'
+    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input File')
+  
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','populateReactions/')
+
+    def createOutput(self):
+        """
+        Generate output html file from the path containing chemkin and dictionary files.
+        """
+        
+        
+        import subprocess
+        import rmgpy
+        command = ('python',
+            os.path.join(rmgpy.getPath(), '..', 'generateReactions.py'),
+            self.input,
+        )
+        subprocess.check_call(command, cwd=self.path)
+        
+        #from generateReactions import populateReactions
+        #populateReactions(self.input)
+
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
+            os.makedirs(os.path.join(self.path))
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+
+    def deleteDir(self):
+        """
+        Clean up everything by deleting the directory
+        """
+        import shutil
+        try:
+            shutil.rmtree(self.path)
+        except OSError:
+            pass

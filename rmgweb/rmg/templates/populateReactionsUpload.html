@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Populate Reactions{% endblock %}
+
+{% block extrahead %}
+
+<script type="text/javascript">
+$().ready(function() {
+        // Show a loading animation when after hitting the submit button before the video is created.
+        $('[id$=submit]').click(function() {
+            $('#loading_image').show();
+            $('#files').hide();
+        });
+});
+</script>
+
+{%endblock%}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.runPopulateReactions %}">Populate Reactions</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Populate Reactions{% endblock %}
+
+{% block page_body %}
+
+<p>
+Upload an RMG input file and generate a list of all reactions which occur between initial species in both
+HTML and chemkin format.  
+</p>
+<hr/>
+
+<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
+<P>
+
+{% if output %}
+<div id = "files">
+<a href ="../{{output}}">List of All Possible Reactions</a>
+{% endif %}
+<P>
+{% if chemkin %}
+<a href ="../{{chemkin}}">List of All Possible Reactions: Chemkin File</a>
+<P><hr/>
+{% endif %}
+
+
+
+<form enctype="multipart/form-data" action="" method="POST" id="upload">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}
