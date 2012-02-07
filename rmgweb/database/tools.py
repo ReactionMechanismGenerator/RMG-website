@@ -611,7 +611,9 @@ def getAbrahamAB(smiles):
         def MatchPlattsAGroups(self, smiles):
             
             # Load functional group database
-            wb = xlrd.open_workbook('groups.xls')
+            current_dir = os.getcwd()
+            filepath = os.path.join(current_dir, 'groups.xls')
+            wb = xlrd.open_workbook(filepath)
             wb.sheet_names()
         
             data = wb.sheet_by_name(u'PlattsA')
@@ -646,7 +648,9 @@ def getAbrahamAB(smiles):
         def MatchPlattsBGroups(self, smiles):
             
             # Load functional group database
-            wb = xlrd.open_workbook('groups.xls')
+            current_dir = os.getcwd()
+            filepath = os.path.join(current_dir, 'groups.xls')
+            wb = xlrd.open_workbook(filepath)
             wb.sheet_names()
         
             data = wb.sheet_by_name(u'PlattsB')
