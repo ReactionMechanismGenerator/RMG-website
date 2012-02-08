@@ -156,3 +156,56 @@ class Diff(models.Model):
             shutil.rmtree(self.getDirname())
         except OSError:
             pass
+
+
+
+class FluxDiagram(models.Model):
+    """
+    A Django model for generating a flux diagram using RMG-Py.
+    """
+    def __init__(self, *args, **kwargs):
+        super(FluxDiagram, self).__init__(*args, **kwargs)
+        self.path = self.getDirname()
+
+    def upload_input_to(instance, filename):
+        return instance.path + '/input.py'
+    def upload_chemkin_to(instance, filename):
+        return instance.path + '/chem.inp'
+    def upload_dictionary_to(instance, filename):
+        return instance.path + '/species_dictionary.txt'
+    def upload_chemkinoutput_to(instance, filename):
+        return instance.path + '/chemkin_output.out'
+    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='RMG Input File')
+    ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
+    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary')
+    ChemkinOutput = models.FileField(upload_to=upload_chemkinoutput_to, verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
+    Java = models.BooleanField(verbose_name="From RMG-Java")
+
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','flux/')
+
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
+            os.makedirs(self.getDirname())
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+
+    def deleteDir(self):
+        """
+        Clean up everything by deleting the directory
+        """
+        import shutil
+        try:
+            shutil.rmtree(self.getDirname())
+        except OSError:
+            pass
+

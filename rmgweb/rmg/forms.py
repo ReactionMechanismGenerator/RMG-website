@@ -53,3 +53,10 @@ class ModelCompareForm(forms.ModelForm):
     """
     class Meta:
         model = Diff
+
+class FluxDiagramForm(forms.ModelForm):
+    """
+    A Django form for creating a flux diagram by uploading the files required.
+    """
+    class Meta:
+        model = FluxDiagram

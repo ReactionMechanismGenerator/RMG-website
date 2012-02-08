@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Flux Diagram{% endblock %}
+
+{% block extrahead %}
+
+<script type="text/javascript">
+$().ready(function() {
+        // Show a loading animation when after hitting the submit button before the video is created.
+        $('[id$=submit]').click(function() {
+            $('#loading_image').show();
+            $('#videos').hide();
+        });
+});
+</script>
+
+{%endblock%}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.generateFlux %}">Generate Flux Diagram</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Generate Flux Diagram{% endblock %}
+
+{% block page_body %}
+
+<p>
+<P>Generate a Flux Diagram either by simulating the conditions of an RMG job
+    with the optional customized set of concentration profiles from a Chemkin job.
+<P>You will require at least 3 files to generate a video.  For a RMG-Py job, you will require the
+    input.py file, chem.inp chemkin mechanism, and species_dictionary.txt dictionary file.
+    Similarly, for a RMG-Java job, you will require the condition.txt file, chem.inp file, and
+    RMG_dictionary.txt file.  The server will then simulate the isothermal conditions
+    for each reaction system specified in your condition or input file and draw flux diagrams
+    for each iteration, then piece them together into a video .avi file.
+<P>In order to generate a flux diagram video for a non-isothermal simulation, simply upload
+    the .out file associated with a chemkin simulation output for a shock tube or RCM, etc.  Use
+    the .out file containing species concentrations.
+<hr/>
+<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
+<P>
+{% if path %}
+<div id="videos">
+<b>Generated Videos for Reaction Systems</b>
+<ol>
+{% for item in path %}
+<li><a href ="../media/rmg/tools/flux/{{item}}/flux_diagram.avi">Flux Diagram Video</a>
+{% endfor%}
+</ol>
+</div>
+<hr />
+{% endif %}
+
+<form enctype="multipart/form-data" action="" method="POST" id="upload">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}

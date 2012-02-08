@@ -104,7 +104,6 @@ def compareModels(request):
             path = 'media/rmg/tools/compare/diff.html'
             # Generate the output HTML file
             diff.createOutput()
-            # Go back to the network's main page
             return render_to_response('modelCompare.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
 
 
@@ -113,3 +112,43 @@ def compareModels(request):
         form = ModelCompareForm(instance=diff)
 
     return render_to_response('modelCompare.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+
+def generateFlux(request):
+    """
+    Allows user to upload a set of RMG condition files and/or chemkin species concentraiton output
+    to generate a flux diagram video.
+    """
+
+    from generateFluxDiagram import createFluxDiagram
+        
+    flux = FluxDiagram()
+    path = ''
+    flux.deleteDir()
+
+    if request.method == 'POST':
+        flux.createDir()
+        form = FluxDiagramForm(request.POST, request.FILES,instance=flux)
+        if form.is_valid():
+            form.save()
+            input = os.path.join(flux.path,'input.py')
+            print input
+            chemkin = os.path.join(flux.path,'chem.inp')
+            dict = os.path.join(flux.path,'species_dictionary.txt')
+            chemkinOutput = ''
+            if 'ChemkinOutput' in request.FILES:
+                chemkinOutput = os.path.join(flux.path,'chemkin_output.out')
+            java = form.cleaned_data['Java']
+            createFluxDiagram(flux.path, input, chemkin, dict, java, chemkinOutput)
+            # Look at number of subdirectories to determine where the flux diagram videos are
+            subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
+            print subdirs
+            subdirs.remove('species')
+            print subdirs
+            return render_to_response('fluxDiagram.html', {'form': form, 'path':subdirs}, context_instance=RequestContext(request))
+
+    else:
+        form = FluxDiagramForm(instance=flux)
+
+    return render_to_response('fluxDiagram.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+
+

@@ -234,16 +234,8 @@ def generateSpeciesThermo(species, database):
     Generate the thermodynamics data for a given :class:`Species` object
     `species` using the provided `database`.
     """
-    
-    thermoData = None
-    
     species.generateResonanceIsomers()
-    for molecule in species.molecule:
-        thermoData0 = database.thermo.getThermoData(molecule)
-        if thermoData is None or thermoData0.getEnthalpy(298) < thermoData.getEnthalpy(298):
-            thermoData = thermoData0
-            
-    species.thermo = thermoData
+    species.thermo = database.thermo.getThermoData(species)
         
 ################################################################################
 

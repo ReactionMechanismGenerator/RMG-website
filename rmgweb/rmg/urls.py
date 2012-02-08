@@ -42,6 +42,9 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^chemkin','views.convertChemkin'),
 
     # Compare 2 RMG Models
-    (r'^compare','views.compareModels')
+    (r'^compare','views.compareModels'),
+
+    # Generate Flux Diagram
+    (r'^flux','views.generateFlux')
 
 )

@@ -200,10 +200,12 @@ def thermoData(request, adjlist):
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-
+    species = Species(molecule=[molecule])
+    species.generateResonanceIsomers()
+    
     # Get the thermo data for the molecule
     thermoDataList = []
-    for data, library, entry in database.thermo.getAllThermoData(molecule):
+    for data, library, entry in database.thermo.getAllThermoData(species):
         if library is None:
             source = 'Group additivity'
             href = ''
@@ -337,6 +339,10 @@ def kinetics(request, section='', subsection=''):
                 entry['structure'] = getStructureMarkup(entry0.item)
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
+            elif 'rules' in subsection:
+                entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
+                entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
             else:
                 entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
                 entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
@@ -683,10 +689,15 @@ def kineticsEntry(request, section, subsection, index):
                                                          },
                                   context_instance=RequestContext(request))
     else:
-        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
-        products = ' + '.join([moleculToInfo(reactant) for reactant in entry.item.products])
-        arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-        
+        if 'rules' in subsection:
+            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
+            products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+        else:
+            reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
+            products = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.products])
+            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+
         # Searching for other instances of the reaction only valid for real reactions, not groups
         # If a Group or LogicNode shows up in the reaction, getReactionUrl will return ''
         reactionUrl = getReactionUrl(entry.item)
