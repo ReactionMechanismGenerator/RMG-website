@@ -8,7 +8,7 @@
 *.pyc
 
 # SQLite database files
-rmgweb/*.db
+rmgweb/sqlitedb/*
 
 # The secret settings module
 rmgweb/secretsettings.py
@@ -39,3 +39,6 @@ rmgweb/media/rmg/tools/*
 .project
 .pydevproject
 .settings/*
+
+# WSGI
+apache/*
