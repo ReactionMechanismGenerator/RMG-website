@@ -60,6 +60,7 @@ plotKinetics = function(id, kseries) {
         },
         legend: { 
             enabled: legendEnabled,
+            layout: 'vertical',
             labelFormatter: function() {
                 return (this.index+1) + '. ' + this.name;
                 }
@@ -81,7 +82,7 @@ plotKinetics = function(id, kseries) {
         }
     }
 
-    var chartk = new Highcharts.Chart(options);
+    return new Highcharts.Chart(options);
 };
 
 plotKineticsVsP = function(id, kseries) {
@@ -135,5 +136,18 @@ plotKineticsVsP = function(id, kseries) {
         }
     }
 
-    var chartk = new Highcharts.Chart(options);
+    return new Highcharts.Chart(options);
+};
+
+getVisible = function(chart) {
+    var results = chart.series.length;
+    var visible = new Array(results);
+
+    for (var i = 0; i < results; i++) {
+        visible[i] = false;
+        if (chart.series[i].visible == true)
+            visible[i] = true;
+    }
+
+    return visible;
 };
