@@ -6,7 +6,7 @@ plotKinetics = function(id, kseries) {
             name: kseries[i][0],
             data: kseries[i][1],
             events: {
-                click: function(event) {
+                click: function() {
                     if (legendEnabled) this.hide();
                 }
             }
@@ -16,7 +16,18 @@ plotKinetics = function(id, kseries) {
     options = {
         chart: {
             renderTo: id,
-            defaultSeriesType: 'line'
+            defaultSeriesType: 'line',
+            events: {
+                redraw: function() {
+                    for (var i = 0; i < kseries.length; i++)
+                        if (this.series[i].visible) {
+                            document.getElementById("train").disabled = false;
+                            return;
+                        }
+
+                    document.getElementById("train").disabled = true;
+                }
+            }
         },
         title: { text: 'Rate coefficient' },
         xAxis: {
