@@ -4,7 +4,12 @@ plotKinetics = function(id, kseries) {
     for (var i = 0; i < kseries.length; i++)
         series.push({
             name: kseries[i][0],
-            data: kseries[i][1]
+            data: kseries[i][1],
+            events: {
+                click: function(event) {
+                    if (legendEnabled) this.hide();
+                }
+            }
         });
     var legendEnabled = (kseries.length > 1);
 
