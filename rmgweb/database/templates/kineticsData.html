@@ -77,6 +77,8 @@ function trainReaction() {
     EaAverage = 0.0;
     count = 0;
 
+    refList = '';
+
     {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
         var i = {{ forloop.counter0 }};
         if (visible[i]) {
@@ -85,6 +87,12 @@ function trainReaction() {
             nAverage += n;
             EaAverage += Ea;
             count += 1;
+
+            {% if entry.reference %}
+            refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} - {{ entry.reference.url }}{% endif %}\n';
+            {% else %}
+            refList += count + '. ' + '{{ source }}'.split('(')[1].split(')')[0] + '\n';
+            {% endif %}
         }
     {% endfor %}
 
@@ -92,7 +100,21 @@ function trainReaction() {
     nAverage /= count;
     EaAverage /= count;
 
-    alert('Average of ' + count + ' results:\n\nA:\t  ' + AAverage.toExponential(4) + '\t' + kunits + '\nn:\t  ' + nAverage.toExponential(4) + '\nEa:\t  ' + EaAverage.toExponential(4) + '\t' + Eunits);
+    output = document.getElementById("id_entry").value.split('None')[0] +
+            'Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + kunits + '\"),' +
+            '\n        n = (' + nAverage.toFixed(5) + ',\"\"),' +
+            '\n        Ea = (' + EaAverage.toExponential(5) + ',\"' + Eunits + '\"),' +
+            '\n        T0 = (1,\"K\"),' +
+            '\n    ),' +
+            '\n    reference = None,' +
+            '\n    referenceType = \"\",' +
+            '\n    shortDesc = u\"\"\"User-generated average\"\"\",' +
+            '\n    longDesc = ' +
+            '\nu\"\"\"' +
+            '\nAverage of ' + count + ' results:' +
+            '\n' + refList + '\"\"\",';
+
+    document.getElementById("id_entry").value = output;
 };
 </script>
 
@@ -200,9 +222,16 @@ function trainReaction() {
 
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
+{% if new_entry_form %}
+<form method="post" id="entry_form" onSubmit="trainReaction()" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<div style="display: none">{{ new_entry_form.entry }}</div>
+{% csrf_token %}
 <div align="center">
-<button id="train" onclick="trainReaction()">Train Reaction</button>
+<input id="train" type="submit" value="Train Reaction" />
 </div>
+</form>
+{% endif %}
+
 {% else %}
 <p>No results found.</p>
 {% endif %}
