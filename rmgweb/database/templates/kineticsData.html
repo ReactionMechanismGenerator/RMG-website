@@ -21,7 +21,7 @@ jQuery(document).ready(function() {
     {% endfor %}
 
     jsMath.Synchronize(function() {
-        plotKinetics('plotk', kineticsModelList);
+        kchart = plotKinetics('plotk', kineticsModelList);
     });
     
     
@@ -55,6 +55,50 @@ jQuery(document).ready(function() {
    /* End of code for the kinetics search form */
 
 });
+</script>
+
+<script type="text/javascript">
+{% include "kineticsPlot.js" %}
+
+getVisible = function(chart) {
+    var results = chart.series.length;
+    var visible = new Array(results);
+
+    for (var i = 0; i < results; i++) {
+        visible[i] = false;
+        if (chart.series[i].visible == true)
+            visible[i] = true;
+    }
+
+    return visible;
+};
+
+function trainReaction() {
+    visible = getVisible(kchart);
+    kineticsVisibleList = [];
+
+    AAverage = 1.0;
+    nAverage = 0.0;
+    EaAverage = 0.0;
+    count = 0;
+
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
+        var i = {{ forloop.counter0 }};
+        if (visible[i]) {
+            {{ kinetics|get_rate_coefficients:user }}
+            AAverage *= A;
+            nAverage += n;
+            EaAverage += Ea;
+            count += 1;
+        }
+    {% endfor %}
+
+    AAverage = Math.pow(AAverage, 1.0 / count);
+    nAverage /= count;
+    EaAverage /= count;
+
+    alert('Average of ' + count + ' results:\n\nA:\t' + AAverage.toExponential(5) + ' ' + kunits + '\nn:\t' + nAverage.toFixed(5) + '\nEa:\t' + (EaAverage / 1000).toFixed(2) + ' kJ/mol');
+};
 </script>
 
 <style>
@@ -160,6 +204,10 @@ jQuery(document).ready(function() {
 {% endfor %}
 
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+
+<div align="center">
+<button id="train" onclick="trainReaction()">Train Reaction</button>
+</div>
 {% else %}
 <p>No results found.</p>
 {% endif %}
