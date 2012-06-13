@@ -431,6 +431,7 @@ def get_rate_coefficients(kinetics, user=None):
             kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
 
     kModel = KineticsData(([T * Tfactor for T in Tdata], Tunits), (kdata, kunits), Tmin, Tmax).toArrhenius()
+    kModel.Ea.value *= Efactor
     
     return mark_safe("""
 Tlist = {0};
@@ -442,9 +443,10 @@ klist2 = {5};
 Tunits = "{6}";
 Punits = "{7}";
 kunits = "{8}";
-A = {9};
-n = {10};
-Ea = {11};
+Eunits = "{9}";
+A = {10};
+n = {11};
+Ea = {12};
     """.format(
         [T * Tfactor for T in Tdata], 
         [P * Pfactor for P in Pdata], 
@@ -455,6 +457,7 @@ Ea = {11};
         Tunits, 
         Punits, 
         kunits,
+        Eunits,
         kModel.A.value,
         kModel.n.value,
         kModel.Ea.value
