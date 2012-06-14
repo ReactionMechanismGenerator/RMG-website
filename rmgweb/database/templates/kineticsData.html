@@ -100,8 +100,8 @@ function trainReaction() {
     nAverage /= count;
     EaAverage /= count;
 
-    output = document.getElementById("id_entry").value.split('None')[0] +
-            'Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + kunits + '\"),' +
+    output = document.getElementById("id_entry").value.split('kinetics')[0] +
+            'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + kunits + '\"),' +
             '\n        n = (' + nAverage.toFixed(5) + ',\"\"),' +
             '\n        Ea = (' + EaAverage.toExponential(5) + ',\"' + Eunits + '\"),' +
             '\n        T0 = (1,\"K\"),' +

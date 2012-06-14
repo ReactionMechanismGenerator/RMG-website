@@ -1025,7 +1025,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     additiveList = [reaction for reaction in additiveList if isinstance(reaction, TemplateReaction)]
     if len(additiveList)==2:
         additiveList = [reaction for reaction in additiveList if reactionHasReactants(reaction, reactantList)]
-    assert len(additiveList)==1, "Was expecting one group estimate rate, not {0}".format(len(additiveList))
 
     new_entry = StringIO.StringIO(u'')
     rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=additiveList[0]))
