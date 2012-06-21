@@ -173,8 +173,8 @@ def render_kinetics_math(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
