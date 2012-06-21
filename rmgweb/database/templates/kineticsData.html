@@ -91,7 +91,7 @@ function trainReaction() {
             {% if entry.reference %}
             refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} - {{ entry.reference.url }}{% endif %}\n';
             {% else %}
-            refList += count + '. ' + '{{ source }}'.split('(')[1].split(')')[0] + '\n';
+            refList += count + '. {{ source }}\n';
             {% endif %}
         }
     {% endfor %}
