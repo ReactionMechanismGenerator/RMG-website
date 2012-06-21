@@ -1016,6 +1016,10 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
             reverseKinetics = reaction.generateReverseRateCoefficient()
+            reverseKinetics.Tmin = forwardKinetics.Tmin
+            reverseKinetics.Tmax = forwardKinetics.Tmax
+            reverseKinetics.Pmin = forwardKinetics.Pmin
+            reverseKinetics.Pmax = forwardKinetics.Pmax
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
     # Construct new entry form from group-additive result
