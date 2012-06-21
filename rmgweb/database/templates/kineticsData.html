@@ -82,7 +82,7 @@ function trainReaction() {
     {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
         var i = {{ forloop.counter0 }};
         if (visible[i]) {
-            {{ kinetics|get_rate_coefficients:user }}
+            {{ kinetics|get_rate_coefficients }}
             AAverage *= A;
             nAverage += n;
             EaAverage += Ea;

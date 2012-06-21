@@ -113,9 +113,9 @@ def getRateCoefficientUnits(kinetics, user=None):
     # Use the number of reactants to get the rate coefficient units and conversion factor
     kunitsDict = {
         1: 's^-1',
-        2: 'cm^3/(mol*s)',
-        3: 'cm^6/(mol^2*s)',
-        4: 'cm^9/(mol^3*s)',
+        2: 'm^3/(mol*s)',
+        3: 'm^6/(mol^2*s)',
+        4: 'm^9/(mol^3*s)',
     }
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -373,8 +373,8 @@ def get_rate_coefficients(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
