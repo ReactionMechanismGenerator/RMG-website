@@ -1014,7 +1014,14 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if forward:
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
         else:
-            reverseKinetics = reaction.generateReverseRateCoefficient()
+            if isinstance(forwardKinetics, Arrhenius) or isinstance(forwardKinetics, KineticsData):
+                reverseKinetics = reaction.generateReverseRateCoefficient()
+                reverseKinetics.Tmin = forwardKinetics.Tmin
+                reverseKinetics.Tmax = forwardKinetics.Tmax
+                reverseKinetics.Pmin = forwardKinetics.Pmin
+                reverseKinetics.Pmax = forwardKinetics.Pmax
+            else:
+                reverseKinetics = None
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
 

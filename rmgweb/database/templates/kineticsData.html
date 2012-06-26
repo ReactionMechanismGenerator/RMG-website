@@ -16,8 +16,10 @@ jQuery(document).ready(function() {
     {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
     kseries = [];
     {{ kinetics|get_rate_coefficients:user }}
+    {% if kinetics %}
     {% include "kineticsModel.js" %}
     kineticsModelList.push(kseries[kseries.length-1]);
+    {% endif %}
     {% endfor %}
 
     jsMath.Synchronize(function() {
