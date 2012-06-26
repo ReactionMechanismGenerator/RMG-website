@@ -113,9 +113,9 @@ def getRateCoefficientUnits(kinetics, user=None):
     # Use the number of reactants to get the rate coefficient units and conversion factor
     kunitsDict = {
         1: 's^-1',
-        2: 'cm^3/(mol*s)',
-        3: 'cm^6/(mol^2*s)',
-        4: 'cm^9/(mol^3*s)',
+        2: 'm^3/(mol*s)',
+        3: 'm^6/(mol^2*s)',
+        4: 'm^9/(mol^3*s)',
     }
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -173,8 +173,8 @@ def render_kinetics_math(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
@@ -373,8 +373,8 @@ def get_rate_coefficients(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
@@ -430,27 +430,40 @@ def get_rate_coefficients(kinetics, user=None):
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
     
-    return mark_safe("""
-Tlist = {0};
-Plist = {1};
-klist = {2};
-Tlist2 = {3};
-Plist2 = {4};
-klist2 = {5};
-Tunits = "{6}";
-Punits = "{7}";
-kunits = "{8}";
-    """.format(
-        [T * Tfactor for T in Tdata], 
-        [P * Pfactor for P in Pdata], 
-        kdata, 
-        [T * Tfactor for T in Tdata2], 
-        [P * Pfactor for P in Pdata2], 
-        kdata2, 
-        Tunits, 
-        Punits, 
-        kunits,
-    ))
+    if kinetics.isPressureDependent():
+        return mark_safe("""Tlist = {0};Plist = {1};klist = {2};Tlist2 = {3};Plist2 = {4};
+                            klist2 = {5};Tunits = "{6}";Punits = "{7}";kunits = "{8}";""".format(
+                                                                                    [T * Tfactor for T in Tdata], 
+                                                                                    [P * Pfactor for P in Pdata], 
+                                                                                    kdata, 
+                                                                                    [T * Tfactor for T in Tdata2], 
+                                                                                    [P * Pfactor for P in Pdata2], 
+                                                                                    kdata2, 
+                                                                                    Tunits, 
+                                                                                    Punits, 
+                                                                                    kunits,
+                                                                                ))
+    else:
+        kModel = KineticsData(([T * Tfactor for T in Tdata], Tunits), (kdata, kunits), Tmin, Tmax).toArrhenius()
+        kModel.Ea.value *= Efactor
+        
+        return mark_safe("""Tlist = {0};Plist = {1};klist = {2};Tlist2 = {3};Plist2 = {4};
+                            klist2 = {5};Tunits = "{6}";Punits = "{7}";kunits = "{8}";
+                            Eunits = "{9}";A = {10};n = {11};Ea = {12};""".format(
+                                                                                    [T * Tfactor for T in Tdata], 
+                                                                                    [P * Pfactor for P in Pdata], 
+                                                                                    kdata, 
+                                                                                    [T * Tfactor for T in Tdata2], 
+                                                                                    [P * Pfactor for P in Pdata2], 
+                                                                                    kdata2, 
+                                                                                    Tunits, 
+                                                                                    Punits, 
+                                                                                    kunits,
+                                                                                    Eunits,
+                                                                                    kModel.A.value,
+                                                                                    kModel.n.value,
+                                                                                    kModel.Ea.value
+                                                                                ))
 
 ###############################################################################
 

@@ -23,32 +23,33 @@ jQuery(document).ready(function() {
     {% endfor %}
 
     jsMath.Synchronize(function() {
-        plotKinetics('plotk', kineticsModelList);
+        kchart = plotKinetics('plotk', kineticsModelList);
     });
-    
-    
-   /* For the kinetics search form */
-   
-   /* sort CAS numbers numerically by what's up to the first hyphen */
-   /* The NIST kinetics site seems to usually choose the lowest assigned CAS number */
-   function sortCAS(a,b){
-     return a.split('-')[0] - b.split('-')[0];
-   }
-   
-   function resolve(fieldName){
-      var field = $('input[name="'+fieldName+'"]')
-      var value = field.val();
-      if (value != "") {
-         /* try resolving by CAS number */
-         //var url = '/cactus/'+escape(value)+'/cas'; 
-         var url = '/nistcas/'+escape(value); 
-         var jqxhr =  $.get(url,function(resolved_name) {
-            field.val(resolved_name.split('\n').sort(sortCAS)[0]);
+
+    document.getElementById("train").disabled = false;
+
+    /* For the kinetics search form */
+
+    /* sort CAS numbers numerically by what's up to the first hyphen */
+    /* The NIST kinetics site seems to usually choose the lowest assigned CAS number */
+    function sortCAS(a,b){
+        return a.split('-')[0] - b.split('-')[0];
+    }
+
+    function resolve(fieldName){
+        var field = $('input[name="'+fieldName+'"]')
+        var value = field.val();
+        if (value != "") {
+            /* try resolving by CAS number */
+            //var url = '/cactus/'+escape(value)+'/cas';
+            var url = '/nistcas/'+escape(value);
+            var jqxhr =  $.get(url,function(resolved_name) {
+                field.val(resolved_name.split('\n').sort(sortCAS)[0]);
             }).error( function() { /* no CAS number assigned (or some other problem) so use chemical formula */
-            var formula = value.split('/')[1]; /* formula is first layer of InChI */
-            field.val(formula);
-         })
-      }
+                var formula = value.split('/')[1]; /* formula is first layer of InChI */
+                field.val(formula);
+            })
+        }
    }
    resolve("text1");
    resolve("text2");
@@ -57,6 +58,66 @@ jQuery(document).ready(function() {
    /* End of code for the kinetics search form */
 
 });
+
+{% include "kineticsPlot.js" %}
+
+function getVisible(chart) {
+    var visible = [chart.series.length];
+
+    for (var i = 0; i < chart.series.length; i++)
+        visible[i] = chart.series[i].visible;
+
+    return visible;
+};
+
+function trainReaction() {
+
+    visible = getVisible(kchart);
+
+    AAverage = 0.0;
+    nAverage = 0.0;
+    EaAverage = 0.0;
+    count = 0;
+
+    refList = '';
+
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
+        var i = {{ forloop.counter0 }};
+        if (visible[i]) {
+            {{ kinetics|get_rate_coefficients }}
+            AAverage += Math.log(A);
+            nAverage += n;
+            EaAverage += Ea;
+            count += 1;
+
+            {% if entry.reference %}
+            refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} - {{ entry.reference.url }}{% endif %}\n';
+            {% else %}
+            refList += count + '. {{ source }}\n';
+            {% endif %}
+        }
+    {% endfor %}
+
+    AAverage = Math.pow(Math.E, AAverage / count);
+    nAverage /= count;
+    EaAverage /= count;
+
+    output = document.getElementById("id_entry").value.split('kinetics')[0] +
+            'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + kunits + '\"),' +
+            '\n        n = (' + nAverage.toFixed(5) + ',\"\"),' +
+            '\n        Ea = (' + EaAverage.toExponential(5) + ',\"' + Eunits + '\"),' +
+            '\n        T0 = (1,\"K\"),' +
+            '\n    ),' +
+            '\n    reference = None,' +
+            '\n    referenceType = \"\",' +
+            '\n    shortDesc = u\"\"\"User-generated average\"\"\",' +
+            '\n    longDesc = ' +
+            '\nu\"\"\"' +
+            '\nAverage of ' + count + ' results:' +
+            '\n' + refList + '\"\"\",';
+
+    document.getElementById("id_entry").value = output;
+};
 </script>
 
 <style>
@@ -162,6 +223,17 @@ jQuery(document).ready(function() {
 {% endfor %}
 
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+
+{% if new_entry_form %}
+<form method="post" id="entry_form" onSubmit="trainReaction()" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<div style="display: none">{{ new_entry_form.entry }}</div>
+{% csrf_token %}
+<div align="center">
+<input id="train" type="submit" value="Train Reaction" />
+</div>
+</form>
+{% endif %}
+
 {% else %}
 <p>No results found.</p>
 {% endif %}

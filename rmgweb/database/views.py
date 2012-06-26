@@ -995,6 +995,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
             href = getReactionUrl(reaction, family=reaction.family.name)
             entry = Entry(data=reaction.kinetics)
+            family = reaction.family.name
         elif reaction in rmgJavaReactionList:
             source = 'RMG-Java'
             href = ''
@@ -1024,6 +1025,21 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
                 reverseKinetics = None
             kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
 
+    # Construct new entry form from group-additive result
+    # Need to get group-additive reaction from generateReaction with only_families
+    # +--> otherwise, adjacency list doesn't store reaction template properly
+    additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family)
+    additiveList = [reaction for reaction in additiveList if isinstance(reaction, TemplateReaction)]
+    if len(additiveList)==2:
+        additiveList = [reaction for reaction in additiveList if reactionHasReactants(reaction, reactantList)]
+
+    new_entry = StringIO.StringIO(u'')
+    rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=additiveList[0]))
+    entry_string = new_entry.getvalue()
+    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
+    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
+    entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
+    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
 
     form = TemperatureForm()
     temperature = ''
@@ -1041,6 +1057,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
                                                     'reverseReactionURL':reverseReactionURL,
                                                     'form':form,
                                                     'temperature':temperature,
+                                                    'new_entry_form':new_entry_form,
+                                                    'subsection':family
                                                     },
                                              context_instance=RequestContext(request))
 
