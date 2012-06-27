@@ -25,7 +25,7 @@ jQuery(document).ready(function() {
     
     {% for products, kinetics in kineticsSet.items %}
     var kseries = new Array();
-    {{ kinetics|get_rate_coefficients }}
+    {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
     k_series.push(['{{ products }}', kseries[0][1]]);
     k_series2.push(['{{ products }}', kseries2[0][1]]);
@@ -37,6 +37,8 @@ jQuery(document).ready(function() {
     });
 
 });
+
+{% include "kineticsPlot.js" %}
 </script>
 {% endblock %}
 
