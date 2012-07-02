@@ -444,7 +444,9 @@ def get_rate_coefficients(kinetics, user=None):
                                                                                     kunits,
                                                                                 ))
     else:
-        kModel = KineticsData(([T * Tfactor for T in Tdata], Tunits), (kdata, kunits), Tmin, Tmax).toArrhenius()
+        Tlist = numpy.array([T * Tfactor for T in Tdata], numpy.float64)
+        klist = numpy.array(kdata, numpy.float64)
+        kModel = KineticsData((Tlist, Tunits), (klist, kunits), Tmin, Tmax).toArrhenius()
         kModel.Ea.value *= Efactor
         
         return mark_safe("""Tlist = {0};Plist = {1};klist = {2};Tlist2 = {3};Plist2 = {4};
