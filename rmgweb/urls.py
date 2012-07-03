@@ -46,6 +46,9 @@ urlpatterns = patterns('rmgweb',
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
     
+    # Restart the django processes in the webserver
+    (r'^restart$', 'main.views.restartWSGI'),
+    
     # The RMG website homepage
     (r'^$', 'main.views.index'),
     

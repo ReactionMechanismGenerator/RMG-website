@@ -244,3 +244,14 @@ def drawGroup(request, adjlist):
     response.write(graph.create(prog='neato', format='png'))
 
     return response
+
+@login_required
+def restartWSGI(request):
+    if request.META['mod_wsgi.process_group'] != '':
+        import signal, os, sys
+        restart_filename = os.path.join(os.path.dirname(request.META['SCRIPT_FILENAME']), 'restart')
+        print >> sys.stderr, "Touching {0} to trigger a restart all daemon processes".format(restart_filename)
+        with file(restart_filename, 'a'):
+            os.utime(restart_filename, None)
+        #os.kill(os.getpid(), signal.SIGINT)
+    return HttpResponseRedirect('/')
