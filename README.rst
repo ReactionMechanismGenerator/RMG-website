@@ -2,7 +2,9 @@
 RMG Website - A Django-powered website for RMG
 **********************************************
 
-Authors: Prof. William H. Green (whgreen@mit.edu) and the RMG Team (rmg_dev@mit.edu)
+Authors: Prof. William H. Green (whgreen@mit.edu),
+         Prof. Richard H. West (r.west@neu.edu),
+         and the RMG Team (rmg_dev@mit.edu)
 
 This repository contains the source code that powers the RMG website, which
 runs at http://rmg.mit.edu/. The RMG website itself uses the 
