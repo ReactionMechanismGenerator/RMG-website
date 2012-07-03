@@ -255,3 +255,11 @@ def restartWSGI(request):
             os.utime(restart_filename, None)
         #os.kill(os.getpid(), signal.SIGINT)
     return HttpResponseRedirect('/')
+
+def debug(request):
+    import sys
+    import scipy, numpy
+    print >> sys.stderr, "scipy module is {0}".format(scipy)
+    print >> sys.stderr, "numpy.finfo(float) = {0}".format(numpy.finfo(float))
+    print >> sys.stderr, "Failing on purpose to trigger a debug screen"
+    assert False, "Intentional failure to trigger debug screen."

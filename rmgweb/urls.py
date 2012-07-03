@@ -48,6 +48,8 @@ urlpatterns = patterns('rmgweb',
     
     # Restart the django processes in the webserver
     (r'^restart$', 'main.views.restartWSGI'),
+    # Show debug info
+    (r'^debug$', 'main.views.debug'),
     
     # The RMG website homepage
     (r'^$', 'main.views.index'),
