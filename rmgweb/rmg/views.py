@@ -138,7 +138,14 @@ def generateFlux(request):
             if 'ChemkinOutput' in request.FILES:
                 chemkinOutput = os.path.join(flux.path,'chemkin_output.out')
             java = form.cleaned_data['Java']
-            createFluxDiagram(flux.path, input, chemkin, dict, java, chemkinOutput)
+            settings = {}
+            settings['maximumNodeCount'] = form.cleaned_data['MaxNodes']  
+            settings['maximumEdgeCount'] = form.cleaned_data['MaxEdges']
+            settings['timeStep'] = form.cleaned_data['TimeStep']
+            settings['concentrationTolerance'] = form.cleaned_data['ConcentrationTolerance']
+            settings['speciesRateTolerance'] = form.cleaned_data['SpeciesRateTolerance']
+       
+            createFluxDiagram(flux.path, input, chemkin, dict, java, settings, chemkinOutput)
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
             print subdirs

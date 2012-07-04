@@ -180,6 +180,13 @@ class FluxDiagram(models.Model):
     DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary')
     ChemkinOutput = models.FileField(upload_to=upload_chemkinoutput_to, verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
     Java = models.BooleanField(verbose_name="From RMG-Java")
+    MaxNodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
+    MaxEdges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
+    TimeStep = models.FloatField(default=1.25, verbose_name='Multiplicative Time Step Factor')
+    ConcentrationTolerance = models.FloatField(default=1e-6, verbose_name='Concentration Tolerance')   # The lowest fractional concentration to show (values below this will appear as zero)
+    SpeciesRateTolerance = models.FloatField(default=1e-6, verbose_name='Species Rate Tolerance')   # The lowest fractional species rate to show (values below this will appear as zero)
+    
+    
 
     def getDirname(self):
         """
