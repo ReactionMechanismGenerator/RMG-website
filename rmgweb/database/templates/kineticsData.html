@@ -73,29 +73,22 @@ function getVisible(chart) {
 function trainReaction() {
 
     visible = getVisible(kchart);
-
     AAverage = 0.0;
     nAverage = 0.0;
     EaAverage = 0.0;
     count = 0;
 
     refList = '';
-
     {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
-        var i = {{ forloop.counter0 }};
-        if (visible[i]) {
-            {{ kinetics|get_rate_coefficients }}
-            AAverage += Math.log(A);
-            nAverage += n;
-            EaAverage += Ea;
-            count += 1;
-
-            {% if entry.reference %}
-            refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} - {{ entry.reference.url }}{% endif %}\n';
-            {% else %}
-            refList += count + '. {{ source }}\n';
-            {% endif %}
-        }
+    if (visible[{{ forloop.counter0 }}]) {
+        {{ kinetics|get_rate_coefficients:"A_n_Ea" }} {# returns A=, n=, Ea=, Aunits= and Eunits=  #}
+        AAverage += Math.log(A);
+        nAverage += n;
+        EaAverage += Ea;
+        count += 1;
+        {% if entry.reference %}refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} {{ entry.reference.url }}{% endif %}\n';
+        {% else %}refList += count + '. {{ source }}\n';{% endif %}
+    }
     {% endfor %}
 
     AAverage = Math.pow(Math.E, AAverage / count);
@@ -103,7 +96,7 @@ function trainReaction() {
     EaAverage /= count;
 
     output = document.getElementById("id_entry").value.split('kinetics')[0] +
-            'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + kunits + '\"),' +
+            'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + Aunits + '\"),' +
             '\n        n = (' + nAverage.toFixed(5) + ',\"\"),' +
             '\n        Ea = (' + EaAverage.toExponential(5) + ',\"' + Eunits + '\"),' +
             '\n        T0 = (1,\"K\"),' +

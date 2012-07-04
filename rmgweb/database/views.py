@@ -1011,9 +1011,9 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         
         forwardKinetics = reaction.kinetics
         
-        forward = reactionHasReactants(reaction, reactantList)
-        if forward:
-            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward])
+        is_forward = reactionHasReactants(reaction, reactantList)
+        if is_forward:
+            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, is_forward])
         else:
             if isinstance(forwardKinetics, Arrhenius) or isinstance(forwardKinetics, KineticsData):
                 reverseKinetics = reaction.generateReverseRateCoefficient()
@@ -1023,7 +1023,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
                 reverseKinetics.Pmax = forwardKinetics.Pmax
             else:
                 reverseKinetics = None
-            kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, forward])
+            kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, is_forward])
 
     # Construct new entry form from group-additive result
     # Need to get group-additive reaction from generateReaction with only_families
