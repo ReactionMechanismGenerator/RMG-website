@@ -443,44 +443,42 @@ def get_rate_coefficients(kinetics, user=None):
     if return_A_n_Ea:
         "We are only interested in the (fitted) Arrhenius parameters (and their units)"
         Tlist = numpy.array([T * Tfactor for T in Tdata], numpy.float64)
-        klist = numpy.array(kdata, numpy.float64)
+        
+        if kinetics.isPressureDependent():
+            # Use the highest pressure we have available
+            klist = numpy.array(kdata[-1], numpy.float64)
+            pressure_note = " (At {0} {1})".format(Pdata[-1],Punits)
+        else:
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+
         kModel = KineticsData((Tlist, Tunits), (klist, kunits), Tmin, Tmax).toArrhenius()
         kModel.Ea.value *= Efactor
     
-        return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}";""".format(
+        return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
                             kModel.A.value,
                             kModel.n.value,
                             kModel.Ea.value,
                             kunits,
-                            Eunits
+                            Eunits,
+                            pressure_note
                         ))
     
-    if kinetics.isPressureDependent():
-        return mark_safe("""Tlist = {0};Plist = {1};klist = {2};Tlist2 = {3};Plist2 = {4};
-                            klist2 = {5};Tunits = "{6}";Punits = "{7}";kunits = "{8}";""".format(
-                                 [T * Tfactor for T in Tdata],
-                                 [P * Pfactor for P in Pdata],
-                                 kdata,
-                                 [T * Tfactor for T in Tdata2],
-                                 [P * Pfactor for P in Pdata2],
-                                 kdata2,
-                                 Tunits,
-                                 Punits,
-                                 kunits,
-                             ))
-    else:
-        return mark_safe("""Tlist = {0};Plist = {1};klist = {2};Tlist2 = {3};Plist2 = {4};
-                            klist2 = {5};Tunits = "{6}";Punits = "{7}";kunits = "{8}";""".format(
-                                 [T * Tfactor for T in Tdata],
-                                 [P * Pfactor for P in Pdata],
-                                 kdata,
-                                 [T * Tfactor for T in Tdata2],
-                                 [P * Pfactor for P in Pdata2],
-                                 kdata2,
-                                 Tunits,
-                                 Punits,
-                                 kunits
-                             ))
+    
+    return mark_safe("""Tlist = {0};Plist = {1};klist = {2};
+                        Tlist2 = {3};Plist2 = {4}; klist2 = {5};
+                        Tunits = "{6}";Punits = "{7}";kunits = "{8}";""".format(
+                             [T * Tfactor for T in Tdata],
+                             [P * Pfactor for P in Pdata],
+                             kdata,
+                             [T * Tfactor for T in Tdata2],
+                             [P * Pfactor for P in Pdata2],
+                             kdata2,
+                             Tunits,
+                             Punits,
+                             kunits,
+                         ))
+
 
 ###############################################################################
 
