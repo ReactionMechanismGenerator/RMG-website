@@ -9,7 +9,8 @@ plotKinetics = function(id, kseries) {
                 click: function() {
                     if (legendEnabled) this.hide();
                 }
-            }
+            },
+            animation: false
         });
     var legendEnabled = (kseries.length > 1);
 
