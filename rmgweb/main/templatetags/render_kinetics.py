@@ -447,7 +447,7 @@ def get_rate_coefficients(kinetics, user=None):
         kModel = KineticsData((Tlist, Tunits), (klist, kunits), Tmin, Tmax).toArrhenius()
         kModel.Ea.value *= Efactor
     
-        return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{3}";""".format(
+        return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}";""".format(
                             kModel.A.value,
                             kModel.n.value,
                             kModel.Ea.value,
