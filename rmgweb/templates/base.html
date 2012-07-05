@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>{% block title %}RMG{% endblock %}</title>
     <link href="/media/default.css" rel="stylesheet" type="text/css"/>
+    <link href="/media/jsMath-fonts.css" rel="stylesheet" type="text/css"/>
     <script src="/media/jquery.js"></script>
     <script src="/media/jsMath/easy/load.js"></script>
     
@@ -69,6 +70,14 @@
         <div class="biglink">Simulation and Tools</div></a>
         <div class="linkdesc">Tools for using RMG</div>
         </p>
+        
+        <!-- Dummy spans required for jsMath fonts to load properly -->
+        <span style="font-family: jsMath-cmex10;"></span>
+        <span style="font-family: jsMath-cmbx10;"></span>
+        <span style="font-family: jsMath-cmmi10;"></span>
+        <span style="font-family: jsMath-cmr10;"></span>
+        <span style="font-family: jsMath-cmsy10;"></span>
+        <span style="font-family: jsMath-cmti10;"></span>
     </div>
 
     <div id="mainbar">
