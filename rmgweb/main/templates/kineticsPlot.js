@@ -1,5 +1,4 @@
 plotKinetics = function(id, kseries) {
-
     series = [];
     for (var i = 0; i < kseries.length; i++)
         series.push({
@@ -13,20 +12,27 @@ plotKinetics = function(id, kseries) {
             animation: false
         });
     var legendEnabled = (kseries.length > 1);
-
+    
+    if (legendEnabled) {
+        series.push({
+            name: "Average of selected rates",
+            data: [],
+            type: 'scatter',
+            id: 'average'
+        })
+    }
+    
     options = {
         chart: {
             renderTo: id,
             defaultSeriesType: 'line',
             events: {
                 redraw: function() {
-                    for (var i = 0; i < kseries.length; i++)
-                        if (this.series[i].visible) {
-                            document.getElementById("train").disabled = false;
-                            return;
-                        }
-
-                    document.getElementById("train").disabled = true;
+                    if (average_stale){
+                        calculateAverage();
+                    } else {
+                        average_stale = true;
+                    }
                 }
             }
         },
@@ -59,7 +65,7 @@ plotKinetics = function(id, kseries) {
                 T = 1000.0/this.x;
                 exponent = Math.floor(this.y);
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
-                if (legendEnabled == 0) {
+                if (!legendEnabled) {
                     return  'k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
                     } else {
@@ -67,8 +73,12 @@ plotKinetics = function(id, kseries) {
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
                     }
             }
-        }
+        },
+        plotOptions: {
+            series: {
+                animation: false
+            }
+        },
     }
-
     return new Highcharts.Chart(options);
 };

@@ -23,10 +23,10 @@ jQuery(document).ready(function() {
     {% endfor %}
 
     jsMath.Synchronize(function() {
+        // Do these things once the jsMath has finished rendering.
         kchart = plotKinetics('plotk', kineticsModelList);
+        calculateAverage();
     });
-
-    document.getElementById("train").disabled = false;
 
     /* For the kinetics search form */
 
@@ -59,19 +59,20 @@ jQuery(document).ready(function() {
 
 });
 
+
+var average_stale = true;
 {% include "kineticsPlot.js" %}
 
 function getVisible(chart) {
+    // Returns an array of true/false values corresponding to vilibility of each series in the chart.
     var visible = [chart.series.length];
-
     for (var i = 0; i < chart.series.length; i++)
         visible[i] = chart.series[i].visible;
-
     return visible;
 };
 
-function trainReaction() {
-
+function calculateAverage() {
+    // Calculates the average of the visible rates on the chart. 
     visible = getVisible(kchart);
     AAverage = 0.0;
     nAverage = 0.0;
@@ -94,9 +95,12 @@ function trainReaction() {
     {% else %} // {{ source }} had no kinetics. Not included in plot, so can't average.
     {% endif %}{% endfor %}
 
-    AAverage = Math.pow(Math.E, AAverage / count);
+    AAverage = Math.exp(AAverage / count);
     nAverage /= count;
     EaAverage /= count;
+    
+    if (count == 0) document.getElementById("train").disabled = true
+    else document.getElementById("train").disabled = false;
 
     output = document.getElementById("id_entry").value.split('kinetics')[0] +
             'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + Aunits + '\"),' +
@@ -111,8 +115,17 @@ function trainReaction() {
             '\nu\"\"\"' +
             '\nAverage of ' + count + ' results:' +
             '\n' + refList + '\"\"\",';
-
     document.getElementById("id_entry").value = output;
+    
+    var new_data = [];
+    for (var n = 0; n <= 10; n++){
+        T = 1/( 1/300 + (1/2000-1/300)*n/10 );
+        k = AAverage * Math.pow(T,nAverage) * Math.exp(-1*EaAverage / (8.314472 * T));
+        new_data.push([1000.0/T, Math.log(k)/Math.LN10 ]);
+    }
+    average_stale = false;
+    kchart.get('average').setData(new_data, false); // don't redraw automatically, because this function is called on redraw!
+    setTimeout(function(){ kchart.redraw(); },50); // redraw after delay
 };
 </script>
 
@@ -221,11 +234,11 @@ function trainReaction() {
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
 {% if new_entry_form %}
-<form method="post" id="entry_form" onSubmit="trainReaction()" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
-<div style="display: none">{{ new_entry_form.entry }}</div>
+<form method="post" id="entry_form" onSubmit="calculateAverage()" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<div style="display: none;">{{ new_entry_form.entry }}</div>
 {% csrf_token %}
 <div align="center">
-<input id="train" type="submit" value="Train Reaction" />
+<input id="train" type="submit" value="Create training rate from average" />
 </div>
 </form>
 {% endif %}
@@ -241,7 +254,6 @@ function trainReaction() {
     <form action="" method="POST">{% csrf_token %}
     <tr><td>{{ form.as_p }}</td><td><input type="submit" value="Submit" name="submit"></td></tr>
     </form>
-
 
 {% if temperature %}
 {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
