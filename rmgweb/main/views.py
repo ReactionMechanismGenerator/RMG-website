@@ -136,7 +136,7 @@ def getAdjacencyList(request, identifier):
     """
     if identifier.strip() == '':
         return HttpResponse('', mimetype="text/plain")
-    from rmgpy.molecule import Molecule
+    from rmgpy.molecule.molecule import Molecule
     molecule = Molecule()
     try:
         # try using the string as a SMILES directly
@@ -197,8 +197,8 @@ def drawMolecule(request, adjlist):
     Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.molecule import Molecule
-    from rmgpy.molecule_draw import drawMolecule
+    from rmgpy.molecule.molecule import Molecule
+    from rmgpy.molecule.molecule_draw import drawMolecule
 
     response = HttpResponse(mimetype="image/png")
 

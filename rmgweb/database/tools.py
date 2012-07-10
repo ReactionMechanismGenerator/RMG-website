@@ -43,7 +43,7 @@ import xlrd
 
 
 from rmgpy.kinetics import Arrhenius
-from rmgpy.molecule import Molecule
+from rmgpy.molecule.molecule import Molecule
 from rmgpy.species import Species
 from rmgpy.reaction import Reaction
 from rmgpy.data.base import Entry

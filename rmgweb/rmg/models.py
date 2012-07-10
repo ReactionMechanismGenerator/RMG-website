@@ -34,7 +34,7 @@ import os.path
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
-from rmgpy.molecule import Molecule
+from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
 from rmgweb.database.views import loadDatabase

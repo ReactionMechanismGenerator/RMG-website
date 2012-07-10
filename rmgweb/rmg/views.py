@@ -39,8 +39,8 @@ import settings
 from rmgweb.rmg.models import *
 from rmgweb.rmg.forms import *
 
-from rmgpy.molecule import Molecule
-from rmgpy.group import Group
+from rmgpy.molecule.molecule import Molecule
+from rmgpy.molecule.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
 

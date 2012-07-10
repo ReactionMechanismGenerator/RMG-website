@@ -35,7 +35,7 @@ import re
 from django.core.urlresolvers import reverse
 
 from rmgpy.quantity import constants
-from rmgpy.molecule import Molecule
+from rmgpy.molecule.molecule import Molecule
 
 ################################################################################
 
@@ -92,8 +92,8 @@ def getStructureMarkup(item):
     draw the molecule. For a :class:`Group`, the markup is the
     adjacency list, wrapped in ``<pre>`` tags.
     """
-    from rmgpy.molecule import Molecule
-    from rmgpy.group import Group
+    from rmgpy.molecule.molecule import Molecule
+    from rmgpy.molecule.group import Group
     from rmgpy.species import Species
     
     if isinstance(item, Molecule):
