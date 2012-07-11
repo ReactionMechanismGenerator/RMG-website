@@ -263,3 +263,10 @@ def debug(request):
     print >> sys.stderr, "numpy.finfo(float) = {0}".format(numpy.finfo(float))
     print >> sys.stderr, "Failing on purpose to trigger a debug screen"
     assert False, "Intentional failure to trigger debug screen."
+
+def rebuild(request):
+    import os
+    rebuild_filename = os.path.join(os.path.dirname(request.META['DOCUMENT_ROOT']), 'trigger/rebuild')
+    with file(rebuild_filename, 'a'):
+            os.utime(rebuild_filename, None)
+    return HttpResponseRedirect('/')

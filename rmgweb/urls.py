@@ -81,6 +81,9 @@ urlpatterns = patterns('rmgweb',
 
     # RMG-Py Stuff
     (r'^simulate/', include('rmg.urls')),
+    
+    # Documentation auto-rebuild
+    (r'^rebuild$', 'main.views.rebuild'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
     
