@@ -36,6 +36,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 import urllib, urllib2
 
 from forms import *
@@ -264,6 +265,7 @@ def debug(request):
     print >> sys.stderr, "Failing on purpose to trigger a debug screen"
     assert False, "Intentional failure to trigger debug screen."
 
+@csrf_exempt
 def rebuild(request):
     import os
     rebuild_filename = os.path.join(os.path.dirname(request.META['DOCUMENT_ROOT']), 'trigger/rebuild')
