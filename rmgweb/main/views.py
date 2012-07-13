@@ -198,7 +198,7 @@ def drawMolecule(request, adjlist):
     semicolons should be used instead.
     """
     from rmgpy.molecule import Molecule
-    from rmgpy.molecule_draw import drawMolecule
+    from rmgpy.molecule.molecule_draw import drawMolecule
 
     response = HttpResponse(mimetype="image/png")
 

@@ -37,6 +37,10 @@ import socket
 import sys
 import os
 import settings
+import pybel
+import openbabel as ob
+import xlrd
+
 
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule import Molecule
@@ -573,3 +577,108 @@ def getRMGJavaKinetics(reactantList, productList=None):
         reaction.products = [Species(label=product.toSMILES(), molecule=[product]) for product in reaction.products]
     
     return reactionList
+
+def getAbrahamAB(smiles):
+
+    class functionalgroup():
+        """
+        functional group definitions and the associated A and B values for the Abraham hydrogen bonding descriptors
+        """
+        def __init__(self,SMART, name, data):
+            self.name = name
+            self.smarts = SMART
+            self.value = float()
+            self.value = data
+    
+    class query():
+        """
+        Defines the properties of a molecular query which may be the detergent molecule or dirt molecule
+        """
+        def __init__(self):
+            self.name = str()
+            self.smiles = str()
+            self.A = float()
+            self.B = float()
+        
+        def MatchPlattsAGroups(self, smiles):
+            
+            # Load functional group database
+            current_dir = os.getcwd()
+            filepath = os.path.join(current_dir, 'groups.xls')
+            wb = xlrd.open_workbook(filepath)
+            wb.sheet_names()
+        
+            data = wb.sheet_by_name(u'PlattsA')
+            col1 = data.col_values(0)
+            col2 = data.col_values(1)
+            col3 = data.col_values(2)
+        
+            databaseA = []
+            for (SMART, name, A) in zip(col1, col2, col3):
+                    databaseA.append(functionalgroup(SMART, name, A))
+            
+            platts_A = 0
+            mol = pybel.readstring("smi", smiles)
+            for x in databaseA:
+                # Initialize with dummy SMLES to check for validity of real one
+                smarts = pybel.Smarts("CC")
+                smarts.obsmarts = ob.OBSmartsPattern()
+                success = smarts.obsmarts.Init(x.smarts.__str__())
+                if success:
+                    smarts = pybel.Smarts(x.smarts.__str__())
+                else:
+                    print "Invalid SMARTS pattern", x.smarts.__str__()
+                    break
+                matched = smarts.findall(mol)
+                x.num = len(matched)
+                if (x.num > 0):
+                    print "Found group", x.smarts.__str__(), 'named', x.name, 'with contribution', x.value, 'to A', x.num, 'times'
+                platts_A += (x.num) * (x.value)
+                        
+            self.A = platts_A + 0.003
+               
+        def MatchPlattsBGroups(self, smiles):
+            
+            # Load functional group database
+            current_dir = os.getcwd()
+            filepath = os.path.join(current_dir, 'groups.xls')
+            wb = xlrd.open_workbook(filepath)
+            wb.sheet_names()
+        
+            data = wb.sheet_by_name(u'PlattsB')
+            col1 = data.col_values(0)
+            col2 = data.col_values(1)
+            col3 = data.col_values(2)
+        
+            databaseB = []
+            for (SMART, name, B) in zip(col1, col2, col3):
+                    databaseB.append(functionalgroup(SMART, name, B))
+            
+            platts_B = 0
+            mol = pybel.readstring("smi", smiles)
+            for x in databaseB:
+                # Initialize with dummy SMLES to check for validity of real one
+                smarts = pybel.Smarts("CC")
+                smarts.obsmarts = ob.OBSmartsPattern()
+                success = smarts.obsmarts.Init(x.smarts.__str__())
+                if success:
+                    smarts = pybel.Smarts(x.smarts.__str__())
+                else:
+                    print "Invalid SMARTS pattern", x.smarts.__str__()
+                    break
+                matched = smarts.findall(mol)
+                x.num = len(matched)
+                if (x.num > 0):
+                    print "Found group", x.smarts.__str__(), 'named', x.name, 'with contribution', x.value, 'to B', x.num, 'times'
+                platts_B += (x.num) * (x.value)
+            
+            self.B = platts_B + 0.071 
+
+    molecule = query()
+    molecule.smiles = smiles
+    molecule.MatchPlattsAGroups(molecule.smiles)
+    molecule.MatchPlattsBGroups(molecule.smiles)
+    
+    return molecule.A, molecule.B
+    
+
