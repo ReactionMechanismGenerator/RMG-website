@@ -405,8 +405,11 @@ def get_rate_coefficients(kinetics, user=None):
         Pmin = 1e3
         Pmax = 1e7
     
-    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.00005):
-        Tdata.append(1.0/Tinv)
+    # Number of points in Tlist (ten times that in Pdep's Tlist2)
+    points = 50
+    
+    for Tinv in numpy.linspace(1.0 / Tmax, 1.0 / Tmin, points):
+        Tdata.append(1.0 / Tinv)
     if kinetics.isPressureDependent():
         for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
             Pdata.append(10**logP)
@@ -423,8 +426,8 @@ def get_rate_coefficients(kinetics, user=None):
             kdata.append(kinetics.getRateCoefficient(T) * kfactor)
     
     Tdata2 = []; Pdata2 = []; kdata2 = []
-    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.0005):
-        Tdata2.append(round(1.0/Tinv))
+    for Tinv in numpy.linspace(1.0 / Tmax, 1.0 / Tmin, points / 10):
+        Tdata2.append(1.0 / Tinv)
     if kinetics.isPressureDependent():
         for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
             Pdata2.append(10**logP)
