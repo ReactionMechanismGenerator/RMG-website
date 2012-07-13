@@ -159,3 +159,32 @@ def generateFlux(request):
     return render_to_response('fluxDiagram.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
 
+def runPopulateReactions(request):
+    """
+    Allows user to upload chemkin and RMG dictionary files to generate a nice looking html output.
+    """
+    populateReactions = PopulateReactions()
+    outputPath = ''
+    chemkinPath = ''
+    populateReactions.deleteDir()
+    
+    if request.method == 'POST':
+        populateReactions.createDir()
+        form = PopulateReactionsForm(request.POST, request.FILES, instance=populateReactions)
+        if form.is_valid():
+            form.save()
+            outputPath = 'media/rmg/tools/populateReactions/output.html'
+            chemkinPath = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
+            # Generate the output HTML file
+            populateReactions.createOutput()
+            # Go back to the network's main page
+            return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
+
+
+    # Otherwise create the form
+    else:
+        form = PopulateReactionsForm(instance=populateReactions)
+        
+    return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
+
+

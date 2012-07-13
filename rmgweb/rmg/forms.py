@@ -60,3 +60,11 @@ class FluxDiagramForm(forms.ModelForm):
     """
     class Meta:
         model = FluxDiagram
+        
+class PopulateReactionsForm(forms.ModelForm):
+    """
+    A Django form for Populate Reactions when an input file is uploaded.  
+    """
+    class Meta:
+        model = PopulateReactions
+    

@@ -45,6 +45,9 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^compare','views.compareModels'),
 
     # Generate Flux Diagram
-    (r'^flux','views.generateFlux')
+    (r'^flux','views.generateFlux'),
+    
+    # Populate Reactions with an Input File
+    (r'^populate_reactions','views.runPopulateReactions')
 
 )
