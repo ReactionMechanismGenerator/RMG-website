@@ -90,6 +90,7 @@ function calculateAverage() {
         count += 1;
         {% if entry.reference %}refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} {{ entry.reference.url }}{% endif %}'+Pnote+'\n';
         {% else %}refList += count + '. {{ source }}'+Pnote+'\n';{% endif %}
+        {{ kinetics|get_user_kfactor:user }}
     }
     highChartsSeriesIndex++;
     {% else %} // {{ source }} had no kinetics. Not included in plot, so can't average.
@@ -120,7 +121,7 @@ function calculateAverage() {
     var new_data = [];
     for (var n = 0; n <= 10; n++){
         T = 1/( 1/300 + (1/2000-1/300)*n/10 );
-        k = AAverage * Math.pow(T,nAverage) * Math.exp(-1*EaAverage / (8.314472 * T));
+        k = kfactor * AAverage * Math.pow(T,nAverage) * Math.exp(-1*EaAverage / (8.314472 * T));
         new_data.push([1000.0/T, Math.log(k)/Math.LN10 ]);
     }
     average_stale = false;

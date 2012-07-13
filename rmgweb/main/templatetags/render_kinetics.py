@@ -498,3 +498,14 @@ def get_temp_specific_rate(kinetics, temperature):
     result = '<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</div>'.format(kunits)
     return mark_safe(result)
+
+###############################################################################
+
+@register.filter
+def get_user_kfactor(kinetics, user=None):
+    """
+    Return the scaling factor required for average kinetics plotting.
+    """
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    
+    return mark_safe("""kfactor = {0};""".format(kfactor))
