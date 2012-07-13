@@ -1,0 +1,4 @@
+Touch this file to restart the MOD_WSGI processes running the website.
+(You can also touch the django.wsgi file to have the same effect,
+but you can make THIS file writeable by more users (eg. www-data) without the
+same security risks as making django.wsgi world-writeable!)

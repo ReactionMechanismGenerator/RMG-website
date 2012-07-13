@@ -1,0 +1,3 @@
+Give your web server write permission to this directory,
+then run `python manage.py syncdb` in the parent directory
+to create your rmgweb.db file here.

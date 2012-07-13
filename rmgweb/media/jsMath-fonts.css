@@ -1,0 +1,57 @@
+﻿@font-face {
+ font-family: jsMath-cmex10;
+ src: url("jsMath-fonts/jsMath-cmex10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmex10;
+ src: url("jsMath-fonts/jsMath-cmex10.ttf") /* TTF file for CSS3 browsers */
+}
+
+
+@font-face {
+ font-family: jsMath-cmbx10;
+ src: url("jsMath-fonts/jsMath-cmbx10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmbx10;
+ src: url("jsMath-fonts/jsMath-cmbx10.ttf") /* TTF file for CSS3 browsers */
+}
+
+
+@font-face {
+ font-family: jsMath-cmmi10;
+ src: url("jsMath-fonts/jsMath-cmmi10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmmi10;
+ src: url("jsMath-fonts/jsMath-cmmi10.ttf") /* TTF file for CSS3 browsers */
+}
+
+
+@font-face {
+ font-family: jsMath-cmr10;
+ src: url("jsMath-fonts/jsMath-cmr10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmr10;
+ src: url("jsMath-fonts/jsMath-cmr10.ttf") /* TTF file for CSS3 browsers */
+}
+
+
+@font-face {
+ font-family: jsMath-cmsy10;
+ src: url("jsMath-fonts/jsMath-cmsy10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmsy10;
+ src: url("jsMath-fonts/jsMath-cmsy10.ttf") /* TTF file for CSS3 browsers */
+}
+
+@font-face {
+ font-family: jsMath-cmti10;
+ src: url("jsMath-fonts/jsMath-cmti10.eot") /* EOT file for IE */
+}
+@font-face {
+ font-family: jsMath-cmti10;
+ src: url("jsMath-fonts/jsMath-cmti10.ttf") /* TTF file for CSS3 browsers */
+}

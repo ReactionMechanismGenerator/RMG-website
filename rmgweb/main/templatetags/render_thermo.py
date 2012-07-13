@@ -236,7 +236,7 @@ def render_thermo_math(thermo, user=None):
         for polynomial in thermo.polynomials:
             result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c6))
         result += '</tr>\n'
-        result += '<\table>\n'
+        result += '</table>\n'
     
     elif isinstance(thermo, list):
         # The thermo is a link

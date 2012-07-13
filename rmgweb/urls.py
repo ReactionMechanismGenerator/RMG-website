@@ -46,6 +46,11 @@ urlpatterns = patterns('rmgweb',
     # Uncomment the next line to enable the admin:
     (r'^admin/', include(admin.site.urls)),
     
+    # Restart the django processes in the webserver
+    (r'^restart$', 'main.views.restartWSGI'),
+    # Show debug info
+    (r'^debug$', 'main.views.debug'),
+    
     # The RMG website homepage
     (r'^$', 'main.views.index'),
     
@@ -76,6 +81,9 @@ urlpatterns = patterns('rmgweb',
 
     # RMG-Py Stuff
     (r'^simulate/', include('rmg.urls')),
+    
+    # Documentation auto-rebuild
+    (r'^rebuild$', 'main.views.rebuild'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
     

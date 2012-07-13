@@ -53,6 +53,7 @@ jQuery(document).ready(function() {
     
     {{ kinetics|get_rate_coefficients:user }}
     {% include "kineticsModel.js" %}
+    {% include "kineticsPlot.js" %}
 
     jsMath.Synchronize(function() {
         plotKinetics('plotk', kseries);

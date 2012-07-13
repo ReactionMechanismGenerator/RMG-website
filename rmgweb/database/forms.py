@@ -32,7 +32,7 @@ from django import forms
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
-from rmgpy.molecule import Molecule
+from rmgpy.molecule.molecule import Molecule
 import rmgpy
 import copy
 import sys

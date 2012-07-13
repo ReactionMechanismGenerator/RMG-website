@@ -113,9 +113,9 @@ def getRateCoefficientUnits(kinetics, user=None):
     # Use the number of reactants to get the rate coefficient units and conversion factor
     kunitsDict = {
         1: 's^-1',
-        2: 'cm^3/(mol*s)',
-        3: 'cm^6/(mol^2*s)',
-        4: 'cm^9/(mol^3*s)',
+        2: 'm^3/(mol*s)',
+        3: 'm^6/(mol^2*s)',
+        4: 'm^9/(mol^3*s)',
     }
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -173,8 +173,8 @@ def render_kinetics_math(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
@@ -362,9 +362,19 @@ def get_rate_coefficients(kinetics, user=None):
     Generate and return a set of :math:`k(T,P)` data suitable for plotting
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
+    If `user=='A_n_Ea'` then it fits an Arrhenius expression and returns
+    the parameters (and their units).
     """
     if kinetics is None:
         return "// There are no kinetics for this entry."
+
+    if user == "A_n_Ea":
+        # Not a user, but a request to just return the Arrhenius coefficients
+        return_A_n_Ea = True
+        user = None
+    else:
+        return_A_n_Ea = False
+
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -373,8 +383,8 @@ def get_rate_coefficients(kinetics, user=None):
         Eunits = str(user_profile.energyUnits)
     else:
         Tunits = 'K'
-        Punits = 'bar'
-        Eunits = 'kcal/mol'
+        Punits = 'Pa'
+        Eunits = 'J/mol'
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
@@ -395,8 +405,11 @@ def get_rate_coefficients(kinetics, user=None):
         Pmin = 1e3
         Pmax = 1e7
     
-    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.00001):
-        Tdata.append(1.0/Tinv)
+    # Number of points in Tlist (ten times that in Pdep's Tlist2)
+    points = 50
+    
+    for Tinv in numpy.linspace(1.0 / Tmax, 1.0 / Tmin, points):
+        Tdata.append(1.0 / Tinv)
     if kinetics.isPressureDependent():
         for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
             Pdata.append(10**logP)
@@ -413,8 +426,8 @@ def get_rate_coefficients(kinetics, user=None):
             kdata.append(kinetics.getRateCoefficient(T) * kfactor)
     
     Tdata2 = []; Pdata2 = []; kdata2 = []
-    for Tinv in numpy.arange(1.0/Tmax, 1.0/Tmin, 0.0005):
-        Tdata2.append(round(1.0/Tinv))
+    for Tinv in numpy.linspace(1.0 / Tmax, 1.0 / Tmin, points / 10):
+        Tdata2.append(1.0 / Tinv)
     if kinetics.isPressureDependent():
         for logP in numpy.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
             Pdata2.append(10**logP)
@@ -430,27 +443,45 @@ def get_rate_coefficients(kinetics, user=None):
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
     
-    return mark_safe("""
-Tlist = {0};
-Plist = {1};
-klist = {2};
-Tlist2 = {3};
-Plist2 = {4};
-klist2 = {5};
-Tunits = "{6}";
-Punits = "{7}";
-kunits = "{8}";
-    """.format(
-        [T * Tfactor for T in Tdata], 
-        [P * Pfactor for P in Pdata], 
-        kdata, 
-        [T * Tfactor for T in Tdata2], 
-        [P * Pfactor for P in Pdata2], 
-        kdata2, 
-        Tunits, 
-        Punits, 
-        kunits,
-    ))
+    if return_A_n_Ea:
+        "We are only interested in the (fitted) Arrhenius parameters (and their units)"
+        Tlist = numpy.array([T * Tfactor for T in Tdata], numpy.float64)
+        
+        if kinetics.isPressureDependent():
+            # Use the highest pressure we have available
+            klist = numpy.array(kdata[-1], numpy.float64)
+            pressure_note = " (At {0} {1})".format(Pdata[-1],Punits)
+        else:
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+
+        kModel = KineticsData((Tlist, Tunits), (klist, kunits), Tmin, Tmax).toArrhenius()
+        kModel.Ea.value *= Efactor
+    
+        return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
+                            kModel.A.value,
+                            kModel.n.value,
+                            kModel.Ea.value,
+                            kunits,
+                            Eunits,
+                            pressure_note
+                        ))
+    
+    
+    return mark_safe("""Tlist = {0};Plist = {1};klist = {2};
+                        Tlist2 = {3};Plist2 = {4}; klist2 = {5};
+                        Tunits = "{6}";Punits = "{7}";kunits = "{8}";""".format(
+                             [T * Tfactor for T in Tdata],
+                             [P * Pfactor for P in Pdata],
+                             kdata,
+                             [T * Tfactor for T in Tdata2],
+                             [P * Pfactor for P in Pdata2],
+                             kdata2,
+                             Tunits,
+                             Punits,
+                             kunits,
+                         ))
+
 
 ###############################################################################
 
@@ -467,3 +498,14 @@ def get_temp_specific_rate(kinetics, temperature):
     result = '<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</div>'.format(kunits)
     return mark_safe(result)
+
+###############################################################################
+
+@register.filter
+def get_user_kfactor(kinetics, user=None):
+    """
+    Return the scaling factor required for average kinetics plotting.
+    """
+    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    
+    return mark_safe("""kfactor = {0};""".format(kfactor))

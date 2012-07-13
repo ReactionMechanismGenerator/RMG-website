@@ -36,6 +36,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
 import urllib, urllib2
 
 from forms import *
@@ -136,7 +137,7 @@ def getAdjacencyList(request, identifier):
     """
     if identifier.strip() == '':
         return HttpResponse('', mimetype="text/plain")
-    from rmgpy.molecule import Molecule
+    from rmgpy.molecule.molecule import Molecule
     molecule = Molecule()
     try:
         # try using the string as a SMILES directly
@@ -197,7 +198,7 @@ def drawMolecule(request, adjlist):
     Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.molecule import Molecule
+    from rmgpy.molecule.molecule import Molecule
     from rmgpy.molecule.molecule_draw import drawMolecule
 
     response = HttpResponse(mimetype="image/png")
@@ -244,3 +245,30 @@ def drawGroup(request, adjlist):
     response.write(graph.create(prog='neato', format='png'))
 
     return response
+
+@login_required
+def restartWSGI(request):
+    if request.META['mod_wsgi.process_group'] != '':
+        import signal, os, sys
+        restart_filename = os.path.join(os.path.dirname(request.META['SCRIPT_FILENAME']), 'restart')
+        print >> sys.stderr, "Touching {0} to trigger a restart all daemon processes".format(restart_filename)
+        with file(restart_filename, 'a'):
+            os.utime(restart_filename, None)
+        #os.kill(os.getpid(), signal.SIGINT)
+    return HttpResponseRedirect('/')
+
+def debug(request):
+    import sys
+    import scipy, numpy
+    print >> sys.stderr, "scipy module is {0}".format(scipy)
+    print >> sys.stderr, "numpy.finfo(float) = {0}".format(numpy.finfo(float))
+    print >> sys.stderr, "Failing on purpose to trigger a debug screen"
+    assert False, "Intentional failure to trigger debug screen."
+
+@csrf_exempt
+def rebuild(request):
+    import os
+    rebuild_filename = os.path.join(os.path.dirname(request.META['DOCUMENT_ROOT']), 'trigger/rebuild')
+    with file(rebuild_filename, 'a'):
+            os.utime(rebuild_filename, None)
+    return HttpResponseRedirect('/')
