@@ -45,7 +45,7 @@ from django.core.urlresolvers import reverse
 import settings
 
 from rmgpy.molecule import Molecule
-from rmgpy.group import Group
+from rmgpy.molecule.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
 from rmgpy.reaction import Reaction

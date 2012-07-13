@@ -93,7 +93,7 @@ def getStructureMarkup(item):
     adjacency list, wrapped in ``<pre>`` tags.
     """
     from rmgpy.molecule import Molecule
-    from rmgpy.group import Group
+    from rmgpy.molecule.group import Group
     from rmgpy.species import Species
     
     if isinstance(item, Molecule):

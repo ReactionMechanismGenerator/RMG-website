@@ -215,7 +215,7 @@ def drawGroup(request, adjlist):
     pattern. Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.group import Group
+    from rmgpy.molecule.group import Group
     import pydot
 
     response = HttpResponse(mimetype="image/png")
