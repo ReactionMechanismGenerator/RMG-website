@@ -229,8 +229,8 @@ def drawGroup(request, adjlist):
         atomType = '%s ' % atom.label if atom.label != '' else ''
         atomType += ','.join([atomType.label for atomType in atom.atomType])
         graph.add_node(pydot.Node(name='%i' % (index+1), label=atomType, fontname='Helvetica', fontsize=16))
-    for atom1, bonds in pattern.bonds.iteritems():
-        for atom2, bond in bonds.iteritems():
+    for atom1 in pattern.atoms:
+        for atom2, bond in atom1.bonds.iteritems():
             index1 = pattern.atoms.index(atom1)
             index2 = pattern.atoms.index(atom2)
             if index1 < index2:
