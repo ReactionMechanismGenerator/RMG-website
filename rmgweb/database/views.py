@@ -54,7 +54,7 @@ from rmgpy.reaction import Reaction
 import rmgpy
 from rmgpy.data.base import Entry, LogicNode
 from rmgpy.data.thermo import ThermoDatabase
-from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction, DepositoryReaction, LibraryReaction, KineticsGroups
+from rmgpy.data.kinetics import *
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
@@ -275,6 +275,61 @@ def getKineticsTreeHTML(database, section, subsection, entries):
         html += '</li>\n'
     return html
 
+def getUntrainedReactions(family):
+    """
+    Return a depository containing unique reactions for which no
+    training data exists.
+    """
+    
+    # Load training depository
+    for depository in family.depositories:
+        if 'training' in depository.label:
+            training = depository
+            break
+    else:
+        raise Exception('Could not find training depository in {0} family.'.format(family.label))
+    
+    # Load trained reactions
+    trainedReactions = []
+    for entry in training.entries.values():
+        for reaction in trainedReactions:
+            if reaction.isIsomorphic(entry.item):
+                break
+        else:
+            trainedReactions.append(entry.item)
+    
+    # Load untrained reactions
+    untrainedReactions = []
+    for depository in family.depositories:
+        if 'training' not in depository.label:
+            for entry in depository.entries.values():
+                for reaction in trainedReactions:
+                    if reaction.isIsomorphic(entry.item):
+                        break
+                else:
+                    for reaction in untrainedReactions:
+                        if reaction.isIsomorphic(entry.item):
+                            break
+                    else:
+                        untrainedReactions.append(entry.item)
+    
+    # Sort reactions by reactant size
+    untrainedReactions.sort(key=lambda reaction: sum([1 for r in reaction.reactants for a in r.atoms if a.isNonHydrogen()]))
+    
+    # Build entries
+    untrained = KineticsDepository(name='{0}/untrained'.format(family.label),
+                                   label='{0}/untrained'.format(family.label))
+    count = 1
+    for reaction in untrainedReactions:
+        untrained.entries['{0}'.format(count)] = Entry(
+            item = reaction,
+            index = count,
+            label = getReactionUrl(reaction),
+        )
+        count += 1
+    
+    return untrained
+
 def kinetics(request, section='', subsection=''):
     """
     The RMG database homepage.
@@ -358,9 +413,33 @@ def kinetics(request, section='', subsection=''):
         # database components
         kineticsLibraries = [(label, library) for label, library in rmgDatabase.kinetics.libraries.iteritems() if subsection in label]
         kineticsLibraries.sort()
+        for family in rmgDatabase.kinetics.families.itervalues():
+            for i in range(0,len(family.depositories)):
+                if 'untrained' in family.depositories[i].name:
+                    family.depositories.pop(i)
+            family.depositories.append(getUntrainedReactions(family))
         kineticsFamilies = [(label, family) for label, family in rmgDatabase.kinetics.families.iteritems() if subsection in label]
         kineticsFamilies.sort()
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
+
+def kineticsUntrained(request, family):
+    rmgDatabase = loadDatabase('kinetics', 'families')
+    entries0 = getUntrainedReactions(rmgDatabase.kinetics.families[family]).entries.values()
+    entries0.sort(key=lambda entry: (entry.index, entry.label))
+    
+    entries = []
+    for entry0 in entries0:
+        entry = {
+                'index': entry0.index,
+                'url': entry0.label,
+            }
+        
+        entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
+        entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
+        entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
+        
+        entries.append(entry)
+    return render_to_response('kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False}, context_instance=RequestContext(request))
 
 def getReactionUrl(reaction, family=None):
     """
@@ -1002,6 +1081,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             href = ''
             entry = reaction.entry
         elif isinstance(reaction, DepositoryReaction):
+            if 'untrained' in reaction.depository.name:
+                continue
             source = '%s' % (reaction.depository.name)
             href = reverse(kineticsEntry, kwargs={'section': 'families', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
             entry = reaction.entry

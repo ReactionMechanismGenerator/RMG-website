@@ -117,22 +117,34 @@ $(document).ready(function() {
 
 {% else %}
 
-<table class="kineticsData">
-    <tr>
-        <th>Label</th>
-        <th colspan="3">Reaction</th>
-        <th>Data&nbsp;Format</th>
-    </tr>
-    {% for entry in entries %}
-    <tr>
-        <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
-        <td class="reactants">{{ entry.reactants|safe }}</td>
-        <td class="reactionArrow">{{ entry.arrow|safe }}</td>
-        <td class="products">{{ entry.products|safe }}</td>
-        <td>{{ entry.dataFormat }}</td>
-    </tr>
-    {% endfor %}
-</table>
+    {% if not 'untrained' in databaseName %}
+        <table class="kineticsData">
+            <tr>
+                <th>Label</th>
+                <th colspan="3">Reaction</th>
+                <th>Data&nbsp;Format</th>
+            </tr>
+            {% for entry in entries %}
+            <tr>
+                <td><a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
+                <td class="reactants">{{ entry.reactants|safe }}</td>
+                <td class="reactionArrow">{{ entry.arrow|safe }}</td>
+                <td class="products">{{ entry.products|safe }}</td>
+                <td>{{ entry.dataFormat }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <table class="kineticsData">
+            {% for entry in entries %}
+            <tr>
+                <td class="reactants">{{ entry.reactants|safe }}</td>
+                <td class="reactionArrow"><b><a href="{{ entry.url }}">{{ entry.arrow|safe }}</a></b></td>
+                <td class="products">{{ entry.products|safe }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
 
 {% endif %}
 
