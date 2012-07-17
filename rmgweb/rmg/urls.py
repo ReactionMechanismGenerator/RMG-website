@@ -35,9 +35,6 @@ urlpatterns = patterns('rmgweb.rmg',
     # RMG Simulation Homepage
     (r'^$', 'views.index'),
 
-    # RMG Input Form
-    #(r'^input', 'views.input'),
-
     # Convert Chemkin File to Output File
     (r'^chemkin','views.convertChemkin'),
 
@@ -48,6 +45,9 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^flux','views.generateFlux'),
     
     # Populate Reactions with an Input File
-    (r'^populate_reactions','views.runPopulateReactions')
+    (r'^populate_reactions','views.runPopulateReactions'),
+    
+    # RMG Input Form
+    (r'^input', 'views.input')
 
 )

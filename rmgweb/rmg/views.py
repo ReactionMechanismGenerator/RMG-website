@@ -35,6 +35,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.forms.models import BaseInlineFormSet, inlineformset_factory
+
 import settings
 from rmgweb.rmg.models import *
 from rmgweb.rmg.forms import *
@@ -188,3 +190,95 @@ def runPopulateReactions(request):
     return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
 
 
+
+def input(request):
+    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm, 
+                                                 BaseInlineFormSet, extra=1, can_delete=True)
+    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm, 
+                                                   BaseInlineFormSet, extra=1, can_delete=True)
+    ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm, 
+                                                  BaseInlineFormSet, extra = 1, can_delete=True)
+    ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm, 
+                                           BaseInlineFormSet, extra = 1, can_delete=True)
+
+    Input.objects.all().delete()
+    input = Input()
+    input.deleteDir()
+    
+    uploadform = UploadInputForm(instance=input)
+    form = InputForm(instance=input)
+    thermolibformset = ThermoLibraryFormset(instance=input)
+    reactionlibformset = ReactionLibraryFormset(instance=input)
+    reactorspecformset = ReactorSpeciesFormset(instance=input)
+    reactorformset = ReactorFormset(instance=input)
+    upload_error = ''
+    input_error = ''    
+    
+    if request.method == 'POST':
+        input.createDir()
+        
+        # Load an input file into the form by uploading it
+        if "upload" in request.POST:
+            uploadform = UploadInputForm(request.POST, request.FILES, instance=input)
+            if uploadform.is_valid():
+                uploadform.save()
+                initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial = input.loadForm(input.loadpath)
+                
+                # Make the formsets the lengths of the initial data
+                if initial_thermo_libraries:
+                    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm, BaseInlineFormSet, 
+                                                                 extra=len(initial_thermo_libraries), can_delete=True)
+                if initial_reaction_libraries:
+                    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm, BaseInlineFormSet, 
+                                                               extra=len(initial_reaction_libraries), can_delete=True)
+                ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm, BaseInlineFormSet, 
+                                                              extra=len(initial_species), can_delete=True)
+                ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm, BaseInlineFormSet, 
+                                                       extra = len(initial_reactor_systems), can_delete=True)
+                thermolibformset = ThermoLibraryFormset()
+                reactionlibformset = ReactionLibraryFormset()
+                reactorspecformset = ReactorSpeciesFormset()
+                reactorformset = ReactorFormset()
+                
+                # Load the initial data into the forms
+                form = InputForm(initial = initial)
+                for subform, data in zip(thermolibformset.forms, initial_thermo_libraries):
+                    subform.initial = data
+                for subform, data in zip(reactionlibformset.forms, initial_reaction_libraries):
+                    subform.initial = data
+                for subform, data in zip(reactorspecformset.forms, initial_species):
+                    subform.initial = data
+                for subform, data in zip(reactorformset.forms, initial_reactor_systems):
+                    subform.initial = data
+                
+            else:
+                upload_error = 'Your input file was invalid.  Please try again.'
+                
+        if "submit" in request.POST:      
+            uploadform = UploadInputForm(request.POST, instance=input)
+            form = InputForm(request.POST, instance = input)
+            thermolibformset = ThermoLibraryFormset(request.POST, instance=input)
+            reactionlibformset = ReactionLibraryFormset(request.POST, instance=input)
+            reactorspecformset = ReactorSpeciesFormset(request.POST, instance=input)
+            reactorformset = ReactorFormset(request.POST, instance=input)
+                
+            if (form.is_valid() and thermolibformset.is_valid() and reactionlibformset.is_valid()
+                and reactorspecformset.is_valid() and reactorformset.is_valid()):
+                form.save()
+                thermolibformset.save()
+                reactionlibformset.save()
+                reactorspecformset.save()
+                reactorformset.save()
+                posted = Input.objects.all()[0]
+                input.saveForm(posted, form)            
+                path = 'media/rmg/tools/input/input.py'            
+                return render_to_response('inputResult.html', {'path': path})
+            
+            else:
+                # Will need more useful error messages later.
+                input_error = 'Your form was invalid.  Please edit the form and try again.'
+       
+    return render_to_response('input.html', {'uploadform': uploadform, 'form': form, 'thermolibformset':thermolibformset,
+                                             'reactionlibformset':reactionlibformset, 'reactorspecformset':reactorspecformset,
+                                             'reactorformset':reactorformset, 'upload_error': upload_error, 
+                                             'input_error': input_error}, context_instance=RequestContext(request))

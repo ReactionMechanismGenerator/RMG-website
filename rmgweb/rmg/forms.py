@@ -67,4 +67,87 @@ class PopulateReactionsForm(forms.ModelForm):
     """
     class Meta:
         model = PopulateReactions
+        
+
+class UploadInputForm(forms.ModelForm):
+    """
+    A partial form which creates an Input model instance but only has a field for uploading the
+    input.py file.
+    """
+    class Meta:
+        model = Input
+        fields = ('input_upload',)
+        
+        
+class InputForm(forms.ModelForm):
+    """
+    Form for editing the conditions to be written in an input.py file for RMG-Py.
+    """
+    class Meta:
+        model = Input
+        exclude = ('input_upload',)
+        widgets = {
+            'maximumGrainSize': forms.TextInput(attrs={'size':'5'}),
+            'minimumNumberOfGrains': forms.TextInput(attrs={'size':'5'}),
+            'p_low': forms.TextInput(attrs={'size':'5'}),
+            'p_high': forms.TextInput(attrs={'size':'5'}),
+            'p_interp': forms.TextInput(attrs={'size':'2'}),
+            'p_basis': forms.TextInput(attrs={'size':'2'}),
+            'temp_low': forms.TextInput(attrs={'size':'5'}),
+            'temp_high': forms.TextInput(attrs={'size':'5'}),
+            'temp_interp': forms.TextInput(attrs={'size':'2'}),
+            'temp_basis': forms.TextInput(attrs={'size':'2'}),
+            'toleranceMoveToCore': forms.TextInput(attrs={'size':'3'}),
+            'toleranceKeepInEdge': forms.TextInput(attrs={'size':'3'}),
+            'toleranceInterruptSimulation': forms.TextInput(attrs={'size':'3'}),
+            'maximumEdgeSpecies' : forms.TextInput(attrs={'size':'5'}),
+            'simulator_atol' : forms.TextInput(attrs={'size':'3'}),
+            'simulator_rtol': forms.TextInput(attrs={'size':'3'}),
+            'saveRestartPeriod':forms.TextInput(attrs={'size':5}),
+        }  
+
+
+class ThermoLibraryForm(forms.ModelForm):
+    class Meta:
+        model = ThermoLibrary
+
+class ReactionLibraryForm(forms.ModelForm):
+    class Meta:
+        model= ReactionLibrary
+
+class ReactorSpeciesForm(forms.ModelForm):
+    class Meta:
+        model = ReactorSpecies
+        widgets ={
+        'name': forms.TextInput(attrs={'style':'width:100%;'}),
+        'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier', 'style':'width:100%;'}),
+        'adjlist':forms.Textarea(attrs={'cols': 50, 'rows': 10 }),
+        'molefrac': forms.TextInput(attrs={'size':'5'}),
+        }
+
+    def clean_adjlist(self):
+        """
+        Custom validation for the adjlist field to ensure that a valid adjacency
+        list has been provided.
+        """
+        try:
+            adjlist = str(self.cleaned_data['adjlist'])
+            if adjlist == '' : return ''
+            molecule = Molecule()
+            molecule.fromAdjacencyList(adjlist)
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return adjlist
+
+class ReactorForm(forms.ModelForm):
+    class Meta:
+        model = Reactor
+        widgets ={
+            'temperature': forms.TextInput(attrs={'size':'5'}),
+            'pressure': forms.TextInput(attrs={'size':'5'}),
+            'terminationtime': forms.TextInput(attrs={'size':'5'}),
+            'conversion': forms.TextInput(attrs={'size':'5'}),
+        }
     

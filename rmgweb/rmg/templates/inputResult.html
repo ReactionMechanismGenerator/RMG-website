@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}RMG: Input File Generated{% endblock %}
+
+{% block navbar_items %}
+
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+
+<a href="{% url rmg.views.input %}">Create Input File</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Input File Generated{% endblock %}
+
+{% block page_body %}
+
+<p>
+You have successfully created an RMG-Py input file to use for running RMG!  You may now download it by clicking on the link below.
+</p>
+<p>
+<a href="../{{path}}">Generated input.py file</a>
+</p>
+
+<P>Now, you can run the input file using a copy of RMG-Py installed on your local machine or server.
+
+
+
+{% endblock %}

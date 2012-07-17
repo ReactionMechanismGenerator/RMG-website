@@ -15,16 +15,22 @@
 
 {% block page_body %}
 
-<h2>Useful Tools</h2>
+<h2>Simulation</h2>
+	<ol>
+        <li><a href="{% url rmg.views.input %}">Create Input File</a>: generate an input file for an RMG-Py job through a web form, or 
+        upload an existing input file for easy editing through the web form.<P>
+        <li><b>Submit Job:</b> Submit a RMG-Py job online by providing your email address.  We will email you the result when it's done.
+</ol>
+
+<h2>Tools</h2>
     <ol>
         <li><a href ="{% url rmg.views.convertChemkin %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
             and RMG-generated species dictionary.<P>
         <li><a href ="{% url rmg.views.compareModels %}">Model Comparison</a>: compare two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
         <li><a href ="{% url rmg.views.generateFlux %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
-            completed mechanism, with the optional customized set of concentration profiles from a Chemkin job.<P>
+            completed mechanism, or with a customized set of concentration profiles from a Chemkin job.<P>
 		<li><a href ="{% url rmg.views.runPopulateReactions %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
-
-   
-    </ol>
+	</ol>
+	
 {% endblock %}

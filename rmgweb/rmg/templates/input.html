@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}RMG: Create Input File{% endblock %}
+
+{% block extrahead %}
+
+<script type="text/javascript" src="{{ MEDIA_URL }}jquery.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}jquery.formset.js"></script>
+
+<script type="text/javascript" src="{{ MEDIA_URL }}expandingMenu.js"></script>
+
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(identifier_id){
+   var id = identifier_id.substring(0,identifier_id.indexOf('identifier'));
+   var spField_id = id + 'adjlist';
+   var identifier = $('#' + identifier_id).val();
+   var spField = $('#' + spField_id);
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+
+  $('.result').show();
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                     spField.change();
+                  })
+               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+};
+
+// convert an adjacency list into an image url
+function adjlist2img(s) {
+   adjlist = s.replace(/\n/g,';').replace(/\s+/g,' ');
+   adjlist = encodeURI(adjlist);
+   return "{% url main.views.drawMolecule adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+}
+
+$(document).ready(function() {
+// prevent "enter" keypress in the form fields from submitting the form,
+// but instead make them select the submit button.
+  $(".identifier").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       if ($("input:submit").is(":focus")) { return true;}
+       else {
+          $("input:submit:first").focus();
+          return false;
+       };
+    }
+   });
+
+   
+// add images to the right of all the text areas
+   $("textarea").closest('td').append("<img src='/media/moleculedraw-logo-small.png' align='middle'></img>");
+// add onChange handlers to all the text areas to modify the image sources
+   $("textarea").change( function() {
+      var src = adjlist2img( $(this).val() );
+      $(this).closest('td').find('img').attr('src',src);
+    });
+// if you got to the page with pre-filled fields (eg. by hitting the back or forward button) the images will be stale
+   $("textarea").each(function(){
+      if ($(this).val()) { $(this).change(); }
+      })
+
+})
+
+
+    $(function() {
+        $('#thermo_libraries tbody tr').formset({
+            prefix: 'thermo_libraries'
+        })
+    })
+
+
+    $(function() {
+        $('#reaction_libraries tbody tr').formset({
+            prefix: 'reaction_libraries'
+        })
+    })
+
+    $(function() {
+        $('#reactor_species tbody tr').formset({
+            prefix: 'reactor_species'
+        })
+    })
+
+    $(function() {
+        $('#reactor_systems tbody tr').formset({
+            prefix: 'reactor_systems'
+        })
+    })
+</script>
+
+
+<style type="text/css">
+    table {
+        margin-left:50px;
+}
+table.contents {
+    width: 100%;
+    margin-top: 1.3em;
+    margin-bottom: 1.3em;
+    text-align: left;
+}
+
+table.contents td {
+    width: 50%;
+    padding-bottom: 1.3em;
+    vertical-align: top;
+    text-align: left;
+}
+
+th {
+    text-align: left;
+    padding-right: 10px;
+}
+
+table.contents .icon {
+    float: left;
+}
+table.contents .biglink {
+    font-size: 150%;
+    text-align: left;
+    vertical-align: bottom;
+}
+table.contents .linkdesc {
+    text-align: left;
+    vertical-align: top;
+    font-style: italic;
+}
+img {
+    padding:10px;
+}
+ol li {
+        padding:10px;
+}
+
+ul {
+		list-style: none;
+		margin-left: 50px;
+		padding: 0;
+		border: none;
+		}
+
+ ul#pdepmenu ol {
+  display: none;
+  list-style-type: none;
+  margin: 0;
+}
+
+ ul#tolmenu ol {
+  display: none;
+  list-style-type: none;
+  margin: 0;
+}
+
+ .delete-row {
+        margin-left:30px;
+        font-weight:bold;
+    }
+
+ .add-row {
+        padding-top:5px;
+        font-weight:bold;
+    }
+
+ #reactor_species .delete-row {
+       margin:130px;
+    }
+
+ #reactor_systems .delete-row {
+        margin: 200px;
+}
+
+</style>
+
+
+
+
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.input %}">Create Input File</a>
+{% endblock %}
+
+{% block page_title %}Create Input File{% endblock %}
+
+{% block page_body %}
+
+
+This form will generate an input file for a RMG-Py job.
+<P><br>
+
+
+<hr/>
+<P>{% if upload_error %}<h3>{{ upload_error }}</h3>{% endif %}
+
+<p>
+If you already have a saved input.py file that you would like to modify, you can upload it here to load it into the form for easy editing and saving.
+
+</p>
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ uploadform.as_p }}
+<p><input type="submit" value="Submit" name="upload"/></p>
+</form>
+
+<hr/>
+
+<P>
+{% if input_error %}<h3>{{ input_error }}</h3>{% endif %}
+
+
+<div style="width:85%;">
+
+<form method="post" action="">{% csrf_token %}
+
+
+<ol>
+
+    <li><h3>Thermodynamics Libraries</h3>
+
+    Select thermochemistry libraries you would like to be included
+    in your RMG job. You may select multiple libraries.
+    If no libraries are selected, RMG will estimate all species'
+    thermochemistry through Benson group additivity.  We recommend using at least the 'primaryThermoLibrary'.
+    <P>
+    <table id="thermo_libraries">
+                <thead><tr><th scope="col">Library</th></tr></thead>
+                <tbody>                    
+                    {% for form in thermolibformset.forms %}
+                    <tr id="{{ form.prefix }}-row">          
+                        <td>
+                            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                            {{ form.thermolib }}
+                        </td>                
+                    </tr>
+                    {% endfor %}
+            {{ thermolibformset.management_form }}
+    </tbody></table>
+
+    <li><h3>Reaction Libraries</h3>
+Select reaction libraries you would like to be included in your RMG job in order of priority.  Rates from reactions within the library will be used
+if the reaction is found in your job.  You may select multiple libraries.
+If no libraries are selected, RMG will estimate kinetic rates using RMG-database rate rules alone.
+<P>
+Normally, the kinetic library of reactions is used to estimate a reaction found on the edge.
+    However, if you believe the reactions should be included within the mechanism core, select the
+    "SeedMech" option to allow to the library to be added to the core.
+    If you do not wish for these reactions to be automatically included in the core but do want to
+    retain it in your mechanism, you may also select the "Edge" option.
+<P>
+<table id="reaction_libraries">
+                <thead><tr><th scope="col">Library</th>
+                        <th scope="col">SeedMech</th>
+                        <th scope="col">Edge</th></tr></thead>
+                <tbody>
+                    {% for form in reactionlibformset.forms %}
+                    <tr id="{{ form.prefix }}-row">
+                        <td>
+                            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                            {{ form.reactionlib }} </td>
+                        <td align="center">{{ form.seedmech }}</td>
+                        <td align="center">{{ form.edge }}</td>
+                    </tr>
+                    {% endfor %}
+            {{ reactionlibformset.management_form }}
+</tbody></table>
+
+
+<li><h3>Reactor Species:</h3>
+Use this form to add a species to the RMG job from its adjacency list.
+You can quickly fill in the adjacency list part of the form by entering any species identifier,
+such as a SMILES, InChI, CAS number</a>, or
+species name in the 'species identifier' field and pressing tab.
+This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
+<P>
+</ol>
+     <ol start="1">
+<table id="reactor_species" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
+    <tbody>{% for form in reactorspecformset.forms %}
+   
+    <tr id="{{ form.prefix }}-row"><td><li>
+        <b>Species Name:</b> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                            {{ form.name }}
+       <br><b>Species Identifier:</b> {{ form.identifier }}
+       <br><b>Adjacency List:</b>
+       <br>{{ form.adjlist }}
+       <br><b>Mole Fraction:</b> {{form.molefrac}}
+       <br><b>Inert Species:</b> {{ form.inert }}
+    </td><br>
+</tr>
+    {% endfor %}
+ {{ reactorspecformset.management_form }}
+                </tbody>
+</table>
+
+     </ol>
+
+
+<ol>
+ <li value="4"><h3>Reactor Systems</h3>
+            <p>Enter individual reactor system settings for which the RMG model will be valid.
+                You may add multiple reactor systems for which the overall mechanism will be valid.
+
+            <P>You must provide a maximum reaction time for the job.
+            A species conversion requirement is optional.  The RMG job will stop as soon as
+                one of the termination criteria is fulfilled.</ol>
+
+    <ol start="1">
+
+        <table id="reactor_systems" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
+    <tbody>{% for form in reactorformset.forms %}
+
+        <tr id="{{ form.prefix }}-row"><td><li> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                           
+        <b>Temperature:</b> {{ form.temperature }} {{ form.temperature_units }}
+    <br><b>Pressure:</b> {{ form.pressure }} {{ form.pressure_units }}    
+    <P><b>Termination Criteria:</b>
+    <blockquote>
+            <b>End Time:</b> {{ form.terminationtime }} {{ form.time_units }}
+            <br><b>Species:</b> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
+    </blockquote>
+                </td></tr>
+    {% endfor %}
+ {{ reactorformset.management_form }}
+                                </tbody>
+</table>
+
+     </ol>
+   
+   <ol>
+        <li value="5"><h3>Pressure Dependence: {{ form.pdep }}</h3>
+            <P>
+            If you would like to generate a pressure-dependent model, please select the form of interpolation as well as the pressure dependent 
+			reaction format (Chebyshev or Pdep Arrhenius) you would like RMG to output.
+            <P>
+            
+            <table>
+                <tr><th colspan="2">Model: {{form.interpolation}}</th></tr>
+                <tr><th>Temperature Range:</th><td> {{form.temp_low}} to {{form.temp_high}} {{form.temprange_high}} {{form.temprange_units}}</td></tr>
+                <tr><th>Pressure Range:</th><td>{{ form.p_low }} to {{form.p_high}} {{form.prange_units}}</td></tr>
+            </table>
+
+    </ol>
+            <ul id="pdepmenu"><li>[x] Advanced Options
+   
+                    <ol> <li>
+          
+            <P><i>Number of Interpolation Points Used in Model</i>
+                <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
+                    <tr><th>Pressure:</th><td> {{form.p_interp}}</td></tr></table>
+
+            <P><i>Grain Size</i>
+            <br><table><tr><th>Maximum Size:</th><td> {{form.maximumGrainSize}} {{form.grainsize_units}}</td></tr>
+                <tr><th>Minimum Number:</th><td> {{form.minimumNumberOfGrains}}</td></tr></table>
+
+            <P><i>Number of Basis Functions Used in Model (For Chebyshev Only)</i>
+            <br><table><tr><th>Temperature:</th><td> {{form.temp_basis}}</td></tr>
+            <tr><th>Pressure:</th><td> {{form.p_basis}}</td></tr></table>
+                </li></ol>
+
+                </li></ul>
+
+
+            <P><br>
+            <ol><li value="6"><h3>Tolerances</h3>
+                    <P>Indicate your allowed flux tolerance for moving a reaction to the core or keeping
+                        the reaction on the edge.  Generally, edge tolerance is set to zero you need to prune the edge to reduce 
+                        model generation time.
+            <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
+            </ol>
+
+            <ul id="tolmenu"><li>[x] Advanced Options
+            <ol><li><table><tr><th>Edge Tolerance: </th><td>{{ form.toleranceKeepInEdge }}</td></tr>
+            <tr><th>Tolerance to Interrupt Simulation:  </th><td>{{form.toleranceInterruptSimulation}}</td></tr>
+                <tr><th>Maximum Number of Allowed Edge Species:  </th><td>{{form.maximumEdgeSpecies}}</td></tr></table>
+                <P><i>Numerical Solver</i>
+                <br><table><tr><th>Absolute Tolerance: </th><td> {{ form.simulator_atol }}</td></tr>
+                <tr><th>Relative Rolerance: </th><td> {{ form.simulator_rtol }}</td></tr></table>
+            </li></ol>
+  </li></ul>
+
+            <P><br>
+
+            <ol>
+        <li value="7"><h3>Additional Options</h3>
+        	Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
+        	of a run rather than starting completely from scratch if there is a failure or memory issue.          	
+        	The save restart period may be optionally left empty if no restart files are desired.  
+        
+            <P><table>
+                <tr><th>Save Restart:</th><td>
+                {{ form.saveRestartPeriod }} {{ form.saveRestartPeriodUnits }}
+                </td></tr>
+                <tr><th>Draw Molecules:</th><td>
+                {{ form.drawMolecules }}</td></tr>
+                <tr><th>Generate Plots:</th><td>
+                {{ form.generatePlots }}</td></tr>
+                <tr><th>Save Concentration Profiles:</th><td>
+                {{ form.saveConcentrationProfiles }}</td></tr></table>
+    </ol>
+
+    <P><br>
+    <blockquote>
+       <input type="submit" value="Submit" name="submit" />
+    <P>By pressing submit, you will be prompted to save an input.py file ready for use in RMG-Py.
+        </blockquote>
+</form>
+</div>
+
+{% endblock %}

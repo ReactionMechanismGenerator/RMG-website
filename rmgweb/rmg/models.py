@@ -275,3 +275,358 @@ class PopulateReactions(models.Model):
             shutil.rmtree(self.path)
         except OSError:
             pass
+        
+        
+        
+################################################################################
+# INPUT MODEL
+################################################################################
+
+from rmgpy.measure.input import getTemperaturesForModel, getPressuresForModel
+from rmgpy.measure.main import MEASURE
+from rmgpy.solver.base import TerminationTime, TerminationConversion
+from rmgpy.solver.simple import SimpleReactor
+from rmgpy.species import Species        
+from rmgpy.molecule import Molecule
+from rmgpy.rmg.model import CoreEdgeReactionModel    
+from rmgpy.rmg.input import readInputFile
+import quantities
+
+temp_units = (('K','K',),('C','C',))
+p_units = (('bar','bar',),('torr','torr',),('atm','atm',))
+t_units = (('ms','ms',),('s','s',),('hr','hr',))
+
+
+class Input(models.Model):
+    """
+    Model for RMG Input Conditions
+    """
+        
+    def __init__(self, *args, **kwargs):
+        super(Input, self).__init__(*args, **kwargs)
+        self.rmg = RMG()
+        self.path = self.getDirname()
+        self.loadpath = self.path + '/input_upload.py'
+        self.savepath = self.path + '/input.py'
+
+    def upload_input_to(instance, filename):
+        return instance.path + '/input_upload.py'
+
+    input_upload = models.FileField(upload_to=upload_input_to, verbose_name='Input File', blank = True)
+    
+    # Pressure Dependence
+    p_methods=(('off','off',),('modified strong collision','Modified Strong Collision',),('reservoir state','Reservoir State',))
+    pdep = models.CharField(max_length = 50, default = 'off', choices = p_methods)
+    # Advanced Options for PDep
+    # Grain Size
+    maximumGrainSize = models.FloatField(blank = True, default = 2, null = True)
+    grain_units = (('kcal/mol','kcal/mol',),('kJ/mol','kJ/mol',))
+    grainsize_units = models.CharField(max_length = 50, default = 'kcal/mol', choices = grain_units)
+    minimumNumberOfGrains = models.PositiveIntegerField(blank = True, default = 200, null = True)
+    # P and T Range
+    p_low = models.FloatField(blank = True, null = True)
+    p_high = models.FloatField(blank = True, null = True)
+    prange_units = models.CharField(max_length = 50, default = 'bar', choices=p_units)
+    p_interp = models.PositiveIntegerField(blank = True, null = True, default = 5)
+    temp_low = models.FloatField(blank = True, null = True)
+    temp_high = models.FloatField(blank = True, null = True)
+    temprange_units = models.CharField(max_length = 50, default = 'K', choices = temp_units)
+    temp_interp = models.PositiveIntegerField(blank = True, null=True, default = 8)
+    # Interpolation
+    interpolation_choices = (('chebyshev','Chebyshev',),('pdeparrhenius','Pressure Dependent Arrhenius',))
+    interpolation = models.CharField(max_length = 50, default = 'chebyshev', choices = interpolation_choices)
+    temp_basis = models.PositiveIntegerField(blank = True, default = 6, null = True)
+    p_basis = models.PositiveIntegerField(blank = True, default = 4, null = True)
+
+    # Tolerance
+    toleranceMoveToCore = models.FloatField()
+    toleranceKeepInEdge= models.FloatField(default = 0.0)
+    # Tolerance Advanced Options
+    toleranceInterruptSimulation = models.FloatField(default = 1.0)
+    maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
+    simulator_atol = models.FloatField(default = 1e-16)
+    simulator_rtol = models.FloatField(default = 1e-8)
+    # Additional Options
+    saveRestartPeriod=models.FloatField(blank = True, null=True)
+    restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
+    saveRestartPeriodUnits = models.CharField(max_length = 50, default = 'hour', choices = restartunits)
+    drawMolecules=models.BooleanField()
+    generatePlots=models.BooleanField()
+    saveConcentrationProfiles = models.BooleanField()
+
+
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','input/')
+
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
+            os.makedirs(self.getDirname())
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+
+    def deleteDir(self):
+        """
+        Clean up everything by deleting the directory
+        """
+        import shutil
+        try:
+            shutil.rmtree(self.getDirname())
+        except OSError:
+            pass
+        
+    def loadForm(self, path):
+        """
+        Load input.py file onto form initial data.
+        """        
+        readInputFile(path, self.rmg)
+        
+        # Databases
+        initial_thermo_libraries = []
+        if self.rmg.thermoLibraries:
+            for item in self.rmg.thermoLibraries:
+                initial_thermo_libraries.append({'thermolib': item})
+        
+        initial_reaction_libraries = []
+        if self.rmg.seedMechanisms:
+            for item in self.rmg.seedMechanism:
+                initial_reaction_libraries.append({'reactionlib': item, 'seedmech': True, 'edge': False})
+        if self.rmg.reactionLibraries:
+            for item, edge in self.rmg.reactionLibraries:
+                initial_reaction_libraries.append({'reactionlib': item, 'seedmech': False, 'edge': edge})
+        
+        # Reactor systems
+        initial_reactor_systems = []
+        for system in self.rmg.reactionSystems:
+            temperature = system.T.getValueInGivenUnits()
+            temperature_units = system.T.units
+            pressure = system.P.getValueInGivenUnits()
+            pressure_units = system.P.units
+            initialMoleFractions = system.initialMoleFractions
+            for item in system.termination:
+                if isinstance(item, TerminationTime):
+                    terminationtime = item.time.getValueInGivenUnits()
+                    time_units = item.time.units
+                else:
+                    species = item.species.label
+                    conversion = item.conversion
+            initial_reactor_systems.append({'temperature': temperature, 'temperature_units': temperature_units,
+                                            'pressure': pressure, 'pressure_units': pressure_units,
+                                            'terminationtime': terminationtime, 'time_units': time_units,
+                                            'species': species, 'conversion': conversion})       
+        
+        # Species
+        initial_species = []
+        for item in self.rmg.initialSpecies:
+            name = item.label
+            adjlist = item.molecule[0].toAdjacencyList()
+            inert = False if item.reactive else True
+            spec, isNew = self.rmg.reactionModel.makeNewSpecies(item.molecule[0], label = item.label, reactive = item.reactive)
+            molefrac = initialMoleFractions[spec]
+            initial_species.append({'name': name, 'adjlist': adjlist, 
+                                    'inert': inert, 'molefrac': molefrac})
+            
+        # Tolerances
+        initial = {}
+        initial['simulator_atol'] = self.rmg.absoluteTolerance 
+        initial['simulator_rtol'] = self.rmg.relativeTolerance 
+        initial['toleranceKeepInEdge'] = self.rmg.fluxToleranceKeepInEdge 
+        initial['toleranceMoveToCore']= self.rmg.fluxToleranceMoveToCore
+        initial['toleranceInterruptSimulation'] = self.rmg.fluxToleranceInterrupt
+        initial['maximumEdgeSpecies'] = self.rmg.maximumEdgeSpecies 
+                
+        # Pressure Dependence
+        if self.rmg.pressureDependence:
+            initial['interpolation'] = self.rmg.pressureDependence.model[0]
+            initial['temp_basis'] = self.rmg.pressureDependence.model[1]
+            initial['p_basis'] = self.rmg.pressureDependence.model[2]
+            initial['temp_low'] = self.rmg.pressureDependence.Tmin.getValueInGivenUnits()
+            initial['temp_high'] = self.rmg.pressureDependence.Tmax.getValueInGivenUnits()
+            initial['temprange_units'] = self.rmg.pressureDependence.Tmax.units
+            initial['temp_interp'] = self.rmg.pressureDependence.Tcount
+            initial['p_low'] = self.rmg.pressureDependence.Pmin.getValueInGivenUnits()
+            initial['p_high'] = self.rmg.pressureDependence.Pmax.getValueInGivenUnits()
+            initial['prange_units'] = self.rmg.pressureDependence.Pmax.units
+            initial['p_interp'] = self.rmg.pressureDepence.Pcount
+            
+            initial['maximumGrainSize'] = self.rmg.pressureDependence.grainSize.getValueInGivenUnits()
+            initial['grainsize_units'] = self.rmg.pressureDependence.grainSize.units
+            initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.grainCount
+
+        else:
+            initial['pdep'] = 'off'    
+            
+        # Additional Options
+        if self.rmg.saveRestartPeriod:
+            initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValueInGivenUnits()
+            initial['saveRestartPeriodUnits'] = self.rmg.saveConcentrationProfiles.units
+        if self.rmg.drawMolecules:
+            initial['drawMolecules'] = True
+        if self.rmg.generatePlots:
+            initial['generatePlots'] = True
+        if self.rmg.saveConcentrationProfiles:
+            initial['saveConcentrationProfiles'] = True       
+            
+        return initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial
+        
+    def saveForm(self, posted, form):
+        """
+        Save form data into input.py file specified by the path.
+        """
+        # Clean past history
+        self.rmg = RMG()
+        
+        # Databases
+        #self.rmg.databaseDirectory = settings['database.directory']
+        self.rmg.thermoLibraries  = []
+        if posted.thermo_libraries.all():
+            self.rmg.thermoLibraries = [item.thermolib.encode() for item in posted.thermo_libraries.all()]
+        self.rmg.reactionLibraries = []
+        self.rmg.seedMechanisms = []
+        if posted.reaction_libraries.all():
+            for item in posted.reaction_libraries.all():
+                if not item.seedmech and not item.edge:
+                    self.rmg.reactionLibraries.append((item.reactionlib.encode(), False))
+                elif not item.seedmech:
+                    self.rmg.reactionLibraries.append((item.reactionlib.encode(), True))
+                else:
+                    self.rmg.seedMechanisms.append(item.reactionlib.encode())
+        self.rmg.statmechLibraries = []
+        self.rmg.kineticsDepositories = ['training']
+        self.rmg.kineticsFamilies = ['!Intra_Disproportionation']        
+        self.rmg.kineticsEstimator = 'rate rules'
+        
+        # Species
+        self.rmg.initialSpecies = []
+        speciesDict = {}
+        initialMoleFractions = {}
+        self.rmg.reactionModel = CoreEdgeReactionModel()
+        for item in posted.reactor_species.all():
+            structure = Molecule().fromAdjacencyList(item.adjlist.encode())
+            spec, isNew = self.rmg.reactionModel.makeNewSpecies(structure, label = item.name.encode(), reactive = False if item.inert else True)
+            self.rmg.initialSpecies.append(spec)
+            speciesDict[item.name.encode()] = spec
+            initialMoleFractions[spec] = item.molefrac
+            
+        # Reactor systems
+        self.rmg.reactionSystems = []
+        for item in posted.reactor_systems.all():
+            T = Quantity(item.temperature, item.temperature_units.encode())
+            P = Quantity(item.pressure, item.pressure_units.encode())            
+            termination = []
+            if item.conversion:
+                termination.append(TerminationConversion(speciesDict[item.species.encode()], item.conversion))
+            termination.append(TerminationTime(Quantity(item.terminationtime, item.time_units.encode())))
+            system = SimpleReactor(T, P, initialMoleFractions, termination)
+            self.rmg.reactionSystems.append(system)
+    
+        # Simulator tolerances
+        self.rmg.absoluteTolerance = form.cleaned_data['simulator_atol']
+        self.rmg.relativeTolerance = form.cleaned_data['simulator_rtol']
+        self.rmg.fluxToleranceKeepInEdge = form.cleaned_data['toleranceKeepInEdge']
+        self.rmg.fluxToleranceMoveToCore = form.cleaned_data['toleranceMoveToCore']
+        self.rmg.fluxToleranceInterrupt = form.cleaned_data['toleranceInterruptSimulation']
+        self.rmg.maximumEdgeSpecies = form.cleaned_data['maximumEdgeSpecies']
+        
+        # Pressure Dependence
+        pdep = form.cleaned_data['pdep'].encode()
+        if pdep != 'off':
+            self.rmg.pressureDependence = MEASURE()
+            self.rmg.pressureDependence.method = pdep
+            # Temperature and pressure range
+            interpolation = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
+            self.rmg.pressureDependence.Tmin = Quantity(form.cleaned_data['temp_low'], form.cleaned_data['temprange_units'].encode())
+            self.rmg.pressureDependence.Tmax = Quantity(form.cleaned_data['temp_high'], form.cleaned_data['temprange_units'].encode())
+            self.rmg.pressureDependence.Tcount = form.cleaned_data['temp_interp']
+            Tlist = getTemperaturesForModel(interpolation, self.rmg.pressureDependence.Tmin.value, self.rmg.pressureDependence.Tmax.value, self.rmg.pressureDependence.Tcount)
+            self.rmg.pressureDependence.Tlist = Quantity(Tlist,"K")
+            
+            self.rmg.pressureDependence.Pmin = Quantity(form.cleaned_data['p_low'], form.cleaned_data['prange_units'].encode())
+            self.rmg.pressureDependence.Pmax = Quantity(form.cleaned_data['p_high'], form.cleaned_data['prange_units'].encode())
+            self.rmg.pressureDependence.Pcount = form.cleaned_data['p_interp']
+            Plist = getPressuresForModel(interpolation, self.rmg.pressureDependence.Pmin.value, self.rmg.pressureDependence.Pmax.value, self.rmg.pressureDependence.Pcount)
+            self.rmg.pressureDependence.Plist = Quantity(Plist,"Pa")
+            
+            # Process grain size and count
+            self.rmg.pressureDependence.grainSize = Quantity(form.cleaned_data['maximumGrainSize'], form.cleaned_data['grainsize_units'].encode())
+            self.rmg.pressureDependence.grainCount = form.cleaned_data['minimumNumberOfGrains']
+        
+            # Process interpolation model
+            self.rmg.pressureDependence.model = interpolation
+        
+        # Additional Options
+        self.rmg.units = 'si' 
+        self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
+        self.rmg.drawMolecules = form.cleaned_data['drawMolecules']
+        self.rmg.generatePlots = form.cleaned_data['generatePlots']
+        self.rmg.saveConcentrationProfiles = form.cleaned_data['saveConcentrationProfiles']
+
+        # Save the input.py file        
+        self.rmg.saveInput(self.savepath)
+
+################################################################################
+# DATABASE MODELS
+################################################################################
+
+database = loadDatabase('','libraries')
+ThermoLibraries = [(label, label) for label, library in database.thermo.libraries.iteritems()]
+ThermoLibraries.sort()
+KineticsLibraries = [(label, label) for label, library in database.kinetics.libraries.iteritems()]
+KineticsLibraries.sort()
+
+class ThermoLibrary(models.Model):
+    input = models.ForeignKey(Input, related_name = 'thermo_libraries')
+    thermolib = models.CharField(choices = ThermoLibraries, max_length=200, blank=True)
+    def __unicode__(self):
+        return self.thermolib
+
+class ReactionLibrary(models.Model):
+    input = models.ForeignKey(Input, related_name = 'reaction_libraries')
+    reactionlib = models.CharField(choices = KineticsLibraries, max_length=200, blank=True)
+    edge = models.BooleanField()
+    seedmech = models.BooleanField()
+    def __unicode__(self):
+        return self.reactionlib
+
+################################################################################
+# SPECIES MODEL
+################################################################################
+
+class ReactorSpecies(models.Model):
+    input = models.ForeignKey(Input, related_name='reactor_species')
+    name = models.CharField(max_length=200)
+    identifier = models.CharField(max_length=200, blank = True)
+    adjlist = models.TextField()
+    molefrac = models.FloatField()
+    inert = models.BooleanField()
+    def __unicode__(self):
+        return self.name
+
+
+################################################################################
+# REACTOR MODEL
+################################################################################
+
+class Reactor(models.Model):
+    input = models.ForeignKey(Input, related_name='reactor_systems')
+    temperature = models.FloatField()
+    temperature_units = models.CharField(max_length=50, default = 'K', choices=temp_units)
+    pressure= models.FloatField()
+    pressure_units = models.CharField(max_length=50, default = 'bar', choices=p_units)
+    # NOTE: Initial Mole Fractions cannot be set individually for each reactor system 
+    # through the web form right now.
+    # Termination Criteria
+    # Must always specify a termination time, but need not always specify a conversion
+    terminationtime = models.FloatField()
+    time_units = models.CharField(max_length=50, choices=t_units, default = 's')
+    species = models.CharField(max_length=50, blank=True, null=True)
+    conversion = models.FloatField(blank=True, null=True)
+    
