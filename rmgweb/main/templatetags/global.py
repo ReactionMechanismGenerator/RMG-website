@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-################################################################################
+###############################################################################
 #
 #	RMG Website - A Django-powered website for Reaction Mechanism Generator
 #
@@ -26,8 +26,13 @@
 #	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #	DEALINGS IN THE SOFTWARE.
 #
-################################################################################
+###############################################################################
 
-# Add global template tags to __builtins__
-from django.template import add_to_builtins
-add_to_builtins('main.templatetags.global')
+"""
+Provides universally-available template tags
+"""
+
+from django import template
+register = template.Library()
+
+###############################################################################
