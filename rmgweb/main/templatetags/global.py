@@ -43,3 +43,59 @@ def split(str, sep):
     Provides a filter to interface with the string.split() method
     """
     return str.split(sep)
+
+@register.filter
+def get_ref_tooltip(reference):
+    """
+    Returns a tooltip-formatted reference string
+    """
+    
+    from rmgpy.data.reference import *
+    
+    output = ''
+    if isinstance(reference, Article):
+        if reference.title:
+            output += '"{0}"\n\n'.format(reference.title)
+        output += reference.getAuthorString()
+        if reference.journal:
+            output += '\n{0}'.format(reference.journal)
+            if reference.volume:
+                output += ', {0}'.format(reference.volume)
+                if reference.number:
+                    output += ' ({0})'.format(reference.number)
+                if reference.pages:
+                    output += ', p. {0}'.format(reference.pages)
+            if reference.year:
+                output += ' ({0})'.format(reference.year)
+    elif isinstance(reference, Book):
+        if reference.title:
+            output += '"{0}"'.format(reference.title)
+            if reference.edition:
+                output += ', {0} ed.'.format(reference.edition)
+            if reference.volume:
+                output += ', Vol. {0}'.format(reference.volume)
+            if reference.pages:
+                output += ', p. {0}'.format(reference.pages)
+            if reference.year:
+                output += ' ({0})'.format(reference.year)
+            output += '\n\n'
+        output += reference.getAuthorString()
+        if reference.publisher:
+            output += '\n{0}'.format(reference.publisher)
+            if reference.address:
+                output += ', {0}'.format(reference.address)
+    elif isinstance(reference, Thesis):
+        if reference.title:
+            output += '"{0}"\n\n'.format(reference.title)
+        output += reference.getAuthorString()
+        if reference.degree:
+            output += '\n{0} Thesis'.format(reference.degree)
+            if reference.school:
+                output += ', {0}'.format(reference.school)
+        else:
+            if reference.school:
+            	output += '\n{0}'.format(reference.school)
+        if reference.year:
+            output += ' ({0})'.format(reference.year)
+    
+    return output
