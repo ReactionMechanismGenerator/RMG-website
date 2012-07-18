@@ -220,10 +220,11 @@ If you already have a saved input.py file that you would like to modify, you can
 
     <li><h3>Thermodynamics Libraries</h3>
 
-    Select thermochemistry libraries you would like to be included
-    in your RMG job. You may select multiple libraries.
+    Select the thermochemistry libraries you would like to be included
+    in your RMG job in order of priority. You may select multiple libraries.
     If no libraries are selected, RMG will estimate all species'
-    thermochemistry through Benson group additivity.  We recommend using at least the 'primaryThermoLibrary'.
+    thermochemistry through Benson group additivity.  We recommend using at least the 'primaryThermoLibrary'. 
+    <P>You can browse the available libraries here: <a href="{% url database.views.thermo section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
     <P>
     <table id="thermo_libraries">
                 <thead><tr><th scope="col">Library</th></tr></thead>
@@ -250,7 +251,8 @@ Normally, the kinetic library of reactions is used to estimate a reaction found 
     "SeedMech" option to allow to the library to be added to the core.
     If you do not wish for these reactions to be automatically included in the core but do want to
     retain it in your mechanism, you may also select the "Edge" option.
-<P>
+<P>You can browse the available libraries here: <a href="{% url database.views.kinetics section='libraries' %}" target="_blank">Kineticss Libraries</a>
+    <P>
 <table id="reaction_libraries">
                 <thead><tr><th scope="col">Library</th>
                         <th scope="col">SeedMech</th>
@@ -271,7 +273,7 @@ Normally, the kinetic library of reactions is used to estimate a reaction found 
 
 
 <li><h3>Reactor Species:</h3>
-Use this form to add a species to the RMG job from its adjacency list.
+Use this form to add a species to the RMG job from its adjacency list.  The "name" field will be used throughout your mechanism to identify this species.
 You can quickly fill in the adjacency list part of the form by entering any species identifier,
 such as a SMILES, InChI, CAS number</a>, or
 species name in the 'species identifier' field and pressing tab.
@@ -307,7 +309,8 @@ This is translated into an adjacency list using the <a href="http://cactus.nci.n
                 You may add multiple reactor systems for which the overall mechanism will be valid.
 
             <P>You must provide a maximum reaction time for the job.
-            A species conversion requirement is optional.  The RMG job will stop as soon as
+            A species conversion requirement is optional- be sure to use the 
+            same species name as provided previously.  The RMG job will stop as soon as
                 one of the termination criteria is fulfilled.</ol>
 
     <ol start="1">
@@ -370,7 +373,9 @@ This is translated into an adjacency list using the <a href="http://cactus.nci.n
             <P><br>
             <ol><li value="6"><h3>Tolerances</h3>
                     <P>Indicate your allowed flux tolerance for moving a reaction to the core or keeping
-                        the reaction on the edge.  Generally, edge tolerance is set to zero you need to prune the edge to reduce 
+                        the reaction on the edge.  In the advanced options, you can set additional tolerances for the solver, and 
+                        for the edge reactions (the possible reactions generated from the species in the core).
+                        Generally, the edge tolerance is set to zero you need to prune the edge to reduce 
                         model generation time.
             <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
             </ol>
