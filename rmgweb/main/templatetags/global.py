@@ -36,3 +36,10 @@ from django import template
 register = template.Library()
 
 ###############################################################################
+
+@register.filter
+def split(str, sep):
+    """
+    Provides a filter to interface with the string.split() method
+    """
+    return str.split(sep)
