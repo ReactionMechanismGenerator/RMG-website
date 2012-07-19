@@ -132,7 +132,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     # RMG website apps
     'main',
-    'main.templatetags.global',
+    'main.templatetags',
     'database',
     'pdep',
     'rmg',
