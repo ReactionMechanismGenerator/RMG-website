@@ -1,3 +1,8 @@
+var reftitle = '';
+{% if entry.reference %}
+reftitle += ' - {% filter split:','|first %}{{ entry.reference.authors.0 }}{% endfilter %}, {{ entry.reference.year }}';
+{% endif %}
+
 var kdata;
 if (Plist.length > 0) {
     for (var j = 0; j < Plist.length; j++) {
@@ -5,7 +10,7 @@ if (Plist.length > 0) {
         for (var i = 0; i < Tlist.length; i++) {
             kdata.push([1000./Tlist[i], Math.log(klist[j][i]) / Math.LN10]);
         }
-        kseries.push(['{{ source }} (' + Plist[j] + ' ' + Punits + ')', kdata]);
+        kseries.push(['{{ source }} (' + Plist[j] + ' ' + Punits + ')' + reftitle, kdata]);
     }
 }
 else {
@@ -13,7 +18,7 @@ else {
     for (var i = 0; i < Tlist.length; i++) {
         kdata.push([1000./Tlist[i], Math.log(klist[i]) / Math.LN10]);
     }
-    kseries.push(['{{ source }}', kdata]);
+    kseries.push(['{{ source }}' + reftitle, kdata]);
 }
 
 var kseries2 = new Array();
