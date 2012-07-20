@@ -49,53 +49,54 @@ def get_ref_tooltip(reference):
     """
     Returns a tooltip-formatted reference string
     """
-    
+
     from rmgpy.data.reference import *
-    
+
     output = ''
     if isinstance(reference, Article):
         if reference.title:
-            output += '"{0}"\n\n'.format(reference.title)
-        output += reference.getAuthorString()
+            output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
+        output += reference.getAuthorString().encode('utf-8')
         if reference.journal:
-            output += '\n{0}'.format(reference.journal)
+            output += '\n{0}'.format(reference.journal.encode('utf-8'))
             if reference.volume:
-                output += ', {0}'.format(reference.volume)
+                output += ', {0}'.format(reference.volume.encode('utf-8'))
                 if reference.number:
-                    output += ' ({0})'.format(reference.number)
+                    output += ' ({0})'.format(reference.number.encode('utf-8'))
                 if reference.pages:
-                    output += ', p. {0}'.format(reference.pages)
+                    output += (', p. '
+                               '{0}'.format(reference.pages.encode('utf-8')))
             if reference.year:
-                output += ' ({0})'.format(reference.year)
+                output += ' ({0})'.format(reference.year.encode('utf-8'))
     elif isinstance(reference, Book):
         if reference.title:
-            output += '"{0}"'.format(reference.title)
+            output += '"{0}"'.format(reference.title.encode('utf-8'))
             if reference.edition:
-                output += ', {0} ed.'.format(reference.edition)
+                output += ', {0} ed.'.format(reference.edition.encode('utf-8'))
             if reference.volume:
-                output += ', Vol. {0}'.format(reference.volume)
+                output += ', Vol. {0}'.format(reference.volume.encode('utf-8'))
             if reference.pages:
-                output += ', p. {0}'.format(reference.pages)
+                output += ', p. {0}'.format(reference.pages.encode('utf-8'))
             if reference.year:
-                output += ' ({0})'.format(reference.year)
+                output += ' ({0})'.format(reference.year.encode('utf-8'))
             output += '\n\n'
-        output += reference.getAuthorString()
+        output += reference.getAuthorString().encode('utf-8')
         if reference.publisher:
-            output += '\n{0}'.format(reference.publisher)
+            output += '\n{0}'.format(reference.publisher.encode('utf-8'))
             if reference.address:
-                output += ', {0}'.format(reference.address)
+                output += ', {0}'.format(reference.address.encode('utf-8'))
     elif isinstance(reference, Thesis):
         if reference.title:
-            output += '"{0}"\n\n'.format(reference.title)
-        output += reference.getAuthorString()
+            output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
+        output += reference.getAuthorString().encode('utf-8')
         if reference.degree:
-            output += '\n{0} Thesis'.format(reference.degree)
+            output += '\n{0} Thesis'.format(reference.degree.encode('utf-8'))
             if reference.school:
-                output += ', {0}'.format(reference.school)
+                output += ', {0}'.format(reference.school.encode('utf-8'))
         else:
             if reference.school:
-            	output += '\n{0}'.format(reference.school)
+                output += '\n{0}'.format(reference.school.encode('utf-8'))
         if reference.year:
-            output += ' ({0})'.format(reference.year)
-    
+            output += ' ({0})'.format(reference.year.encode('utf-8'))
+
     return output
