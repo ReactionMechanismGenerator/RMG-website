@@ -75,8 +75,6 @@ def get_ref_tooltip(reference):
                 output += ', {0} ed.'.format(reference.edition.encode('utf-8'))
             if reference.volume:
                 output += ', Vol. {0}'.format(reference.volume.encode('utf-8'))
-            if reference.pages:
-                output += ', p. {0}'.format(reference.pages.encode('utf-8'))
             if reference.year:
                 output += ' ({0})'.format(reference.year.encode('utf-8'))
             output += '\n\n'
