@@ -68,6 +68,8 @@ def getNumberOfReactantsFromUnits(units):
         'cm**3/(molecule*s)': 2,
         'cm^3/molecule/s': 2,
         'cm**3/molecule/s': 2,
+        'cm^6/(mol^2*s)': 3,
+        'cm**6/(mol^2*s)': 3,
     }
     return si_units[units]
 
