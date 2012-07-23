@@ -339,7 +339,7 @@ class Input(models.Model):
     p_basis = models.PositiveIntegerField(blank = True, default = 4, null = True)
 
     # Tolerance
-    toleranceMoveToCore = models.FloatField()
+    toleranceMoveToCore = models.FloatField(blank=True, null=True)
     toleranceKeepInEdge= models.FloatField(default = 0.0)
     # Tolerance Advanced Options
     toleranceInterruptSimulation = models.FloatField(default = 1.0)
