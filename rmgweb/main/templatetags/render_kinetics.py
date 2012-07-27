@@ -80,8 +80,10 @@ def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
             result += r' \left( \frac{{T}}{{ {0:g} \ \mathrm{{ {1!s} }} }} \right)^{{ {2:.2f} }}'.format(T0, T0units, n)
         else:
             result += r' T^{{ {0:.2f} }}'.format(n)
-    if Ea != 0:
+    if Ea > 0:
         result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} }}{{ R T }} \right)'.format(Ea, Eaunits)
+    elif Ea < 0:
+        result += r' \exp \left(\frac{{ {0:.2f} \ \mathrm{{ {1!s} }} }}{{ R T }} \right)'.format(-Ea, Eaunits)
     result += ' \ \mathrm{{ {0!s} }}'.format(Aunits)
     return result
 
