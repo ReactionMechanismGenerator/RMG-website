@@ -217,7 +217,7 @@ function calculateAverage() {
 {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
 <h3>
 {% if href != '' %}<a href="{{ href }}">{% endif %}
-Result #{{ forloop.counter }} - {{ source }}
+Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.index }}{% endif %}
 {% if href != '' %}</a>{% endif %}
 {% if entry.reference %} - {% if entry.reference.url %}<a href="{{ entry.reference.url }}">{% endif %}<span title="{{ entry.reference|get_ref_tooltip }}">{% filter split:','|first %}{{ entry.reference.authors.0 }}{% endfilter %}, {{ entry.reference.year }}</span>{% if entry.reference.url %}</a>{% endif %}{% endif %}
 {% if not forward %} *{% endif %}
