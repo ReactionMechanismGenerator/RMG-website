@@ -7,7 +7,7 @@ plotKinetics = function(id, kseries) {
             events: {
                 click: function() {
                     if (legendEnabled) this.hide();
-                }
+                },
             },
             animation: false
         });
@@ -34,7 +34,7 @@ plotKinetics = function(id, kseries) {
                         average_stale = true;
                     }
                 }
-            }
+            },
         },
         title: { text: 'Rate coefficient' },
         xAxis: {
@@ -50,14 +50,14 @@ plotKinetics = function(id, kseries) {
                     mantissa = Math.pow(10, this.value) / Math.pow(10, exponent);
                     return '' + Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '');
                 }
-            }
+            },
         },
         legend: {
             enabled: legendEnabled,
             layout: 'vertical',
             labelFormatter: function() {
-                return (this.index+1) + '. ' + this.name;
-                }
+                return this.name;
+            },
         },
         series: series,
         tooltip: {
@@ -71,13 +71,13 @@ plotKinetics = function(id, kseries) {
                     } else {
                     return  (this.series.index+1) +'. ' + this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
                     Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
-                    }
-            }
+                }
+            },
         },
         plotOptions: {
             series: {
                 animation: false
-            }
+            },
         },
     }
     return new Highcharts.Chart(options);

@@ -1094,6 +1094,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         forwardKinetics = reaction.kinetics
         
         is_forward = reactionHasReactants(reaction, reactantList)
+        entry.result = len(kineticsDataList) + 1
+
         if is_forward:
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, is_forward])
         else:
