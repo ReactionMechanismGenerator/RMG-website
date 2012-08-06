@@ -49,7 +49,7 @@ urlpatterns = patterns('rmgweb.database',
     (r'^thermo/$', 'views.thermo'),
     (r'^thermo/search/$', 'views.thermoSearch'),
     (r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', 'views.thermoData'),
-    (r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/$', 'views.thermoEntry'),
+    (r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.thermoEntry'),
     (r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.thermo'),
     (r'^thermo/(?P<section>\w+)/$', 'views.thermo'),
     
@@ -86,7 +86,7 @@ urlpatterns = patterns('rmgweb.database',
     (r'^kinetics/families/(?P<family>[^/]+)/untrained/$', 'views.kineticsUntrained'),
     
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/edit$', 'views.kineticsEntryEdit'),
-    (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/$', 'views.kineticsEntry'),
+    (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.kineticsEntry'),
     (r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.kinetics'),
     (r'^kinetics/(?P<section>\w+)/$', 'views.kinetics'),
     

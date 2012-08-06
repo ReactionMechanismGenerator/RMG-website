@@ -147,11 +147,22 @@ def thermoEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    for entry in database.entries.values():
-        if entry.index == index:
-            break
+    if index != 0 and index != -1:
+        for entry in database.entries.values():
+            if entry.index == index:
+                break
+        else:
+            raise Http404
     else:
-        raise Http404
+        if index == 0:
+            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+        else:
+            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+        return HttpResponseRedirect(reverse(thermoEntry,
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
 
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(entry.item)
@@ -740,12 +751,23 @@ def kineticsEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
     index = int(index)
-    for entry in database.entries.values():
-        if entry.index == index:
-            break
+    if index != 0 and index != -1:
+        for entry in database.entries.values():
+            if entry.index == index:
+                break
+        else:
+            raise Http404
     else:
-        raise Http404
-        
+        if index == 0:
+            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+        else:
+            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+        return HttpResponseRedirect(reverse(kineticsEntry,
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+
     reference = entry.reference
     referenceType = ''
 
