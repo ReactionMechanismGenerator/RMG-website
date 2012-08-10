@@ -198,14 +198,14 @@ def drawMolecule(request, adjlist):
     Note that the newline character cannot be represented in a URL;
     semicolons should be used instead.
     """
-    from rmgpy.molecule.molecule import Molecule
-    from rmgpy.molecule.molecule_draw import drawMolecule
+    from rmgpy.molecule import Molecule
+    from rmgpy.molecule.draw import MoleculeDrawer
 
     response = HttpResponse(mimetype="image/png")
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-    surface, cr, rect = drawMolecule(molecule, surface='png')
+    surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
     surface.write_to_png(response)
 
     return response
