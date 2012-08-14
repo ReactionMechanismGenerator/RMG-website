@@ -128,6 +128,19 @@ function calculateAverage() {
     kchart.get('average').setData(new_data, false); // don't redraw automatically, because this function is called on redraw!
     setTimeout(function(){ kchart.redraw(); },50); // redraw after delay
 };
+
+function insertSquib() {
+    input = document.getElementById("id_entry").value.split('    kinetics')[0];
+    squib = document.getElementById("id_new_squib").value;
+    output = '    label = "' + squib + '",\n' + input +
+             '    kinetics = None,\n' +
+             '    reference = None,\n' +
+             '    referenceType = \"\",\n' +
+             '    shortDesc = u\"\"\"\"\"\",\n' +
+             '    longDesc = \n' +
+             'u\"\"\"\n\n\"\"\",';
+    document.getElementById("id_new_squib_entry").value = output;
+}
 </script>
 
 <style>
@@ -211,7 +224,18 @@ function calculateAverage() {
             <a href="http://kinetics.nist.gov/kinetics/index.jsp?v=cm&m=Mole&e=kJ&t=K&p=Pa&rt=1.0" title="Set units at NIST" target="_blank">set units</a>
          </form>
 </div>
-
+{% if new_entry_form %}
+<div align="right">
+    <form name="SquibForm" onSubmit="insertSquib()" action="{% url database.views.kineticsEntryNew family=subsection type="NIST" %}" method="POST">
+        {% csrf_token %}
+        Have NIST data for this reaction? Enter the squib here to import it:
+        <input type=text value="" id="id_new_squib">
+        <div style="display: none;"><textarea name="entry" id="id_new_squib_entry"></textarea></div>
+        <div style="display: none;"><input type=text name="change" value="none"></div>
+        <input type=submit value="Go">
+    </form>
+</div>
+{% endif %}
 {% if kineticsDataList|length > 0 %}
 
 {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
@@ -237,7 +261,7 @@ Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.i
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
 {% if new_entry_form %}
-<form method="post" id="entry_form" onSubmit="calculateAverage()" action="{% url database.views.kineticsEntryNewTraining family=subsection  %}">
+<form method="post" id="entry_form" onSubmit="calculateAverage()" action="{% url database.views.kineticsEntryNew family=subsection type="training" %}">
 <div style="display: none;">{{ new_entry_form.entry }}</div>
 {% csrf_token %}
 <div align="center">

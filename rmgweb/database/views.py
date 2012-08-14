@@ -28,15 +28,20 @@
 #
 ################################################################################
 
+import cookielib
+import copy
 import os
 import os.path
 import re
 import socket
 import StringIO # cStringIO is faster, but can't do Unicode
-import copy
-import time
 import subprocess
+import sys
+import time
+import urllib
+import urllib2
 
+from BeautifulSoup import BeautifulSoup
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect, HttpResponse
@@ -365,6 +370,378 @@ def getCommit(entry):
     return entry
 
 
+###############################################################################
+
+
+def queryNIST(entry, squib, entries, user):
+    """
+    Pulls NIST kinetics and reference information, given
+    a unique entry squib (e.g. `1999SMI/GOL57-101:3`).
+    """
+
+    url = 'http://kinetics.nist.gov/kinetics/Detail?id={0}'.format(squib)
+    cookiejar = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookiejar))
+
+    # Set units
+    post = {'energyUnits': 'J',
+            'evaluationTemperature': '300.0',
+            'moleculeUnits': 'Mole',
+            'pressureUnits': 'Pa',
+            'referenceTemperature': '1.0',
+            'temperatureUnits': 'K',
+            'volumeUnits': 'cm',
+            }
+    request = opener.open('http://kinetics.nist.gov/kinetics/'
+                          'SetUnitsBean.jsp', data=urllib.urlencode(post))
+    request.close()
+
+    # Grab kinetics for a NIST entry from the full bibliographic page.
+    full_url = ('http://kinetics.nist.gov/kinetics/'
+                'Detail?id={0}:0'.format(squib.split(':')[0]))
+    request = opener.open(full_url)
+    soup = BeautifulSoup(request.read())
+    request.close()
+
+    # Find table on page corresponding to kinetics entries
+    try:
+        form = soup.findAll(name='form',
+                            attrs={'name': 'KineticsResults'})[0]
+    except:
+        return 'No results found for {0}.'.format(squib)
+
+    # Find row in table corresponding to squib
+    for tr in form.findAll(name='tr'):
+        tdlist = tr.findAll(name='td')
+        if len(tdlist) == 17 and tr.findAll(name='input', value=squib):
+            break
+    else:
+        return 'No results found for {0}.'.format(squib)
+
+    # Assert entry is not a reference reaction
+    try:
+        if 'Reference reaction' in tr.findNext(name='tr').text:
+            return 'Entry is a reference reaction.'
+    except:
+        pass
+
+    # Check reaction order
+    try:
+        order = int(tdlist[16].text)
+        if order != len(entry.item.reactants):
+            return 'Reaction order does not match number of reactants.'
+    except:
+        return 'Invalid reaction order.'
+
+    # Grab pre-exponential
+    A = tdlist[8].text
+    if '&nbsp;' in A:
+        return 'Invalid pre-exponential.'
+    if ';' in A:
+        A = A.split(';')[1]
+    if order == 1:
+        entry.data.A = Quantity(float(A), 's^-1')
+    elif order == 2:
+        entry.data.A = Quantity(float(A) / 1.0e6, 'm^3/(mol*s)')
+    else:
+        return 'Unexpected reaction order encountered.'
+
+    # Grab temperature exponent
+    n = tdlist[10].text
+    if n == '&nbsp;':
+        n = 0.0
+    entry.data.n = Quantity(float(n), '')
+
+    # Grab activation energy
+    Ea = tdlist[12].text
+    if '&nbsp;' in Ea:
+        Ea = 0.0
+    if ';' in Ea:
+        Ea = Ea.split(';')[1]
+    entry.data.Ea = Quantity(float(Ea), '')
+
+    # Set entry history
+    user_string = '{0.first_name} {0.last_name} <{0.email}>'.format(user)
+    desc = 'Imported from NIST database at {0}'.format(url)
+    entry.history = [(time.asctime(), user_string, 'action', desc)]
+
+    # Grab reference and miscellaneous data from NIST entry page.
+    request = opener.open(url)
+    html = request.read().replace('<p>', '<BR><BR>').replace('<P>',
+                                                             '<BR><BR>')
+    soup = BeautifulSoup(html)
+    request.close()
+
+    # Grab reference
+    try:
+        type = soup.findAll('b', text='Reference type:')[0].parent
+        type = type.nextSibling[13:].lower()
+        if type == 'technical report' or type == 'journal article':
+            type = 'journal'
+        if type == 'book chapter':
+            type = 'book'
+    except:
+        type = None
+    if type not in ['journal', 'book']:
+        entry.reference = None
+    else:
+        if type == 'journal':
+            entry.reference = Article(authors=[])
+
+            # Grab journal title
+            try:
+                journal = soup.findAll('b', text='Journal:')[0].parent
+                entry.reference.journal = journal.nextSibling[13:]
+            except:
+                pass
+
+            # Grab volume number
+            try:
+                volume = soup.findAll('b', text='Volume:')[0].parent
+                entry.reference.volume = volume.nextSibling[13:]
+            except:
+                pass
+
+            # Grab pages
+            try:
+                pages = soup.findAll('b', text='Page(s):')[0].parent
+                pages = pages.nextSibling[13:]
+                if not pages:
+                    pages = re.match(r'\d+[^\d]+([^:]+)', squib).group(1)
+            except:
+                pass
+            entry.reference.pages = pages.replace(' - ', '-')
+
+        elif type == 'book':
+            entry.reference = Book(authors=[])
+
+            # Grab publisher
+            try:
+                pub = soup.findAll(text='Publisher address:')[0].parent
+                entry.reference.publisher = pub.nextSibling[13:]
+            except:
+                pass
+
+        # Grab authors
+        try:
+            authors = soup.findAll('b', text='Author(s):')[0].parent
+            authors = authors.nextSibling[13:]
+            for author in authors.split(';'):
+                entry.reference.authors.append(author.strip())
+        except:
+            pass
+
+        # Grab title
+        try:
+            title = soup.findAll('b', text='Title:')[0].parent
+            title = title.nextSibling[13:]
+            while True:
+                try:
+                    entry.reference.title += title.text
+                except AttributeError:
+                    entry.reference.title += title
+                title = title.nextSibling
+                try:
+                    if title.name == 'br':
+                        break
+                except:
+                    pass
+        except:
+            pass
+
+        # Grab year
+        try:
+            year = soup.findAll('b', text='Year:')[0].parent
+            entry.reference.year = year.nextSibling[13:]
+        except:
+            entry.reference.year = squib[0:4]
+
+        # Set URL
+        entry.reference.url = url
+
+    # Grab reference type
+    try:
+        reftype = soup.findAll('b', text='Category:')[0].parent
+        entry.referenceType = reftype.nextSibling[7:].lower()
+    except:
+        entry.referenceType = ''
+
+    # Grab short description
+    try:
+        short = soup.findAll('b', text='Data type:')[0].parent
+        entry.shortDesc = short.nextSibling[13:]
+    except:
+        entry.shortDesc = ''
+
+    # Grab temperature range
+    try:
+        Trange = soup.findAll('b', text='Temperature:')[0]
+        Trange = Trange.parent.nextSibling[13:].split()
+        entry.data.Tmin = Quantity(int(Trange[0]), 'K')
+        if '-' in Trange[1]:
+            entry.data.Tmax = Quantity(int(Trange[2]), 'K')
+        else:
+            entry.data.Tmax = entry.data.Tmin
+    except:
+        entry.data.Tmin = None
+        entry.data.Tmax = None
+
+    # Grab pressure range
+    try:
+        Prange = soup.findAll('b', text='Pressure:')[0]
+        Prange = Prange.parent.nextSibling[13:].split()
+        entry.data.Pmin = Quantity(int(Prange[0]), 'Pa')
+        if '-' in Prange[1]:
+            entry.data.Pmax = Quantity(int(Prange[2]), 'Pa')
+        else:
+            entry.data.Pmax = entry.data.Pmin
+    except:
+        entry.data.Pmin = None
+        entry.data.Pmax = None
+
+    # Grab long description, starting with matching PrIMe reaction
+    for entry0 in entries:
+        if entry0.item.isIsomorphic(entry.item):
+            for line in entry0.longDesc.splitlines():
+                if 'PrIMe Reaction:' in line:
+                    longDesc = line
+                    break
+    else:
+        longDesc = ''
+
+    # Add reference reaction if available
+    try:
+        ref = soup.findAll('b', text='Reference reaction:')[0].parent
+        longDesc += '\nReference Reaction: '
+        ref = ref.nextSibling.nextSibling
+        while True:
+            try:
+                longDesc += ref.text
+            except:
+                longDesc += ref
+            ref = ref.nextSibling
+            try:
+                if ref.name == 'br':
+                    break
+            except:
+                pass
+    except:
+        pass
+
+    # Grab rest of long description
+    try:
+        rate = soup.findAll('b', text='Rate expression:')[0].parent
+        long = rate.nextSibling
+        while True:
+            try:
+                if long.name == 'br':
+                    break
+            except:
+                pass
+            long = long.nextSibling
+        while True:
+            try:
+                if ((long.nextSibling.name == 'a' and
+                     long.nextSibling.text == 'View') or
+                    long.nextSibling is None):
+                        break
+            except:
+                pass
+            try:
+                if long.name == 'br':
+                    longDesc += '\n'
+                else:
+                    longDesc += long.text
+            except:
+                longDesc += long.replace('\n', '')
+            long = long.nextSibling
+        for line in longDesc.splitlines():
+            if 'Data type:' not in line and 'Category:' not in line:
+                entry.longDesc += line + '\n'
+        swaps = [('&nbsp;&nbsp;\n', ' '),
+                 ('&nbsp;', ' '),
+                 ('  ', ' '),
+                 ('Comments: ', '\n'),
+                 ('\n ', '\n')]
+        for swap in swaps:
+            entry.longDesc = entry.longDesc.replace(swap[0], swap[1])
+        entry.longDesc = entry.longDesc.strip()
+    except:
+        pass
+
+    # Grab uncertainty for pre-exponential
+    try:
+        error = rate.nextSibling
+        while not '[' in text:
+            error = error.nextSibling
+            try:
+                text = error.text
+            except:
+                text = error
+        if '&plusmn;' in text:
+            text = text.split('&plusmn;')[1].split(' ')[0]
+            entry.data.A.uncertaintyType = '+|-'
+            if text.isdigit():
+                entry.data.A.uncertainty = float(text)
+            elif 'x' in text:
+                entry.data.A.uncertainty = float(text.split('x')[0] + 'e' +
+                                                 error.nextSibling.text)
+            if len(entry.item.reactants) == 2:
+                entry.data.A.uncertainty /= 1.0e6
+    except:
+        pass
+    for line in entry.longDesc.splitlines():
+        if 'Uncertainty:' in line and entry.data.A.uncertainty == 0.0:
+            entry.data.A.uncertainty = float(line.split(' ')[1])
+            entry.data.A.uncertaintyType = '*|/'
+    if entry.data.A.uncertaintyType is '+|-':
+        if abs(entry.data.A.uncertainty) > abs(entry.data.A.value):
+            u = entry.data.A.uncertainty
+            entry.longDesc += ('\nNote: Invalid A value uncertainty '
+                               '({0}) found and ignored'.format(u))
+            entry.data.A.uncertainty = 0.0
+
+    # Grab uncertainty for temperature exponent
+    for sup in soup.findAll('sup'):
+        if '(' in sup.text and ')' in sup.text and '&plusmn;' in sup.text:
+            try:
+                error = item.text.split('&plusmn;')[1].split(')')[0]
+                entry.data.n.uncertainty = float(error)
+                entry.data.n.uncertaintyType = '+|-'
+            except:
+                pass
+            break
+    if entry.data.n.uncertaintyType is '+|-':
+        if abs(entry.data.n.uncertainty) > abs(entry.data.n.value):
+            u = entry.data.n.uncertainty
+            entry.longDesc += ('\nNote: Invalid n value uncertainty '
+                               '({0}) found and ignored'.format(u))
+            entry.data.n.uncertainty = 0.0
+
+    # Grab uncertainty and better value for activation energy
+    for sup in soup.findAll('sup'):
+        if 'J/mole]/RT' in sup.text:
+            entry.data.Ea.value = -float(sup.text.split(' ')[0])
+            try:
+                error = sup.text.split('&plusmn;')[1]
+                entry.data.Ea.uncertainty = float(error.split(' ')[0])
+                entry.data.Ea.uncertaintyType = '+|-'
+            except:
+                pass
+            break
+    if entry.data.Ea.uncertaintyType is '+|-':
+        if abs(entry.data.Ea.uncertainty) > abs(entry.data.Ea.value):
+            u = entry.data.Ea.uncertainty
+            entry.longDesc += ('\nNote: Invalid Ea value uncertainty '
+                               '({0}) found and ignored'.format(u))
+            entry.data.Ea.uncertainty = 0.0
+
+    return entry
+
+
+###############################################################################
+
+
 def kinetics(request, section='', subsection=''):
     """
     The RMG database homepage.
@@ -501,62 +878,85 @@ def getReactionUrl(reaction, family=None):
     
 
 @login_required
-def kineticsEntryNewTraining(request, family):
+def kineticsEntryNew(request, family, type):
     """
-    A view for creating a new entry in a kinetics family training depository.
+    A view for creating a new entry in a kinetics family depository.
     """
     # Load the kinetics database, if necessary
     loadDatabase('kinetics', 'families')
+
+    subsection = '{0}/{1}'.format(family, type)
     try:
-        database = getKineticsDatabase('families', family+'/training')
+        database = getKineticsDatabase('families', subsection)
     except ValueError:
         raise Http404
-    
+
     entry = None
     if request.method == 'POST':
         form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
         if form.is_valid():
             new_entry = form.cleaned_data['entry']
-            
-            # determine index for new entry (1 higher than highest)
-            max_index = max(database.entries.keys() or [0])
-            index = max_index + 1
-            
-            # check it's not already there
+
+            # Set new entry index
+            new_entry.index = max(database.entries.keys() or [0]) + 1
+
+            # Confirm entry does not already exist in depository
             for entry in database.entries.values():
-                if entry.item.isIsomorphic(new_entry.item):
-                    kwargs = { 'section': 'families',
-                       'subsection': family+'/training',
-                       'index': entry.index,
-                      }
-                    forward_url = reverse(kineticsEntry, kwargs=kwargs)
-                    message = """
-                    This reaction is already in the {0} training set.
-                    View or edit it at <a href="{1}">{1}</a>.
-                    """.format(family, forward_url)
-                    return render_to_response('simple.html', { 
-                        'title': 'Reaction already in training set.',
-                        'body': message,
-                        },
-                        context_instance=RequestContext(request))
-            new_entry.index = index
-            new_history = (time.strftime('%Y-%m-%d'),
-                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
-                         'action',
-                         "New entry. "+form.cleaned_data['change']
-                            )
-            new_entry.history = [new_history]
-            
-            # Get the entry as a entry_string
+                if ((type == 'training' and new_entry.item.isIsomorphic(entry.item)) or
+                    (type == 'NIST' and new_entry.label == entry.label)):
+                        kwargs = {'section': 'families',
+                                  'subsection': subsection,
+                                  'index': entry.index,
+                                  }
+                        forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                        if type == 'training':
+                            message = """
+                            This reaction is already in the {0} training set.<br> 
+                            View or edit it at <a href="{1}">{1}</a>.
+                            """.format(family, forward_url)
+                            title = '- Reaction already in {0}.'.format(subsection)
+                        else:
+                            message = """
+                            This entry is already in {0}.<br>
+                            View or edit it at <a href="{1}">{1}</a>.
+                            """.format(subsection, forward_url)
+                            title = '- Entry already in {0}.'.format(subsection)
+                        return render_to_response('simple.html',
+                                                  {'title': title,
+                                                   'body': message,
+                                                   },
+                                                  context_instance=RequestContext(request))
+
+            if type == 'NIST':
+                squib = new_entry.label
+                new_entry.data = Arrhenius()
+                new_entry = queryNIST(new_entry, new_entry.label, database.entries.values(), request.user)
+                msg = 'Imported from NIST database at {0}'.format(new_entry.reference.url)
+                if not isinstance(new_entry, Entry):
+                    url = 'http://nist.kinetics.gov/kinetics/Detail?id={0}'.format(squib)
+                    message = 'Error in grabbing kinetics from <a href="{0}">NIST</a>.<br>{1}'.format(url, new_entry)
+                    return render_to_response('simple.html',
+                                              {'title': 'Error in grabbing kinetics for {0}.'.format(squib),
+                                               'body': message,
+                                               },
+                                              context_instance=RequestContext(request))
+            else:
+                msg = form.cleaned_data['change']
+                new_entry.history = [(time.asctime(),
+                                      '{0.first_name} {0.last_name} <{0.email}>'.format(request.user),
+                                      'action',
+                                      'New entry. {0}'.format(form.cleaned_data['change']))]
+
+            # Format the new entry as a string
             entry_buffer = StringIO.StringIO(u'')
             rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
             
-            # redirect when done
-            kwargs = { 'section': 'families',
-                       'subsection': family+'/training',
-                       'index': index,
+            # Build the redirect URL
+            kwargs = {'section': 'families',
+                      'subsection': subsection,
+                      'index': new_entry.index,
                       }
             forward_url = reverse(kineticsEntry, kwargs=kwargs)
             
@@ -566,39 +966,41 @@ def kineticsEntryNewTraining(request, family):
             if True:
                 # save it
                 database.entries[index] = new_entry
-                path = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families', family, 'training.py' )
+                path = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families', family, '{0}.py'.format(type))
                 database.save(path)
-                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
-                commit_message = "New {family}/training/{index} reaction: {msg}\n\nNew kinetics/families/{family}/training entry number {index} submitted through RMG website:\n{msg}\n{author}".format(family=family, index=index, msg=form.cleaned_data['change'], author=commit_author)
+                commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
+                commit_message = 'New Entry: {family}/{type}/{index}\n\n{msg}'.format(family=family,
+                                                                                      type=type,
+                                                                                      index=new_entry.index,
+                                                                                      msg=msg)
+                commit_message += '\n\nSubmitted through the RMG website.'
                 commit_result = subprocess.check_output(['git', 'commit',
                     '-m', commit_message,
                     '--author', commit_author,
                     path
                     ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                
-                
                 message = """
-                New training reaction saved succesfully:<br>
+                New entry saved succesfully:<br>
                 <pre>{0}</pre><br>
                 See result at <a href="{1}">{1}</a>.
                 """.format(commit_result, forward_url)
                 return render_to_response('simple.html', { 
-                    'title': 'New rate saved successfully.',
+                    'title': '',
                     'body': message,
                     },
                     context_instance=RequestContext(request))
-    
     else: # not POST
         form = KineticsEntryEditForm()
-        
+
     return render_to_response('kineticsEntryEdit.html', {'section': 'families',
-                                                        'subsection': family+'/training',
+                                                        'subsection': subsection,
                                                         'databaseName': family,
                                                         'entry': entry,
                                                         'form': form,
                                                         },
                                   context_instance=RequestContext(request))
-    
+
+
 @login_required
 def kineticsEntryEdit(request, section, subsection, index):
     """
@@ -626,7 +1028,7 @@ def kineticsEntryEdit(request, section, subsection, index):
             new_entry = form.cleaned_data['entry']
             new_entry.index = index
             new_entry.history = copy.copy(entry.history)
-            new_history = (time.strftime('%Y-%m-%d'),
+            new_history = (time.asctime(),
                          "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
                          'action',
                          form.cleaned_data['change']
@@ -1102,6 +1504,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     reactionList.extend(rmgJavaReactionList)
     
     kineticsDataList = []
+    family = ''
     
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
@@ -1160,18 +1563,23 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     # Construct new entry form from group-additive result
     # Need to get group-additive reaction from generateReaction with only_families
     # +--> otherwise, adjacency list doesn't store reaction template properly
-    additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family)
-    additiveList = [reaction for reaction in additiveList if isinstance(reaction, TemplateReaction)]
-    if len(additiveList)==2:
-        additiveList = [reaction for reaction in additiveList if reactionHasReactants(reaction, reactantList)]
-
-    new_entry = StringIO.StringIO(u'')
-    rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=additiveList[0]))
-    entry_string = new_entry.getvalue()
-    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
-    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
-    entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
-    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
+    if family:
+        additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family)
+        additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
+        reaction = additiveList[0]
+        new_entry = StringIO.StringIO(u'')
+        if reactionHasReactants(reaction, reactantList):
+            rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=Reaction(reactants=reaction.reactants, products=reaction.products)))
+        else:
+            rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=Reaction(reactants=reaction.products, products=reaction.reactants)))
+        
+        entry_string = new_entry.getvalue()
+        entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
+        entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
+        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
+        new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
+    else:
+        new_entry_form = None
 
     form = TemperatureForm()
     temperature = ''
