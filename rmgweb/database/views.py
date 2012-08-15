@@ -456,9 +456,9 @@ def queryNIST(entry, squib, entries, user):
     Ea = tdlist[12].text
     if '&nbsp;' in Ea:
         Ea = 0.0
-    if ';' in Ea:
+    elif ';' in Ea:
         Ea = Ea.split(';')[1]
-    entry.data.Ea = Quantity(float(Ea), '')
+    entry.data.Ea = Quantity(float(Ea) / 1.0e3, 'kJ/mol')
 
     # Set entry history
     user_string = '{0.first_name} {0.last_name} <{0.email}>'.format(user)
@@ -533,19 +533,19 @@ def queryNIST(entry, squib, entries, user):
 
         # Grab title
         try:
-            title = soup.findAll('b', text='Title:')[0].parent
-            title = title.nextSibling[13:]
+            title = soup.findAll('b', text='Title:')[0].parent.nextSibling
+            entry.reference.title = title[13:]
             while True:
-                try:
-                    entry.reference.title += title.text
-                except AttributeError:
-                    entry.reference.title += title
                 title = title.nextSibling
                 try:
                     if title.name == 'br':
                         break
                 except:
                     pass
+                try:
+                    entry.reference.title += title.text
+                except AttributeError:
+                    entry.reference.title += title
         except:
             pass
 
@@ -569,7 +569,7 @@ def queryNIST(entry, squib, entries, user):
     # Grab short description
     try:
         short = soup.findAll('b', text='Data type:')[0].parent
-        entry.shortDesc = short.nextSibling[13:]
+        entry.shortDesc = short.nextSibling[13:].replace('  ', ' ')
     except:
         entry.shortDesc = ''
 
@@ -580,8 +580,6 @@ def queryNIST(entry, squib, entries, user):
         entry.data.Tmin = Quantity(int(Trange[0]), 'K')
         if '-' in Trange[1]:
             entry.data.Tmax = Quantity(int(Trange[2]), 'K')
-        else:
-            entry.data.Tmax = entry.data.Tmin
     except:
         entry.data.Tmin = None
         entry.data.Tmax = None
@@ -589,27 +587,16 @@ def queryNIST(entry, squib, entries, user):
     # Grab pressure range
     try:
         Prange = soup.findAll('b', text='Pressure:')[0]
-        Prange = Prange.parent.nextSibling[13:].split()
-        entry.data.Pmin = Quantity(int(Prange[0]), 'Pa')
+        Prange = Prange.parent.nextSibling[12:].split()
+        entry.data.Pmin = Quantity(float(Prange[0]), 'Pa')
         if '-' in Prange[1]:
-            entry.data.Pmax = Quantity(int(Prange[2]), 'Pa')
-        else:
-            entry.data.Pmax = entry.data.Pmin
+            entry.data.Pmax = Quantity(float(Prange[2]), 'Pa')
     except:
         entry.data.Pmin = None
         entry.data.Pmax = None
 
-    # Grab long description, starting with matching PrIMe reaction
-    for entry0 in entries:
-        if entry0.item.isIsomorphic(entry.item):
-            for line in entry0.longDesc.splitlines():
-                if 'PrIMe Reaction:' in line:
-                    longDesc = line
-                    break
-    else:
-        longDesc = ''
-
-    # Add reference reaction if available
+    # Start long description with reference reaction where applicable
+    longDesc = ''
     try:
         ref = soup.findAll('b', text='Reference reaction:')[0].parent
         longDesc += '\nReference Reaction: '
@@ -662,7 +649,8 @@ def queryNIST(entry, squib, entries, user):
                  ('&nbsp;', ' '),
                  ('  ', ' '),
                  ('Comments: ', '\n'),
-                 ('\n ', '\n')]
+                 ('\n ', '\n'),
+                 ('&middot;', u'·')]
         for swap in swaps:
             entry.longDesc = entry.longDesc.replace(swap[0], swap[1])
         entry.longDesc = entry.longDesc.strip()
@@ -672,6 +660,7 @@ def queryNIST(entry, squib, entries, user):
     # Grab uncertainty for pre-exponential
     try:
         error = rate.nextSibling
+        text = ''
         while not '[' in text:
             error = error.nextSibling
             try:
@@ -698,7 +687,8 @@ def queryNIST(entry, squib, entries, user):
         if abs(entry.data.A.uncertainty) > abs(entry.data.A.value):
             u = entry.data.A.uncertainty
             entry.longDesc += ('\nNote: Invalid A value uncertainty '
-                               '({0}) found and ignored'.format(u))
+                               '({0} {1})'.format(u, entry.data.A.units) +
+                               ' found and ignored')
             entry.data.A.uncertainty = 0.0
 
     # Grab uncertainty for temperature exponent
@@ -733,7 +723,7 @@ def queryNIST(entry, squib, entries, user):
         if abs(entry.data.Ea.uncertainty) > abs(entry.data.Ea.value):
             u = entry.data.Ea.uncertainty
             entry.longDesc += ('\nNote: Invalid Ea value uncertainty '
-                               '({0}) found and ignored'.format(u))
+                               '({0} J/mol) found and ignored'.format(u))
             entry.data.Ea.uncertainty = 0.0
 
     return entry
