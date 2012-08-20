@@ -128,14 +128,18 @@ jQuery(document).ready(function() {
 
 {% if entry.history %}
 <h2>History</h2>
-{% for date, username, action, description in entry.history %}
+{% for date, username, action, description, sha in entry.history %}
 <table class="history">
 <tr>
     <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
     <td class="historyText">{{ description|restructuredtext }}</td>
 </tr>
 <tr>
-    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} <a>View details</a></td>
+    <td class="historyMeta">
+        {% if sha %}<a href="http://www.github.com/GreenGroup/RMG-database/commit/{{ sha }}">{% endif %}
+        {{ action|title }}
+        {% if sha %}</a>{% endif %} by {{ username }} on {{ date }}
+    </td>
 </tr>
 </table>
 {% endfor %}

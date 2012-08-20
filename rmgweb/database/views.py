@@ -164,6 +164,8 @@ def thermoEntry(request, section, subsection, index):
                                                     'index': index,
                                                     }))
 
+    entry = getCommit(entry)
+
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(entry.item)
 
@@ -340,6 +342,27 @@ def getUntrainedReactions(family):
         count += 1
     
     return untrained
+
+
+def getCommit(entry):
+
+    path = rmgpy.settings['database.directory']
+
+    for i, (date, author, event, desc) in enumerate(entry.history):
+        cmd = ['git', 'log', '--reverse', '--format=%H',
+               '--since="{0}"'.format(date), '-S', date]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path)
+        sha = ''
+        for i in range(0, 10):
+            time.sleep(0.01)
+            sha = p.stdout.readline()
+            if sha:
+                break
+        p.kill()
+        entry.history[i] = date, author, event, desc, sha
+
+    return entry
+
 
 def kinetics(request, section='', subsection=''):
     """
@@ -767,6 +790,8 @@ def kineticsEntry(request, section, subsection, index):
                                                     'subsection': subsection,
                                                     'index': index,
                                                     }))
+
+    entry = getCommit(entry)
 
     reference = entry.reference
     referenceType = ''
