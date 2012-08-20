@@ -110,7 +110,15 @@ jQuery(document).ready(function() {
     <td class="historyText">{{ description|restructuredtext }}</td>
 </tr>
 <tr>
-    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} <a>View details</a></td>
+    <td class="historyMeta">
+        {% for sha in entry.sha %}
+            {% if forloop.counter == forloop.parentloop.counter %}
+                {% if sha %}<a href="http://www.github.com/GreenGroup/RMG-database/commit/{{ sha }}" target="_blank">{% endif %}
+                {{ action|title }}
+                {% if sha %}</a>{% endif %} by {{ username }} on {{ date }}
+            {% endif %}
+        {% endfor %}
+    </td>
 </tr>
 </table>
 {% endfor %}

@@ -128,7 +128,7 @@ jQuery(document).ready(function() {
 
 {% if entry.history %}
 <h2>History</h2>
-{% for date, username, action, description, sha in entry.history %}
+{% for date, username, action, description in entry.history %}
 <table class="history">
 <tr>
     <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
@@ -136,9 +136,13 @@ jQuery(document).ready(function() {
 </tr>
 <tr>
     <td class="historyMeta">
-        {% if sha %}<a href="http://www.github.com/GreenGroup/RMG-database/commit/{{ sha }}">{% endif %}
-        {{ action|title }}
-        {% if sha %}</a>{% endif %} by {{ username }} on {{ date }}
+        {% for sha in entry.sha %}
+            {% if forloop.counter == forloop.parentloop.counter %}
+                {% if sha %}<a href="http://www.github.com/GreenGroup/RMG-database/commit/{{ sha }}" target="_blank">{% endif %}
+                {{ action|title }}
+                {% if sha %}</a>{% endif %} by {{ username }} on {{ date }}
+            {% endif %}
+        {% endfor %}
     </td>
 </tr>
 </table>

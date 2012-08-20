@@ -348,7 +348,8 @@ def getCommit(entry):
 
     path = rmgpy.settings['database.directory']
 
-    for i, (date, author, event, desc) in enumerate(entry.history):
+    entry.sha = []
+    for date, author, event, desc in entry.history:
         cmd = ['git', 'log', '--reverse', '--format=%H',
                '--since="{0}"'.format(date), '-S', date]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path)
@@ -359,7 +360,7 @@ def getCommit(entry):
             if sha:
                 break
         p.kill()
-        entry.history[i] = date, author, event, desc, sha
+        entry.sha.append(sha)
 
     return entry
 
