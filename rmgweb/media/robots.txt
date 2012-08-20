@@ -5,3 +5,6 @@ Disallow: /admin/
 # These cause load on the RMG-Java server, and they are search results and thus dynamic and the crawling will be infinite:
 Disallow: /database/kinetics/results/
 Disallow: /database/kinetics/reaction/
+
+# for now, block the whole database
+Disallow: /database/
