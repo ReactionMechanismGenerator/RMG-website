@@ -31,8 +31,8 @@
 import cookielib
 import copy
 import os
-import os.path
 import re
+import shutil
 import socket
 import StringIO # cStringIO is faster, but can't do Unicode
 import subprocess
@@ -49,6 +49,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 import settings
 
+import exportOldDatabase
 
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.molecule.group import Group
@@ -76,12 +77,58 @@ def load(request):
     """
     loadDatabase()
     return HttpResponseRedirect(reverse(index))
-    
+
 def index(request):
     """
     The RMG database homepage.
     """
     return render_to_response('database.html', context_instance=RequestContext(request))
+
+def export(request, type):
+    """
+    Export the RMG database to the old RMG-Java format.
+    """
+
+    # Build archive filenames from git hash and compression type
+    sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                                  cwd=settings.DATABASE_PATH)[:7]
+    base = 'RMG_database_{0}'.format(sha)
+    file_zip = '{0}.zip'.format(base)
+    file_tar = '{0}.tar.gz'.format(base)
+    if type == 'zip':
+        file = file_zip
+    elif type == 'tar.gz':
+        file = file_tar
+
+    # Set output path
+    path = os.path.join(settings.PROJECT_PATH, '..', 'database', 'export')
+    output = os.path.join(path, 'RMG_database')
+
+    # Assert archives do not already exist
+    if not os.path.exists(os.path.join(path, file)):
+
+        # Export old database
+        exportOldDatabase.export(settings.DATABASE_PATH,
+                                 output,
+                                 loadDatabase())
+
+        # Compress database to zip
+        cmd_zip = ['zip', '-r', base, 'RMG_database']
+        result_zip = subprocess.check_output(cmd_zip, cwd=path)
+
+        # Compress database to tar.gz
+        cmd_tar = ['tar', '-czf', file_tar, 'RMG_database']
+        result_tar = subprocess.check_output(cmd_tar, cwd=path)
+
+        # Make compressed databases group-writable
+        os.chmod(os.path.join(path, file_zip), 0664)
+        os.chmod(os.path.join(path, file_tar), 0664)
+
+        # Remove exported database
+        shutil.rmtree(output)
+
+    # Redirect to requested compressed database
+    return HttpResponseRedirect('export/{0}'.format(file))
 
 def thermo(request, section='', subsection=''):
     """

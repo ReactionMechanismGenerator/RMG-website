@@ -42,5 +42,4 @@ rmgweb/media/rmg/tools/*
 .settings/*
 
 # WSGI
-apache/* 
 apache/django.wsgi

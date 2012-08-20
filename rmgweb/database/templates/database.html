@@ -30,4 +30,11 @@
 <li><a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></li>
 <li><a href="{% url database.views.kinetics section='families' %}">Kinetics Families</a></li>
 </ul>
+
+<h3>Export Database</h3>
+
+<ul>
+<li><a href="{% url database.views.export type='zip' %}" target="_blank">zip</a></li>
+<li><a href="{% url database.views.export type='tar.gz' %}" target="_blank">tar.gz</a></li>
+</ul>
 {% endblock %}

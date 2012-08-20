@@ -38,6 +38,9 @@ urlpatterns = patterns('rmgweb.database',
     # Load the whole database into memory
     (r'^load/?$', 'views.load'),
     
+    # Export to an RMG-Java database
+    (r'^export_(?P<type>zip|tar\.gz)/?$', 'views.export'),
+    
     # History
     # These are up front to avoid it being interpreted as the 'history' section or subsection.
     (r'^history', 'views.gitHistory'),

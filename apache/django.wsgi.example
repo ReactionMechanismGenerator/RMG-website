@@ -3,6 +3,7 @@ root = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 sys.path.insert(0, root)
 sys.path.append(os.path.join(root,'rmgweb'))
 sys.path.append(os.path.join(root,'../RMG-Py'))
+sys.path.append(os.path.join(root,'../RMG-database'))
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmgweb.settings'
 import django.core.handlers.wsgi
