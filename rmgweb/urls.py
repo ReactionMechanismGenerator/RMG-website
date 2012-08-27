@@ -98,6 +98,15 @@ if settings.DEBUG:
             {'document_root': os.path.join(settings.PROJECT_PATH, 'media'),
              'show_indexes': True, }
         ),
+        (r'^database/export/(.*)$',
+         'django.views.static.serve',
+         {'document_root': os.path.join(settings.PROJECT_PATH,
+                                        '..',
+                                        'database',
+                                        'export'),
+          'show_indexes': True,
+          },
+         ),
         (r'^(robots\.txt)$', 'django.views.static.serve',
             {'document_root': os.path.join(settings.PROJECT_PATH, 'media')}
         ),
