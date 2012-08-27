@@ -110,7 +110,7 @@ def getRateCoefficientUnits(kinetics, user=None):
     elif isinstance(kinetics, Chebyshev):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
     elif isinstance(kinetics, ThirdBody): # also matches Lindemann and Troe
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusLow.A.units)
     elif isinstance(kinetics, MultiKinetics):
         return getRateCoefficientUnits(kinetics.kineticsList[0])
     
@@ -319,10 +319,10 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
 </div><div class="math">
         """.format()
         result += r'k_0(T) = {0!s}'.format(getArrheniusJSMath(
-            kinetics.arrheniusHigh.A.value * kfactor * kfactor, kunits_low, 
-            kinetics.arrheniusHigh.n.value, '', 
-            kinetics.arrheniusHigh.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusHigh.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusLow.A.value * kfactor * kfactor, kunits_low, 
+            kinetics.arrheniusLow.n.value, '', 
+            kinetics.arrheniusLow.Ea.value * Efactor, Eunits, 
+            kinetics.arrheniusLow.T0.value * Tfactor, Tunits,
         ))
         result += '</div>'
         
