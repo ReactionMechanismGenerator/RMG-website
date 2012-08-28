@@ -1354,9 +1354,13 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
                   shortDesc="Estimated by RMG-Py Group Additivity",
                   )
                   
-    # Get the entry as a entry_string, to populate the New Entry form
-    # first, replace the kinetics with a fitted arrhenius form with no comment
-    entry.data = reaction.kinetics.toArrhenius()
+    # Get the entry as an entry_string, to populate the New Entry form
+    if isinstance(reaction.kinetics, Arrhenius):
+        entry.data = reaction.kinetics
+    elif isinstance(reaction.kinetics, KineticsData):
+        entry.data = reaction.kinetics.toArrhenius()
+    else:
+        raise Exception('Unexpected group-additive kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
     entry.data.comment = ''
     entry_buffer = StringIO.StringIO(u'')
     rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
