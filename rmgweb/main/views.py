@@ -37,6 +37,7 @@ from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 import urllib, urllib2
 
 from forms import *
@@ -51,7 +52,9 @@ def privacy(request):
     """
     The RMG privacy policy.
     """
-    return render_to_response('privacy.html', context_instance=RequestContext(request))
+    return render_to_response('privacy.html',
+                              {'admins': settings.ADMINS},
+                              context_instance=RequestContext(request))
 
 def login(request):
     """
