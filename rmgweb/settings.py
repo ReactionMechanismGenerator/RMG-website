@@ -35,12 +35,7 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import DEBUG, TEMPLATE_DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY
-
-ADMINS = (
-    ('Josh Allen', 'jwallen@mit.edu')
-    # ('Your Name', 'your_email@domain.com'),
-)
+from secretsettings import DEBUG, TEMPLATE_DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
 
 MANAGERS = ADMINS
 
