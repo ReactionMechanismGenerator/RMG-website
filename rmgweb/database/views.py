@@ -968,7 +968,6 @@ def kineticsEntryNew(request, family, type):
                 squib = new_entry.label
                 new_entry.data = Arrhenius()
                 new_entry = queryNIST(new_entry, new_entry.label, database.entries.values(), request.user)
-                msg = 'Imported from NIST database at {0}'.format(new_entry.reference.url)
                 if not isinstance(new_entry, Entry):
                     url = 'http://nist.kinetics.gov/kinetics/Detail?id={0}'.format(squib)
                     message = 'Error in grabbing kinetics from <a href="{0}">NIST</a>.<br>{1}'.format(url, new_entry)
@@ -977,6 +976,7 @@ def kineticsEntryNew(request, family, type):
                                                'body': message,
                                                },
                                               context_instance=RequestContext(request))
+                msg = 'Imported from NIST database at {0}'.format(new_entry.reference.url)
             else:
                 msg = form.cleaned_data['change']
                 new_entry.history = [(time.asctime(),
