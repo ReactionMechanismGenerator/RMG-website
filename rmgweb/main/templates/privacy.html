@@ -16,7 +16,7 @@
 Queries made to this website are automatically stored in the server logs, 
 which are accessible to administrators of the webserver.
 According to the settings file for this website these administrators include, 
-but may not be limited to, {%  request.META.SERVER_ADMIN %} {% settings_value "ADMINS" %}.
+but may not be limited to, {{ request.META.SERVER_ADMIN }} {% settings_value "ADMINS" %}.
 </p>
 <p>
 These logs are primarily for debugging purposes.
