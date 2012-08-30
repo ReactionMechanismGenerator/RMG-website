@@ -47,6 +47,12 @@ def index(request):
     """
     return render_to_response('index.html', context_instance=RequestContext(request))
 
+def privacy(request):
+    """
+    The RMG privacy policy.
+    """
+    return render_to_response('privacy.html', context_instance=RequestContext(request))
+
 def login(request):
     """
     Called when the user wishes to log in to his/her account.

@@ -54,6 +54,9 @@ urlpatterns = patterns('rmgweb',
     # The RMG website homepage
     (r'^$', 'main.views.index'),
     
+    # The privacy policy
+    (r'^privacy$', 'main.views.privacy'),
+    
     # User account management
     (r'^login$', 'main.views.login'),
     (r'^logout$', 'main.views.logout'),
