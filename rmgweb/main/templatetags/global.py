@@ -98,3 +98,12 @@ def get_ref_tooltip(reference):
             output += ' ({0})'.format(reference.year.encode('utf-8'))
 
     return output
+
+@register.simple_tag
+def settings_value(setting):
+    """
+    Provides a template tag for retrieving settings.
+    """
+    from django.conf import settings
+
+    return getattr(settings, setting, '')
