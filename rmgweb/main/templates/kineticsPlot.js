@@ -1,9 +1,12 @@
 plotKinetics = function(id, kseries) {
     series = [];
-    for (var i = 0; i < kseries.length; i++)
+    var identicalkUnits = true;
+    
+    for (var i = 0; i < kseries.length; i++) {
         series.push({
             name: kseries[i][0],
             data: kseries[i][1],
+            index: i,
             events: {
                 click: function() {
                     if (legendEnabled) this.hide();
@@ -11,6 +14,18 @@ plotKinetics = function(id, kseries) {
             },
             animation: false
         });
+        
+        if (kseries[i][2] !== kunits) {
+        	identicalkUnits = false; } 
+        }
+        	
+    if (identicalkUnits) {
+		kunits = '(' + kunits + ')';
+		}
+	else {
+     	kunits = '';
+        }       
+        
     var legendEnabled = (kseries.length > 1);
     
     if (legendEnabled) {
@@ -43,7 +58,7 @@ plotKinetics = function(id, kseries) {
             max: 4
         },
         yAxis: {
-            title: { text: 'Rate coefficient (' + kunits + ')' },
+            title: { text: 'Rate coefficient ' + kunits },
             labels: {
                 formatter: function() {
                     exponent = Math.floor(this.value);
@@ -67,10 +82,10 @@ plotKinetics = function(id, kseries) {
                 mantissa = Math.pow(10, this.y) / Math.pow(10, exponent);
                 if (!legendEnabled) {
                     return  'k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
-                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
+                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kseries[this.series.index][2];
                     } else {
-                    return  (this.series.index+1) +'. ' + this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
-                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kunits;
+                    return  this.series.name +': k(' + Highcharts.numberFormat(T, 0, '.', '') + ' ' + Tunits + ') = ' +
+                    Highcharts.numberFormat(mantissa, 2, '.', '') + '*10^' + Highcharts.numberFormat(exponent, 0, '.', '') + ' ' + kseries[this.series.index][2];
                 }
             },
         },

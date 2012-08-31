@@ -11,7 +11,7 @@ if (Plist.length > 0) {
         for (var i = 0; i < Tlist.length; i++) {
             kdata.push([1000./Tlist[i], Math.log(klist[j][i]) / Math.LN10]);
         }
-        kseries.push(['{{ entry.result }}. {{ source }}{% if entry.index != -1 %}/{{ entry.index }}{% endif %} (' + Plist[j] + ' ' + Punits + '){% if not forward %} *{% endif %}' + reftitle, kdata]);
+        kseries.push(['{% if entry.result %}{{ entry.result }}.{% endif %} {% if source %}{{ source }}{% if entry.index != -1 %}/{{ entry.index }}{% endif %}{% endif %} (' + Plist[j].toFixed(1) + ' ' + Punits + '){% if not forward %} *{% endif %}' + reftitle, kdata, kunits]);
     }
 }
 else {
@@ -19,7 +19,7 @@ else {
     for (var i = 0; i < Tlist.length; i++) {
         kdata.push([1000./Tlist[i], Math.log(klist[i]) / Math.LN10]);
     }
-    kseries.push(['{{ entry.result }}. {{ source }}{% if entry.index != -1 %}/{{ entry.index }}{% endif %}' + reftitle + '{% if not forward %} *{% endif %}', kdata]);
+    kseries.push(['{% if entry.result %}{{ entry.result }}.{% endif %} {% if source %}{{ source }}{% if entry.index != -1 %}/{{ entry.index }}{% endif %}{% endif %}' + reftitle + '{% if not forward %} *{% endif %}', kdata, kunits]);
 }
 
 var kseries2 = new Array();
@@ -29,6 +29,6 @@ if (Plist2.length > 0) {
         for (var j = 0; j < Plist2.length; j++) {
             kdata.push([Math.log(Plist2[j]) / Math.LN10, Math.log(klist2[j][i]) / Math.LN10]);
         }
-        kseries2.push([Tlist2[i] + ' ' + Tunits, kdata]);
+        kseries2.push([Tlist2[i] + ' ' + Tunits, kdata, kunits]);
     }
 }

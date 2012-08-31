@@ -226,7 +226,7 @@ def render_kinetics_math(kinetics, user=None):
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format
         for P, arrh in zip(kinetics.pressures.values, kinetics.arrhenius):
-            result += r'<div class="math">k(T, \ {0:g} \ \mathrm{{ {1!s} }}) = {2}</div>'.format(
+            result += r'<div class="math">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</div>'.format(
                 P * Pfactor, Punits, 
                 getArrheniusJSMath(
                     arrh.A.value * kfactor, kunits, 
@@ -240,7 +240,7 @@ def render_kinetics_math(kinetics, user=None):
         # The kinetics is in Chebyshev format
         result += r"""<div class="math">
 \begin{split}
-\log k(T,P) &= \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\tilde{T}) \phi_p(\tilde{P}) [\mathrm{ {{ kineticsParameters.coeffs.1 }} }] \\
+\log k(T,P) &= \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\tilde{T}) \phi_p(\tilde{P}) [\mathrm{""" + kinetics.kunits + r""" }] \\
 \tilde{T} &\equiv \frac{2T^{-1} - T_\mathrm{min}^{-1} - T_\mathrm{max}^{-1}}{T_\mathrm{max}^{-1} - T_\mathrm{min}^{-1}} \\
 \tilde{P} &\equiv \frac{2 \log P - \log P_\mathrm{min} - \log P_\mathrm{max}}{\log P_\mathrm{max} - \log P_\mathrm{min}}
 \end{split}</div><br/>
