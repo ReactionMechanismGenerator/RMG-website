@@ -282,3 +282,34 @@ def input(request):
                                              'reactionlibformset':reactionlibformset, 'reactorspecformset':reactorspecformset,
                                              'reactorformset':reactorformset, 'upload_error': upload_error, 
                                              'input_error': input_error}, context_instance=RequestContext(request))
+    
+    
+    
+def plotKinetics(request):
+    """
+    Allows user to upload chemkin files to generate a plot of reaction kinetics.
+    """
+    
+    chemkin = Chemkin()
+    chemkin.deleteDir()
+    
+    if request.method == 'POST':
+                   
+        chemkin.createDir()
+        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
+            
+        if form.is_valid():
+            form.save()
+            kineticsDataList = chemkin.getKinetics()
+            
+            return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
+                                                    'plotWidth': 500,
+                                                    'plotHeight': 400 + 15 * len(kineticsDataList),
+                                                    },
+                                             context_instance=RequestContext(request))
+
+    # Otherwise create the form
+    else:
+        form = UploadChemkinForm(instance=chemkin)
+        
+    return render_to_response('plotKinetics.html', {'form': form}, context_instance=RequestContext(request))

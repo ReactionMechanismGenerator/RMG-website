@@ -31,6 +31,7 @@
         <li><a href ="{% url rmg.views.generateFlux %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
             completed mechanism, or with a customized set of concentration profiles from a Chemkin job.<P>
 		<li><a href ="{% url rmg.views.runPopulateReactions %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
-	</ol>
+		<li><a href="{% url rmg.views.plotKinetics %}">Plot Kinetics</a>: plot forward and reverse kinetics by supplying a list of reactions in chemkin format along with a RMG dictionary.<P>
+			</ol>
 	
 {% endblock %}

@@ -95,6 +95,47 @@ class Chemkin(models.Model):
             shutil.rmtree(self.getDirname())
         except OSError:
             pass
+        
+    def getKinetics(self):
+        """
+        Extracts the kinetic data from the chemkin file for plotting purposes.
+        """
+        from rmgpy.chemkin import loadChemkinFile
+        from rmgpy.kinetics import ArrheniusEP, Chebyshev
+        from rmgpy.reaction import Reaction
+        from rmgpy.data.base import Entry
+        
+        kineticsDataList = []    
+        chemkinPath= self.path + '/chemkin/chem.inp'
+        dictionaryPath = self.path + 'RMG_Dictionary.txt'    
+        speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
+        
+        for reaction in reactionList:            
+            # If the kinetics are ArrheniusEP, replace them with Arrhenius
+            if isinstance(reaction.kinetics, ArrheniusEP):
+                reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+
+            reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+            arrow = '&hArr;' if reaction.reversible else '&rarr;'
+            products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+                
+            source = str(reaction).replace('<=>','=')
+            href = reaction.getURL()
+            entry = Entry()   
+            entry.result = reactionList.index(reaction)+1
+            forwardKinetics = reaction.kinetics     
+            forward = True
+            chemkin = reaction.toChemkin(speciesList)
+            
+            reverseKinetics = reaction.generateReverseRateCoefficient()
+            reverseKinetics.comment = 'Fitted reverse reaction. ' + reaction.kinetics.comment
+            
+            rev_reaction = Reaction(reactants = reaction.products, products = reaction.reactants, kinetics = reverseKinetics)
+            chemkin_rev = rev_reaction.toChemkin(speciesList)
+            
+            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward, chemkin, reverseKinetics, chemkin_rev])
+
+        return kineticsDataList
 
 
 class Diff(models.Model):

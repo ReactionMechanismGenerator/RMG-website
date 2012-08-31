@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+{% load render_kinetics %}
+
+{% block title %}Plot Kinetics Data{% endblock %}
+{% block extrahead %}
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    kineticsModelList = [];    
+    revKineticsModelList = [];
+
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward, chemkin, reversekinetics, chemkin_rev in kineticsDataList %}
+    kseries = [];
+    {{ kinetics|get_rate_coefficients:user }}
+    {% if kinetics %}
+    {% include "kineticsModel.js" %}
+    kineticsModelList.push(kseries[kseries.length-1]);
+    {% endif %}
+    
+    rev_kseries = [];
+    {{ reversekinetics|get_rate_coefficients:user }}
+    {% if reversekinetics %}
+    {% include "revKineticsModel.js" %}    
+    revKineticsModelList.push(rev_kseries[rev_kseries.length-1]);
+    {% endif %}
+    
+    {% endfor %}
+
+    jsMath.Synchronize(function() {
+        // Do these things once the jsMath has finished rendering.
+        kchart = plotKinetics('plotk', kineticsModelList);
+        krevchart = plotKinetics('plotkrev', revKineticsModelList);
+        // calculateAverage();
+    });
+
+    /* For the kinetics search form */
+
+    /* sort CAS numbers numerically by what's up to the first hyphen */
+    /* The NIST kinetics site seems to usually choose the lowest assigned CAS number */
+    function sortCAS(a,b){
+        return a.split('-')[0] - b.split('-')[0];
+    }
+
+    function resolve(fieldName){
+        var field = $('input[name="'+fieldName+'"]')
+        var value = field.val();
+        if (value != "") {
+            /* try resolving by CAS number */
+            //var url = '/cactus/'+escape(value)+'/cas';
+            var url = '/nistcas/'+escape(value);
+            var jqxhr =  $.get(url,function(resolved_name) {
+                field.val(resolved_name.split('\n').sort(sortCAS)[0]);
+            }).error( function() { /* no CAS number assigned (or some other problem) so use chemical formula */
+                var formula = value.split('/')[1]; /* formula is first layer of InChI */
+                field.val(formula);
+            })
+        }
+   }
+   resolve("text1");
+   resolve("text2");
+   resolve("text3");
+   resolve("text4");
+   /* End of code for the kinetics search form */
+
+});
+
+
+var average_stale = true;
+{% include "kineticsPlot.js" %}
+
+function getVisible(chart) {
+    // Returns an array of true/false values corresponding to vilibility of each series in the chart.
+    var visible = [chart.series.length];
+    for (var i = 0; i < chart.series.length; i++)
+        visible[i] = chart.series[i].visible;
+    return visible;
+};
+
+function calculateAverage() {
+    // Calculates the average of the visible rates on the chart. 
+    visible = getVisible(kchart);
+    AAverage = 0.0;
+    nAverage = 0.0;
+    EaAverage = 0.0;
+    count = 0;
+    var highChartsSeriesIndex = 0
+    refList = '';
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
+    {% if kinetics %}
+    if (visible[highChartsSeriesIndex]) {
+        {{ kinetics|get_rate_coefficients:"A_n_Ea" }} {# returns A=, n=, Ea=, Aunits=, Eunits=, and Pnote= #}
+        AAverage += Math.log(A);
+        nAverage += n;
+        EaAverage += Ea;
+        count += 1;
+        {% if entry.reference %}refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} {{ entry.reference.url }}{% endif %}'+Pnote+'\n';
+        {% else %}refList += count + '. {{ source }}'+Pnote+'\n';{% endif %}
+        {{ kinetics|get_user_kfactor:user }}
+    }
+    highChartsSeriesIndex++;
+    {% else %} // {{ source }} had no kinetics. Not included in plot, so can't average.
+    {% endif %}{% endfor %}
+
+    AAverage = Math.exp(AAverage / count);
+    nAverage /= count;
+    EaAverage /= count;
+    
+    if (count == 0) document.getElementById("train").disabled = true
+    else document.getElementById("train").disabled = false;
+
+    output = document.getElementById("id_entry").value.split('kinetics')[0] +
+            'kinetics = Arrhenius(\n        A = (' + AAverage.toExponential(5) + ',\"' + Aunits + '\"),' +
+            '\n        n = (' + nAverage.toFixed(5) + ',\"\"),' +
+            '\n        Ea = (' + EaAverage.toExponential(5) + ',\"' + Eunits + '\"),' +
+            '\n        T0 = (1,\"K\"),' +
+            '\n    ),' +
+            '\n    reference = None,' +
+            '\n    referenceType = \"\",' +
+            '\n    shortDesc = u\"\"\"User-generated average\"\"\",' +
+            '\n    longDesc = ' +
+            '\nu\"\"\"' +
+            '\nAverage of ' + count + ' results:' +
+            '\n' + refList + '\"\"\",';
+    document.getElementById("id_entry").value = output;
+    
+    var new_data = [];
+    for (var n = 0; n <= 10; n++){
+        T = 1/( 1/300 + (1/2000-1/300)*n/10 );
+        k = kfactor * AAverage * Math.pow(T,nAverage) * Math.exp(-1*EaAverage / (8.314472 * T));
+        new_data.push([1000.0/T, Math.log(k)/Math.LN10 ]);
+    }
+    average_stale = false;
+    kchart.get('average').setData(new_data, false); // don't redraw automatically, because this function is called on redraw!
+    setTimeout(function(){ kchart.redraw(); },50); // redraw after delay
+};
+
+// Function to expand or hide sections of the page
+function showHide(elementid){
+    if (document.getElementById(elementid).style.display == 'none'){
+        document.getElementById(elementid).style.display = '';
+    } else {
+        document.getElementById(elementid).style.display = 'none';
+    }
+}
+
+</script>
+
+
+
+</script>
+
+<style>
+   .NIST_query {
+    background: #eee;
+    background-image: url('http://webbook.nist.gov/chemistry/img/nist-link-left.gif');
+    background-repeat: no-repeat;
+    background-position: 2px center;
+    border: 1px solid #993333;
+    padding: 6px;
+    padding-left: 138px;
+    margin: 5px;
+    min-height: 30px;
+    text-align: right;
+   }
+   .NIST_query input[type=text] {
+      width: 18%;
+      font-size: 75%;
+      background: transparent;
+   }
+
+</style>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.plotKinetics %}">Plot Kinetics</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Plot Kinetics Data{% endblock %}
+
+{% block page_body %}
+<P>Click the search icon <img src="../media/search_icon.png" width="18x" height="18px"> beside each reaction to search for matching reactions
+within RMG's kinetic databases.  Click on any species in order to obtain more information regarding its molecular weight, SMILES, adjacency list, or thermochemistry.
+
+{% if kineticsDataList|length > 0 %}
+
+{% for reactants, arrow, products, entry, kinetics, source, href, forward, chemkin, reversekinetics, chemkin_rev in kineticsDataList %}
+<h3>
+<b>Reaction #{{ forloop.counter }}</b>
+{% if href != '' %}<a href="{{ href }}"><img src="../media/search_icon.png" width="16x" height="16px"></a>{% endif %}
+{% if entry.reference %} - {% if entry.reference.url %}<a href="{{ entry.reference.url }}">{% endif %}<span title="{{ entry.reference|get_ref_tooltip }}">{% filter split:','|first %}{{ entry.reference.authors.0 }}{% endfilter %}, {{ entry.reference.year }}</span>{% if entry.reference.url %}</a>{% endif %}{% endif %}
+{% if not forward %} *{% endif %}
+</h3>
+
+<p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
+
+<div align="center"><b>Forward Kinetics</b></div>
+{{ kinetics|render_kinetics_math:user }}
+
+<P><div><a href="javascript:showHide('chemkin_{{forloop.counter}}');">View forward reaction Chemkin input...</a></div>
+<div id="chemkin_{{forloop.counter}}" style="display:none">
+<br><pre>{{chemkin}}</pre>
+</div>
+<P>
+<div align="center"><b>Reverse Kinetics</b></div>
+{{ reversekinetics|render_kinetics_math:user }}
+
+<div><a href="javascript:showHide('chemkinrev_{{forloop.counter}}');">View reverse reaction Chemkin input...</a></div>
+<div id="chemkinrev_{{forloop.counter}}" style="display:none">
+<br><pre>{{chemkin_rev}}</pre>
+</div>
+
+<br><br>
+
+{% endfor %}
+
+<P>
+<hr>
+<P>
+<table width="100%"><tr colspan="2"><th><h2>Forward Kinetics</h2></td><th><h2>Reverse Kinetics</h2></th></tr>
+<tr><td>
+<div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+</td>
+<td>
+<div id="plotkrev" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+</td></tr></table>
+
+{% else %}
+<p>No results found.</p>
+{% endif %}
+
+<P><br>
+
+<P>
+
+</table>
+
+{% endblock %}

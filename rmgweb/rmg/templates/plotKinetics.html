@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Plot Kinetics{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.plotKinetics %}">Plot Kinetics</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Plot Kinetics{% endblock %}
+
+{% block page_body %}
+
+<p>
+Upload a chemkin file containing species thermodynamics and kinetics as well as its associated RMG Dictionary text file to generate plots of individual reactions.  You must include an adjacency list for all species in the chemkin file, including
+inerts and collider species.
+</p>
+<hr/>
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}

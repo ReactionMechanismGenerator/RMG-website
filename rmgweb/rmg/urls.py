@@ -48,6 +48,9 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^populate_reactions','views.runPopulateReactions'),
     
     # RMG Input Form
-    (r'^input', 'views.input')
+    (r'^input', 'views.input'),
+    
+    # Plot Kinetics
+    (r'^plot_kinetics', 'views.plotKinetics')
 
 )
