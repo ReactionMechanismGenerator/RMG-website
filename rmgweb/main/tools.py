@@ -44,8 +44,9 @@ def moleculeToURL(molecule):
     Convert a given :class:`Molecule` object `molecule` to a string 
     representation of its structure suitable for a URL.
     """
-    molecule.clearLabeledAtoms()
-    adjlist = molecule.toAdjacencyList(removeH=True)
+    mol = molecule.copy(deep=True)
+    mol.clearLabeledAtoms()
+    adjlist = mol.toAdjacencyList(removeH=True)
     adjlist = re.sub('\s+', '%20', adjlist.replace('\n', ';'))
     return adjlist
 
