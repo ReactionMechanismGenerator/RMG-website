@@ -6,6 +6,12 @@
         <td class="reference">{{ reference|restructuredtext }}</td>
     </tr>
 {% endif %}
+{% if reference.doi %}
+    <tr>
+        <td class="label">Reference&nbsp;doi:</td>
+        <td><a href="http://dx.doi.org/{{ reference.doi }}">{{ reference.doi }}</a></td>
+    </tr>
+{% endif %}
 {% if reference.url %}
     <tr>
         <td class="label">Reference&nbsp;link:</td>
