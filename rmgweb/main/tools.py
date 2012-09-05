@@ -100,9 +100,9 @@ def getStructureMarkup(item):
     if isinstance(item, Molecule):
         # We can draw Molecule objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList(removeH=True)
-        adjlist = adjlist.replace('\n', ';')
-        adjlist = re.sub('\s+', '%20', adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist}), '')
+        adjlist2 = adjlist.replace('\n', ';')
+        adjlist2 = re.sub('\s+', '%20', adjlist2)
+        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': adjlist2}), adjlist)
     elif isinstance(item, Species) and len(item.molecule) > 0:
         # We can draw Species objects, so use that instead of an adjacency list
         adjlist = item.molecule[0].toAdjacencyList(removeH=True)
