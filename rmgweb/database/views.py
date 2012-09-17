@@ -1016,6 +1016,7 @@ def kineticsEntryNew(request, family, type):
                     '--author', commit_author,
                     path
                     ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 message = """
                 New entry saved succesfully:<br>
                 <pre>{0}</pre><br>
@@ -1103,7 +1104,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                     '--author', commit_author,
                     path
                     ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                
+                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
                 #return HttpResponse(commit_result, mimetype="text/plain")
                 
