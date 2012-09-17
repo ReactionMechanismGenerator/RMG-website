@@ -890,7 +890,7 @@ def kineticsUntrained(request, family):
         entries.append(entry)
     return render_to_response('kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False}, context_instance=RequestContext(request))
 
-def getReactionUrl(reaction, family=None):
+def getReactionUrl(reaction, family=None, estimator=None):
     """
     Get the URL (for kinetics data) of a reaction.
     
@@ -907,8 +907,12 @@ def getReactionUrl(reaction, family=None):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
         kwargs['product{0:d}'.format(index+1)] = moleculeToURL(mol)
     if family:
-        kwargs['family']=family
-        reactionUrl = reverse(kineticsGroupEstimateEntry, kwargs=kwargs)
+        if estimator:
+            kwargs['family'] = family
+            kwargs['estimator'] = estimator.replace(' ','_')
+            reactionUrl = reverse(kineticsGroupEstimateEntry, kwargs=kwargs)
+        else:
+            reactionUrl = ''
     else:
         reactionUrl = reverse(kineticsData, kwargs=kwargs)
     return reactionUrl
@@ -1285,7 +1289,7 @@ def kineticsEntry(request, section, subsection, index):
                                   context_instance=RequestContext(request))
 
 
-def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
+def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
     """
     View a kinetics group estimate as an entry.
     """
@@ -1325,6 +1329,9 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     # discard all the rates from depositories and rules
     reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
     
+    # retain only the rates from the selected estimation method
+    reactionList = [reaction for reaction in reactionList if reaction.estimator == estimator.replace('_',' ')]
+    
     # if there are still two, only keep the forward direction
     if len(reactionList)==2:
         reactionList = [reaction for reaction in reactionList if reactionHasReactants(reaction, reactantList)]
@@ -1345,14 +1352,14 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
     products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
-    assert isinstance(reaction, TemplateReaction), "Expected group additive kinetics to be a TemplateReaction"
+    assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
     
-    source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
+    source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
     entry = Entry(
                   item=reaction,
                   data=reaction.kinetics,
                   longDesc=reaction.kinetics.comment,
-                  shortDesc="Estimated by RMG-Py Group Additivity",
+                  shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
                   )
                   
     # Get the entry as an entry_string, to populate the New Entry form
@@ -1361,7 +1368,7 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     elif isinstance(reaction.kinetics, KineticsData):
         entry.data = reaction.kinetics.toArrhenius()
     else:
-        raise Exception('Unexpected group-additive kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
+        raise Exception('Unexpected group kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
     entry.data.comment = ''
     entry_buffer = StringIO.StringIO(u'')
     rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
@@ -1381,9 +1388,15 @@ def kineticsGroupEstimateEntry(request, family, reactant1, product1, reactant2='
     
     reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
     products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
-    reference = rmgpy.data.reference.Reference(
+    
+    if estimator == 'group_additivity':
+        reference = rmgpy.data.reference.Reference(
                     url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
-                )
+                    )
+    else:
+        reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/rules'})),
+                    )
     referenceType = ''
     entry.index=-1
 
@@ -1566,7 +1579,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
-            href = getReactionUrl(reaction, family=reaction.family.name)
+            
+            href = getReactionUrl(reaction, family=reaction.family.name, estimator=reaction.estimator)
             entry = Entry(data=reaction.kinetics)
             family = reaction.family.name
         elif reaction in rmgJavaReactionList:

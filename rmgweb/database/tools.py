@@ -299,7 +299,7 @@ def generateReactions(database, reactants, products=None, only_families=None):
                     reactant_species = reaction.products[:]
                     product_species = reaction.reactants[:]
                 
-                if source == 'Rate Rules Estimation' or source == 'Group Additivity Estimation':
+                if source == 'rate rules' or source == 'group additivity':
                     rxn = TemplateReaction(
                         reactants = reactant_species,
                         products = product_species,
