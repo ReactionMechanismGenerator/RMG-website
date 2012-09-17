@@ -1565,7 +1565,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
-            source = '%s (RMG-Py Group additivity)' % (reaction.family.name)
+            source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
             href = getReactionUrl(reaction, family=reaction.family.name)
             entry = Entry(data=reaction.kinetics)
             family = reaction.family.name

@@ -298,7 +298,19 @@ def generateReactions(database, reactants, products=None, only_families=None):
                 else:
                     reactant_species = reaction.products[:]
                     product_species = reaction.reactants[:]
-                if source is not None:
+                
+                if source == 'Rate Rules Estimation' or source == 'Group Additivity Estimation':
+                    rxn = TemplateReaction(
+                        reactants = reactant_species,
+                        products = product_species,
+                        kinetics = kinetics,
+                        degeneracy = reaction.degeneracy,
+                        thirdBody = reaction.thirdBody,
+                        reversible = reaction.reversible,
+                        family = reaction.family,
+                        estimator = source,
+                    )
+                else:
                     rxn = DepositoryReaction(
                         reactants = reactant_species,
                         products = product_species,
@@ -309,17 +321,8 @@ def generateReactions(database, reactants, products=None, only_families=None):
                         depository = source,
                         family = reaction.family,
                         entry = entry,
-                    )
-                else:
-                    rxn = TemplateReaction(
-                        reactants = reactant_species,
-                        products = product_species,
-                        kinetics = kinetics,
-                        degeneracy = reaction.degeneracy,
-                        thirdBody = reaction.thirdBody,
-                        reversible = reaction.reversible,
-                        family = reaction.family,
-                    )
+                    )                    
+                    
                 reactionList.append(rxn)
     
     # get RMG-java reactions
