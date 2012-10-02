@@ -182,8 +182,9 @@ class Diff(models.Model):
         Create the directory (and any other needed parent directories) that
         the Network uses for storing files.
         """
-        try:
-            os.makedirs(os.path.join(self.getDirname(),'species'))
+        try:         
+            os.makedirs(os.path.join(self.getDirname(),'species1'))
+            os.makedirs(os.path.join(self.getDirname(),'species2'))
         except OSError:
             # Fail silently on any OS errors
             pass
