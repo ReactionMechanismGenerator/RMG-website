@@ -227,8 +227,9 @@ class KineticsEntryEditForm(forms.Form):
             for key,value in rmgpy.data.base.Database.local_context.iteritems():
                 local_context[key]=value
             print local_context
+            
+            entry_string = str(self.cleaned_data['entry'])
             try:
-                entry_string = str(self.cleaned_data['entry'])
                 entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
             except Exception, e:
                 print "Invalid entry from KineticsEntryEditForm."
