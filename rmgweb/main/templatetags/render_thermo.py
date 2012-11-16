@@ -163,8 +163,8 @@ def render_thermo_math(thermo, user=None):
         result += '</tr>\n'
         result += '</table>\n'
     
-    elif isinstance(thermo, MultiNASA):
-        # The thermo is in MultiNASA format
+    elif isinstance(thermo, NASA):
+        # The thermo is in NASA format
         result += '<div class="math">\n'
         result += r'\frac{C_\mathrm{p}^\circ(T)}{R} = a_{-2} T^{-2} + a_{-1} T^{-1} + a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4'
         result += '</div>\n'
@@ -250,7 +250,7 @@ def render_thermo_math(thermo, user=None):
         result += '<\table>\n'
     
     # Temperature range
-    if isinstance(thermo, (ThermoData, Wilhoit, MultiNASA)):
+    if isinstance(thermo, (ThermoData, Wilhoit, NASA)):
         result += '<table class="thermoEntryData">'
         if thermo.Tmin is not None and thermo.Tmax is not None:
             result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(thermo.Tmin.value * Tfactor, thermo.Tmax.value * Tfactor, Tunits)
@@ -268,7 +268,7 @@ def get_thermo_data(thermo, user=None):
     will be used; otherwise default units will be used.
     """
     
-    if not isinstance(thermo, (ThermoData, Wilhoit, MultiNASA)):
+    if not isinstance(thermo, (ThermoData, Wilhoit, NASA)):
         return ''
     
     # Define other units and conversion factors to use

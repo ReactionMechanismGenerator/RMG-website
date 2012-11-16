@@ -163,7 +163,7 @@ def thermo(request, section='', subsection=''):
 
             if isinstance(entry.data, ThermoData): dataFormat = 'Group additivity'
             elif isinstance(entry.data, Wilhoit): dataFormat = 'Wilhoit'
-            elif isinstance(entry.data, MultiNASA): dataFormat = 'NASA'
+            elif isinstance(entry.data, NASA): dataFormat = 'NASA'
             elif isinstance(entry.data, str): dataFormat = 'Link'
             
             if entry.data is None:
@@ -276,7 +276,7 @@ def thermoData(request, adjlist):
             source = 'Group additivity'
             href = ''
             #data = convertThermoData(data, molecule, Wilhoit)
-            #data = convertThermoData(data, molecule, MultiNASA)
+            #data = convertThermoData(data, molecule, NASA)
             entry = Entry(data=data)
         elif library in database.thermo.depository.values():
             source = 'Depository'
