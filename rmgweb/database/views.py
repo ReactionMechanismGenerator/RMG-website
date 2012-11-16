@@ -286,7 +286,7 @@ def thermoData(request, adjlist):
             href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
             entry,
-            entry.data,
+            data,
             source,
             href,
         ))

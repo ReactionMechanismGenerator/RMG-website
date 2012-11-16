@@ -88,14 +88,14 @@ def render_thermo_math(thermo, user=None):
         result += '<tr>'
         result += r'    <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H298.value * Hfactor, Hunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value * Sfactor, Sunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
         result += '</tr>\n'
-        for T, Cp in zip(thermo.Tdata.values, thermo.Cpdata.values):
+        for T, Cp in zip(thermo.Tdata.value_si, thermo.Cpdata.value_si):
             result += '<tr>'
             result += r'    <td class="key"><span class="math">C_\mathrm{{p}}^\circ({0:g} \ \mathrm{{ {1!s} }})</span></td>'.format(T * Tfactor, Tunits)
             result += r'    <td class="equals">=</td>'
@@ -119,47 +119,47 @@ def render_thermo_math(thermo, user=None):
         result += '<tr>'
         result += r'    <td class="key"><span class="math">C_\mathrm{p}(0)</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s}  }}</span></td>'.format(thermo.cp0.value * Cpfactor, Cpunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s}  }}</span></td>'.format(thermo.cp0.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">C_\mathrm{p}(\infty)</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.cpInf.value * Cpfactor, Cpunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.cpInf.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">a_0</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a0.value))
+        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a0))
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">a_1</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a1.value))
+        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a1))
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">a_2</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a2.value))
+        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a2))
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">a_3</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a3.value))
+        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a3))
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">H_0</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H0.value * Hfactor, Hunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H0.value_si * Hfactor, Hunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">S_0</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S0.value * Sfactor, Sunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S0.value_si * Sfactor, Sunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">B</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.B.value * Tfactor, Tunits)
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.B.value_si * Tfactor, Tunits)
         result += '</tr>\n'
         result += '</table>\n'
     
@@ -180,7 +180,7 @@ def render_thermo_math(thermo, user=None):
         result += r'    <td class="key">Temperature range</td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value">{0:g} to {1:g} {2!s}</td>'.format(polynomial.Tmin.value * Tfactor, polynomial.Tmax.value * Tfactor, Tunits)
+            result += r'    <td class="value">{0:g} to {1:g} {2!s}</td>'.format(polynomial.Tmin.value_si * Tfactor, polynomial.Tmax.value_si * Tfactor, Tunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><span class="math">a_{-2}</span></td>'
@@ -253,7 +253,7 @@ def render_thermo_math(thermo, user=None):
     if isinstance(thermo, (ThermoData, Wilhoit, NASA)):
         result += '<table class="thermoEntryData">'
         if thermo.Tmin is not None and thermo.Tmax is not None:
-            result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(thermo.Tmin.value * Tfactor, thermo.Tmax.value * Tfactor, Tunits)
+            result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(thermo.Tmin.value_si, thermo.Tmax.value_si, Tunits)
         result += '</table>'
 
     return mark_safe(result)
@@ -295,8 +295,11 @@ def get_thermo_data(thermo, user=None):
     Gfactor = Quantity(1, Gunits).getConversionFactorFromSI()
         
     if thermo.Tmin is not None and thermo.Tmax is not None:
-        Tmin = thermo.Tmin.value
-        Tmax = thermo.Tmax.value
+        Tmin = thermo.Tmin.value_si
+        Tmax = thermo.Tmax.value_si
+    elif isinstance(thermo, ThermoData) and (thermo.Cp0 is None or thermo.CpInf is None):
+        Tmin = 300
+        Tmax = 1500
     else:
         Tmin = 300
         Tmax = 2000
