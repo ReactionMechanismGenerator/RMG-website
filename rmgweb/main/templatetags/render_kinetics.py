@@ -111,8 +111,10 @@ def getRateCoefficientUnits(kinetics, user=None):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
     elif isinstance(kinetics, ThirdBody): # also matches Lindemann and Troe
         numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusLow.A.units)
-    elif isinstance(kinetics, MultiKinetics):
-        return getRateCoefficientUnits(kinetics.kineticsList[0])
+    elif isinstance(kinetics, MultiArrhenius):
+        return getRateCoefficientUnits(kinetics.arrhenius[0])
+    elif isinstance(kinetics, MultiPDepArrhenius):
+        return getRateCoefficientUnits(kinetics.arrhenius[0])
     
     # Use the number of reactants to get the rate coefficient units and conversion factor
     kunitsDict = {
@@ -326,11 +328,11 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
         ))
         result += '</div>'
         
-    elif isinstance(kinetics, MultiKinetics):
-        # The kinetics is in MultiKinetics format
+    elif isinstance(kinetics, (MultiArrhenius,MultiPDepArrhenius)):
+        # The kinetics is in MultiArrhenius or MultiPDepArrhenius format
         result = ''
         start = ''
-        for i, k in enumerate(kinetics.kineticsList):
+        for i, k in enumerate(kinetics.arrhenius):
             res = render_kinetics_math(k, user=user)
             start += '{0} + '.format(res.split(' = ')[0].replace('<div class="math">k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1))
             result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1) + '<br/>'
