@@ -38,6 +38,7 @@ register = template.Library()
 
 from django.utils.safestring import mark_safe
 
+import math
 import numpy
 
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
@@ -109,7 +110,11 @@ def getRateCoefficientUnits(kinetics, user=None):
         numReactants = getNumberOfReactantsFromUnits(kinetics.arrhenius[0].A.units)
     elif isinstance(kinetics, Chebyshev):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
-    elif isinstance(kinetics, ThirdBody): # also matches Lindemann and Troe
+    elif isinstance(kinetics, Troe):
+        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+    elif isinstance(kinetics, Lindemann):
+        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+    elif isinstance(kinetics, ThirdBody):
         numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusLow.A.units)
     elif isinstance(kinetics, MultiArrhenius):
         return getRateCoefficientUnits(kinetics.arrhenius[0])
@@ -194,47 +199,47 @@ def render_kinetics_math(kinetics, user=None):
     if isinstance(kinetics, Arrhenius):
         # The kinetics is in Arrhenius format
         result += r'<div class="math">k(T) = {0!s}</div>'.format(getArrheniusJSMath(
-            kinetics.A.value * kfactor, kunits, 
-            kinetics.n.value, '', 
-            kinetics.Ea.value * Efactor, Eunits, 
-            kinetics.T0.value * Tfactor, Tunits,
+            kinetics.A.value_si * kfactor, kunits, 
+            kinetics.n.value_si, '', 
+            kinetics.Ea.value_si * Efactor, Eunits, 
+            kinetics.T0.value_si * Tfactor, Tunits,
         ))
     
     elif isinstance(kinetics, ArrheniusEP):
         # The kinetics is in ArrheniusEP format
-        result += r'<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value * kfactor))
-        if kinetics.n.value != 0:
-            result += r' T^{{ {0:.2f} }}'.format(kinetics.n.value)
-        result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value * Efactor, Eunits, kinetics.alpha.value)
+        result += r'<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
+        if kinetics.n.value_si != 0:
+            result += r' T^{{ {0:.2f} }}'.format(kinetics.n.value_si)
+        result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value_si * Efactor, Eunits, kinetics.alpha.value_si)
         result += ' \ \mathrm{{ {0!s} }}</div>'.format(kunits)
     
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
         result += r'<table class="KineticsData">'
         result += r'<tr><th>Temperature</th><th>Rate coefficient</th></tr>'
-        for T, k in zip(kinetics.Tdata.values, kinetics.kdata.values):
+        for T, k in zip(kinetics.Tdata.value_si, kinetics.kdata.value_si):
             result += r'<tr><td><span class="math">{0:g} \ \mathrm{{ {1!s} }}</span></td><td><span class="math">{2!s} \ \mathrm{{ {3!s} }}</span></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
         result += r'</table>'
         # fit to an arrhenius
         arr = kinetics.toArrhenius()
         result += "Fitted to an Arrhenius:"
         result += r'<div class="math">k(T) = {0!s}</div>'.format(getArrheniusJSMath(
-            arr.A.value * kfactor, kunits, 
-            arr.n.value, '', 
-            arr.Ea.value * Efactor, Eunits, 
-            arr.T0.value * Tfactor, Tunits,
+            arr.A.value_si * kfactor, kunits, 
+            arr.n.value_si, '', 
+            arr.Ea.value_si * Efactor, Eunits, 
+            arr.T0.value_si * Tfactor, Tunits,
         ))
         
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format
-        for P, arrh in zip(kinetics.pressures.values, kinetics.arrhenius):
+        for P, arrh in zip(kinetics.pressures.value_si, kinetics.arrhenius):
             result += r'<div class="math">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</div>'.format(
                 P * Pfactor, Punits, 
                 getArrheniusJSMath(
-                    arrh.A.value * kfactor, kunits, 
-                    arrh.n.value, '', 
-                    arrh.Ea.value * Efactor, Eunits, 
-                    arrh.T0.value * Tfactor, Tunits,
+                    arrh.A.value_si * kfactor, kunits, 
+                    arrh.n.value_si, '', 
+                    arrh.Ea.value_si * Efactor, Eunits, 
+                    arrh.T0.value_si * Tfactor, Tunits,
                 ),
             )
             
@@ -273,22 +278,22 @@ F_\mathrm{{cent}} &= {0}
 </div><div class="math">\begin{{split}}
         """.format(Fcent)
         result += r'k_\infty(T) &= {0!s} \\'.format(getArrheniusJSMath(
-            kinetics.arrheniusHigh.A.value * kfactor, kunits, 
-            kinetics.arrheniusHigh.n.value, '', 
-            kinetics.arrheniusHigh.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusHigh.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusHigh.A.value_si * kfactor, kunits, 
+            kinetics.arrheniusHigh.n.value_si, '', 
+            kinetics.arrheniusHigh.Ea.value_si * Efactor, Eunits, 
+            kinetics.arrheniusHigh.T0.value_si * Tfactor, Tunits,
         ))
         result += r'k_0(T) &= {0!s} \\'.format(getArrheniusJSMath(
-            kinetics.arrheniusLow.A.value * kfactor * kfactor, kunits_low, 
-            kinetics.arrheniusLow.n.value, '', 
-            kinetics.arrheniusLow.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusLow.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusLow.A.value_si * kfactor * kfactor, kunits_low, 
+            kinetics.arrheniusLow.n.value_si, '', 
+            kinetics.arrheniusLow.Ea.value_si * Efactor, Eunits, 
+            kinetics.arrheniusLow.T0.value_si * Tfactor, Tunits,
         ))
-        result += r'\alpha &= {0:g} \\'.format(kinetics.alpha.value)
-        result += r'T_3 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T3.value * Tfactor, Tunits)
-        result += r'T_1 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T1.value * Tfactor, Tunits)
+        result += r'\alpha &= {0:g} \\'.format(kinetics.alpha)
+        result += r'T_3 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T3.value_si * Tfactor, Tunits)
+        result += r'T_1 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T1.value_si * Tfactor, Tunits)
         if kinetics.T2 is not None:
-            result += r'T_2 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T2.value * Tfactor, Tunits)
+            result += r'T_2 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T2.value_si * Tfactor, Tunits)
         result += r'\end{split}</div>'
     
     elif isinstance(kinetics, Lindemann):
@@ -301,16 +306,16 @@ P_\mathrm{{r}} &= \frac{{k_0(T)}}{{k_\infty(T)}} [\mathrm{{M}}] \\
 </div><div class="math">\begin{{split}}
         """.format()
         result += r'k_\infty(T) &= {0!s} \\'.format(getArrheniusJSMath(
-            kinetics.arrheniusHigh.A.value * kfactor, kunits, 
-            kinetics.arrheniusHigh.n.value, '', 
-            kinetics.arrheniusHigh.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusHigh.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusHigh.A.value_si * kfactor, kunits, 
+            kinetics.arrheniusHigh.n.value_si, '', 
+            kinetics.arrheniusHigh.Ea.value_si * Efactor, Eunits, 
+            kinetics.arrheniusHigh.T0.value_si * Tfactor, Tunits,
         ))
         result += r'k_0(T) &= {0!s} \\'.format(getArrheniusJSMath(
-            kinetics.arrheniusLow.A.value * kfactor * kfactor, kunits_low, 
-            kinetics.arrheniusLow.n.value, '', 
-            kinetics.arrheniusLow.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusLow.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusLow.A.value_si * kfactor * kfactor, kunits_low, 
+            kinetics.arrheniusLow.n.value_si, '', 
+            kinetics.arrheniusLow.Ea.value_si * Efactor, Eunits, 
+            kinetics.arrheniusLow.T0.value_si * Tfactor, Tunits,
         ))
         result += r'\end{split}</div>'
     
@@ -321,10 +326,10 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
 </div><div class="math">
         """.format()
         result += r'k_0(T) = {0!s}'.format(getArrheniusJSMath(
-            kinetics.arrheniusLow.A.value * kfactor * kfactor, kunits_low, 
-            kinetics.arrheniusLow.n.value, '', 
-            kinetics.arrheniusLow.Ea.value * Efactor, Eunits, 
-            kinetics.arrheniusLow.T0.value * Tfactor, Tunits,
+            kinetics.arrheniusLow.A.value_si * kfactor * kfactor, kunits_low, 
+            kinetics.arrheniusLow.n.value_si, '', 
+            kinetics.arrheniusLow.Ea.value_si * Efactor, Eunits, 
+            kinetics.arrheniusLow.T0.value_si * Tfactor, Tunits,
         ))
         result += '</div>'
         
@@ -399,14 +404,14 @@ def get_rate_coefficients(kinetics, user=None):
     # Generate data to use for plots
     Tdata = []; Pdata = []; kdata = []
     if kinetics.Tmin is not None and kinetics.Tmax is not None:
-        Tmin = kinetics.Tmin.value
-        Tmax = kinetics.Tmax.value
+        Tmin = kinetics.Tmin.value_si
+        Tmax = kinetics.Tmax.value_si
     else:
         Tmin = 300
         Tmax = 2000
     if kinetics.Pmin is not None and kinetics.Pmax is not None:
-        Pmin = kinetics.Pmin.value
-        Pmax = kinetics.Pmax.value
+        Pmin = kinetics.Pmin.value_si
+        Pmax = kinetics.Pmax.value_si
     else:
         Pmin = 1e3
         Pmax = 1e7
@@ -461,13 +466,12 @@ def get_rate_coefficients(kinetics, user=None):
             klist = numpy.array(kdata, numpy.float64)
             pressure_note = ""
 
-        kModel = KineticsData((Tlist, Tunits), (klist, kunits), Tmin, Tmax).toArrhenius()
-        kModel.Ea.value *= Efactor
+        kModel = Arrhenius().fitToData(Tlist, klist, kunits)
     
         return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
-                            kModel.A.value,
-                            kModel.n.value,
-                            kModel.Ea.value,
+                            kModel.A.value_si * kfactor,
+                            kModel.n.value_si,
+                            kModel.Ea.value_si * Efactor,
                             kunits,
                             Eunits,
                             pressure_note

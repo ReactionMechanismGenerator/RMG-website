@@ -34,7 +34,7 @@ import re
 
 from django.core.urlresolvers import reverse
 
-from rmgpy.quantity import constants
+import rmgpy.constants as constants
 from rmgpy.molecule.molecule import Molecule
 
 ################################################################################

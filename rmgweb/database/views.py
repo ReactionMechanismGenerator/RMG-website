@@ -731,7 +731,7 @@ def queryNIST(entry, squib, entries, user):
             entry.data.A.uncertainty = float(line.split(' ')[1])
             entry.data.A.uncertaintyType = '*|/'
     if entry.data.A.uncertaintyType is '+|-':
-        if abs(entry.data.A.uncertainty) > abs(entry.data.A.value):
+        if abs(entry.data.A.uncertainty) > abs(entry.data.A.value_si):
             u = entry.data.A.uncertainty
             entry.longDesc += ('\nNote: Invalid A value uncertainty '
                                '({0} {1})'.format(u, entry.data.A.units) +
@@ -749,7 +749,7 @@ def queryNIST(entry, squib, entries, user):
                 pass
             break
     if entry.data.n.uncertaintyType is '+|-':
-        if abs(entry.data.n.uncertainty) > abs(entry.data.n.value):
+        if abs(entry.data.n.uncertainty) > abs(entry.data.n.value_si):
             u = entry.data.n.uncertainty
             entry.longDesc += ('\nNote: Invalid n value uncertainty '
                                '({0}) found and ignored'.format(u))
@@ -758,7 +758,7 @@ def queryNIST(entry, squib, entries, user):
     # Grab uncertainty and better value for activation energy
     for sup in soup.findAll('sup'):
         if 'J/mole]/RT' in sup.text:
-            entry.data.Ea.value = -float(sup.text.split(' ')[0])
+            entry.data.Ea.value_si = -float(sup.text.split(' ')[0])
             try:
                 error = sup.text.split('&plusmn;')[1]
                 entry.data.Ea.uncertainty = float(error.split(' ')[0])
@@ -767,7 +767,7 @@ def queryNIST(entry, squib, entries, user):
                 pass
             break
     if entry.data.Ea.uncertaintyType is '+|-':
-        if abs(entry.data.Ea.uncertainty) > abs(entry.data.Ea.value):
+        if abs(entry.data.Ea.uncertainty) > abs(entry.data.Ea.value_si):
             u = entry.data.Ea.uncertainty
             entry.longDesc += ('\nNote: Invalid Ea value uncertainty '
                                '({0} J/mol) found and ignored'.format(u))
