@@ -58,7 +58,7 @@ class Chemkin(models.Model):
     def upload_dictionary_to(instance, filename):
         return instance.path + '/RMG_Dictionary.txt'
     ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary')
+    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary', blank=True, null=True)
 
     def getDirname(self):
         """
@@ -96,7 +96,7 @@ class Chemkin(models.Model):
         except OSError:
             pass
         
-    def getKinetics(self):
+    def getKinetics(self, draw):
         """
         Extracts the kinetic data from the chemkin file for plotting purposes.
         """
@@ -107,20 +107,30 @@ class Chemkin(models.Model):
         
         kineticsDataList = []    
         chemkinPath= self.path + '/chemkin/chem.inp'
-        dictionaryPath = self.path + 'RMG_Dictionary.txt'    
-        speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
+        dictionaryPath = self.path + 'RMG_Dictionary.txt' 
         
+        if draw == True:   
+            speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
+        else:
+            speciesList, reactionList = loadChemkinFile(chemkinPath)
+            
         for reaction in reactionList:            
             # If the kinetics are ArrheniusEP, replace them with Arrhenius
             if isinstance(reaction.kinetics, ArrheniusEP):
                 reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
-            reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
-            arrow = '&hArr;' if reaction.reversible else '&rarr;'
-            products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+            if draw == True:
+                reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+                arrow = '&hArr;' if reaction.reversible else '&rarr;'
+                products = ' + '.join([moleculeToInfo(product) for product in reaction.products])
+                href = reaction.getURL()
+            else:
+                reactants = ' + '.join([reactant.label for reactant in reaction.reactants])
+                arrow = '&hArr;' if reaction.reversible else '&rarr;'
+                products = ' + '.join([product.label for product in reaction.products])
+                href = ''
                 
             source = str(reaction).replace('<=>','=')
-            href = reaction.getURL()
             entry = Entry()   
             entry.result = reactionList.index(reaction)+1
             forwardKinetics = reaction.kinetics     
@@ -136,6 +146,7 @@ class Chemkin(models.Model):
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward, chemkin, reverseKinetics, chemkin_rev])
 
         return kineticsDataList
+        
 
 
 class Diff(models.Model):

@@ -298,9 +298,13 @@ def plotKinetics(request):
         chemkin.createDir()
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
             
-        if form.is_valid():
+        if form.is_valid():            
             form.save()
-            kineticsDataList = chemkin.getKinetics()
+            if 'DictionaryFile' in request.FILES:
+                kineticsDataList = chemkin.getKinetics(draw = True)
+            else:
+                kineticsDataList = chemkin.getKinetics(draw = False)
+                
             
             return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
                                                     'plotWidth': 500,

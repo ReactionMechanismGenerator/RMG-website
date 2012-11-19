@@ -15,13 +15,16 @@
 {% block page_body %}
 
 <p>
-Upload a chemkin file containing species thermodynamics and kinetics as well as its associated RMG Dictionary text file to generate plots of individual reactions.  You must include an adjacency list for all species in the chemkin file, including
-inerts and collider species.
+Upload a chemkin file containing species thermodynamics and kinetics in order to plot both forward and reverse kinetics.
+You may upload an optional RMG Dictionary text file to draw the molecules
+and generate search links for individual reaction kinetics within the RMG database.  This dictionary file must
+include an adjacency list for all species in the chemkin file, including inerts and collider species.
 </p>
 <hr/>
 
 <form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
-{{ form.as_p }}
+<P><b>Chemkin File:</b> {{form.ChemkinFile}}
+<P><b>Dictionary File (Optional):</b> {{form.DictionaryFile}}
 <p><input type="submit" value="Submit" id="submit"/></p>
 </form>
 
