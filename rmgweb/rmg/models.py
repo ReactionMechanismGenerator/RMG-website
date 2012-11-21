@@ -96,7 +96,7 @@ class Chemkin(models.Model):
         except OSError:
             pass
         
-    def getKinetics(self, draw):
+    def getKinetics(self):
         """
         Extracts the kinetic data from the chemkin file for plotting purposes.
         """
@@ -108,8 +108,7 @@ class Chemkin(models.Model):
         kineticsDataList = []    
         chemkinPath= self.path + '/chemkin/chem.inp'
         dictionaryPath = self.path + 'RMG_Dictionary.txt' 
-        
-        if draw == True:   
+        if os.path.exists(dictionaryPath):
             speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
         else:
             speciesList, reactionList = loadChemkinFile(chemkinPath)
@@ -119,7 +118,7 @@ class Chemkin(models.Model):
             if isinstance(reaction.kinetics, ArrheniusEP):
                 reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
-            if draw == True:
+            if os.path.exists(dictionaryPath):
                 reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
                 arrow = '&hArr;' if reaction.reversible else '&rarr;'
                 products = ' + '.join([moleculeToInfo(product) for product in reaction.products])

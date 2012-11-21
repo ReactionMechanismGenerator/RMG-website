@@ -496,16 +496,17 @@ def get_rate_coefficients(kinetics, user=None):
 ###############################################################################
 
 @register.filter
-def get_temp_specific_rate(kinetics, temperature):
+def get_specific_rate(kinetics, eval):
     """
     Return the rate in nice units given a specified temperature.
     Outputs in pretty Latex scientific notation.
     """
     if kinetics is None:
         return "// There are no kinetics for this entry."
+    temperature, pressure = eval
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
-    rate = kinetics.getRateCoefficient(temperature)*kfactor
-    result = '<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(rate))
+    rate = kinetics.getRateCoefficient(temperature, pressure)*kfactor
+    result = '<div class="math">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</div>'.format(kunits)
     return mark_safe(result)
 

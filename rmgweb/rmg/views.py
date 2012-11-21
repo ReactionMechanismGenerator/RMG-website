@@ -289,31 +289,43 @@ def plotKinetics(request):
     """
     Allows user to upload chemkin files to generate a plot of reaction kinetics.
     """
-    
-    chemkin = Chemkin()
-    chemkin.deleteDir()
+    from rmgpy.quantity import Quantity
+    from rmgweb.database.forms import RateEvaluationForm
+            
     
     if request.method == 'POST':
-                   
+        chemkin = Chemkin()           
         chemkin.createDir()
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
-            
+        rateForm = RateEvaluationForm(request.POST)
+        eval = []
+        
+        
+        if rateForm.is_valid():
+            temperature = Quantity(rateForm.cleaned_data['temperature'], str(rateForm.cleaned_data['temperature_units'])).value_si
+            pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
+            eval = [temperature, pressure]
+            kineticsDataList = chemkin.getKinetics() 
+                
         if form.is_valid():            
             form.save()
-            if 'DictionaryFile' in request.FILES:
-                kineticsDataList = chemkin.getKinetics(draw = True)
-            else:
-                kineticsDataList = chemkin.getKinetics(draw = False)
+            kineticsDataList = chemkin.getKinetics()
+        
                 
             
-            return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
-                                                    'plotWidth': 500,
-                                                    'plotHeight': 400 + 15 * len(kineticsDataList),
-                                                    },
-                                             context_instance=RequestContext(request))
+        return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
+                                                'plotWidth': 500,
+                                                'plotHeight': 400 + 15 * len(kineticsDataList),
+                                                'form': rateForm,
+                                                'eval':eval },
+                                         context_instance=RequestContext(request))
 
     # Otherwise create the form
     else:
+        
+    
+        chemkin = Chemkin()
+        chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
         
     return render_to_response('plotKinetics.html', {'form': form}, context_instance=RequestContext(request))

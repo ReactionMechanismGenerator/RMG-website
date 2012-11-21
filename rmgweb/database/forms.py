@@ -240,9 +240,15 @@ class KineticsEntryEditForm(forms.Form):
             return entry
 
 
-class TemperatureForm(forms.Form):
+class RateEvaluationForm(forms.Form):
     """
-    This form allows the user to enter a specific temperature and display the resulting rates
-    on a collection of kinetics search results
+    This form allows the user to enter a specific temperature and pressure and display the resulting rates
+    on a set of kinetics.
     """
-    temperature = forms.FloatField(label="Specify Temperature (K)")
+    #hidden = forms.CharField(widget=forms.HiddenInput())
+    temp_units = (('K','K',),('C','C',))
+    p_units = (('bar','bar',),('torr','torr',),('atm','atm',))
+    temperature = forms.FloatField(label="Temperature")    
+    temperature_units = forms.ChoiceField(choices=temp_units)
+    pressure = forms.FloatField(label="Pressure")
+    pressure_units = forms.ChoiceField(choices=p_units)

@@ -277,14 +277,16 @@ Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.i
 <P><br>
 
 <div align="center">
-<table><tr><th colspan="2"><h3>Rate Table</h3></th></tr>
+<table>
+<tr><th colspan="2"><hr>  <h3><b>Evaluate Rates</b></h3></th></tr>
     <form action="" method="POST">{% csrf_token %}
-    <tr><td>{{ form.as_p }}</td><td><input type="submit" value="Submit" name="submit"></td></tr>
+<tr><td colspan="2" align="center">Temperature: {{ form.temperature }} {{ form.temperature_units }} 
+    		Pressure: {{ form.pressure }} {{form.pressure_units}}  <input type="submit" value="Submit" name="submit"></td></tr>
     </form>
-
-{% if temperature %}
+{% if eval %}
 {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
-<tr><td>{{ forloop.counter }}. {{ source }}</td><td>{{ kinetics|get_temp_specific_rate:temperature }}</td></tr>
+<tr><td>{{ forloop.counter }}. {{ source }}</td><td>{{ kinetics|get_specific_rate:eval }}</td>
+</tr>
 {% endfor %}
 {% endif %}
 
