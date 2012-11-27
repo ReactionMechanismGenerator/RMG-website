@@ -256,7 +256,7 @@ def render_kinetics_math(kinetics, user=None):
         for t in range(kinetics.degreeT):
             for p in range(kinetics.degreeP):
                 if p > 0: result += ' & '
-                result += '{0:g}'.format(kinetics.coeffs[t,p])
+                result += '{0:g}'.format(kinetics.coeffs.value_si[t,p])
             result += '\\\\ \n'
         result += '\end{bmatrix}</div>'
     
