@@ -455,9 +455,16 @@ def getRMGJavaKinetics(reactantList, productList=None):
         reactants, products = reaction_string.split(" --> ")
         reactants = reactants.split(" + ")
         products = products.split(" + ")
-    
+        
+        if len(reactants) == 1:
+            Aunits = "s^-1"
+        elif len(reactants) == 2:
+            Aunits = "cm**3/mol/s"
+        else:   # 3 reactants?
+            Aunits = "cm**6/(mol^2*s)"
+            
         kinetics = Arrhenius(
-            A = (float(lines[1]),"cm**3/mol/s"),
+            A = (float(lines[1]), Aunits),
             n = float(lines[2]),
             Ea = (float(lines[3]),"kcal/mol"),
             T0 = (1,"K"),
