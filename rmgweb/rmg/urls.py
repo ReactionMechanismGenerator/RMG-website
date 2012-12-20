@@ -51,6 +51,9 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^input', 'views.input'),
     
     # Plot Kinetics
-    (r'^plot_kinetics', 'views.plotKinetics')
+    (r'^plot_kinetics', 'views.plotKinetics'),
+    
+    # Plot Kinetics
+    (r'^java_kinetics_library', 'views.javaKineticsLibrary')
 
 )

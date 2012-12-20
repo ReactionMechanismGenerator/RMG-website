@@ -329,3 +329,37 @@ def plotKinetics(request):
         form = UploadChemkinForm(instance=chemkin)
         
     return render_to_response('plotKinetics.html', {'form': form}, context_instance=RequestContext(request))
+
+
+def javaKineticsLibrary(request):
+    """
+    Allows user to upload chemkin files to generate a plot of reaction kinetics.
+    """
+    from rmgpy.quantity import Quantity
+            
+    eval = False
+    
+    if request.method == 'POST':
+        chemkin = Chemkin()           
+        chemkin.createDir()
+        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
+        if form.is_valid():            
+            form.save()
+            chemkin.createJavaKineticsLibrary()
+            eval = True
+        
+                
+            
+        return render_to_response('javaKineticsLibrary.html', {'form': form,
+                                                'eval': eval },
+                                         context_instance=RequestContext(request))
+
+    # Otherwise create the form
+    else:
+        
+    
+        chemkin = Chemkin()
+        chemkin.deleteDir()
+        form = UploadChemkinForm(instance=chemkin)
+        
+    return render_to_response('javaKineticsLibrary.html', {'form': form}, context_instance=RequestContext(request))

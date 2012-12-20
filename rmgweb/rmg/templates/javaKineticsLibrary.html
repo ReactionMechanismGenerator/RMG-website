@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Convert Chemkin File{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.javaKineticsLibrary %}">Create RMG-Java Kinetics Library</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Create RMG-Java Kinetics Library{% endblock %}
+
+{% block page_body %}
+
+<p>
+Upload your chemkin file and its associated RMG Dictionary text file to generate files for
+creating a RMG-Java kinetics library: reactions.txt, pdepreactions.txt, and species.txt
+<p>These files should be dropped into a single folder within the kinetics_libraries folder.  
+</p>
+<hr/>
+
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+
+{% if eval %}
+<hr/>
+<b>Your library files are below:</b>
+<br>To save, right click and select "Save as..."
+<P>
+<a href ="../media/rmg/tools/reactions.txt">reactions.txt</a>
+<br>
+<a href ="../media/rmg/tools/pdepreactions.txt">pdepreactions.txt</a>
+<br>
+<a href ="../media/rmg/tools/species.txt">species.txt</a>
+{% endif %}
+
+{% endblock %}

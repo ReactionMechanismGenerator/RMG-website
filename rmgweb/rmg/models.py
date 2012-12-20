@@ -59,7 +59,7 @@ class Chemkin(models.Model):
         return instance.path + '/RMG_Dictionary.txt'
     ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary', blank=True, null=True)
-
+    
     def getDirname(self):
         """
         Return the absolute path of the directory that the object uses
@@ -145,7 +145,21 @@ class Chemkin(models.Model):
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward, chemkin, reverseKinetics, chemkin_rev])
 
         return kineticsDataList
+    
+    def createJavaKineticsLibrary(self):
+        """
+        Generates java reaction library files from your chemkin file.
+        """
+        import subprocess
+        from rmgpy.chemkin import loadChemkinFile, saveJavaKineticsLibrary
         
+        chemkinPath = self.path + '/chemkin/chem.inp'
+        dictionaryPath = self.path + 'RMG_Dictionary.txt' 
+        speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
+        saveJavaKineticsLibrary(self.path, speciesList, reactionList)
+        commands = ['mv', 'RMG_Dictionary.txt', 'species.txt']
+        subprocess.check_output(commands, cwd=self.path)
+        return
 
 
 class Diff(models.Model):
