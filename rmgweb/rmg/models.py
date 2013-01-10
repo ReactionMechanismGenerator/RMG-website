@@ -201,6 +201,21 @@ class Diff(models.Model):
         from diffModels import saveCompareHTML
         saveCompareHTML(self.path, self.chemkin1, self.dict1, self.chemkin2, self.dict2)
 
+    def merge(self):
+        """
+        Merge the two models together to generate both chemkin and dictionary files.
+        """
+        import subprocess        
+        
+        logfile = os.path.join(self.path,'merging_log.txt')
+        out = open(logfile,"w")
+        
+        pypath = os.path.join(settings.PROJECT_PATH, '..','..', 'RMG-Py','mergeModels.py')
+        subprocess.Popen(['python', pypath,
+                    self.chemkin1, self.dict1,
+                    self.chemkin2, self.dict2
+                    ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
+        
     def createDir(self):
         """
         Create the directory (and any other needed parent directories) that

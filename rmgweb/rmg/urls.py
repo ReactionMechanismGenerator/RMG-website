@@ -40,6 +40,9 @@ urlpatterns = patterns('rmgweb.rmg',
 
     # Compare 2 RMG Models
     (r'^compare','views.compareModels'),
+    
+    # Merge 2 RMG Models
+    (r'^merge_models','views.mergeModels'),
 
     # Generate Flux Diagram
     (r'^flux','views.generateFlux'),
@@ -53,7 +56,7 @@ urlpatterns = patterns('rmgweb.rmg',
     # Plot Kinetics
     (r'^plot_kinetics', 'views.plotKinetics'),
     
-    # Plot Kinetics
+    # Generate RMG-Java Kinetics Library
     (r'^java_kinetics_library', 'views.javaKineticsLibrary')
 
 )

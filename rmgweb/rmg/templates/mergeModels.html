@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Merge Models{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url rmg.views.mergeModels %}">Merge Models</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Merge Models{% endblock %}
+
+{% block page_body %}
+
+<p>
+<P>Merge two RMG models by uploading two chemkin files and their associated RMG Dictionary text files.
+Produces a merged chemkin file and its species dictionary.
+</p>
+<hr/>
+
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+
+{% if path %}
+<hr/>
+<P><b>Done merging. Your files are below:</b>
+<P><a href ="../{{path}}/chem.inp">Merged Chemkin File</a>
+<br><a href ="../{{path}}/species_dictionary.txt">Merged Species Dictionary File</a>
+<br><a href ="../{{path}}/merging_log.txt">Merging Log</a>
+{% endif %}
+
+
+{% endblock %}

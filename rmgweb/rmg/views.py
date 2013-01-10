@@ -115,6 +115,32 @@ def compareModels(request):
 
     return render_to_response('modelCompare.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
+
+def mergeModels(request):
+    """
+    Merge 2 RMG models with their chemkin and species dictionaries.  
+    Produces a merged chemkin file and species dictionary.
+    """
+    model = Diff()
+    path = ''
+    model.deleteDir()
+    
+    if request.method == 'POST':
+        model.createDir()
+        form = ModelCompareForm(request.POST, request.FILES, instance = model)
+        if form.is_valid():
+            form.save()
+            model.merge()
+            path = 'media/rmg/tools/compare/'
+            #[os.path.join(model.path,'chem.inp'), os.path.join(model.path,'species_dictionary.txt'), os.path.join(model.path,'merging_log.txt')]
+            return render_to_response('mergeModels.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+    else:
+        form = ModelCompareForm(instance=model)
+
+    return render_to_response('mergeModels.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+
+
+
 def generateFlux(request):
     """
     Allows user to upload a set of RMG condition files and/or chemkin species concentraiton output
