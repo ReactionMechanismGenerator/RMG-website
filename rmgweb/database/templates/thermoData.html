@@ -58,7 +58,10 @@ jQuery(document).ready(function() {
 {% if entry.label != '' %}
 <p>Species label: {{ entry.label }}</p>
 {% endif %}
-
+{% if source == 'Group additivity' %}
+Comments: {{ thermo.comment }} 
+<p>
+{% endif %}
 {{ thermo|render_thermo_math:user }}
 <br/>
 {% endfor %}
