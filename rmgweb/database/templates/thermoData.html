@@ -60,6 +60,8 @@ jQuery(document).ready(function() {
 {% endif %}
 {% if source == 'Group additivity' %}
 Comments: {{ thermo.comment }} 
+<P>
+Symmetry number: {{ symmetryNumber}}
 <p>
 {% endif %}
 {{ thermo|render_thermo_math:user }}

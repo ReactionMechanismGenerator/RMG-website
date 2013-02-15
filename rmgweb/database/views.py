@@ -277,6 +277,7 @@ def thermoData(request, adjlist):
             href = ''
             #data = convertThermoData(data, molecule, Wilhoit)
             #data = convertThermoData(data, molecule, NASA)
+            symmetryNumber = molecule.symmetryNumber
             entry = Entry(data=data)
         elif library in database.thermo.depository.values():
             source = 'Depository'
@@ -294,7 +295,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)
 
-    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
+    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
 ################################################################################
 
