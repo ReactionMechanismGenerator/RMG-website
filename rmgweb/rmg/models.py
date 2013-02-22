@@ -59,6 +59,7 @@ class Chemkin(models.Model):
         return instance.path + '/RMG_Dictionary.txt'
     ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary', blank=True, null=True)
+    Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
     
     def getDirname(self):
         """
@@ -72,7 +73,11 @@ class Chemkin(models.Model):
         Generate output html file from the path containing chemkin and dictionary files.
         """
         from rmgpy.chemkin import saveHTMLFile
-        saveHTMLFile(self.path)
+        if self.Foreign:
+            # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
+            saveHTMLFile(self.path, readComments = False)
+        else:
+            saveHTMLFile(self.path)
 
     def createDir(self):
         """
@@ -183,9 +188,11 @@ class Diff(models.Model):
     def upload_dictionary2_to(instance, filename):
         return instance.path + '/RMG_Dictionary2.txt'
     ChemkinFile1 = models.FileField(upload_to=upload_chemkin1_to, verbose_name='Model 1: Chemkin File')
-    DictionaryFile1 = models.FileField(upload_to=upload_dictionary1_to,verbose_name='Model 1: RMG Dictionary')
+    DictionaryFile1 = models.FileField(upload_to=upload_dictionary1_to,verbose_name='Model 1: RMG Dictionary')    
+    Foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
     ChemkinFile2 = models.FileField(upload_to=upload_chemkin2_to, verbose_name='Model 2: Chemkin File')
-    DictionaryFile2 = models.FileField(upload_to=upload_dictionary2_to,verbose_name='Model 2: RMG Dictionary')
+    DictionaryFile2 = models.FileField(upload_to=upload_dictionary2_to,verbose_name='Model 2: RMG Dictionary')    
+    Foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def getDirname(self):
         """
@@ -199,7 +206,9 @@ class Diff(models.Model):
         Generate output html file from the path containing chemkin and dictionary files.
         """
         from diffModels import saveCompareHTML
-        saveCompareHTML(self.path, self.chemkin1, self.dict1, self.chemkin2, self.dict2)
+        readComments1 = not self.Foreign1
+        readComments2 = not self.Foreign2
+        saveCompareHTML(self.path, self.chemkin1, self.dict1, self.chemkin2, self.dict2, readComments1, readComments2)
 
     def merge(self):
         """
