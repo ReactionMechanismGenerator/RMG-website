@@ -77,12 +77,14 @@ def getLaTeXScientificNotation(value):
     Return a LaTeX-formatted string containing the provided `value` in
     scientific notation.
     """
-    if value == 0: return '%g' % 0
+    if value == 0: return '0'
+    negative = value < 0
+    value = abs(value)
     exp = int(math.log10(abs(value)))
     mant = value / 10**exp
     if abs(mant) < 1:
         mant *= 10; exp -= 1
-    return '%g \\times 10^{%i}' % (mant, exp)
+    return '{0}{1:g} \\times 10^{{{2:d}}}'.format('-' if negative else '', mant, exp)
 
 ################################################################################
 
