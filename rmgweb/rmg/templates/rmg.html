@@ -5,7 +5,7 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url rmg.views.index %}">Simulation and Tools</a>
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -17,24 +17,24 @@
 
 <h2>Simulation</h2>
 	<ol>
-        <li><a href="{% url rmg.views.input %}">Create Input File</a>: generate an input file for an RMG-Py job through a web form, or 
+        <li><a href="{% url 'rmg.views.input' %}">Create Input File</a>: generate an input file for an RMG-Py job through a web form, or 
         upload an existing input file for easy editing through the web form.<P>
         <li><b>Submit Job:</b> Submit a RMG-Py job online by providing your email address.  We will email you the result when it's done.
 </ol>
 
 <h2>Tools</h2>
     <ol>
-        <li><a href ="{% url rmg.views.convertChemkin %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
+        <li><a href ="{% url 'rmg.views.convertChemkin' %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
             and RMG-generated species dictionary.<P>
-        <li><a href ="{% url rmg.views.compareModels %}">Model Comparison</a>: compare two RMG-generated models by supplying
+        <li><a href ="{% url 'rmg.views.compareModels' %}">Model Comparison</a>: compare two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
-        <li><a href ="{% url rmg.views.mergeModels %}">Merge Models</a>: merge two RMG-generated models by supplying
+        <li><a href ="{% url 'rmg.views.mergeModels' %}">Merge Models</a>: merge two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
-        <li><a href ="{% url rmg.views.generateFlux %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
+        <li><a href ="{% url 'rmg.views.generateFlux' %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
             completed mechanism, or with a customized set of concentration profiles from a Chemkin job.<P>
-		<li><a href ="{% url rmg.views.runPopulateReactions %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
-		<li><a href="{% url rmg.views.plotKinetics %}">Plot Kinetics</a>: plot forward and reverse kinetics by supplying a list of reactions in chemkin format along with a RMG dictionary.<P>
-		<li><a href="{% url rmg.views.javaKineticsLibrary %}">Create RMG-Java Kinetics Library</a>: create an RMG-Java kinetics library for use as a seed-mechanism or reaction library by supplying a chemkin file along with a RMG dictionary.<P>
+		<li><a href ="{% url 'rmg.views.runPopulateReactions' %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
+		<li><a href="{% url 'rmg.views.plotKinetics' %}">Plot Kinetics</a>: plot forward and reverse kinetics by supplying a list of reactions in chemkin format along with a RMG dictionary.<P>
+		<li><a href="{% url 'rmg.views.javaKineticsLibrary' %}">Create RMG-Java Kinetics Library</a>: create an RMG-Java kinetics library for use as a seed-mechanism or reaction library by supplying a chemkin file along with a RMG dictionary.<P>
 			</ol>
 	
 {% endblock %}

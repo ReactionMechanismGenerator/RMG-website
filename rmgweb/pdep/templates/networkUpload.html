@@ -3,9 +3,9 @@
 {% block title %}Upload Input File{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url pdep.views.index %}">MEASURE</a> &raquo;
-<a href="{% url pdep.views.networkIndex networkKey=networkKey%}">Network {{ networkKey }}</a> &raquo;
-<a href="{% url pdep.views.networkUpload networkKey=networkKey%}">Upload</a>
+<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">Network {{ networkKey }}</a> &raquo;
+<a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">Upload</a>
 {% endblock %}
 
 {% block sidebar_items %}

@@ -3,8 +3,8 @@
 {% block title %}{{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url pdep.views.index %}">MEASURE</a> &raquo;
-<a href="{% url pdep.views.networkIndex networkKey=networkKey%}">{{ network.title }}</a>
+<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -20,8 +20,8 @@
 <div class="messagebox">
 <p class="bigmessage">No input has been provided for this network.</p>
 <p>You can add input by using
-<a href="{% url pdep.views.networkEditor networkKey=networkKey%}">the editor</a>, or by
-<a href="{% url pdep.views.networkUpload networkKey=networkKey%}">uploading a file</a>.
+<a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">the editor</a>, or by
+<a href="{% url 'pdep.views.networkUpload 'networkKey=networkKey%}">uploading a file</a>.
 </p>
 </div>
 
@@ -38,8 +38,8 @@
 </textarea>
 </p>
 <p>To fix these errors, use
-<a href="{% url pdep.views.networkEditor networkKey=networkKey%}">the editor</a>, or
-<a href="{% url pdep.views.networkUpload networkKey=networkKey%}">upload a new file</a>.
+<a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">the editor</a>, or
+<a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">upload a new file</a>.
 </p>
 </div>
 {% endif %}
@@ -48,7 +48,7 @@
 {% if network.surfaceFilePNGExists %}
 {% if network.surfaceFilePNGOutOfDate %}
 <div class="warning">
-<strong>Warning:</strong> Your potential energy surface may be out of date. You may want to <a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">redraw it</a>.
+<strong>Warning:</strong> Your potential energy surface may be out of date. You may want to <a href="{% url 'pdep.views.networkDrawPNG' networkKey=networkKey %}">redraw it</a>.
 </div>
 {% endif %}
 <p style="text-align: center;">
@@ -57,7 +57,7 @@
 {% else %}
 <div class="messagebox">
 <p class="bigmessage">No potential energy surface has been drawn for this network.</p>
-<p>To visualize your potential energy surface, <a href="{% url pdep.views.networkDrawPNG networkKey=networkKey %}">click here</a>.
+<p>To visualize your potential energy surface, <a href="{% url 'pdep.views.networkDrawPNG' networkKey=networkKey %}">click here</a>.
 </p>
 </div>
 {% endif %}
@@ -76,7 +76,7 @@
 </tr>
 {% for label, structure, type, collision, states, thermo in speciesList %}
 <tr>
-    <td><a href="{% url pdep.views.networkSpecies networkKey=networkKey species=label %}">{{ label }}</a></td>
+    <td><a href="{% url 'pdep.views.networkSpecies' networkKey=networkKey species=label %}">{{ label }}</a></td>
     <td>{{ structure|safe }}</td>
     <td>{{ type }}</td>
     <td>{{ collision }}</td>
@@ -98,7 +98,7 @@
 </tr>
 {% for reactants, arrow, products, states, kinetics in pathReactionList %}
 <tr>
-    <td><a href="{% url pdep.views.networkPathReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
+    <td><a href="{% url 'pdep.views.networkPathReaction' networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
     <td class="reactants">{{ reactants|safe }}</td>
     <td class="reactionArrow">{{ arrow|safe }}</td>
     <td class="products">{{ products|safe }}</td>
@@ -122,7 +122,7 @@
 </tr>
 {% for reactants, arrow, products, kinetics in netReactionList %}
 <tr>
-    <td><a href="{% url pdep.views.networkNetReaction networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
+    <td><a href="{% url 'pdep.views.networkNetReaction' networkKey=networkKey reaction=forloop.counter %}">{{ forloop.counter }}.</a></td>
     <td class="reactants">{{ reactants|safe }}</td>
     <td class="reactionArrow">{{ arrow|safe }}</td>
     <td class="products">{{ products|safe }}</td>

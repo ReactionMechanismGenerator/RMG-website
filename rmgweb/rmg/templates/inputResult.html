@@ -4,9 +4,9 @@
 
 {% block navbar_items %}
 
-<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
 
-<a href="{% url rmg.views.input %}">Create Input File</a>
+<a href="{% url 'rmg.views.input' %}">Create Input File</a>
 {% endblock %}
 
 {% block sidebar_items %}

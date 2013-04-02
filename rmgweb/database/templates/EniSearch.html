@@ -22,7 +22,7 @@ function resolve(fieldName){
 function adjlist2img(s) {
    adjlist = s.replace(/\n/g,';').replace(/\s+/g,' ');
    adjlist = encodeURI(adjlist);
-   return "{% url main.views.drawMolecule adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {

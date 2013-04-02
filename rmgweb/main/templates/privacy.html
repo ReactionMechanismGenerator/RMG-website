@@ -33,7 +33,7 @@ server logs, or to share the calculated species, reactions, and/or properties
 in public. This is not currently implemented, but may occur in the future.
 </p>
 <p>
-If you <a href="{% url main.views.signup %}?next={{ request.path }}">register an account</a>,
+If you <a href="{% url 'main.views.signup' %}?next={{ request.path }}">register an account</a>,
 then it is stored using the standard Django user authentication.
 Your password is probably safe 
 (read <a href="https://docs.djangoproject.com/en/dev/topics/auth/#how-django-stores-passwords">how Django stores passwords</a>)

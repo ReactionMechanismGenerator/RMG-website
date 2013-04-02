@@ -3,7 +3,7 @@
 {% block title %}MEASURE{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url pdep.views.index %}">MEASURE</a>
+<a href="{% url 'pdep.views.index' %}">MEASURE</a>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -16,7 +16,7 @@
 coefficients <i>k</i>(<i>T</i>,<i>P</i>)</span> for chemical reaction networks.
 You can use it right from your web browser by following the link below:</p>
 
-<p class="biglink"><a href="{% url pdep.views.start %}">Create new network</a></p>
+<p class="biglink"><a href="{% url 'pdep.views.start' %}">Create new network</a></p>
 
 {% if user.is_authenticated %}
 <h2>Your previous reaction networks</h2>
@@ -28,15 +28,15 @@ You can use it right from your web browser by following the link below:</p>
     </tr>
 {% for network in networks %}
     <tr>
-        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
-        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.title }}</a></td>
+        <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
+        <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.title }}</a></td>
         <td style="font-size: 80%; white-space: nowrap;">Last modified on {{ network.getLastModifiedDate }}</td>
     </tr>
 {% endfor %}
 </table>
 <br/>
 {% else %}
-<a href="{% url main.views.login %}?next={{ request.path }}">Log in</a> to see your previous reaction networks.
+<a href="{% url 'main.views.login' %}?next={{ request.path }}">Log in</a> to see your previous reaction networks.
 {% endif %}
 
 

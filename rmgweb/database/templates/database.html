@@ -5,7 +5,7 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url database.views.index %}">Database</a>
+<a href="{% url 'database.views.index' %}">Database</a>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -14,27 +14,27 @@
 {% block page_title %}RMG Database{% endblock %}
 
 {% block page_body %}
-<h2><a href="{% url database.views.thermo %}">Thermodynamics Database</a></h2>
+<h2><a href="{% url 'database.views.thermo' %}">Thermodynamics Database</a></h2>
 
 <ul>
-<li><a href="{% url database.views.moleculeSearch %}">Species Thermodynamics Search</a></li>
-<li><a href="{% url database.views.thermo section='depository' %}">Thermodynamics Depository</a></li>
-<li><a href="{% url database.views.thermo section='libraries' %}">Thermodynamics Libraries</a></li>
-<li><a href="{% url database.views.thermo section='groups' %}">Thermodynamics Groups</a></li>
+<li><a href="{% url 'database.views.moleculeSearch' %}">Species Thermodynamics Search</a></li>
+<li><a href="{% url 'database.views.thermo' section='depository' %}">Thermodynamics Depository</a></li>
+<li><a href="{% url 'database.views.thermo' section='libraries' %}">Thermodynamics Libraries</a></li>
+<li><a href="{% url 'database.views.thermo' section='groups' %}">Thermodynamics Groups</a></li>
 </ul>
 
-<h2><a href="{% url database.views.kinetics %}">Kinetics Database</a></h2>
+<h2><a href="{% url 'database.views.kinetics' %}">Kinetics Database</a></h2>
 
 <ul>
-<li> <a href="{% url database.views.kineticsSearch %}">Kinetics Search</a></li>
-<li><a href="{% url database.views.kinetics section='libraries' %}">Kinetics Libraries</a></li>
-<li><a href="{% url database.views.kinetics section='families' %}">Kinetics Families</a></li>
+<li> <a href="{% url 'database.views.kineticsSearch' %}">Kinetics Search</a></li>
+<li><a href="{% url 'database.views.kinetics' section='libraries' %}">Kinetics Libraries</a></li>
+<li><a href="{% url 'database.views.kinetics' section='families' %}">Kinetics Families</a></li>
 </ul>
 
 <h3>Export Database</h3>
 
 <ul>
-<li><a href="{% url database.views.export type='zip' %}" target="_blank">zip</a></li>
-<li><a href="{% url database.views.export type='tar.gz' %}" target="_blank">tar.gz</a></li>
+<li><a href="{% url 'database.views.export' type='zip' %}" target="_blank">zip</a></li>
+<li><a href="{% url 'database.views.export' type='tar.gz' %}" target="_blank">tar.gz</a></li>
 </ul>
 {% endblock %}

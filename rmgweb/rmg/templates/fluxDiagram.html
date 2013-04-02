@@ -17,8 +17,8 @@ $().ready(function() {
 {%endblock%}
 
 {% block navbar_items %}
-<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
-<a href="{% url rmg.views.generateFlux %}">Generate Flux Diagram</a>
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
+<a href="{% url 'rmg.views.generateFlux' %}">Generate Flux Diagram</a>
 {% endblock %}
 
 {% block sidebar_items %}

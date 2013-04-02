@@ -66,11 +66,11 @@ jQuery(document).ready(function() {
 {% block navbar_items %}
 
 {% if section != '' %}
-<a href="{% url database.views.index %}">Database</a>
-&raquo; <a href="{% url database.views.kinetics %}">Kinetics</a>
-&raquo; <a href="{% url database.views.kinetics section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url database.views.kinetics section=section subsection=subsection %}">{{ databaseName }}</a>
-{% if entry.index and entry.index != -1 %}&raquo; <a href="{% url database.views.kineticsEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.kinetics' %}">Kinetics</a>
+&raquo; <a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ databaseName }}</a>
+{% if entry.index and entry.index != -1 %}&raquo; <a href="{% url 'database.views.kineticsEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
 {% if reaction %}&raquo; {{ reaction }}{% endif %}
 {% endif %}
 
@@ -151,7 +151,7 @@ jQuery(document).ready(function() {
 
 <h2>Update database</h2>
 {% if new_entry_form %}
-<form method="post" id="entry_form" action="{% url database.views.kineticsEntryNew family=subsection type="training" %}">
+<form method="post" id="entry_form" action="{% url 'database.views.kineticsEntryNew' family=subsection type="training" %}">
 <div style="display: none;">{{ new_entry_form.entry }}</div>
 {% csrf_token %}
 If this reaction is not in the training set for {{ subsection }} and you have a rate for it, then add it here:
@@ -159,12 +159,12 @@ If this reaction is not in the training set for {{ subsection }} and you have a 
 </form>
 {% endif %}
 {% if entry.index and entry.index != -1 %}
-If you noticed a mistake or have better data, then edit this entry here: <a href="{% url database.views.kineticsEntryEdit section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
+If you noticed a mistake or have better data, then edit this entry here: <a href="{% url 'database.views.kineticsEntryEdit' section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
 {% endif %}
 {% if user.is_authenticated %}
 You are logged in as {{ user.get_full_name }}</a> 
 {% else %}
-You must <a href="{% url main.views.login %}?next={{ request.path }}">log in first.</a>
+You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
 {% endif %}
 <br/>
 

@@ -7,9 +7,9 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url database.views.index %}">Database</a>
-&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
-&raquo; <a href="{% url database.views.thermoSearch %}">Search</a>
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
+&raquo; <a href="{% url 'database.views.thermoSearch' %}">Search</a>
 {% endblock %}
 
 {% block sidebar_items %}

@@ -62,11 +62,11 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url database.views.index %}">Database</a>
-&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
-&raquo; <a href="{% url database.views.thermo section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url database.views.thermo section=section subsection=subsection %}">{{ databaseName }}</a>
-&raquo; <a href="{% url database.views.thermoEntry section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
+&raquo; <a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a>
+&raquo; <a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -86,7 +86,7 @@ jQuery(document).ready(function() {
 <table class="thermoEntryData">
 <tr>
     <td class="key">Link:</td>
-    <td class="value"><a href="{% url database.views.thermoEntry section=section subsection=subsection index=thermo.1 %}">{{ entry.data }}</a></td>
+    <td class="value"><a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=thermo.1 %}">{{ entry.data }}</a></td>
 </tr>
 </table>
 {% else %}

@@ -32,7 +32,7 @@ function resolve(identifier_id){
 function adjlist2img(s) {
    adjlist = s.replace(/\n/g,';').replace(/\s+/g,' ');
    adjlist = encodeURI(adjlist);
-   return "{% url main.views.drawMolecule adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {
@@ -180,8 +180,8 @@ ul {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url rmg.views.index %}">Simulation and Tools</a> &raquo;
-<a href="{% url rmg.views.input %}">Create Input File</a>
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
+<a href="{% url 'rmg.views.input' %}">Create Input File</a>
 {% endblock %}
 
 {% block page_title %}Create Input File{% endblock %}
@@ -224,7 +224,7 @@ If you already have a saved input.py file that you would like to modify, you can
     in your RMG job in order of priority. You may select multiple libraries.
     If no libraries are selected, RMG will estimate all species'
     thermochemistry through Benson group additivity.  We recommend using at least the 'primaryThermoLibrary'. 
-    <P>You can browse the available libraries here: <a href="{% url database.views.thermo section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
+    <P>You can browse the available libraries here: <a href="{% url 'database.views.thermo' section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
     <P>
     <table id="thermo_libraries">
                 <thead><tr><th scope="col">Library</th></tr></thead>
@@ -251,7 +251,7 @@ Normally, the kinetic library of reactions is used to estimate a reaction found 
     "SeedMech" option to allow to the library to be added to the core.
     If you do not wish for these reactions to be automatically included in the core but do want to
     retain it in your mechanism, you may also select the "Edge" option.
-<P>You can browse the available libraries here: <a href="{% url database.views.kinetics section='libraries' %}" target="_blank">Kineticss Libraries</a>
+<P>You can browse the available libraries here: <a href="{% url 'database.views.kinetics' section='libraries' %}" target="_blank">Kineticss Libraries</a>
     <P>
 <table id="reaction_libraries">
                 <thead><tr><th scope="col">Library</th>

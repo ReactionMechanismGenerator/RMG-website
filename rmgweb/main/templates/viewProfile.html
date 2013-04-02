@@ -52,7 +52,7 @@ table.networks th {
 
 {% if user == user0 %}
 <p>
-   <a href="{% url rmgweb.main.views.editProfile %}" title="Edit profile"><button>Edit Profile</button></a>
+   <a href="{% url 'rmgweb.main.views.editProfile' %}" title="Edit profile"><button>Edit Profile</button></a>
 </p>
 {% endif %}
 
@@ -68,8 +68,8 @@ table.networks th {
     </tr>
 {% for network in networks %}
     <tr>
-        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
-        <td><a href="{% url rmgweb.pdep.views.networkIndex networkKey=network.pk %}">{{ network.title }}</a></td>
+        <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
+        <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.title }}</a></td>
         <td style="font-size: 80%; white-space: nowrap;">Last modified on {{ network.getLastModifiedDate }}</td>
     </tr>
 {% endfor %}

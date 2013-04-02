@@ -33,8 +33,8 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url database.views.index %}">Database</a>
-&raquo; <a href="{% url database.views.thermo %}">Thermodynamics</a>
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
 {% endblock %}
 
 {% block sidebar_items %}
