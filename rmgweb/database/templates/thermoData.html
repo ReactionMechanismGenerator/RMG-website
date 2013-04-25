@@ -3,6 +3,9 @@
 {% load gravatar %}
 {% load render_thermo %}
 
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
 {% block title %}Thermodynamics Data{% endblock %}
 
 {% block extrahead %}
