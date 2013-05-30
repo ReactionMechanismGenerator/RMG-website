@@ -159,7 +159,6 @@ def generateFlux(request):
         if form.is_valid():
             form.save()
             input = os.path.join(flux.path,'input.py')
-            print input
             chemkin = os.path.join(flux.path,'chem.inp')
             dict = os.path.join(flux.path,'species_dictionary.txt')
             chemkinOutput = ''
@@ -176,9 +175,7 @@ def generateFlux(request):
             createFluxDiagram(flux.path, input, chemkin, dict, java, settings, chemkinOutput)
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
-            print subdirs
             subdirs.remove('species')
-            print subdirs
             return render_to_response('fluxDiagram.html', {'form': form, 'path':subdirs}, context_instance=RequestContext(request))
 
     else:
