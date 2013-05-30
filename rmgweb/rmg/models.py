@@ -220,9 +220,9 @@ class Diff(models.Model):
         out = open(logfile,"w")
         
         pypath = os.path.join(settings.PROJECT_PATH, '..','..', 'RMG-Py','mergeModels.py')
-        subprocess.Popen(['python', pypath,
-                    self.chemkin1, self.dict1,
-                    self.chemkin2, self.dict2
+        subprocess.Popen(['python', pypath, 
+                    '--model1', self.chemkin1, self.dict1,
+                    '--model2', self.chemkin2, self.dict2
                     ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
         
     def createDir(self):
