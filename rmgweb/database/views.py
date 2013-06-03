@@ -813,7 +813,10 @@ def kinetics(request, section='', subsection=''):
             tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(database, section, subsection, database.top))
         else:
             # If there is not a tree, consider all entries
-            entries0 = reduce(lambda x,y: x+y, database.entries.values())
+            entries0 = database.entries.values()
+            if any(isinstance(item, list) for item in entries0):
+                # if the entries are lists
+                entries0 = reduce(lambda x,y: x+y, entries0)
             # Sort the entries by index and label
             entries0.sort(key=lambda entry: (entry.index, entry.label))
             tree = ''
@@ -933,7 +936,11 @@ def kineticsEntryNew(request, family, type):
         database = getKineticsDatabase('families', subsection)
     except ValueError:
         raise Http404
-
+    
+    entries = database.entries.values()
+    if any(isinstance(item, list) for item in entries):
+        # if the entries are lists
+        entries = reduce(lambda x,y: x+y, entries)
     entry = None
     if request.method == 'POST':
         form = KineticsEntryEditForm(request.POST, error_class=DivErrorList)
@@ -944,7 +951,7 @@ def kineticsEntryNew(request, family, type):
             new_entry.index = max(database.entries.keys() or [0]) + 1
 
             # Confirm entry does not already exist in depository
-            for entry in database.entries.values():
+            for entry in entries:
                 if ((type == 'training' and new_entry.item.isIsomorphic(entry.item)) or
                     (type == 'NIST' and new_entry.label == entry.label)):
                         kwargs = {'section': 'families',
@@ -973,7 +980,7 @@ def kineticsEntryNew(request, family, type):
             if type == 'NIST':
                 squib = new_entry.label
                 new_entry.data = Arrhenius()
-                new_entry = queryNIST(new_entry, new_entry.label, database.entries.values(), request.user)
+                new_entry = queryNIST(new_entry, new_entry.label, entries, request.user)
                 if not isinstance(new_entry, Entry):
                     url = 'http://nist.kinetics.gov/kinetics/Detail?id={0}'.format(squib)
                     message = 'Error in grabbing kinetics from <a href="{0}">NIST</a>.<br>{1}'.format(url, new_entry)
@@ -1059,8 +1066,13 @@ def kineticsEntryEdit(request, section, subsection, index):
         database = getKineticsDatabase(section, subsection)
     except ValueError:
         raise Http404
+    
+    entries = database.entries.values()
+    if any(isinstance(item, list) for item in entries):
+        # if the entries are lists
+        entries = reduce(lambda x,y: x+y, entries)
     index = int(index)
-    for entry in database.entries.values():
+    for entry in entries:
         if entry.index == index:
             break
     else:
@@ -1220,18 +1232,24 @@ def kineticsEntry(request, section, subsection, index):
         database = getKineticsDatabase(section, subsection)
     except ValueError:
         raise Http404
+    
+    entries = database.entries.values()
+    if any(isinstance(item, list) for item in entries):
+        # if the entries are lists
+        entries = reduce(lambda x,y: x+y, entries)
+                
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in entries:
             if entry.index == index:
                 break
         else:
             raise Http404
     else:
         if index == 0:
-            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = min(entry.index for entry in entries if entry.index > 0)
         else:
-            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = max(entry.index for entry in entries if entry.index > 0)
         return HttpResponseRedirect(reverse(kineticsEntry,
                                             kwargs={'section': section,
                                                     'subsection': subsection,
