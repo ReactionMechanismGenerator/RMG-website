@@ -813,7 +813,7 @@ def kinetics(request, section='', subsection=''):
             tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(database, section, subsection, database.top))
         else:
             # If there is not a tree, consider all entries
-            entries0 = database.entries.values()
+            entries0 = reduce(lambda x,y: x+y, database.entries.values())
             # Sort the entries by index and label
             entries0.sort(key=lambda entry: (entry.index, entry.label))
             tree = ''
