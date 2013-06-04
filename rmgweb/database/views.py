@@ -1375,21 +1375,31 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
     
     source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
-    entry = Entry(
-                  item=reaction,
-                  data=reaction.kinetics,
-                  longDesc=reaction.kinetics.comment,
-                  shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                  )
+    
+    if reaction.kinetics:
+        entry = Entry(
+                      item=reaction,
+                      data=reaction.kinetics,
+                      longDesc=reaction.kinetics.comment,
+                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
+                      )
+    else:
+        entry = Entry(
+                      item=reaction,
+                      data=reaction.kinetics,
+                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
+                      )
                   
     # Get the entry as an entry_string, to populate the New Entry form
-    if isinstance(reaction.kinetics, Arrhenius):
+    if reaction.kinetics is None:
+        pass
+    elif isinstance(reaction.kinetics, Arrhenius):
         entry.data = reaction.kinetics
     elif isinstance(reaction.kinetics, KineticsData):
         entry.data = reaction.kinetics.toArrhenius()
     else:
         raise Exception('Unexpected group kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
-    entry.data.comment = ''
+    
     entry_buffer = StringIO.StringIO(u'')
     rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
     entry_string = entry_buffer.getvalue()
@@ -1400,9 +1410,6 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
     entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
     new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
-
-    forwardKinetics = reaction.kinetics
-    reverseKinetics = reaction.generateReverseRateCoefficient()
     
     forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
     
