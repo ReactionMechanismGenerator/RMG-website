@@ -206,6 +206,36 @@ class EniSearchForm(forms.Form):
             traceback.print_exc(e)
             raise forms.ValidationError('Invalid SMILES entry.')
         return str(self.cleaned_data['deposit'])
+    
+class ThermoEntryEditForm(forms.Form):
+    """ 
+    Form for editing thermo database entries
+    """
+    entry = forms.CharField(label="Database Entry", widget = forms.Textarea(attrs={'cols': 80, 'rows': 40, 'class':'data_entry'}), required=True)
+    change = forms.CharField(label="Summary of changes", widget=forms.TextInput(attrs={'class':'change_summary'}), required=True)
+    def clean_entry(self):
+            """
+            Custom validation for the entry field to ensure that a valid 
+            entry has been provided.
+            """
+            new_database = rmgpy.data.thermo.ThermoDatabase()
+            new_depository = rmgpy.data.thermo.ThermoDepository()
+            global_context = {'__builtins__': None} # disable even builtins
+            local_context = copy.copy(new_database.local_context)
+            local_context['entry'] = new_depository.loadEntry
+            for key,value in rmgpy.data.base.Database.local_context.iteritems():
+                local_context[key]=value
+            
+            entry_string = str(self.cleaned_data['entry'])
+            try:
+                entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
+            except Exception, e:
+                print "Invalid entry from ThermoEntryEditForm."
+                print repr(entry_string)
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid entry.'+ str(sys.exc_info()[1]))
+            return entry
 
 class KineticsEntryEditForm(forms.Form):
     """

@@ -1,0 +1,55 @@
+{% extends "thermoEntry.html" %}
+{% load markup %}
+{% load gravatar %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block extrahead %}
+<script type="text/javascript">
+jQuery(document).ready(function() {
+   $('#id_change').keyup(function() {
+      var str = $(this).val();
+      $('#this_action').text(str);
+   });
+});
+</script>
+{% endblock %}
+
+
+{% block page_body %}
+
+<form method="post" id="entry_form">
+
+{{ form.as_ul }}
+{% csrf_token %}
+<input type="submit" value="Save" name="Save" />
+</form>
+
+<br>
+
+<h2>History</h2>
+{% for date, username, action, description in entry.history %}
+<table class="history">
+<tr>
+    <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
+    <td class="historyText">{{ description|restructuredtext }}</td>
+</tr>
+<tr>
+    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} </td>
+</tr>
+</table>
+{% endfor %}
+<table class="history">
+<tr>
+    <td rowspan="2" class="historyIcon">{% gravatar user.username 40 %}</td>
+    <td class="historyText"><span id="this_action"></span></td>
+</tr>
+<tr>
+    <td class="historyMeta">Action by {{ user.first_name }} {{ user.last_name }} &lt;{{ user.email }}&gt; on {% now "Y-m-d" %} </td>
+</tr>
+</table>
+
+<br/>
+
+{% endblock %}

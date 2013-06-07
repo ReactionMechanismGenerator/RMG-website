@@ -1169,6 +1169,124 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                         'form': form,
                                                         },
                                   context_instance=RequestContext(request))
+    
+@login_required
+def thermoEntryEdit(request, section, subsection, index):
+    """
+    A view for editing an entry in a thermo database.
+    """
+
+    # Load the kinetics database, if necessary
+    loadDatabase('thermo', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getThermoDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    
+    entries = database.entries.values()
+    if any(isinstance(item, list) for item in entries):
+        # if the entries are lists
+        entries = reduce(lambda x,y: x+y, entries)
+    index = int(index)
+    for entry in entries:
+        if entry.index == index:
+            break
+    else:
+        raise Http404
+    
+    if request.method == 'POST':
+        form = ThermoEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+            new_entry.index = index
+            new_entry.history = copy.copy(entry.history)
+            new_history = (time.asctime(),
+                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
+                         'action',
+                         form.cleaned_data['change']
+                            )
+            new_entry.history.append(new_history)
+            
+            # Get the entry as a entry_string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            if False:
+                # Render it as if it were saved.
+                return render_to_response('kineticsEntry.html', {'section': section,
+                                                         'subsection': subsection,
+                                                         'databaseName': database.name,
+                                                         'entry': new_entry,
+                                                         'reference': entry.reference,
+                                                         'kinetics': entry.data,
+                                                         },
+                              context_instance=RequestContext(request))
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'thermo', section, subsection + '.py' )
+                database.save(path)
+                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+                commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                
+                #return HttpResponse(commit_result, mimetype="text/plain")
+                
+                kwargs = { 'section': section,
+                       'subsection': subsection,
+                       'index': index,
+                      }
+                forward_url = reverse(thermoEntry, kwargs=kwargs)
+                message = """
+                Changes saved succesfully:<br>
+                <pre>{0}</pre><br>
+                See result at <a href="{1}">{1}</a>.
+                """.format(commit_result, forward_url)
+                return render_to_response('simple.html', { 
+                    'title': 'Change saved successfully.',
+                    'body': message,
+                    },
+                    context_instance=RequestContext(request))
+            
+            # redirect
+            return HttpResponseRedirect(forward_url)
+    
+    else: # not POST
+        # Get the entry as a entry_string
+        entry_buffer = StringIO.StringIO(u'')
+        rmgpy.data.thermo.saveEntry(entry_buffer, entry)
+        entry_string = entry_buffer.getvalue()
+        entry_buffer.close()
+        
+        #entry_string = entry.item.reactants[0].toAdjacencyList()
+        # remove leading 'entry('
+        entry_string = re.sub('^entry\(\n','',entry_string)
+        # remove the 'index = 23,' line
+        entry_string = re.sub('\s*index = \d+,\n','',entry_string)
+        # remove the history and everything after it (including the final ')' )
+        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL)
+        
+        form = ThermoEntryEditForm(initial={'entry':entry_string })
+    
+    return render_to_response('thermoEntryEdit.html', {'section': section,
+                                                        'subsection': subsection,
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
 
 def gitHistory(request,dbtype='',section='',subsection=''):
     """
