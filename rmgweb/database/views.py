@@ -295,7 +295,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(molecule)
 
-    return render_to_response('thermoData.html', {'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
+    return render_to_response('thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
 ################################################################################
 
@@ -948,7 +948,8 @@ def kineticsEntryNew(request, family, type):
             new_entry = form.cleaned_data['entry']
 
             # Set new entry index
-            new_entry.index = max(database.entries.keys() or [0]) + 1
+            indices = [entry.index for entry in database.entries.values()]
+            new_entry.index = max(indices or [0]) + 1
 
             # Confirm entry does not already exist in depository
             for entry in entries:
@@ -1169,7 +1170,119 @@ def kineticsEntryEdit(request, section, subsection, index):
                                                         'form': form,
                                                         },
                                   context_instance=RequestContext(request))
+
+@login_required
+def thermoEntryNew(request, section, subsection, adjlist):
+    """
+    A view for creating a new thermodynamics entry into any database section.
+    """
+    # Load the thermo database, if necessary
+    loadDatabase('thermo')
     
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+
+    try:
+        database = getThermoDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    
+    entries = database.entries.values()
+    if any(isinstance(item, list) for item in entries):
+        # if the entries are lists
+        entries = reduce(lambda x,y: x+y, entries)
+    entry = None
+    if request.method == 'POST':
+        form = ThermoEntryEditForm(request.POST, error_class=DivErrorList)
+        if form.is_valid():
+            new_entry = form.cleaned_data['entry']
+
+            # Set new entry index
+            indices = [entry.index for entry in database.entries.values()]
+            new_entry.index = max(indices or [0]) + 1
+
+            # Do not need to confirm entry already exists- should allow the user to store multiple 
+            # thermo entries in to the depository or into separate libraries for the same molecule if the data exists.
+
+            msg = form.cleaned_data['change']
+            new_entry.history = [(time.asctime(),
+                                      '{0.first_name} {0.last_name} <{0.email}>'.format(request.user),
+                                      'action',
+                                      'New entry. {0}'.format(form.cleaned_data['change']))]
+
+            # Format the new entry as a string
+            entry_buffer = StringIO.StringIO(u'')
+            rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            entry_string = entry_buffer.getvalue()
+            entry_buffer.close()
+            
+            # Build the redirect URL
+            kwargs = {'section': section,
+                      'subsection': subsection,
+                      'index': new_entry.index,
+                      }
+            forward_url = reverse(thermoEntry, kwargs=kwargs)
+            
+            if False:
+                # Just return the text.
+                return HttpResponse(entry_string, mimetype="text/plain")
+            if True:
+                # save it
+                database.entries[index] = new_entry
+                path = os.path.join(settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+                database.save(path)
+                commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
+                commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
+                                                                                      subsection=subsection,
+                                                                                      index=new_entry.index,
+                                                                                      msg=msg)
+                commit_message += '\n\nSubmitted through the RMG website.'
+                commit_result = subprocess.check_output(['git', 'commit',
+                    '-m', commit_message,
+                    '--author', commit_author,
+                    path
+                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                message = """
+                New entry saved succesfully:<br>
+                <pre>{0}</pre><br>
+                See result at <a href="{1}">{1}</a>.
+                """.format(commit_result, forward_url)
+                return render_to_response('simple.html', { 
+                    'title': '',
+                    'body': message,
+                    },
+                    context_instance=RequestContext(request))
+    else: # not POST
+        entry_string ="""
+label = "{label}",
+molecule = "\"\" 
+{adjlist}
+"\"\",\n
+thermo = ThermoData(
+    Tdata = ([],'K'),
+    Cpdata = ([],'cal/(mol*K)'),
+    H298 = (,'kcal/mol'),
+    S298 = (,'cal/(mol*K)'),
+),\n
+shortDesc = u"\"\" "\"\",
+longDesc = 
+    u"\"\"
+    
+    "\"\",
+        """.format(label=molecule.toSMILES(),adjlist=molecule.toAdjacencyList())
+
+        form = ThermoEntryEditForm(initial={'entry':entry_string })
+
+    return render_to_response('thermoEntryEdit.html', {'section': section,
+                                                        'subsection': subsection,
+                                                        'databaseName': database.name,
+                                                        'entry': entry,
+                                                        'form': form,
+                                                        },
+                                  context_instance=RequestContext(request))
+    
+
 @login_required
 def thermoEntryEdit(request, section, subsection, index):
     """
@@ -1220,7 +1333,7 @@ def thermoEntryEdit(request, section, subsection, index):
                 return HttpResponse(entry_string, mimetype="text/plain")
             if False:
                 # Render it as if it were saved.
-                return render_to_response('kineticsEntry.html', {'section': section,
+                return render_to_response('thermoEntry.html', {'section': section,
                                                          'subsection': subsection,
                                                          'databaseName': database.name,
                                                          'entry': new_entry,

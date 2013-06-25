@@ -84,7 +84,7 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block page_title %}
-{% if entry.index != -1 %}
+{% if entry.index and entry.index != -1%}
 {{ entry.index }}. {{ entry.label }}
 {% else %}
 {{ databaseName }}

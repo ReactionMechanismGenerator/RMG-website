@@ -69,13 +69,13 @@ jQuery(document).ready(function() {
 &raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
 &raquo; <a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a>
 &raquo; <a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a>
-&raquo; <a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>
+{% if entry.index and entry.index != -1 %} &raquo; <a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}
 {% endblock %}
 
-{% block page_title %}{{ entry.index }}. {{ entry.label }}{% endblock %}
+{% block page_title %}{% if entry.index %}{{ entry.index }}. {{ entry.label }}{% endif %}{% endblock %}
 
 {% block page_body %}
 
@@ -97,10 +97,12 @@ jQuery(document).ready(function() {
 {% endifequal %}
     
 
+{% if thermo.Tdata and thermo.Cpdata and thermo.H298 and thermo.S298 %}
 <div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotS" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotG" style="width: 500px; height: 300px; margin: auto;"></div>
+{% endif %}
 
 <h2>Reference</h2>
 {% include "reference.html" %}

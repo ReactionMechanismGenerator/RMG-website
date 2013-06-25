@@ -50,6 +50,19 @@ jQuery(document).ready(function() {
 <p>
 {{ structure|safe }}
 </p>
+If you have thermodynamic data to contribute to this species, you can add an entry here: 
+{% if molecule.getRadicalCount == 0 %}
+<a href="{% url 'database.views.thermoEntryNew' section='depository' subsection='stable' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
+{% else %}
+<a href="{% url 'database.views.thermoEntryNew' section='depository' subsection='radical' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
+{% endif %}
+
+{% if user.is_authenticated %}
+You are logged in as {{ user.get_full_name }}</a> 
+{% else %}
+You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
+{% endif %}
+<br/><br/>
 
 <h2>Thermodynamic Data</h2>
 

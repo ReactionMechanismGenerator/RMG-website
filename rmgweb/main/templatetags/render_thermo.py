@@ -85,22 +85,27 @@ def render_thermo_math(thermo, user=None):
     if isinstance(thermo, ThermoData):
         # The thermo is in ThermoData format
         result += '<table class="thermoEntryData">\n'
-        result += '<tr>'
-        result += r'    <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
-        result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
-        result += '</tr>\n'
-        result += '<tr>'
-        result += r'    <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
-        result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
-        result += '</tr>\n'
-        for T, Cp in zip(thermo.Tdata.value_si, thermo.Cpdata.value_si):
+        
+        if thermo.H298 is not None:
             result += '<tr>'
-            result += r'    <td class="key"><span class="math">C_\mathrm{{p}}^\circ({0:g} \ \mathrm{{ {1!s} }})</span></td>'.format(T * Tfactor, Tunits)
+            result += r'    <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(Cp * Cpfactor, Cpunits)
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
             result += '</tr>\n'
+        
+        if thermo.S298 is not None:
+            result += '<tr>'
+            result += r'    <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
+            result += '</tr>\n'
+        if thermo.Tdata is not None and thermo.Cpdata is not None:
+            for T, Cp in zip(thermo.Tdata.value_si, thermo.Cpdata.value_si):
+                result += '<tr>'
+                result += r'    <td class="key"><span class="math">C_\mathrm{{p}}^\circ({0:g} \ \mathrm{{ {1!s} }})</span></td>'.format(T * Tfactor, Tunits)
+                result += r'    <td class="equals">=</td>'
+                result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(Cp * Cpfactor, Cpunits)
+                result += '</tr>\n'
         result += '</table>\n'
     
     elif isinstance(thermo, Wilhoit):
@@ -304,33 +309,37 @@ def get_thermo_data(thermo, user=None):
         Tmin = 300
         Tmax = 2000
     Tdata = []; Cpdata = []; Hdata = []; Sdata = []; Gdata = []
-    for T in numpy.arange(Tmin, Tmax+1, 10):
-        Tdata.append(T * Tfactor)
-        Cpdata.append(thermo.getHeatCapacity(T) * Cpfactor)
-        Hdata.append(thermo.getEnthalpy(T) * Hfactor)
-        Sdata.append(thermo.getEntropy(T) * Sfactor)
-        Gdata.append(thermo.getFreeEnergy(T) * Gfactor)
     
-    return mark_safe("""
-Tlist = {0};
-Cplist = {1};
-Hlist = {2};
-Slist = {3};
-Glist = {4};
-Tunits = "{5!s}";
-Cpunits = "{6!s}";
-Hunits = "{7!s}";
-Sunits = "{8!s}";
-Gunits = "{9!s}";
-    """.format(
-        Tdata,
-        Cpdata, 
-        Hdata,
-        Sdata, 
-        Gdata, 
-        Tunits, 
-        Cpunits, 
-        Hunits,
-        Sunits,
-        Gunits,
+    if thermo.Tdata and thermo.Cpdata and thermo.H298 and thermo.S298:
+        for T in numpy.arange(Tmin, Tmax+1, 10):
+            Tdata.append(T * Tfactor)
+            Cpdata.append(thermo.getHeatCapacity(T) * Cpfactor)
+            Hdata.append(thermo.getEnthalpy(T) * Hfactor)
+            Sdata.append(thermo.getEntropy(T) * Sfactor)
+            Gdata.append(thermo.getFreeEnergy(T) * Gfactor)
+    
+        return mark_safe("""
+    Tlist = {0};
+    Cplist = {1};
+    Hlist = {2};
+    Slist = {3};
+    Glist = {4};
+    Tunits = "{5!s}";
+    Cpunits = "{6!s}";
+    Hunits = "{7!s}";
+    Sunits = "{8!s}";
+    Gunits = "{9!s}";
+        """.format(
+            Tdata,
+            Cpdata, 
+            Hdata,
+            Sdata, 
+            Gdata, 
+            Tunits, 
+            Cpunits, 
+            Hunits,
+            Sunits,
+            Gunits,
     ))
+    else:
+        return ''
