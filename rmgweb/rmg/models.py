@@ -155,15 +155,12 @@ class Chemkin(models.Model):
         """
         Generates java reaction library files from your chemkin file.
         """
-        import subprocess
         from rmgpy.chemkin import loadChemkinFile, saveJavaKineticsLibrary
         
         chemkinPath = self.path + '/chemkin/chem.inp'
         dictionaryPath = self.path + 'RMG_Dictionary.txt' 
         speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
         saveJavaKineticsLibrary(self.path, speciesList, reactionList)
-        commands = ['mv', 'RMG_Dictionary.txt', 'species.txt']
-        subprocess.check_output(commands, cwd=self.path)
         return
 
 
