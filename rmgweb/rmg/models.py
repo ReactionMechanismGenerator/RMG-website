@@ -113,10 +113,14 @@ class Chemkin(models.Model):
         kineticsDataList = []    
         chemkinPath= self.path + '/chemkin/chem.inp'
         dictionaryPath = self.path + 'RMG_Dictionary.txt' 
-        if os.path.exists(dictionaryPath):
-            speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
+        if self.Foreign:
+            readComments = False
         else:
-            speciesList, reactionList = loadChemkinFile(chemkinPath)
+            readComments = True
+        if os.path.exists(dictionaryPath):
+            speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath, readComments=readComments)
+        else:
+            speciesList, reactionList = loadChemkinFile(chemkinPath, readComments=readComments)
             
         for reaction in reactionList:            
             # If the kinetics are ArrheniusEP, replace them with Arrhenius

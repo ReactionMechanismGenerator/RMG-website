@@ -28,6 +28,7 @@ include an adjacency list for all species in the chemkin file, including inerts 
 <form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
 <P><b>Chemkin File:</b> {{form.ChemkinFile}}
 <P><b>Dictionary File (Optional):</b> {{form.DictionaryFile}}
+<P><b>Not an RMG-generated Chemkin file:</b> {{form.Foreign}}
 <p><input type="submit" value="Submit" id="submit"/></p>
 </form>
 
