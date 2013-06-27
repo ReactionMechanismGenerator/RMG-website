@@ -97,7 +97,7 @@ jQuery(document).ready(function() {
 {% endifequal %}
     
 
-{% if thermo.Tdata and thermo.Cpdata and thermo.H298 and thermo.S298 %}
+{% if thermo|get_thermo_data:user %}
 <div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotS" style="width: 500px; height: 300px; margin: auto;"></div>

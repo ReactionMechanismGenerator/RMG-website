@@ -310,7 +310,7 @@ def get_thermo_data(thermo, user=None):
         Tmax = 2000
     Tdata = []; Cpdata = []; Hdata = []; Sdata = []; Gdata = []
     
-    if thermo.Tdata and thermo.Cpdata and thermo.H298 and thermo.S298:
+    try:
         for T in numpy.arange(Tmin, Tmax+1, 10):
             Tdata.append(T * Tfactor)
             Cpdata.append(thermo.getHeatCapacity(T) * Cpfactor)
@@ -341,5 +341,6 @@ def get_thermo_data(thermo, user=None):
             Sunits,
             Gunits,
     ))
-    else:
+    except:
+        # don't fail completely if thermo data is incomplete
         return ''
