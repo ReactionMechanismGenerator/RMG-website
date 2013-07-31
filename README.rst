@@ -23,7 +23,8 @@ Developer Setup
 The dependencies required to develop the RMG website are:
 
 Django (http://www.djangoproject.com/)
-    Version 1.2.0 or later is recommended.
+    Version 1.3.0 or later is required.
+	1.5.0 or later is recommended.
 
 RMG-Py  (http://github.com/GreenGroup/RMG-Py)
     Development of the website closely mirrors that of RMG-Py, and in general
@@ -53,12 +54,13 @@ Highcharts (http://www.highcharts.com/)
     This should live in a ``rmgweb/media/Highcharts`` folder.
 
 In order to get the web server running, you must first create a secret key for
-Django. This key should be placed in the file ``rmgweb/secretkey.py``. An
-example of such a file, ``rmgweb/secretkey.py.example``, is available. The
+Django. This key should be placed in the file ``rmgweb/secretsettings.py``. An
+example of such a file, ``rmgweb/secretsettings.py.example``, is available. The
 easiest way to generate a secret key is to initialize a dummy Django project
-and copy its secret key from the ``settings.py`` file. If you are only 
-developing locally, then you can simply move the ``rmgweb/secretkey.py.example``
-file to ``rmgweb/secretkey.py``; however, in production environments you are
+and copy its secret key from the ``settings.py`` file, or visit a site such as 
+http://www.miniwebtool.com/django-secret-key-generator/. If you are only 
+developing locally, then you can simply move the ``rmgweb/secretsettings.py.example``
+file to ``rmgweb/secretsettings.py``; however, in production environments you are
 strongly urged to use a custom key.
 
 Once the secret key is setup, you can start the development server to test the
