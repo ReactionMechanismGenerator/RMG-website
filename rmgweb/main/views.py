@@ -151,7 +151,7 @@ def getAdjacencyList(request, identifier):
     try:
         # try using the string as a SMILES directly
         molecule.fromSMILES(str(identifier))
-    except IOError:
+    except (IOError, ValueError):
         # try converting it to a SMILES using the NCI chemical resolver 
         url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
         try:
