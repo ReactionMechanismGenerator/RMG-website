@@ -35,8 +35,8 @@ $(document).ready(function() {
    });
 
 {% if molecule.toSMILES %}
-// update list of names
-var url = '/cactus/{{ molecule.toSMILES }}/names'
+// Update list of names
+var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names'
 var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
                .error(function(j,t,e) { $('#species_names').html(t+'\n'+e) })
 {% endif %}
