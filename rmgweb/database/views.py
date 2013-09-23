@@ -47,7 +47,7 @@ from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-import settings
+import rmgweb.settings
 
 import exportOldDatabase
 
@@ -56,9 +56,10 @@ from rmgpy.molecule.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
 from rmgpy.reaction import Reaction
+from rmgpy.quantity import Quantity
 
 import rmgpy
-from rmgpy.data.base import Entry, LogicNode
+from rmgpy.data.base import *
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import *
 from rmgpy.data.rmg import RMGDatabase
@@ -91,7 +92,7 @@ def export(request, type):
 
     # Build archive filenames from git hash and compression type
     sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                                  cwd=settings.DATABASE_PATH)[:7]
+                                  cwd=rmgweb.settings.DATABASE_PATH)[:7]
     base = 'RMG_database_{0}'.format(sha)
     file_zip = '{0}.zip'.format(base)
     file_tar = '{0}.tar.gz'.format(base)
@@ -101,14 +102,14 @@ def export(request, type):
         file = file_tar
 
     # Set output path
-    path = os.path.join(settings.PROJECT_PATH, '..', 'database', 'export')
+    path = os.path.join(rmgweb.settings.PROJECT_PATH, '..', 'database', 'export')
     output = os.path.join(path, 'RMG_database')
 
     # Assert archives do not already exist
     if not os.path.exists(os.path.join(path, file)):
 
         # Export old database
-        exportOldDatabase.export(settings.DATABASE_PATH,
+        exportOldDatabase.export(rmgweb.settings.DATABASE_PATH,
                                  output,
                                  loadDatabase())
 
@@ -743,7 +744,7 @@ def queryNIST(entry, squib, entries, user):
     for sup in soup.findAll('sup'):
         if '(' in sup.text and ')' in sup.text and '&plusmn;' in sup.text:
             try:
-                error = item.text.split('&plusmn;')[1].split(')')[0]
+                error = sup.text.split('&plusmn;')[1].split(')')[0]
                 entry.data.n.uncertainty = float(error)
                 entry.data.n.uncertaintyType = '+|-'
             except:
@@ -1017,7 +1018,7 @@ def kineticsEntryNew(request, family, type):
             if True:
                 # save it
                 database.entries[index] = new_entry
-                path = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families', family, '{0}.py'.format(type))
+                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families', family, '{0}.py'.format(type))
                 database.save(path)
                 commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
                 commit_message = 'New Entry: {family}/{type}/{index}\n\n{msg}'.format(family=family,
@@ -1029,8 +1030,8 @@ def kineticsEntryNew(request, family, type):
                     '-m', commit_message,
                     '--author', commit_author,
                     path
-                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                    ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 message = """
                 New entry saved succesfully:<br>
                 <pre>{0}</pre><br>
@@ -1114,7 +1115,7 @@ def kineticsEntryEdit(request, section, subsection, index):
             if True:
                 # save it
                 database.entries[index] = new_entry
-                path = os.path.join(settings.DATABASE_PATH, 'kinetics', section, subsection + '.py' )
+                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py' )
                 database.save(path)
                 commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
                 commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
@@ -1122,8 +1123,8 @@ def kineticsEntryEdit(request, section, subsection, index):
                     '-m', commit_message,
                     '--author', commit_author,
                     path
-                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                    ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
                 #return HttpResponse(commit_result, mimetype="text/plain")
                 
@@ -1229,7 +1230,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             if True:
                 # save it
                 database.entries[index] = new_entry
-                path = os.path.join(settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
                 database.save(path)
                 commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
                 commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
@@ -1241,8 +1242,8 @@ def thermoEntryNew(request, section, subsection, adjlist):
                     '-m', commit_message,
                     '--author', commit_author,
                     path
-                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                    ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 message = """
                 New entry saved succesfully:<br>
                 <pre>{0}</pre><br>
@@ -1344,7 +1345,7 @@ def thermoEntryEdit(request, section, subsection, index):
             if True:
                 # save it
                 database.entries[index] = new_entry
-                path = os.path.join(settings.DATABASE_PATH, 'thermo', section, subsection + '.py' )
+                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py' )
                 database.save(path)
                 commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
                 commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
@@ -1352,8 +1353,8 @@ def thermoEntryEdit(request, section, subsection, index):
                     '-m', commit_message,
                     '--author', commit_author,
                     path
-                    ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                    ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
                 #return HttpResponse(commit_result, mimetype="text/plain")
                 
@@ -1409,10 +1410,10 @@ def gitHistory(request,dbtype='',section='',subsection=''):
     subsection = 'Glarborg/C3', etc.
     """
     
-    path = os.path.join(settings.DATABASE_PATH, dbtype, section, subsection + '*' )
+    path = os.path.join(rmgweb.settings.DATABASE_PATH, dbtype, section, subsection + '*' )
     history_result = subprocess.check_output(['git', 'log',
                 '--', os.path.split(path)[0],
-                ], cwd=settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+                ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
 
     history = []
     re_commit = re.compile('commit ([a-f0-9]{40})')
@@ -1784,7 +1785,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     A view used to present a list of reactions and the associated kinetics
     for each.
     """
-    from rmgpy.quantity import Quantity
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
     # Also load the thermo database so we can generate reverse kinetics if necessary

@@ -37,7 +37,6 @@ from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.forms.models import BaseInlineFormSet, inlineformset_factory
 
-import settings
 from rmgweb.rmg.models import *
 from rmgweb.rmg.forms import *
 

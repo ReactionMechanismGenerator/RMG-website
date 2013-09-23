@@ -36,7 +36,7 @@ app that don't belong to any other module.
 import socket
 import sys
 import os
-import settings
+import rmgweb.settings
 import pybel
 import openbabel as ob
 import xlrd
@@ -138,16 +138,16 @@ def loadDatabase(component='', section=''):
         database = RMGDatabase()
         database.thermo = ThermoDatabase()
         database.kinetics = KineticsDatabase()
-        database.loadForbiddenStructures(os.path.join(settings.DATABASE_PATH, 'forbiddenStructures.py'))
+        database.loadForbiddenStructures(os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py'))
 
     if component in ['thermo', '']:
         if section in ['depository', '']:
-            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'depository')
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'depository')
             if isDirModified(dirpath):
                 database.thermo.loadDepository(dirpath)
                 resetDirTimestamps(dirpath)
         if section in ['libraries', '']:
-            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'libraries')
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'libraries')
             if isDirModified(dirpath):
                 database.thermo.loadLibraries(dirpath)
                 # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
@@ -159,18 +159,18 @@ def loadDatabase(component='', section=''):
                 database.thermo.libraryOrder = new_order
                 resetDirTimestamps(dirpath)
         if section in ['groups', '']:
-            dirpath = os.path.join(settings.DATABASE_PATH, 'thermo', 'groups')
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'groups')
             if isDirModified(dirpath):
                 database.thermo.loadGroups(dirpath)
                 resetDirTimestamps(dirpath)
     if component in ['kinetics', '']:
         if section in ['libraries', '']:
-            dirpath = os.path.join(settings.DATABASE_PATH, 'kinetics', 'libraries')
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'libraries')
             if isDirModified(dirpath):
                 database.kinetics.loadLibraries(dirpath)
                 resetDirTimestamps(dirpath)
         if section in ['families', '']:
-            dirpath = os.path.join(settings.DATABASE_PATH, 'kinetics', 'families')
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families')
             if isDirModified(dirpath):
                 database.kinetics.loadFamilies(dirpath)
                 resetDirTimestamps(dirpath)
@@ -546,6 +546,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
     species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
     
     # Both products were actually found in species dictionary or were blank
+    reaction = None
     if all(productNames):
 
         # Constants for all entries
