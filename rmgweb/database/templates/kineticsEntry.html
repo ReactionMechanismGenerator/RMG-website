@@ -111,6 +111,9 @@ jQuery(document).ready(function() {
         <td class="reactionArrow">{{ arrow|safe }}</td>
         <td class="reactants">{{ products|safe }}</td>
     </tr>
+    {% if reaction.degeneracy %}
+    <tr><td>Degeneracy = {{reaction.degeneracy}}</td></tr>
+    {% endif %}
 </table>
 {% if reactionUrl != '' %}
 <p><a href="{{ reactionUrl }}">Search other kinetics sources for this reaction.</a></p>
