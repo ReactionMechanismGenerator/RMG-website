@@ -174,6 +174,17 @@ def loadDatabase(component='', section=''):
             if isDirModified(dirpath):
                 database.kinetics.loadFamilies(dirpath)
                 resetDirTimestamps(dirpath)
+                
+                # Make sure to load the entire thermo database prior to adding training values to the rules
+                loadDatabase('thermo','')
+                for family in database.kinetics.families.values():
+                    oldentries = len(family.rules.entries)
+                    family.addKineticsRulesFromTrainingSet(thermoDatabase=database.thermo)
+                    newentries = len(family.rules.entries)
+                    if newentries != oldentries:
+                        print '{0} new entries added to {1} family after adding rules from training set.'.format(newentries-oldentries, family.label)
+                    # Filling in rate rules in kinetics families by averaging...
+                    family.fillKineticsRulesByAveragingUp()
 
     return database
 

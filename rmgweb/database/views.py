@@ -851,15 +851,22 @@ def kinetics(request, section='', subsection=''):
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
             elif 'rules' in subsection:
-                entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
-                entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
-                entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
+                if isinstance(entry0.item, list):
+                    # if the reactants are not group objects, then this rate rule came from
+                    # the averaging step, and we don't want to show all of the averaged nodes
+                    # in the web view.  We only want to show nodes with direct values or 
+                    # training rates that became rate rules.
+                    pass
+                else:
+                    entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
+                    entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                    entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
+                    entries.append(entry)
             else:
                 entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
                 entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
-            
-            entries.append(entry)
+                entries.append(entry)
             
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
 
