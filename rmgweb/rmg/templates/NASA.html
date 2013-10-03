@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load gravatar %}
+{% load databasefilters %}
+{% load render_thermo %}
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}RMG: Evaluate NASA Polynomial{% endblock %}
+
+{% block extrahead %}
+<style>
+table.thermoEntryData {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+table.thermoEntryData td.key {
+    font-weight: bold;
+    text-align: right;
+}
+
+table.thermoEntryData td.equals {
+    text-align: center;
+}
+
+table.thermoEntryData td.value {
+    text-align: left;
+}
+
+table.thermoEntryData td.reference p {
+    margin: 0px;
+}
+</style>
+
+<script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
+<script src="/media/highcharts.theme.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+
+    var Cpseries = new Array();
+    var Hseries = new Array();
+    var Sseries = new Array();
+    var Gseries = new Array();
+
+    {{ thermo|get_thermo_data:user }}
+    {% include "thermoModel.js" %}
+    
+    jsMath.Synchronize(function() {
+        plotHeatCapacity('plotCp', Cpseries);
+        plotEnthalpy('plotH', Hseries);
+        plotEntropy('plotS', Sseries);
+        plotFreeEnergy('plotG', Gseries);
+    });
+
+});
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
+<a href="{% url 'rmg.views.evaluateNASA' %}">Evaluate NASA Polynomial</a>
+{% endblock %}
+
+{% block page_title %}Evaluate NASA Polynomial{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to enter a CHEMKIN format NASA Polynomial as is.  The evaluator
+will output the H, S, and Cp values in a human readable format (if the NASA can be evaluated at 298 K), 
+display the RMG-Py readable NASA object, and plot the H, S, and Cp dependence.
+</p>
+
+
+<form method="post" id="nasa_form">
+<table>
+<tr><td>
+{{ form.NASA}}
+</td></tr>
+<tr>
+  
+   <td> {% csrf_token %}
+      <input type="submit" value="Submit">
+   </td>
+</tr>
+</table>
+</form>
+
+
+{% if thermo %}
+
+{%if thermoData %}
+<P><h2>Thermo Data</h2>
+<P>{{ thermoData|render_thermo_math:user }}
+            
+{% endif %}
+
+<P><h2>RMG-Py NASA object</h2>
+
+<P><font face="courier">{{thermo}}</font>
+
+<P><h2>Mathematical representation</h2>
+<P>{{ thermo|render_thermo_math:user }}
+
+
+<P><h2>Plots</h2>
+{% if thermo|get_thermo_data:user %}
+<div id="plotCp" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotH" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotS" style="width: 500px; height: 300px; margin: auto;"></div>
+<div id="plotG" style="width: 500px; height: 300px; margin: auto;"></div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

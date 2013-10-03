@@ -150,4 +150,26 @@ class ReactorForm(forms.ModelForm):
             'terminationtime': forms.TextInput(attrs={'size':'5'}),
             'conversion': forms.TextInput(attrs={'size':'5'}),
         }
+        
+class NASAForm(forms.Form):
+    """
+    Form for entering a CHEMKIN format NASA polynomial
+    """
+    from rmgpy.chemkin import readThermoEntry
+    NASA = forms.CharField(label="NASA Polynomial", widget = forms.Textarea(attrs={'cols': 100, 'rows': 10}), required=True)
+
+    def clean_species(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            try:
+                NASA = str(self.cleaned_data['NASA'])
+                if NASA == '' : return ''
+                readThermoEntry(NASA)
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid NASA Polynomial.')
+            return NASA
     

@@ -57,6 +57,10 @@ urlpatterns = patterns('rmgweb.rmg',
     (r'^plot_kinetics', 'views.plotKinetics'),
     
     # Generate RMG-Java Kinetics Library
-    (r'^java_kinetics_library', 'views.javaKineticsLibrary')
+    (r'^java_kinetics_library', 'views.javaKineticsLibrary'),
+    
+    # Evaluate NASA Polynomial
+    (r'^evaluate_nasa', 'views.evaluateNASA')
+
 
 )

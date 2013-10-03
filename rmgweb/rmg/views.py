@@ -385,3 +385,32 @@ def javaKineticsLibrary(request):
         form = UploadChemkinForm(instance=chemkin)
         
     return render_to_response('javaKineticsLibrary.html', {'form': form}, context_instance=RequestContext(request))
+
+
+def evaluateNASA(request):
+    """
+    Creates webpage form form entering a chemkin format NASA Polynomial and quickly
+    obtaining it's enthalpy and Cp values.
+    """
+    from rmgpy.chemkin import readThermoEntry
+    form = NASAForm()
+    thermo = None
+    thermoData = None
+    if request.method == 'POST':
+        posted = NASAForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        if posted.is_valid():
+                NASA = posted.cleaned_data['NASA']     
+                if NASA != '':           
+                    species, thermo, formula = readThermoEntry(str(NASA))
+                    try:
+                        thermoData = thermo.toThermoData()
+                    except:
+                        # if we cannot convert the thermo to thermo data, we will not be able to display the
+                        # H298, S298, and Cp values, but that's ok.
+                        pass
+        
+        form = NASAForm(initial, error_class=DivErrorList)
+    
+    return render_to_response('NASA.html', {'form': form, 'thermo':thermo, 'thermoData':thermoData}, context_instance=RequestContext(request))
