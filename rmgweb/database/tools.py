@@ -514,7 +514,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
                 break # already added this reactant
         else: # exhausted the added_reactants list without finding duplicate and breaking
             added_reactants.add(reactant)
-            popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList())
+            popreactants += 'reactant{0:d} (molecule/cm3) 1\n{1}\n\n'.format(index+1, reactant.toAdjacencyList(removeLonePairs=True))
     popreactants += 'END\n'
     
     

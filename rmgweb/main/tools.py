@@ -46,7 +46,7 @@ def moleculeToURL(molecule):
     """
     mol = molecule.copy(deep=True)
     mol.clearLabeledAtoms()
-    adjlist = mol.toAdjacencyList(removeH=True)
+    adjlist = mol.toAdjacencyList(removeH=False)
     adjlist = re.sub('\s+', '%20', adjlist.replace('\n', ';'))
     return adjlist
 
