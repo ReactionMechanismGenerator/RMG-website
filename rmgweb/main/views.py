@@ -161,7 +161,7 @@ def getAdjacencyList(request, identifier):
         smiles = f.read()
         molecule.fromSMILES(smiles)
     
-    adjlist = molecule.toAdjacencyList(removeH=True)
+    adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, mimetype="text/plain")
 
 def getNISTcas(request, inchi):
