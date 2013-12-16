@@ -494,7 +494,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         """
         resonance_isomers = molecule.generateResonanceIsomers()
         for name, adjlist in species_dict:
-            listmolecule = Molecule().fromAdjacencyList(adjlist)
+            listmolecule = Molecule().fromAdjacencyList(adjlist, saturateH=True)
             for isomer in resonance_isomers:
                 if isomer.isIsomorphic(listmolecule):
                     return name
