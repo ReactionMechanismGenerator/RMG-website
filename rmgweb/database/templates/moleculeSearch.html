@@ -97,6 +97,10 @@ Do not submit the form until the adjacency list has loaded.
 <th>SMILES:</th>
 <td>{{ molecule.toSMILES }}</td>
 </tr>
+<tr class="result">
+<th valign="top">Adjacency List:</th>
+<td>{{ molecule.toAdjacencyList|renderAdjlist }}</td>
+</tr>
 <tr class="result" style="white-space: pre-wrap;">
 <th style="vertical-align: top;">Names:</th>
 <td id="species_names"></td>
