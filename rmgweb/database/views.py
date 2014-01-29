@@ -1938,8 +1938,9 @@ def moleculeSearch(request):
 
         if posted.is_valid():
                 adjlist = posted.cleaned_data['species']
+                saturateH = posted.cleaned_data['saturateH']
                 if adjlist != '':
-                    molecule.fromAdjacencyList(adjlist)
+                    molecule.fromAdjacencyList(adjlist,saturateH=saturateH)
                     structure_markup = getStructureMarkup(molecule)
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
