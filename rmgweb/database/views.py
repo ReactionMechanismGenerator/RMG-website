@@ -294,7 +294,7 @@ def thermoData(request, adjlist):
         ))
     
     # Get the structure of the item we are viewing
-    structure = getStructureMarkup(molecule)
+    structure = moleculeToInfo(molecule)
 
     return render_to_response('thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
@@ -1941,7 +1941,8 @@ def moleculeSearch(request):
                 saturateH = posted.cleaned_data['saturateH']
                 if adjlist != '':
                     molecule.fromAdjacencyList(adjlist,saturateH=saturateH)
-                    structure_markup = getStructureMarkup(molecule)
+                    structure_markup = moleculeToInfo(molecule)
+                    adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
         

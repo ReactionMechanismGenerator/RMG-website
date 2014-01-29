@@ -156,7 +156,7 @@ class MoleculeSearchForm(forms.Form):
     """
     species_identifier = forms.CharField(label="Species Identifier", widget=forms.TextInput(attrs={'onchange':'resolve();', 'style':'width:100%;'}), required=False)
     species = forms.CharField(label ="Adjacency List", widget = forms.Textarea(attrs={'cols': 50, 'rows': 20, 'onchange':"$('.result').hide();" }), required=True)
-    saturateH = forms.BooleanField(label = "Non-explicit hydrogens", required=True)
+    saturateH = forms.BooleanField(label = "Non-explicit hydrogens", required=False)
 
     def clean_species(self):
             """
