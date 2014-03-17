@@ -190,6 +190,7 @@ def thermoEntry(request, section, subsection, index):
     """
     A view for showing an entry in a thermodynamics database.
     """
+    from rmgpy.chemkin import writeThermoEntry
 
     # Load the thermo database if necessary
     loadDatabase('thermo', section)
@@ -229,9 +230,19 @@ def thermoEntry(request, section, subsection, index):
     else:
         thermo = entry.data
     
+    # Get the thermo data for the molecule
+    nasa_string = None
+    if isinstance(entry.item, Molecule):
+        species = Species(molecule=[entry.item])
+        species.generateResonanceIsomers()
+        ThermoDatabase().findCp0andCpInf(species, thermo)
+        nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+        species.thermo = nasa
+        nasa_string = writeThermoEntry(species)
+        
     referenceType = ''
     reference = entry.reference
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string}, context_instance=RequestContext(request))
 
 def thermoSearch(request):
     """
