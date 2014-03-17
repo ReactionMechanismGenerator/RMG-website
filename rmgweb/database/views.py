@@ -264,6 +264,7 @@ def thermoData(request, adjlist):
     # Load the thermo database if necessary
     loadDatabase('thermo')
     from tools import database
+    from rmgpy.chemkin import writeThermoEntry
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
@@ -273,11 +274,12 @@ def thermoData(request, adjlist):
     # Get the thermo data for the molecule
     thermoDataList = []
     for data, library, entry in database.thermo.getAllThermoData(species):
+        nasa = data.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+        species.thermo = nasa
+        nasa_string = writeThermoEntry(species)
         if library is None:
             source = 'Group additivity'
             href = ''
-            #data = convertThermoData(data, molecule, Wilhoit)
-            #data = convertThermoData(data, molecule, NASA)
             symmetryNumber = molecule.symmetryNumber
             entry = Entry(data=data)
         elif library in database.thermo.depository.values():
@@ -291,6 +293,7 @@ def thermoData(request, adjlist):
             data,
             source,
             href,
+            nasa_string,
         ))
     
     # Get the structure of the item we are viewing

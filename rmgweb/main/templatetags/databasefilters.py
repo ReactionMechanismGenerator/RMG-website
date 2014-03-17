@@ -62,3 +62,10 @@ def renderAdjlist(adjlist):
     """
     return mark_safe(adjlist.replace('\n', '<br/>'))
 
+@register.filter
+def renderNASA(nasa_string):
+    """
+    Renders adjacency list line by line in html rather than in one wrapped long line.
+    """
+    nasa_string = nasa_string.replace(' ', '&nbsp;')
+    return mark_safe(nasa_string.replace('\n', '<br/>'))
