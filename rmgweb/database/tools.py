@@ -560,7 +560,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
             print "Could not find this requested product in the species dictionary from RMG-Java:"
             print str(product)
     
-    species_dict = dict([(key, Molecule().fromAdjacencyList(value)) for key, value in species_dict])
+    species_dict = dict([(key, Molecule().fromAdjacencyList(value,saturateH=True)) for key, value in species_dict])
     
     # Both products were actually found in species dictionary or were blank
     reaction = None
@@ -599,8 +599,8 @@ def getRMGJavaKinetics(reactantList, productList=None):
     
     # Return the reactions as containing Species objects, not Molecule objects
     for reaction in reactionList:
-        reaction.reactants = [Species(label=reactant.toSMILES(), molecule=[reactant]) for reactant in reaction.reactants]
-        reaction.products = [Species(label=product.toSMILES(), molecule=[product]) for product in reaction.products]
+        reaction.reactants = [Species(molecule=[reactant]) for reactant in reaction.reactants]
+        reaction.products = [Species(molecule=[product]) for product in reaction.products]
     
     return reactionList
 
