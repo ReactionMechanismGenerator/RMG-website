@@ -538,9 +538,15 @@ def getRMGJavaKinetics(reactantList, productList=None):
         response += partial_response
     client_socket.close()
     print "FINISHED REQUEST. CLOSED CONNECTION TO SERVER"
-
     # Clean response from server
-    species_dict, reactions_list = cleanResponse(response)
+    try:
+        species_dict, reactions_list = cleanResponse(response)
+    except:
+        # Return an empty reaction list if an error occurred on the java server side,
+        # instead of having the website crash.
+        print "AN ERROR OCCURRED IN THE JAVA SERVER."
+        print response
+        return []
 
     # Name the species in reaction
     reactantNames = []
