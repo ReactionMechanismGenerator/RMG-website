@@ -497,14 +497,14 @@ class Input(models.Model):
         # Reactor systems
         initial_reactor_systems = []
         for system in self.rmg.reactionSystems:
-            temperature = system.T.getValueInGivenUnits()
+            temperature = system.T.getValue()
             temperature_units = system.T.units
-            pressure = system.P.getValueInGivenUnits()
+            pressure = system.P.getValue()
             pressure_units = system.P.units
             initialMoleFractions = system.initialMoleFractions
             for item in system.termination:
                 if isinstance(item, TerminationTime):
-                    terminationtime = item.time.getValueInGivenUnits()
+                    terminationtime = item.time.getValue()
                     time_units = item.time.units
                 else:
                     species = item.species.label
@@ -539,16 +539,16 @@ class Input(models.Model):
             initial['interpolation'] = self.rmg.pressureDependence.model[0]
             initial['temp_basis'] = self.rmg.pressureDependence.model[1]
             initial['p_basis'] = self.rmg.pressureDependence.model[2]
-            initial['temp_low'] = self.rmg.pressureDependence.Tmin.getValueInGivenUnits()
-            initial['temp_high'] = self.rmg.pressureDependence.Tmax.getValueInGivenUnits()
+            initial['temp_low'] = self.rmg.pressureDependence.Tmin.getValue()
+            initial['temp_high'] = self.rmg.pressureDependence.Tmax.getValue()
             initial['temprange_units'] = self.rmg.pressureDependence.Tmax.units
             initial['temp_interp'] = self.rmg.pressureDependence.Tcount
-            initial['p_low'] = self.rmg.pressureDependence.Pmin.getValueInGivenUnits()
-            initial['p_high'] = self.rmg.pressureDependence.Pmax.getValueInGivenUnits()
+            initial['p_low'] = self.rmg.pressureDependence.Pmin.getValue()
+            initial['p_high'] = self.rmg.pressureDependence.Pmax.getValue()
             initial['prange_units'] = self.rmg.pressureDependence.Pmax.units
             initial['p_interp'] = self.rmg.pressureDepence.Pcount
             
-            initial['maximumGrainSize'] = self.rmg.pressureDependence.grainSize.getValueInGivenUnits()
+            initial['maximumGrainSize'] = self.rmg.pressureDependence.grainSize.getValue()
             initial['grainsize_units'] = self.rmg.pressureDependence.grainSize.units
             initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.grainCount
 
@@ -557,8 +557,8 @@ class Input(models.Model):
             
         # Additional Options
         if self.rmg.saveRestartPeriod:
-            initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValueInGivenUnits()
-            initial['saveRestartPeriodUnits'] = self.rmg.saveConcentrationProfiles.units
+            initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
+            initial['saveRestartPeriodUnits'] = self.rmg.saveRestartPeriod.units
         if self.rmg.drawMolecules:
             initial['drawMolecules'] = True
         if self.rmg.generatePlots:
