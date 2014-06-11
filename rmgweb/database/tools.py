@@ -188,6 +188,23 @@ def loadDatabase(component='', section=''):
 
     return database
 
+def getTransportDatabase(section, subsection):
+    """
+    Return the component of the transport database corresponding to the
+    given `section` and `subsection`. If either of these is invalid, a
+    :class:`ValueError` is raised.
+    """
+    global database
+
+    try:
+        if section == 'libraries': db = database.transport.libraries[subsection]
+        elif section == 'groups': db = database.transport.groups[subsection]
+        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
+    except KeyError: 
+        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    
+    return db
+
 def getThermoDatabase(section, subsection):
     """
     Return the component of the thermodynamics database corresponding to the
@@ -197,16 +214,13 @@ def getThermoDatabase(section, subsection):
     global database
 
     try:
-        if section == 'depository':
-            db = database.thermo.depository[subsection]
-        elif section == 'libraries':
-            db = database.thermo.libraries[subsection]
-        elif section == 'groups':
-            db = database.thermo.groups[subsection]
-        else:
-            raise ValueError('Invalid value "%s" for section parameter.' % section)
+        if section == 'depository': db = database.thermo.depository[subsection]
+        elif section == 'libraries': db = database.thermo.libraries[subsection]
+        elif section == 'groups': db = database.thermo.groups[subsection]
+        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
     except KeyError:
         raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    
     return db
 
 def getKineticsDatabase(section, subsection):
