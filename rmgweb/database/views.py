@@ -237,9 +237,13 @@ def thermoEntry(request, section, subsection, index):
         species = Species(molecule=[entry.item])
         species.generateResonanceIsomers()
         ThermoDatabase().findCp0andCpInf(species, thermo)
-        nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
-        species.thermo = nasa
-        nasa_string = writeThermoEntry(species)
+        nasa_string = ''
+        try:
+            nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+            species.thermo = nasa
+            nasa_string = writeThermoEntry(species)
+        except:
+            pass
         
     referenceType = ''
     reference = entry.reference
