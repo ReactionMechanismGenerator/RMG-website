@@ -132,28 +132,6 @@ jQuery(document).ready(function() {
 <h2>Reference</h2>
 {% include "reference.html" %}
 
-{% if entry.history %}
-<h2>History</h2>
-{% for date, username, action, description in entry.history %}
-<table class="history">
-<tr>
-    <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
-    <td class="historyText">{{ description|restructuredtext }}</td>
-</tr>
-<tr>
-    <td class="historyMeta">
-        {% for sha in entry.sha %}
-            {% if forloop.counter == forloop.parentloop.counter %}
-                {% if sha %}<a href="http://www.github.com/GreenGroup/RMG-database/commit/{{ sha }}" target="_blank">{% endif %}
-                {{ action|title }}
-                {% if sha %}</a>{% endif %} by {{ username }} on {{ date }}
-            {% endif %}
-        {% endfor %}
-    </td>
-</tr>
-</table>
-{% endfor %}
-{% endif %}
 
 <h2>Update database</h2>
 {% if new_entry_form %}

@@ -218,7 +218,6 @@ def thermoEntry(request, section, subsection, index):
                                                     'index': index,
                                                     }))
 
-    entry = getCommit(entry)
 
     # Get the structure of the item we are viewing
     structure = getStructureMarkup(entry.item)
@@ -412,25 +411,7 @@ def getUntrainedReactions(family):
     return untrained
 
 
-def getCommit(entry):
 
-    path = rmgpy.settings['database.directory']
-
-    entry.sha = []
-    for date, author, event, desc in entry.history:
-        cmd = ['git', 'log', '--reverse', '--format=%H',
-               '--since="{0}"'.format(date), '-S', date]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=path)
-        sha = ''
-        for i in range(0, 10):
-            time.sleep(0.01)
-            sha = p.stdout.readline()
-            if sha:
-                break
-        p.kill()
-        entry.sha.append(sha)
-
-    return entry
 
 
 ###############################################################################
@@ -523,10 +504,6 @@ def queryNIST(entry, squib, entries, user):
         Ea = Ea.split(';')[1]
     entry.data.Ea = Quantity(float(Ea) / 1.0e3, 'kJ/mol')
 
-    # Set entry history
-    user_string = '{0.first_name} {0.last_name} <{0.email}>'.format(user)
-    desc = 'Imported from NIST database at {0}'.format(url)
-    entry.history = [(time.asctime(), user_string, 'action', desc)]
 
     # Grab reference and miscellaneous data from NIST entry page.
     request = opener.open(url)
@@ -1015,11 +992,7 @@ def kineticsEntryNew(request, family, type):
                 msg = 'Imported from NIST database at {0}'.format(new_entry.reference.url)
             else:
                 msg = form.cleaned_data['change']
-                new_entry.history = [(time.asctime(),
-                                      '{0.first_name} {0.last_name} <{0.email}>'.format(request.user),
-                                      'action',
-                                      'New entry. {0}'.format(form.cleaned_data['change']))]
-
+                
             # Format the new entry as a string
             entry_buffer = StringIO.StringIO(u'')
             rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
@@ -1106,13 +1079,7 @@ def kineticsEntryEdit(request, section, subsection, index):
         if form.is_valid():
             new_entry = form.cleaned_data['entry']
             new_entry.index = index
-            new_entry.history = copy.copy(entry.history)
-            new_history = (time.asctime(),
-                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
-                         'action',
-                         form.cleaned_data['change']
-                            )
-            new_entry.history.append(new_history)
+            
             
             # Get the entry as a entry_string
             entry_buffer = StringIO.StringIO(u'')
@@ -1227,11 +1194,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             # thermo entries in to the depository or into separate libraries for the same molecule if the data exists.
 
             msg = form.cleaned_data['change']
-            new_entry.history = [(time.asctime(),
-                                      '{0.first_name} {0.last_name} <{0.email}>'.format(request.user),
-                                      'action',
-                                      'New entry. {0}'.format(form.cleaned_data['change']))]
-
+            
             # Format the new entry as a string
             entry_buffer = StringIO.StringIO(u'')
             rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
@@ -1336,13 +1299,7 @@ def thermoEntryEdit(request, section, subsection, index):
         if form.is_valid():
             new_entry = form.cleaned_data['entry']
             new_entry.index = index
-            new_entry.history = copy.copy(entry.history)
-            new_history = (time.asctime(),
-                         "{0.first_name} {0.last_name} <{0.email}>".format(request.user),
-                         'action',
-                         form.cleaned_data['change']
-                            )
-            new_entry.history.append(new_history)
+
             
             # Get the entry as a entry_string
             entry_buffer = StringIO.StringIO(u'')
@@ -1509,7 +1466,6 @@ def kineticsEntry(request, section, subsection, index):
                                                     'index': index,
                                                     }))
 
-    entry = getCommit(entry)
 
     reference = entry.reference
     referenceType = ''

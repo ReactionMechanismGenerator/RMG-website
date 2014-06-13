@@ -28,27 +28,7 @@ jQuery(document).ready(function() {
 
 <br>
 
-<h2>History</h2>
-{% for date, username, action, description in entry.history %}
-<table class="history">
-<tr>
-    <td rowspan="2" class="historyIcon">{% gravatar username 40 %}</td>
-    <td class="historyText">{{ description|restructuredtext }}</td>
-</tr>
-<tr>
-    <td class="historyMeta">{{ action|title }} by {{ username }} on {{ date }} </td>
-</tr>
-</table>
-{% endfor %}
-<table class="history">
-<tr>
-    <td rowspan="2" class="historyIcon">{% gravatar user.username 40 %}</td>
-    <td class="historyText"><span id="this_action"></span></td>
-</tr>
-<tr>
-    <td class="historyMeta">Action by {{ user.first_name }} {{ user.last_name }} &lt;{{ user.email }}&gt; on {% now "Y-m-d" %} </td>
-</tr>
-</table>
+
 
 <br/>
 
