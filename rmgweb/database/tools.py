@@ -172,7 +172,7 @@ def loadDatabase(component='', section=''):
         if section in ['families', '']:
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families')
             if isDirModified(dirpath):
-                database.kinetics.loadFamilies(dirpath)
+                database.kinetics.loadFamilies(dirpath, families = 'all')
                 resetDirTimestamps(dirpath)
                 
                 # Make sure to load the entire thermo database prior to adding training values to the rules
