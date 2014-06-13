@@ -167,10 +167,12 @@ def thermo(request, section='', subsection=''):
             elif isinstance(entry.data, NASA): dataFormat = 'NASA'
             elif isinstance(entry.data, str): dataFormat = 'Link'
             
-            if entry.data is None:
+            elif entry.data is None:
                 dataFormat = 'None'
                 entry.index = 0
-            
+            else:
+                dataFormat = 'Other'
+                
             entries.append((entry.index,entry.label,structure,dataFormat))
 
         return render_to_response('thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
