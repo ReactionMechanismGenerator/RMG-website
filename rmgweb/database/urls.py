@@ -43,7 +43,7 @@ urlpatterns = patterns('rmgweb.database',
 
     # Thermodynamics database
     (r'^thermo/$', 'views.thermo'),
-    (r'^thermo/search/$', 'views.thermoSearch'),
+    (r'^thermo/search/$', 'views.moleculeSearch'),
     (r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', 'views.thermoData'),
     (r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.thermoEntry'),
     (r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<adjlist>[\S\s]+)/new$', 'views.thermoEntryNew'),
