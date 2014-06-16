@@ -52,6 +52,7 @@ from rmgweb.main.tools import *
 
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase
+from rmgpy.data.transport import TransportDatabase
 from rmgpy.data.rmg import RMGDatabase
 
 ################################################################################
@@ -138,6 +139,7 @@ def loadDatabase(component='', section=''):
         database = RMGDatabase()
         database.thermo = ThermoDatabase()
         database.kinetics = KineticsDatabase()
+        database.transport = TransportDatabase()
         database.loadForbiddenStructures(os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py'))
 
     if component in ['thermo', '']:
@@ -151,7 +153,7 @@ def loadDatabase(component='', section=''):
             if isDirModified(dirpath):
                 database.thermo.loadLibraries(dirpath)
                 # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
-                # we use our favourite values first.
+                # we use our favorite values first.
                 preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
                 new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
                 for i in database.thermo.libraryOrder:
@@ -162,7 +164,27 @@ def loadDatabase(component='', section=''):
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'groups')
             if isDirModified(dirpath):
                 database.thermo.loadGroups(dirpath)
+                resetDirTimestamps(dirpath)  
+                              
+    if component in ['transport', '']:
+        if section in ['libraries', '']:
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'libraries')
+            if isDirModified(dirpath):
+                database.transport.loadLibraries(dirpath)
+                #put them in our preferred order, so that when we look up transport in order to estimate kinetics,
+                #we use our favorite values first.
+#                 preferred_order = ['primaryTransportLibrary', 'GRI-Mech']
+#                 new_order = [i for i in preferred_order if i in database.transport.libraryOrder]
+#                 for i in database.transport.libraryOrder:
+#                     if i not in new_order: new_order.append(i) 
+#                 database.transport.libraryOrder = new_order
+#                 resetDirTimestamps(dirpath)
+        if section in ['groups', '']:
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'groups')
+            if isDirModified(dirpath):
+                database.transport.loadGroups(dirpath)
                 resetDirTimestamps(dirpath)
+                
     if component in ['kinetics', '']:
         if section in ['libraries', '']:
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'libraries')
