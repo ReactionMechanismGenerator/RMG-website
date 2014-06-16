@@ -1153,8 +1153,6 @@ def kineticsEntryEdit(request, section, subsection, index):
         entry_string = re.sub('^entry\(\n','',entry_string)
         # remove the 'index = 23,' line
         entry_string = re.sub('\s*index = \d+,\n','',entry_string)
-        # remove the history and everything after it (including the final ')' )
-        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL)
         
         form = KineticsEntryEditForm(initial={'entry':entry_string })
     
@@ -1373,8 +1371,6 @@ def thermoEntryEdit(request, section, subsection, index):
         entry_string = re.sub('^entry\(\n','',entry_string)
         # remove the 'index = 23,' line
         entry_string = re.sub('\s*index = \d+,\n','',entry_string)
-        # remove the history and everything after it (including the final ')' )
-        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL)
         
         form = ThermoEntryEditForm(initial={'entry':entry_string })
     
@@ -1385,54 +1381,6 @@ def thermoEntryEdit(request, section, subsection, index):
                                                         'form': form,
                                                         },
                                   context_instance=RequestContext(request))
-
-def gitHistory(request,dbtype='',section='',subsection=''):
-    """
-    A view for seeing the history of the given part of the database.
-    dbtype = thermo / kinetics
-    section = libraries / families
-    subsection = 'Glarborg/C3', etc.
-    """
-    
-    path = os.path.join(rmgweb.settings.DATABASE_PATH, dbtype, section, subsection + '*' )
-    history_result = subprocess.check_output(['git', 'log',
-                '--', os.path.split(path)[0],
-                ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-
-    history = []
-    re_commit = re.compile('commit ([a-f0-9]{40})')
-    re_author = re.compile('Author: (.*) \<(\w+\@[^> ]+)\>')
-    re_date = re.compile('Date:\s+(.*)')
-    re_message = re.compile('    (.*)$')
-    for line in history_result.split('\n'):
-        # print line
-        m = re_commit.match(line)
-        if m:
-            commit = {}
-            commit['hash'] = m.group(1)
-            commit['message'] = ''
-            history.append(commit)
-            continue
-        m = re_author.match(line)
-        if m:
-            commit['author_name'] = m.group(1)
-            commit['author_email'] = m.group(2)
-            commit['author_name_email'] = "{0} <{1}>".format(m.group(1),m.group(2))
-            continue
-        m = re_date.match(line)
-        if m:
-            commit['date'] = m.group(1)
-            continue
-        m = re_message.match(line)
-        if m:
-            commit['message'] += m.group(1) + '\n'
-            continue
-            
-    return render_to_response('history.html', { 'dbtype': dbtype,
-                                                'section': section,
-                                                'subsection': subsection,
-                                                'history': history,
-                                                }, context_instance=RequestContext(request))
 
 
 def kineticsEntry(request, section, subsection, index):
@@ -1623,7 +1571,6 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     entry.data = reaction.kinetics
     entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
     entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
-    entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
     new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
     
     forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
@@ -1873,7 +1820,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         entry_string = new_entry.getvalue()
         entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
         entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
-        entry_string = re.sub('\s+history = \[.*','',entry_string, flags=re.DOTALL) # remove the history and everything after it (including the final ')' )
         new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
     else:
         new_entry_form = None
