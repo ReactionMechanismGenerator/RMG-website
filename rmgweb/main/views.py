@@ -233,11 +233,11 @@ def drawGroup(request, adjlist):
     adjlist = str(adjlist.replace(';', '\n'))
     pattern = Group().fromAdjacencyList(adjlist)
 
-    graph = pydot.Dot(graph_type='graph', dpi=52)
+    graph = pydot.Dot(graph_type='graph', dpi="52")
     for index, atom in enumerate(pattern.atoms):
         atomType = '%s ' % atom.label if atom.label != '' else ''
         atomType += ','.join([atomType.label for atomType in atom.atomType])
-        graph.add_node(pydot.Node(name='%i' % (index+1), label=atomType, fontname='Helvetica', fontsize=16))
+        graph.add_node(pydot.Node(name='%i' % (index+1), label=atomType, fontname='Helvetica', fontsize="16"))
     for atom1 in pattern.atoms:
         for atom2, bond in atom1.bonds.iteritems():
             index1 = pattern.atoms.index(atom1)
@@ -248,7 +248,7 @@ def drawGroup(request, adjlist):
                     src = '%i' % (index1+1),
                     dst = '%i' % (index2+1),
                     label = bondType,
-                    fontname='Helvetica', fontsize = 16,
+                    fontname='Helvetica', fontsize = "16",
                 ))
 
     response.write(graph.create(prog='neato', format='png'))
