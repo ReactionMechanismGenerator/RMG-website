@@ -289,7 +289,7 @@ def transportData(request, adjlist):
             symmetryNumber = molecule.symmetryNumber
             entry = Entry(data=data)
         elif library in database.transport.libraries.values():
-            source = library.name
+            source = library.label
             href = reverse(transportEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         transportDataList.append((
             entry,

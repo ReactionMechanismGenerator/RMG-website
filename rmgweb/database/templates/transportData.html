@@ -12,28 +12,7 @@
 {% block extrahead %}
 <script src="/media/Highcharts/js/highcharts.js" type="text/javascript"></script>
 <script src="/media/highcharts.theme.js" type="text/javascript"></script>
-<script type="text/javascript">
-jQuery(document).ready(function() {
 
-    Cpseries = new Array();
-    Hseries = new Array();
-    Sseries = new Array();
-    Gseries = new Array();
-    
-    {% for entry, transport, source, href in transportDataList %}
-    {{ transport|get_transport_data:user }}
-    {% include "transportModel.js" %}
-    {% endfor %}
-
-    jsMath.Synchronize(function() {
-        plotHeatCapacity('plotCp', Cpseries);
-        plotEnthalpy('plotH', Hseries);
-        plotEntropy('plotS', Sseries);
-        plotFreeEnergy('plotG', Gseries);
-    });
-
-});
-</script>
 {% endblock %}
 
 {% block navbar_items %}
@@ -51,19 +30,7 @@ jQuery(document).ready(function() {
 <p>
 {{ structure|safe }}
 </p>
-If you have transport data to contribute to this species, you can add an entry here: 
-{% if molecule.getRadicalCount == 0 %}
-<a href="{% url 'database.views.transportEntryNew' section='depository' subsection='stable' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
-{% else %}
-<a href="{% url 'database.views.transportEntryNew' section='depository' subsection='radical' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
-{% endif %}
 
-{% if user.is_authenticated %}
-You are logged in as {{ user.get_full_name }}</a> 
-{% else %}
-You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
-{% endif %}
-<br/><br/>
 
 <h2>Transport Data</h2>
 
@@ -75,19 +42,14 @@ You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in f
 {% if entry.label != '' %}
 <p>Species label: {{ entry.label }}</p>
 {% endif %}
-{% if source == 'Group additivity' %}
-Comments: {{ transport.comment }} 
+
+<table class="transportEntryData">
+{{ transport|render_transport_math:user }}
+</table>
 <P>
-Symmetry number: {{ symmetryNumber}}
-<p>
-{% endif %}
-<font face='courier'>{{ nasa|renderNASA }}</font>
+Comments: {{ transport.comment }} 
 <P>
 {% endfor %}
 
-<div id="plotCp" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
-<div id="plotH" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
-<div id="plotS" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
-<div id="plotG" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
 {% endblock %}
