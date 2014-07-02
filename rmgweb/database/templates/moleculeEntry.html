@@ -67,6 +67,11 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
     <td>
 <a href="{% url 'database.views.thermoData' molecule.toAdjacencyList %}">Click here</a></td>
 </tr>
+<tr class ="result">
+    <th>Transport:</th>
+    <td>
+<a href="{% url 'database.views.transportData' molecule.toAdjacencyList %}">Click here</a></td>
+</tr>
 
 <tr class="result">
 <th>InChI:</th>
