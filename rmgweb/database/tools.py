@@ -171,14 +171,7 @@ def loadDatabase(component='', section=''):
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'libraries')
             if isDirModified(dirpath):
                 database.transport.loadLibraries(dirpath)
-                #put them in our preferred order, so that when we look up transport in order to estimate kinetics,
-                #we use our favorite values first.
-#                 preferred_order = ['primaryTransportLibrary', 'GRI-Mech']
-#                 new_order = [i for i in preferred_order if i in database.transport.libraryOrder]
-#                 for i in database.transport.libraryOrder:
-#                     if i not in new_order: new_order.append(i) 
-#                 database.transport.libraryOrder = new_order
-#                 resetDirTimestamps(dirpath)
+                resetDirTimestamps(dirpath)
         if section in ['groups', '']:
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'groups')
             if isDirModified(dirpath):
