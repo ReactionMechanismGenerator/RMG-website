@@ -394,26 +394,6 @@ def thermoEntry(request, section, subsection, index):
     reference = entry.reference
     return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string}, context_instance=RequestContext(request))
 
-def thermoSearch(request):
-    """
-    A view of a form for specifying a molecule to search the database for
-    thermodynamics properties.
-    """
-
-    # Load the thermo database if necessary
-    loadDatabase('thermo')
-
-    if request.method == 'POST':
-        form = ThermoSearchForm(request.POST, error_class=DivErrorList)
-        if form.is_valid():
-            adjlist = form.cleaned_data['species']
-            adjlist = adjlist.replace('\n', ';')
-            adjlist = re.sub('\s+', '%20', adjlist)
-            return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
-    else:
-        form = ThermoSearchForm()
-    
-    return render_to_response('thermoSearch.html', {'form': form}, context_instance=RequestContext(request))
 
 def thermoData(request, adjlist):
     """
