@@ -55,6 +55,7 @@ from rmgpy.molecule.molecule import Molecule
 from rmgpy.molecule.group import Group
 from rmgpy.thermo import *
 from rmgpy.kinetics import *
+from rmgpy.transport import *
 from rmgpy.reaction import Reaction
 from rmgpy.quantity import Quantity
 
@@ -62,6 +63,7 @@ import rmgpy
 from rmgpy.data.base import *
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import *
+from rmgpy.data.transport import *
 from rmgpy.data.rmg import RMGDatabase
 
 from forms import *
@@ -130,6 +132,149 @@ def export(request, type):
 
     # Redirect to requested compressed database
     return HttpResponseRedirect('export/{0}'.format(file))
+
+#################################################################################################################################################
+
+def transport(request, section='', subsection=''):
+    """
+    This function displays the transport database.
+    """
+    # Make sure section has an allowed value
+    if section not in ['libraries', 'groups', '']:
+        raise Http404
+    
+    database = loadDatabase('transport', section)
+
+    if subsection != '':
+
+        # A subsection was specified, so render a table of the entries in
+        # that part of the database
+        
+        # Determine which subsection we wish to view
+        try:
+            database = getTransportDatabase(section, subsection)
+        except ValueError:
+            raise Http404
+
+        # Sort entries by index
+        entries0 = database.entries.values()
+        entries0.sort(key=lambda entry: entry.index)
+
+        entries = []
+        for entry in entries0:
+
+            structure = getStructureMarkup(entry.item)
+            
+            if isinstance(entry.data, CriticalPointGroupContribution): dataFormat = 'CriticalPointGroupContribution'
+            elif isinstance(entry.data, TransportData): dataFormat = 'TransportData'
+            
+            elif entry.data is None:
+                dataFormat = 'None'
+                entry.index = 0
+                
+            else:
+                dataFormat = 'Other'
+                
+            entries.append((entry.index,entry.label,structure,dataFormat))
+
+        return render_to_response('transportTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+
+    else:
+        # No subsection was specified, so render an outline of the transport
+        # database components and sort them
+        transportLibraries = [(label, database.transport.libraries[label]) for label in database.transport.libraryOrder]
+        transportLibraries.sort()
+        transportGroups = [(label, groups) for label, groups in database.transport.groups.iteritems()]
+        transportGroups.sort()
+        return render_to_response('transport.html', {'section': section, 'subsection': subsection, 'transportLibraries': transportLibraries, 'transportGroups': transportGroups}, context_instance=RequestContext(request))
+    
+def transportEntry(request, section, subsection, index):
+    """
+    A view for showing an entry in a transport database.
+    """
+    
+    # Load the transport database 
+    loadDatabase('transport', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getTransportDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    
+    index = int(index)
+    if index != 0 and index != -1:
+        for entry in database.entries.values():
+            if entry.index == index:
+                break
+        else:
+            raise Http404
+    else:
+        if index == 0:
+            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+        else:
+            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+        return HttpResponseRedirect(reverse(transportEntry,
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+
+
+    # Get the structure of the item we are viewing
+    structure = getStructureMarkup(entry.item)
+
+    # Prepare the transport data for passing to the template
+    # This includes all string formatting, since we can't do that in the template
+    if isinstance(entry.data, str):
+        transport = ['Link', database.entries[entry.data].index]
+    else:
+        transport = entry.data
+        
+    referenceType = ''
+    reference = entry.reference
+    return render_to_response('transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport}, context_instance=RequestContext(request))
+
+def transportData(request, adjlist):
+    """
+    Returns an entry with the transport data when an adjacency list
+    for a molecule is provided.  The transport data is estimated by RMG.
+    """
+    
+    # Load the transport database if necessary
+    loadDatabase('transport')
+    from tools import database
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+    species = Species(molecule=[molecule])
+    species.generateResonanceIsomers()
+    
+    # Get the transport data for the molecule
+    transportDataList = []
+    for data, library, entry in database.transport.getAllTransportProperties(species):
+        if library is None:
+            source = 'Group additivity'
+            href = ''
+            symmetryNumber = molecule.symmetryNumber
+            entry = Entry(data=data)
+        elif library in database.transport.libraries.values():
+            source = library.label
+            href = reverse(transportEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+        transportDataList.append((
+            entry,
+            data,
+            source,
+            href,
+        ))
+    
+    # Get the structure of the item we are viewing
+    structure = moleculeToInfo(molecule)
+
+    return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+
+
+#################################################################################################################################################
 
 def thermo(request, section='', subsection=''):
     """
@@ -1870,6 +2015,9 @@ def moleculeSearch(request):
         
         if 'thermo' in request.POST:
             return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
+        
+        if 'transport' in request.POST:
+            return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
         
         if 'reset' in request.POST:
             form = MoleculeSearchForm()

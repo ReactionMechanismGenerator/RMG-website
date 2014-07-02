@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+{% load render_transport %}
+{% load databasefilters %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}
+{% if section != '' %}
+RMG Transport {{ section|title }}
+{% else %}
+RMG Transport Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}
+<style>
+table.transportEntryData {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+
+table.transportEntryData td.key {
+    font-weight: bold;
+    text-align: right;
+}
+
+table.transportEntryData td.equals {
+    text-align: center;
+}
+
+table.transportEntryData td.value {
+    text-align: left;
+}
+
+table.transportEntryData td.reference p {
+    margin: 0px;
+}
+</style>
+
+
+{% endblock extrahead%}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.transport' %}">Transport</a>
+&raquo; <a href="{% url 'database.views.transport' section=section %}">{{ section|title }}</a>
+&raquo; <a href="{% url 'database.views.transport' section=section subsection=subsection %}">{{ subsection }}</a>
+{% if entry.index and entry.index != -1 %} &raquo; <a href="{% url 'database.views.transportEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}{% if entry.index %}{{ entry.index }}. {{ entry.label }}{% endif %}{% endblock %}
+
+{% block page_body %}
+
+<h2>Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+
+<h2>Transport Data</h2>
+<table class="transportEntryData">
+{{ transport|render_transport_math:user }}
+</table>
+
+<h2>Reference</h2>
+{% include "reference.html" %}
+
+
+{% endblock %}
