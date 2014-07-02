@@ -184,10 +184,6 @@ def transport(request, section='', subsection=''):
         # database components and sort them
         transportLibraries = [(label, database.transport.libraries[label]) for label in database.transport.libraryOrder]
         transportLibraries.sort()
-        for subsection, library in transportLibraries:
-            print subsection
-            print library.name
-            print library.label
         transportGroups = [(label, groups) for label, groups in database.transport.groups.iteritems()]
         transportGroups.sort()
         return render_to_response('transport.html', {'section': section, 'subsection': subsection, 'transportLibraries': transportLibraries, 'transportGroups': transportGroups}, context_instance=RequestContext(request))
@@ -239,38 +235,15 @@ def transportEntry(request, section, subsection, index):
     reference = entry.reference
     return render_to_response('transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport}, context_instance=RequestContext(request))
 
-# def transportSearch(request):
-#     """
-#     A view of a form for specifying a molecule to search the database for
-#     transport properties.
-#     """
-# 
-#     # Load the transport database if necessary
-#     loadDatabase('transport')
-# 
-#     if request.method == 'POST':
-#         form = TransportSearchForm(request.POST, error_class=DivErrorList)
-#         if form.is_valid():
-#             adjlist = form.cleaned_data['species']
-#             adjlist = adjlist.replace('\n', ';')
-#             adjlist = re.sub('\s+', '%20', adjlist)
-#             return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
-#     else:
-#         form = TransportSearchForm()
-#     
-#     return render_to_response('transportSearch.html', {'form': form}, context_instance=RequestContext(request))
-
 def transportData(request, adjlist):
     """
-    Returns an image of the provided adjacency list `adjlist` for a molecule.
-    Note that the newline character cannot be represented in a URL;
-    semicolons should be used instead.
+    Returns an entry with the transport data when an adjacency list
+    for a molecule is provided.  The transport data is estimated by RMG.
     """
     
-    # Load the thermo database if necessary
+    # Load the transport database if necessary
     loadDatabase('transport')
     from tools import database
-   #from rmgpy.chemkin import writeTransportEntry
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
@@ -280,9 +253,6 @@ def transportData(request, adjlist):
     # Get the transport data for the molecule
     transportDataList = []
     for data, library, entry in database.transport.getAllTransportProperties(species):
-        #nasa = data.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
-        #species.thermo = nasa
-        #nasa_string = writeTransportEntry(species)
         if library is None:
             source = 'Group additivity'
             href = ''
@@ -301,7 +271,8 @@ def transportData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = moleculeToInfo(molecule)
 
-    return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(transportDataList)}, context_instance=RequestContext(request))
+    return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+
 
 #################################################################################################################################################
 
