@@ -72,16 +72,5 @@ table.transportEntryData td.reference p {
 <h2>Reference</h2>
 {% include "reference.html" %}
 
-<br/>
-
-{% if entry.index and entry.index != -1 %}
-If you noticed a mistake or have better data, then edit this entry here: <a href=""><button type="button">Edit entry</button></a>.
-{% endif %}
-{% if user.is_authenticated %}
-You are logged in as {{ user.get_full_name }}</a> 
-{% else %}
-You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
-{% endif %}
-<br/>
 
 {% endblock %}
