@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load gravatar %}
+{% load render_solvation %}
+{% load databasefilters %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}Solvation Data{% endblock %}
+
+{% block extrahead %}
+
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.solvation' %}">Solvation</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Solvation Data{% endblock %}
+
+{% block page_body %}
+<h2>Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+
+<h2>Solvent Data</h2>
+
+{% for entry, solvation, source, href in solvationDataList %}
+{% if href != '' %}<a href="{{ href }}">{% endif %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
+{% if href != '' %}</a>{% endif %}
+
+{% if entry.label != '' %}
+<p>Species label: {{ entry.label }}</p>
+{% endif %}
+
+<table class="solvationEntryData">
+{{ solvation|render_solvation_math:user }}
+</table>
+<P>
+Comments: {{ solvation.comment }} 
+<P>
+{% endfor %}
+
+
+{% endblock %}

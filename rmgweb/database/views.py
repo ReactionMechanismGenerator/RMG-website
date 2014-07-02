@@ -65,6 +65,7 @@ from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import *
 from rmgpy.data.transport import *
 from rmgpy.data.rmg import RMGDatabase
+from rmgpy.data.solvation import * 
 
 from forms import *
 from tools import *
@@ -273,6 +274,142 @@ def transportData(request, adjlist):
 
     return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
 
+#################################################################################################################################################
+
+def solvation(request, section='', subsection=''):
+    """
+    This function displays the solvation database.
+    """
+    # Make sure section has an allowed value
+    if section not in ['libraries', 'groups', '']:
+        raise Http404
+    
+    database = loadDatabase('solvation', section)
+
+    if subsection != '':
+
+        # A subsection was specified, so render a table of the entries in
+        # that part of the database
+        
+        # Determine which subsection we wish to view
+        try:
+            database = getSolvationDatabase(section, subsection)
+        except ValueError:
+            raise Http404
+        # Sort entries by index
+        entries0 = database.entries.values()
+        entries0.sort(key=lambda entry: entry.index)
+
+        entries = []
+        for entry in entries0:
+
+            structure = getStructureMarkup(entry.item)
+            
+            if isinstance(entry.data, SoluteData): dataFormat = 'SoluteData'
+            elif isinstance(entry.data, SolventData): dataFormat = 'SolventData'
+            
+            elif entry.data is None:
+                dataFormat = 'None'
+                entry.index = 0
+                
+            else:
+                dataFormat = 'Other'
+                
+            entries.append((entry.index,entry.label,structure,dataFormat))
+
+        return render_to_response('solvationTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+
+    else:
+        # No subsection was specified, so render an outline of the solvation
+        # database components and sort them
+        solvationLibraries = []
+        solvationLibraries.append((database.solvation.libraries['solvent'].name,database.solvation.libraries['solvent']))
+        solvationLibraries.append((database.solvation.libraries['solute'].name, database.solvation.libraries['solute']))
+        solvationLibraries.sort()
+        solvationGroups = [(label, groups) for label, groups in database.solvation.groups.iteritems()]
+        solvationGroups.sort()
+        return render_to_response('solvation.html', {'section': section, 'subsection': subsection, 'solvationLibraries': solvationLibraries, 'solvationGroups': solvationGroups}, context_instance=RequestContext(request))
+    
+def solvationEntry(request, section, subsection, index):
+    """
+    A view for showing an entry in a solvation database.
+    """
+    
+    # Load the solvation database 
+    loadDatabase('solvation', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getSolvationDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    
+    index = int(index)
+    if index != 0 and index != -1:
+        for entry in database.entries.values():
+            if entry.index == index:
+                break
+        else:
+            raise Http404
+    else:
+        if index == 0:
+            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+        else:
+            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+        return HttpResponseRedirect(reverse(solvationEntry,
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+
+
+    # Get the structure of the item we are viewing
+    structure = getStructureMarkup(entry.item)
+
+    # Prepare the solvation data for passing to the template
+    # This includes all string formatting, since we can't do that in the template
+    if isinstance(entry.data, str):
+        solvation = ['Link', database.entries[entry.data].index]
+    else:
+        solvation = entry.data
+        
+    referenceType = ''
+    reference = entry.reference
+    return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
+
+def solvationData(request, adjlist):
+    """
+    Returns an entry with the solvation data for a given molecule
+    when the adjlist is provided.  The solvation data is estimated by RMG.
+    """
+    
+    # Load the solvation database if necessary
+    loadDatabase('solvation')
+    from tools import database
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+    print molecule
+    print adjlist
+    species = Species(molecule = [molecule])
+    print species.label
+    species.generateResonanceIsomers()
+    # Get the solvation data for the molecule
+    
+    symmetryNumber = molecule.symmetryNumber
+    print symmetryNumber
+    print repr(species)
+    print request
+    print adjlist
+    solvationDataList = []   
+    source = 'Solute Descriptors'
+    href = reverse(solvationEntry, kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
+    solvationDataList.append((1, database.solvation.getSolventData(species.label), source, href))
+    
+    # Get the structure of the item we are viewing
+    structure = moleculeToInfo(molecule)
+
+    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
 
 #################################################################################################################################################
 
@@ -1993,9 +2130,12 @@ def moleculeSearch(request):
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
         
+        if 'solvation' in request.POST:
+            return HttpResponseRedirect(reverse(solvationData, kwargs={'adjlist': adjlist}))
+        
         if 'thermo' in request.POST:
             return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
-        
+            
         if 'transport' in request.POST:
             return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
         

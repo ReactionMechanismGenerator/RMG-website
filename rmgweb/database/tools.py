@@ -53,6 +53,7 @@ from rmgweb.main.tools import *
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import KineticsDatabase
 from rmgpy.data.transport import TransportDatabase
+from rmgpy.data.rmg import SolvationDatabase
 from rmgpy.data.rmg import RMGDatabase
 
 ################################################################################
@@ -137,6 +138,7 @@ def loadDatabase(component='', section=''):
     global database
     if not database:
         database = RMGDatabase()
+        database.solvation = SolvationDatabase()
         database.thermo = ThermoDatabase()
         database.kinetics = KineticsDatabase()
         database.transport = TransportDatabase()
@@ -178,6 +180,12 @@ def loadDatabase(component='', section=''):
                 database.transport.loadGroups(dirpath)
                 resetDirTimestamps(dirpath)
                 
+    if component in ['solvation', '']:
+        dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'solvation')
+        if isDirModified(dirpath):
+            database.solvation.load(dirpath)
+            resetDirTimestamps(dirpath)
+                
     if component in ['kinetics', '']:
         if section in ['libraries', '']:
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'libraries')
@@ -214,6 +222,25 @@ def getTransportDatabase(section, subsection):
     try:
         if section == 'libraries': db = database.transport.libraries[subsection]
         elif section == 'groups': db = database.transport.groups[subsection]
+        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
+    except KeyError: 
+        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+    
+    return db
+
+def getSolvationDatabase(section, subsection):
+    """
+    Return the component of the transport database corresponding to the
+    given `section` and `subsection`. If either of these is invalid, a
+    :class:`ValueError` is raised.
+    """
+    global database
+
+    try:
+        if section == 'libraries': 
+            if subsection == 'Solute Descriptors': db = database.solvation.libraries['solute']
+            else: db = database.solvation.libraries['solvent']
+        elif section == 'groups': db = database.solvation.groups[subsection]
         else: raise ValueError('Invalid value "%s" for section parameter.' % section)
     except KeyError: 
         raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
