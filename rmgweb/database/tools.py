@@ -230,7 +230,7 @@ def getTransportDatabase(section, subsection):
 
 def getSolvationDatabase(section, subsection):
     """
-    Return the component of the transport database corresponding to the
+    Return the component of the solvation database corresponding to the
     given `section` and `subsection`. If either of these is invalid, a
     :class:`ValueError` is raised.
     """

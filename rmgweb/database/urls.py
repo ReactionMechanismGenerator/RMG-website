@@ -56,8 +56,6 @@ urlpatterns = patterns('rmgweb.database',
     (r'^transport/search/$', 'views.moleculeSearch'),
     (r'^transport/molecule/(?P<adjlist>[\S\s]+)$', 'views.transportData'),
     (r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.transportEntry'),
-    #(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<adjlist>[\S\s]+)/new$', 'views.transportEntryNew'),
-    #(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/edit$', 'views.transportEntryEdit'),
     (r'^transport/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.transport'),
     (r'^transport/(?P<section>\w+)/$', 'views.transport'),    
     
