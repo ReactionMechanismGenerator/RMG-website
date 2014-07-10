@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}
+{% if section != '' %}
+RMG Statmech {{ section|title }}
+{% else %}
+RMG Statmech Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.statmech' %}">statmech</a>
+{% if section != '' %}&raquo; <a href="{% url 'database.views.statmech' section=section %}">{{ section|title }}</a>
+{% if subsection != '' %}&raquo; <a href="{% url 'database.views.statmech' section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}
+{% if section != '' %}
+RMG Statmech {{ section|title }}
+{% else %}
+RMG Statmech Database
+{% endif %}
+{% endblock %}
+
+{% block page_body %}
+
+{% if section == '' %}
+<h2>1. <a href="{% url 'database.views.moleculeSearch' %}">Statmech Search</a></h2>
+{% endif %}
+
+{% if section == '' %}
+<h2>2. <a href="{% url 'database.views.statmech' section='depository' %}">Statmech Depository</a></h2>
+{% endif %}
+
+{% if section == 'depository' or section == '' %}
+<ul>
+{% for subsection, depository in statmechDepository %}
+<li><a href="{% url 'database.views.statmech' section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
+
+{% empty %}
+No statmech depositories found.
+<P />
+{% endfor %}
+
+</ul>
+{% endif %}
+
+{% if section == '' %}
+<h2>3. <a href="{% url 'database.views.statmech' section='libraries' %}">Statmech Libraries</a></h2>
+{% endif %}
+
+{% if section == 'libraries' or section == '' %}
+<ul>
+{% for subsection, library in statmechLibraries %}
+<li><a href="{% url 'database.views.statmech' section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+
+
+{% empty %}
+No statmech libraries found.
+<P />
+{% endfor %}
+
+
+</ul>
+{% endif %}
+
+{% if section == '' %}
+<h2>4. <a href="{% url 'database.views.statmech' section='groups' %}"> Statmech Groups</a></h2>
+{% endif %}
+
+{% if section == 'groups' or section == '' %}
+<ul>
+   {% for subsection, groups in statmechGroups %}
+    {% if subsection != 'group' %}
+        <li><a href="{% url 'database.views.statmech' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
+    {% endif %}
+    {% empty %}
+    No statmech groups found.
+    <P />
+{% endfor %}
+
+</ul>
+{% endif %}
+
+{% endblock %}

@@ -63,9 +63,10 @@ import rmgpy
 from rmgpy.data.base import *
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.kinetics import *
-from rmgpy.data.transport import *
 from rmgpy.data.rmg import RMGDatabase
 from rmgpy.data.solvation import * 
+from rmgpy.data.statmech import *
+from rmgpy.data.transport import *
 
 from forms import *
 from tools import *
@@ -164,7 +165,7 @@ def transport(request, section='', subsection=''):
         entries = []
         for entry in entries0:
 
-            structure = getStructureMarkup(entry.item)
+            structure = getStructureInfo(entry.item)
             
             if isinstance(entry.data, CriticalPointGroupContribution): dataFormat = 'CriticalPointGroupContribution'
             elif isinstance(entry.data, TransportData): dataFormat = 'TransportData'
@@ -223,7 +224,7 @@ def transportEntry(request, section, subsection, index):
 
 
     # Get the structure of the item we are viewing
-    structure = getStructureMarkup(entry.item)
+    structure = getStructureInfo(entry.item)
 
     # Prepare the transport data for passing to the template
     # This includes all string formatting, since we can't do that in the template
@@ -303,7 +304,7 @@ def solvation(request, section='', subsection=''):
         entries = []
         for entry in entries0:
 
-            structure = getStructureMarkup(entry.item)
+            structure = getStructureInfo(entry.item)
             
             if isinstance(entry.data, SoluteData): dataFormat = 'SoluteData'
             elif isinstance(entry.data, SolventData): dataFormat = 'SolventData'
@@ -364,7 +365,7 @@ def solvationEntry(request, section, subsection, index):
 
 
     # Get the structure of the item we are viewing
-    structure = getStructureMarkup(entry.item)
+    structure = getStructureInfo(entry.item)
 
     # Prepare the solvation data for passing to the template
     # This includes all string formatting, since we can't do that in the template
@@ -411,6 +412,137 @@ def solvationData(request, adjlist):
 
     return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
 
+
+#################################################################################################################################################
+
+def statmech(request, section='', subsection=''):
+    """
+    This function displays the statmech database.
+    """
+    # Make sure section has an allowed value
+    if section not in ['depository', 'libraries', 'groups', '']:
+        raise Http404
+    
+    database = loadDatabase('statmech', section)
+
+    if subsection != '':
+
+        # A subsection was specified, so render a table of the entries in
+        # that part of the database
+        
+        # Determine which subsection we wish to view
+        try:
+            database = getStatmechDatabase(section, subsection)
+        except ValueError:
+            raise Http404
+        # Sort entries by index
+        entries0 = database.entries.values()
+        entries0.sort(key=lambda entry: entry.index)
+
+        entries = []
+        for entry in entries0:
+
+            structure = getStructureInfo(entry.item)
+            
+            if isinstance(entry.data, GroupFrequencies): dataFormat = 'GroupFrequencies'
+            else: dataFormat = 'Other'
+                
+            entries.append((entry.index,entry.label,structure,dataFormat))
+
+        return render_to_response('statmechTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+
+    else:
+        # No subsection was specified, so render an outline of the statmech
+        # database components and sort them
+        statmechDepository = [(label, depository) for label, depository in database.statmech.depository.iteritems()]
+        statmechDepository.sort()
+        statmechLibraries = [(name, database.statmech.libraries[name]) for name in database.statmech.libraryOrder]
+        statmechLibraries.sort()
+        statmechGroups = [name for name in database.statmech.groups.iteritems()]
+        statmechGroups.sort()
+        return render_to_response('statmech.html', {'section': section, 'subsection': subsection, 'statmechDepository': statmechDepository, 'statmechLibraries': statmechLibraries, 'statmechGroups': statmechGroups}, context_instance=RequestContext(request))
+    
+def statmechEntry(request, section, subsection, index):
+    """
+    A view for showing an entry in a statmech database.
+    """
+    
+    # Load the statmech database 
+    loadDatabase('statmech', section)
+
+    # Determine the entry we wish to view
+    try:
+        database = getStatmechDatabase(section, subsection)
+    except ValueError:
+        raise Http404
+    
+    index = int(index)
+    if index != 0 and index != -1:
+        for entry in database.entries.values():
+            if entry.index == index:
+                break
+        else:
+            raise Http404
+    else:
+        if index == 0:
+            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+        else:
+            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+        return HttpResponseRedirect(reverse(statmechEntry,
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+
+
+    # Get the structure of the item we are viewing
+    structure = getStructureInfo(entry.item)
+
+    # Prepare the statmech data for passing to the template
+    # This includes all string formatting, since we can't do that in the template
+    if isinstance(entry.data, str):
+        statmech = ['Link', database.entries[entry.data].index]
+    else:
+        statmech = entry.data
+        
+    referenceType = ''
+    reference = entry.reference
+    return render_to_response('statmechEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'statmech': statmech}, context_instance=RequestContext(request))
+
+def statmechData(request, adjlist):
+    """
+    Returns an entry with the statmech data for a given molecule
+    when the adjlist is provided.  The statmech data is estimated by RMG.
+    """
+    
+    # Load the statmech database if necessary
+    loadDatabase('statmech')
+    from tools import database
+
+    adjlist = str(adjlist.replace(';', '\n'))
+    molecule = Molecule().fromAdjacencyList(adjlist)
+    print molecule
+    print adjlist
+    species = Species(molecule = [molecule])
+    print species.label
+    species.generateResonanceIsomers()
+    # Get the statmech data for the molecule
+    
+    symmetryNumber = molecule.symmetryNumber
+    print symmetryNumber
+    print repr(species)
+    print request
+    print adjlist
+    statmechDataList = []   
+    source = 'Solute Descriptors'
+    href = reverse(statmechEntry, kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
+    statmechDataList.append((1, database.statmech.getSolventData(species.label), source, href))
+    
+    # Get the structure of the item we are viewing
+    structure = moleculeToInfo(molecule)
+
+    return render_to_response('statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmechDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+
 #################################################################################################################################################
 
 def thermo(request, section='', subsection=''):
@@ -442,7 +574,7 @@ def thermo(request, section='', subsection=''):
         entries = []
         for entry in entries0:
 
-            structure = getStructureMarkup(entry.item)
+            structure = getStructureInfo(entry.item)
 
             if isinstance(entry.data, ThermoData): dataFormat = 'Group additivity'
             elif isinstance(entry.data, Wilhoit): dataFormat = 'Wilhoit'
@@ -504,7 +636,7 @@ def thermoEntry(request, section, subsection, index):
 
 
     # Get the structure of the item we are viewing
-    structure = getStructureMarkup(entry.item)
+    structure = getStructureInfo(entry.item)
 
     # Prepare the thermo data for passing to the template
     # This includes all string formatting, since we can't do that in the template
@@ -1106,7 +1238,7 @@ def kinetics(request, section='', subsection=''):
             }
             if isinstance(database, KineticsGroups):
                 isGroupDatabase = True
-                entry['structure'] = getStructureMarkup(entry0.item)
+                entry['structure'] = getStructureInfo(entry0.item)
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
             elif 'rules' in subsection:
@@ -1117,8 +1249,8 @@ def kinetics(request, section='', subsection=''):
                     # training rates that became rate rules.
                     pass
                 else:
-                    entry['reactants'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.reactants])
-                    entry['products'] = ' + '.join([getStructureMarkup(reactant) for reactant in entry0.item.products])
+                    entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
+                    entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                     entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
                     entries.append(entry)
             else:
@@ -1694,7 +1826,7 @@ def kineticsEntry(request, section, subsection, index):
         degeneracy = entry.item.degeneracy
     
     if isinstance(database, KineticsGroups):
-        structure = getStructureMarkup(entry.item)
+        structure = getStructureInfo(entry.item)
         return render_to_response('kineticsEntry.html', {'section': section,
                                                          'subsection': subsection,
                                                          'databaseName': database.name,
@@ -1707,8 +1839,8 @@ def kineticsEntry(request, section, subsection, index):
                                   context_instance=RequestContext(request))
     else:
         if 'rules' in subsection:
-            reactants = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.reactants])
-            products = ' + '.join([getStructureMarkup(reactant) for reactant in entry.item.products])
+            reactants = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.reactants])
+            products = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.products])
             arrow = '&hArr;' if entry.item.reversible else '&rarr;'
         else:
             reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
@@ -2023,7 +2155,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if isinstance(reaction.kinetics, ArrheniusEP):
             reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
-        #reactants = [getStructureMarkup(reactant) for reactant in reaction.reactants]
+        #reactants = [getStructureInfo(reactant) for reactant in reaction.reactants]
         reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
@@ -2188,12 +2320,12 @@ def EniSearch(request):
             detergent = Molecule()
             detergent.fromAdjacencyList(detergent_adjlist)
             detergent_smiles = detergent.toSMILES()
-            detergent_structure = getStructureMarkup(detergent)
+            detergent_structure = getStructureInfo(detergent)
 
             deposit = Molecule()
             deposit.fromAdjacencyList(deposit_adjlist)
             deposit_smiles = deposit.toSMILES()
-            deposit_structure = getStructureMarkup(deposit)
+            deposit_structure = getStructureInfo(deposit)
             
             detergentA, detergentB = getAbrahamAB(detergent_smiles)
             depositA, depositB = getAbrahamAB(deposit_smiles)
@@ -2213,7 +2345,6 @@ def EniSearch(request):
         form = EniSearchForm()            
             
     return render_to_response('EniSearch.html', {'detergentA': detergentA, 'detergentB': detergentB, 'depositA': depositA, 'depositB': depositB, 'logKAB': logK_AB, 'logKBA': logK_BA, 'form': form}, context_instance=RequestContext(request))
-
 
 def moleculeEntry(request,adjlist):
     """

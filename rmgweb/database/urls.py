@@ -65,7 +65,15 @@ urlpatterns = patterns('rmgweb.database',
     (r'^solvation/molecule/(?P<adjlist>[\S\s]+)$', 'views.solvationData'),
     (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.solvationEntry'),
     (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.solvation'),
-    (r'^solvation/(?P<section>\w+)/$', 'views.solvation'),    
+    (r'^solvation/(?P<section>\w+)/$', 'views.solvation'),   
+    
+    # statmech database
+    (r'^statmech/$', 'views.statmech'),
+    (r'^statmech/search/$', 'views.moleculeSearch'),
+    (r'^statmech/molecule/(?P<adjlist>[\S\s]+)$', 'views.statmechData'),
+    (r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.statmechEntry'),
+    (r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.statmech'),
+    (r'^statmech/(?P<section>\w+)/$', 'views.statmech'), 
     
     # Kinetics database
     (r'^kinetics/$', 'views.kinetics'),
