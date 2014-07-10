@@ -79,8 +79,9 @@ urlpatterns = patterns('rmgweb',
     (r'^cactus/(?P<query>.*)$', 'main.views.cactusResolver'),
     (r'^nistcas/(?P<inchi>.*)$', 'main.views.getNISTcas'),
 
-    # Molecule drawing webpage
+    # Molecule and group drawing webpages
     (r'^molecule_search$', 'database.views.moleculeSearch'),
+    (r'^group_draw$', 'database.views.groupDraw'),
 
     # RMG-Py Stuff
     (r'^simulate/', include('rmg.urls')),

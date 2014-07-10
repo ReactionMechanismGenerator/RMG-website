@@ -56,10 +56,24 @@ urlpatterns = patterns('rmgweb.database',
     (r'^transport/search/$', 'views.moleculeSearch'),
     (r'^transport/molecule/(?P<adjlist>[\S\s]+)$', 'views.transportData'),
     (r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.transportEntry'),
-    #(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<adjlist>[\S\s]+)/new$', 'views.transportEntryNew'),
-    #(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/edit$', 'views.transportEntryEdit'),
     (r'^transport/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.transport'),
     (r'^transport/(?P<section>\w+)/$', 'views.transport'),    
+    
+    # solvation database
+    (r'^solvation/$', 'views.solvation'),
+    (r'^solvation/search/$', 'views.moleculeSearch'),
+    (r'^solvation/molecule/(?P<adjlist>[\S\s]+)$', 'views.solvationData'),
+    (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.solvationEntry'),
+    (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.solvation'),
+    (r'^solvation/(?P<section>\w+)/$', 'views.solvation'),   
+    
+    # statmech database
+    (r'^statmech/$', 'views.statmech'),
+    (r'^statmech/search/$', 'views.moleculeSearch'),
+    (r'^statmech/molecule/(?P<adjlist>[\S\s]+)$', 'views.statmechData'),
+    (r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.statmechEntry'),
+    (r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.statmech'),
+    (r'^statmech/(?P<section>\w+)/$', 'views.statmech'), 
     
     # Kinetics database
     (r'^kinetics/$', 'views.kinetics'),
@@ -102,6 +116,10 @@ urlpatterns = patterns('rmgweb.database',
 
     (r'^molecule/(?P<adjlist>[\S\s]+)$', 'views.moleculeEntry'),
     
+    #Group Information Page
+    
+    (r'^group/(?P<adjlist>[\S\s]+)$', 'views.groupEntry'),
+
     # Eni detergent-dirt binding strength
     (r'^eni', 'views.EniSearch'),    
     

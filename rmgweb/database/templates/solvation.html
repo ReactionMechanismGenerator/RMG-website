@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}
+{% if section != '' %}
+RMG Solvation {{ section|title }}
+{% else %}
+RMG Solvation Database
+{% endif %}
+{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.index' %}">Database</a>
+&raquo; <a href="{% url 'database.views.solvation' %}">solvation</a>
+{% if section != '' %}&raquo; <a href="{% url 'database.views.solvation' section=section %}">{{ section|title }}</a>
+{% if subsection != '' %}&raquo; <a href="{% url 'database.views.solvation' section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}
+{% if section != '' %}
+RMG Solvation {{ section|title }}
+{% else %}
+RMG Solvation Database
+{% endif %}
+{% endblock %}
+
+{% block page_body %}
+
+{% if section == '' %}
+<h2>1. <a href="{% url 'database.views.moleculeSearch' %}">Solvation Search</a></h2>
+{% endif %}
+
+{% if section == '' %}
+<h2>2. <a href="{% url 'database.views.solvation' section='libraries' %}">Solvation Libraries</a></h2>
+{% endif %}
+
+{% if section == 'libraries' or section == '' %}
+<ul>
+{% for subsection, library in solvationLibraries %}
+<li><a href="{% url 'database.views.solvation' section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if section == '' %}
+<h2>3. <a href="{% url 'database.views.solvation' section='groups' %}"> Solvation Groups</a></h2>
+{% endif %}
+
+{% if section == 'groups' or section == '' %}
+<ul>
+    {# <li><a href="{% url 'database.views.solvation' section='groups' subsection='group' %}">{{ solvationDatabase.groups.group.name }}</a> ({{ solvationDatabase.groups.group.entries|length }} entries)</li> #}
+{% for subsection, groups in solvationGroups %}
+    {% if subsection != 'group' %}
+        <li><a href="{% url 'database.views.solvation' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
+    {% endif %}
+{% endfor %}
+
+</ul>
+{% endif %}
+
+{% endblock %}
