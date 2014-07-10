@@ -173,6 +173,30 @@ class MoleculeSearchForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid adjacency list.')
             return adjlist
+
+class GroupDrawForm(forms.Form):
+    """
+    Form for drawing group from adjacency list
+    """   
+    group = forms.CharField(label ="Adjacency List", widget = forms.Textarea(attrs={'cols': 50, 'rows': 20, 'onchange':"$('.result').hide();" }), required=True)
+
+    def clean_group(self):
+            """
+            Custom validation for the species field to ensure that a valid adjacency
+            list has been provided.
+            """
+            from rmgpy.molecule import Group
+            try:
+                adjlist = str(self.cleaned_data['group'])
+                if adjlist == '' : return ''
+                group = Group()
+                group.fromAdjacencyList(str(self.cleaned_data['group']))
+            except Exception, e:
+                import traceback
+                traceback.print_exc(e)
+                raise forms.ValidationError('Invalid adjacency list.')
+            return adjlist        
+        
         
 class EniSearchForm(forms.Form):
     """

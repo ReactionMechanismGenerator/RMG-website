@@ -108,6 +108,10 @@ urlpatterns = patterns('rmgweb.database',
 
     (r'^molecule/(?P<adjlist>[\S\s]+)$', 'views.moleculeEntry'),
     
+    #Group Information Page
+    
+    (r'^group/(?P<adjlist>[\S\s]+)$', 'views.groupEntry'),
+
     # Eni detergent-dirt binding strength
     (r'^eni', 'views.EniSearch'),    
     

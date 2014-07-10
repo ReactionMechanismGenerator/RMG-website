@@ -36,6 +36,7 @@ from django.core.urlresolvers import reverse
 
 import rmgpy.constants as constants
 from rmgpy.molecule.molecule import Molecule
+from rmgpy.molecule.group import Group
 
 ################################################################################
 
@@ -70,6 +71,53 @@ def moleculeFromURL(adjlist):
     molecule = Molecule().fromAdjacencyList(str(adjlist.replace(';', '\n')))
     return molecule
 
+################################################################################
+
+def groupToURL(group):
+    """
+    Convert a given :class:`Group` object `group` to a string 
+    representation of its structure suitable for a URL.
+    """
+    gro = group.copy(deep=True)
+    gro.clearLabeledAtoms()
+    adjlist = gro.toAdjacencyList(removeH=False)
+    adjlist = re.sub('\s+', '%20', adjlist.replace('\n', ';'))
+    return adjlist
+
+def groupToInfo(group):
+    """
+    Creates an html rendering which includes group structure image but
+    also allows you to click on it to enter a group info page.
+    """
+
+    from rmgweb.database.views import groupEntry
+    href = reverse(groupEntry, kwargs={'adjlist': group.toAdjacencyList()})
+    structureMarkup = getStructureMarkup(group)
+    markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
+    return markup
+
+def groupFromURL(adjlist):
+    """
+    Convert a given adjacency list `adjlist` from a URL to the corresponding
+    :class:`Group` object.
+    """   
+    group = Group().fromAdjacencyList(str(adjlist.replace(';', '\n')))
+    return group
+
+################################################################################
+
+def getStructureInfo(object):
+    """ 
+    Convert either a Molecule or Group object to its html markup containing 
+    a clickable image of the group or molecule that contains a link to its
+    information page.
+    """
+    if isinstance(object, Molecule):
+        return moleculeToInfo(object)
+    elif isinstance(object, Group):
+        return groupToInfo(object)
+    else:
+        return ''
 ################################################################################
 
 def getLaTeXScientificNotation(value):

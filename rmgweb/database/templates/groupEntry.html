@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}RMG: Group Information{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(){
+   var spField = $('#id_species');
+   var identifier = $('#id_species_identifier').val();
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+   $('.result').hide();
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                  })
+               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+};
+
+// prevent "enter" keypress in the identifier field from submitting the form,
+// but instead make it resolve the identifier and select the submit button.
+$(document).ready(function() {
+   $("#id_species_identifier").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       resolve();
+       $("input:submit:first").focus();
+       return false;
+    }
+   });
+
+}) // end of document.ready
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.groupDraw' %}">Group Draw</a>
+{% endblock %}
+
+{% block page_title %}Group Information{% endblock %}
+
+{% block page_body %}
+
+<table cellspacing="10">
+<tr>
+<th>Group Structure:</th>
+<td style="padding: 40px;">{{ structure|safe }}</td>
+</tr>
+
+<tr class="result">
+<th valign="top">Adjacency List:</th>
+<td>{{ group.toAdjacencyList|renderAdjlist }}</td>
+</tr>
+
+</table>
+
+{% endblock %}

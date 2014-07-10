@@ -2146,6 +2146,33 @@ def moleculeSearch(request):
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
 
+def groupDraw(request):
+    """
+    Creates webpage form to display group chemgraph upon entering adjacency list.
+    """
+    form = GroupDrawForm()
+    structure_markup = ''
+    group = Group()
+    if request.method == 'POST':
+        posted = GroupDrawForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        if posted.is_valid():
+                adjlist = posted.cleaned_data['group']
+                if adjlist != '':
+                    group.fromAdjacencyList(adjlist)
+                    structure_markup = groupToInfo(group)
+                    adjlist=group.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+        
+        form = GroupDrawForm(initial, error_class=DivErrorList)
+        
+        if 'reset' in request.POST:
+            form = GroupDrawForm()
+            structure_markup = ''
+            group = Group()
+    
+    return render_to_response('groupDraw.html', {'structure_markup':structure_markup,'group':group,'form': form}, context_instance=RequestContext(request))
+
 def EniSearch(request):
     """
     Creates webpage form to display detergent and deposit structures upon entering smiles as well as returns binding constants
@@ -2196,9 +2223,22 @@ def moleculeEntry(request,adjlist):
 
     Basically works as an equivalent of the molecule search function.
     """
-
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-    structure = getStructureMarkup(molecule)
+    structure = getStructureInfo(molecule)
 
     return render_to_response('moleculeEntry.html',{'structure':structure,'molecule':molecule}, context_instance=RequestContext(request))
+
+def groupEntry(request,adjlist):
+    """
+    Returns an html page which includes the image of the group.
+
+    Basically works as an equivalent of the group search function.
+    """
+    adjlist = str(adjlist.replace(';', '\n'))
+    group = Group().fromAdjacencyList(adjlist)
+    structure = getStructureInfo(group)
+    print group
+    print structure 
+    
+    return render_to_response('groupEntry.html',{'structure':structure,'group':group}, context_instance=RequestContext(request))
