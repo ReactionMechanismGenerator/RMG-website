@@ -51,6 +51,10 @@ import rmgweb.settings
 
 import exportOldDatabase
 
+# from django.forms.models import BaseInlineFormSet, inlineformset_factory
+# from rmgweb.rmg.models import *
+# from rmgweb.rmg.forms import *
+
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.molecule.group import Group
 from rmgpy.thermo import *
@@ -68,7 +72,7 @@ from rmgpy.data.solvation import *
 from rmgpy.data.statmech import *
 from rmgpy.data.transport import *
 
-from forms import *
+from rmgweb.database.forms import *
 from tools import *
 from rmgweb.main.tools import *
 
@@ -378,39 +382,37 @@ def solvationEntry(request, section, subsection, index):
     reference = entry.reference
     return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
 
-def solvationData(request, adjlist):
+def solvationData(request, solute_adjlist, solvent=None):
     """
-    Returns an entry with the solvation data for a given molecule
-    when the adjlist is provided.  The solvation data is estimated by RMG.
+    Returns an entry with the solute data for a given molecule
+    when the solute_adjlist is provided. If solvent is provided,
+    the interaction solvation quantities are also displayed. 
+    The solvation data is estimated by RMG.
     """
-    
+    #from rmgpy.data.solvation import getAllSoluteData  # will probably need to import class.  getAllSoluteData is a subfunction
     # Load the solvation database if necessary
     loadDatabase('solvation')
     from tools import database
+    from rmgpy.data.solvation import SolvationDatabase
 
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(solute_adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-    print molecule
-    print adjlist
-    species = Species(molecule = [molecule])
-    print species.label
-    species.generateResonanceIsomers()
-    # Get the solvation data for the molecule
-    
-    symmetryNumber = molecule.symmetryNumber
-    print symmetryNumber
-    print repr(species)
-    print request
-    print adjlist
-    solvationDataList = []   
-    source = 'Solute Descriptors'
-    href = reverse(solvationEntry, kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
-    solvationDataList.append((1, database.solvation.getSolventData(species.label), source, href))
+    solute = Species(molecule = [molecule])
+    solute.generateResonanceIsomers()
+
+    print solute
+    print getAllSoluteData(solute)
+    #solvationDataList = getAllSoluteData(solute)
+    #if solvent is not None:
+        # Do something    
+    #solvationDataList.append((1, database.solvation.getSolventData(species.label), source, href))
+    solvationDataList = []
+    solvationDataList.append((1, 'fakedata','fakesource','fakelabel'))
     
     # Get the structure of the item we are viewing
     structure = moleculeToInfo(molecule)
 
-    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList}, context_instance=RequestContext(request))
 
 
 #################################################################################################################################################
@@ -2262,9 +2264,6 @@ def moleculeSearch(request):
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
         
-        if 'solvation' in request.POST:
-            return HttpResponseRedirect(reverse(solvationData, kwargs={'adjlist': adjlist}))
-        
         if 'thermo' in request.POST:
             return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
             
@@ -2278,6 +2277,36 @@ def moleculeSearch(request):
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
 
+def solvationSearch(request):
+    """
+    Creates webpage form to display solvation data upon choosing a solvent and a solute.
+    """
+    form = SolvationSearchForm()
+    structure_markup = ''
+    molecule = Molecule()
+    if request.method == 'POST':
+        posted = SolvationSearchForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+        
+        form = SolvationSearchForm(initial, error_class=DivErrorList)
+        if posted.is_valid():
+            adjlist = posted.cleaned_data['adjlist']
+            if adjlist != '':
+                molecule.fromAdjacencyList(adjlist)
+                structure_markup = moleculeToInfo(molecule)
+                solute_adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+                solvent = posted.cleaned_data['solvent']
+        
+            if 'solvation' in request.POST:
+                return HttpResponseRedirect(reverse(solvationData, kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
+            
+            if 'reset' in request.POST:
+                form = SolvationSearchForm()
+                structure_markup = ''
+                molecule = Molecule()
+            
+    return render_to_response('solvationSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
+    
 def groupDraw(request):
     """
     Creates webpage form to display group chemgraph upon entering adjacency list.
@@ -2345,7 +2374,7 @@ def EniSearch(request):
         form = EniSearchForm()            
             
     return render_to_response('EniSearch.html', {'detergentA': detergentA, 'detergentB': detergentB, 'depositA': depositA, 'depositB': depositB, 'logKAB': logK_AB, 'logKBA': logK_BA, 'form': form}, context_instance=RequestContext(request))
-
+    
 def moleculeEntry(request,adjlist):
     """
     Returns an html page which includes the image of the molecule
@@ -2369,7 +2398,5 @@ def groupEntry(request,adjlist):
     adjlist = str(adjlist.replace(';', '\n'))
     group = Group().fromAdjacencyList(adjlist)
     structure = getStructureInfo(group)
-    print group
-    print structure 
     
     return render_to_response('groupEntry.html',{'structure':structure,'group':group}, context_instance=RequestContext(request))

@@ -33,9 +33,11 @@ from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
 
 from rmgpy.molecule.molecule import Molecule
+from models import SolventSelection
 import rmgpy
 import copy
 import sys
+
 
 class DivErrorList(ErrorList):
     def __unicode__(self):
@@ -173,7 +175,34 @@ class MoleculeSearchForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid adjacency list.')
             return adjlist
+        
+class SolvationSearchForm(forms.ModelForm):
+    """
+    Form for searching for solvation properties between a solute and a solvent. 
+    """    
+    class Meta:
+        model = SolventSelection 
+        widgets ={
+        'species_identifier': forms.TextInput(attrs={'onchange':'resolve("adjlist");','class':'identifier', 'style':'width:100%;'}),
+        'adjlist':forms.Textarea(attrs={'cols': 50, 'rows': 10 }),       
+        }
 
+    def clean_adjlist(self):
+        """
+        Custom validation for the adjlist field to ensure that a valid adjacency
+        list has been provided.
+        """
+        try:
+            adjlist = str(self.cleaned_data['adjlist'])
+            if adjlist == '' : return ''
+            molecule = Molecule()
+            molecule.fromAdjacencyList(adjlist)
+        except Exception, e:
+            import traceback
+            traceback.print_exc(e)
+            raise forms.ValidationError('Invalid adjacency list.')
+        return adjlist
+        
 class GroupDrawForm(forms.Form):
     """
     Form for drawing group from adjacency list

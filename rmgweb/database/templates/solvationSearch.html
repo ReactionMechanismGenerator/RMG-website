@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(){
+   var spField = $('#id_adjlist');
+   var identifier = $('#id_species_identifier').val();
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                     spField.change();
+                  })
+               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+};
+// convert an adjancency list into an image url
+function adjlist2img(s) {
+   adjlist = s.replace(/\n/g,';').replace(/\s+/g,' ');
+   adjlist = encodeURI(adjlist);
+   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+}
+
+$(document).ready(function() {
+// prevent "enter" keypress in the form fields from submitting the form,
+// but instead make them select the submit button.
+   $(".identifier").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       if ($("input:submit").is(":focus")) { return true;}
+       else {
+          $("input:submit:first").focus();
+          return false;
+       };
+    }
+   });
+// add images to the right of all the text areas
+   $("textarea").closest('tr').append("<img src='/media/moleculedraw-logo-small.png'>");
+// add onChange handlers to all the text areas to modify the image sources
+   $("textarea").change( function() {
+      var src = adjlist2img( $(this).val() );
+      $(this).closest('tr').find('img').attr('src',src);
+    });
+// if you got to the page with pre-filled fields (eg. by hitting the back or forward button) the images will be stale
+   $("textarea").each(function(){
+      if ($(this).val()) { $(this).change(); }
+      })
+// end of $(document).ready(function() {
+})
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'database.views.solvationSearch' %}">Solvation Search</a>
+{% endblock %}
+
+{% block page_title %}Solvation Search{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to find solvation properties of a solute and solvent combination. 
+Choose a solute molecule by entering its species or adjacency list. 
+Select the solvent molecule you would like to be included
+in your solvation estimation in the drop down menu. 
+</p>
+
+<P>You can browse the available solute molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='Solute Descriptors' %}" target="_blank">Solute Molecules</a>
+<P>You can browse the available solvent molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='Solvent Descriptors' %}" target="_blank">Solvent Molecules</a>
+
+<P>Any solute can be used in this search form.  The search will pull the solute data if it exists in the library, otherwise it will estimate the solvation
+properties using the Abraham parameters to perform group estimation.  
+<form method="post" id="species_form">
+<table>
+ {{form.as_table}}
+<tr>
+   <th>{% csrf_token %}</th>
+   <td>
+      <input type="submit" value="Search Solvation" name="solvation" />
+      <input type="submit" value="Reset Form" name="reset" />
+   </td>
+</tr>
+</table>
+</form>
+
+{% endblock %}s
