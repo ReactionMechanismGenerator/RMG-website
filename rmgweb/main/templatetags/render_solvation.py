@@ -62,7 +62,8 @@ def render_solvation_math(solvation, user=None):
     if isinstance(solvation, SoluteData):
         
         result += '<table class="solvationEntryData">\n'
-        
+        result += r'<td class = "key"><span>Abraham Parameters: </span></td>'
+
         if solvation.S is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>S</span></td>'
@@ -108,6 +109,8 @@ def render_solvation_math(solvation, user=None):
     elif isinstance(solvation, SolventData):
                  
         result += '<table class="solvationEntryData">\n'
+        
+        result += r'<td class = "key"><span>Mintz Parameters: </span></td>'
          
         if solvation.s_h is not None:
             result += '<tr>'
@@ -151,6 +154,8 @@ def render_solvation_math(solvation, user=None):
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.c_h, '')
             result += '</tr>\n'
             
+        result += r'<td class = "key"><span>Abraham Parameters: </span></td>'
+            
         if solvation.s_g is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>s_g</span></td>'
@@ -179,11 +184,11 @@ def render_solvation_math(solvation, user=None):
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.l_g, '')
             result += '</tr>\n'
               
-        if solvation.a_h is not None:
+        if solvation.a_g is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>a_h</span></td>'
+            result += r'    <td class = "key"><span>a_g</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.a_h, '')
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.a_g, '')
             result += '</tr>\n'
                          
         if solvation.c_g is not None:
@@ -193,6 +198,14 @@ def render_solvation_math(solvation, user=None):
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.c_g, '')
             result += '</tr>\n'
             
+        result += r'<td class = "key"><span>Viscosity Parameters: </span></td>'
+        
+        result += '<tr>'
+        result += r'    <td class = "key"><span>Solvent Viscosity μ at 298 K</span></td>'
+        result += r'    <td class="equals">=</td>'
+        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }} cP</span></td>'.format(solvation.getSolventViscosity(298)*1000, '')
+        result += '</tr>\n'
+        
         if solvation.A is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>A</span></td>'
@@ -227,6 +240,8 @@ def render_solvation_math(solvation, user=None):
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.E, '')
             result += '</tr>\n'
+
+        result += r'<td class = "key"><span>Solute Parameters of Solvent: </span></td>'
                          
         if solvation.alpha is not None:
             result += '<tr>'
@@ -242,6 +257,8 @@ def render_solvation_math(solvation, user=None):
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.beta, '')
             result += '</tr>\n'    
             
+        result += r'<td class = "key"><span>Dielectric Constant: </span></td>'
+        
         if solvation.eps is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span class="math">ε</span></td>'
