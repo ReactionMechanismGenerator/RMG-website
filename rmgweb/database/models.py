@@ -29,20 +29,16 @@
 ################################################################################
 
 from django.db import models
-from django import forms
-from tools import loadDatabase
+#from django import forms
+from views import getSolventList
 
-# Create your models here.
-global database
-database = loadDatabase('','libraries')
-SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
+SolventList = getSolventList()
+
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):
         super(SolventSelection, self).__init__(*args, **kwargs)  
-        self.solute = None
-        self.solvent = None  
-         
+    
     species_identifier = models.CharField(verbose_name="Solute Species Identifier", max_length=200, blank = True)
     adjlist = models.TextField(verbose_name="Solute Adjacency List")
     solvent = models.CharField(verbose_name="Solvent",choices = SolventList, max_length=200, blank=True)

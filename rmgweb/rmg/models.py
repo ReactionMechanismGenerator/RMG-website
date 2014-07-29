@@ -37,12 +37,9 @@ from django.utils.text import capfirst
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
-from rmgweb.database.views import loadDatabase
+from rmgweb.database.tools import database, loadDatabase
 
 import rmgweb.settings as settings
-
-
-
 
 class Chemkin(models.Model):
     """
@@ -666,8 +663,8 @@ class Input(models.Model):
 ################################################################################
 # DATABASE MODELS
 ################################################################################
-
-database = loadDatabase('','libraries')
+loadDatabase('thermo','libraries')
+loadDatabase('kinetics','libraries')
 ThermoLibraries = [(label, label) for label, library in database.thermo.libraries.iteritems()]
 ThermoLibraries.sort()
 KineticsLibraries = [(label, label) for label, library in database.kinetics.libraries.iteritems()]

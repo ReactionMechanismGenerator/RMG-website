@@ -146,6 +146,8 @@ def loadDatabase(component='', section=''):
         database.statmech = StatmechDatabase()
         database.loadForbiddenStructures(os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py'))
 
+    if component == 'initialize':
+        return database
     if component in ['thermo', '']:
         if section in ['depository', '']:
             dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'depository')
@@ -790,3 +792,4 @@ def getAbrahamAB(smiles):
     return molecule.A, molecule.B
     
 
+database = loadDatabase('initialize','')
