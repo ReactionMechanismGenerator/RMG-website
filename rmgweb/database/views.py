@@ -2126,6 +2126,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     A view used to present a list of reactions and the associated kinetics
     for each.
     """
+    from forms import RateEvaluationForm
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
     # Also load the thermo database so we can generate reverse kinetics if necessary
