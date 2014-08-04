@@ -670,7 +670,10 @@ def thermoEntry(request, section, subsection, index):
         ThermoDatabase().findCp0andCpInf(species, thermo)
         nasa_string = ''
         try:
-            nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+            if isinstance(thermo,NASA):
+                nasa = thermo
+            else:
+                nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
             species.thermo = nasa
             nasa_string = writeThermoEntry(species)
         except:
@@ -701,7 +704,10 @@ def thermoData(request, adjlist):
     # Get the thermo data for the molecule
     thermoDataList = []
     for data, library, entry in database.thermo.getAllThermoData(species):
-        nasa = data.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+        if isinstance(data, NASA):
+            nasa = data
+        else:
+            nasa = data.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
         species.thermo = nasa
         nasa_string = writeThermoEntry(species)
         if library is None:
