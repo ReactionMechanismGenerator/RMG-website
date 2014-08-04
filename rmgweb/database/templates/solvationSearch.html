@@ -72,8 +72,8 @@ Select the solvent molecule you would like to be included
 in your solvation estimation in the drop down menu. 
 </p>
 
-<P>You can browse the available solute molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='Solute Descriptors' %}" target="_blank">Solute Molecules</a>
-<P>You can browse the available solvent molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='Solvent Descriptors' %}" target="_blank">Solvent Molecules</a>
+<P>You can browse the available solute molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='solute' %}" target="_blank">Solute Molecules</a>
+<P>You can browse the available solvent molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='solvent' %}" target="_blank">Solvent Molecules</a>
 
 <P>Any solute can be used in this search form.  The search will pull the solute data if it exists in the library, otherwise it will estimate the solvation
 properties using the Abraham parameters to perform group estimation.  

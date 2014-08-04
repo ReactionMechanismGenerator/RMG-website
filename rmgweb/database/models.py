@@ -41,4 +41,4 @@ class SolventSelection(models.Model):
     
     species_identifier = models.CharField(verbose_name="Solute Species Identifier", max_length=200, blank = True)
     adjlist = models.TextField(verbose_name="Solute Adjacency List")
-    solvent = models.CharField(verbose_name="Solvent",choices = SolventList, max_length=200, blank=True)
+    solvent = models.CharField(verbose_name="Solvent (Optional)",choices = SolventList, max_length=200, blank=True)

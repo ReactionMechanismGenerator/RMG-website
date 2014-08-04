@@ -247,9 +247,9 @@ def getSolvationDatabase(section, subsection):
     global database
 
     try:
-        if section == 'libraries': 
-            if subsection == 'Solute Descriptors': db = database.solvation.libraries['solute']
-            else: db = database.solvation.libraries['solvent']
+        if section == '':
+            db = database.solvation  #return general SolvationDatabase
+        elif section == 'libraries': db = database.solvation.libraries[subsection]
         elif section == 'groups': db = database.solvation.groups[subsection]
         else: raise ValueError('Invalid value "%s" for section parameter.' % section)
     except KeyError: 

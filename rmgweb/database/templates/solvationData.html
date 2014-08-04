@@ -24,27 +24,35 @@
 {% block page_title %}Solvation Data{% endblock %}
 
 {% block page_body %}
-<h2>Structure</h2>
+{% if solventDataInfo %}
+<h3>Solvent Name: {{ solventDataInfo.0 }}</h3>
+<P>
+<table class="solvationEntryData">
+{{ solventDataInfo.1|render_solvation_math:user }}
+</table>
+<P>
+{% endif %}
+
+<h2>Solute Structure</h2>
 <p>
 {{ structure|safe }}
 </p>
 
-<h2>Solvent Data</h2>
-
-{% for entry, solvation, source, href in solvationDataList %}
-{% if href != '' %}<a href="{{ href }}">{% endif %}
-<h3>Result #{{ forloop.counter }} &ndash; {{ source }}</h3>
-{% if href != '' %}</a>{% endif %}
-
-{% if entry.label != '' %}
-<p>Species label: {{ entry.label }}</p>
-{% endif %}
-
+{% for soluteSource, soluteData, correction in solvationDataList %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ soluteSource }}</h3>
+<h4>Solute Data</h4>
 <table class="solvationEntryData">
-{{ solvation|render_solvation_math:user }}
+{{ soluteData|render_solvation_math:user }}
 </table>
 <P>
-Comments: {{ solvation.comment }} 
+{% if correction %}
+<h4>Solvation Data</h4>
+<table class="solvationEntryData">
+{{ correction|render_solvation_math:user }}
+{% endif %}
+</table>
+<P>
+Comments: {{ correction.comment }} 
 <P>
 {% endfor %}
 

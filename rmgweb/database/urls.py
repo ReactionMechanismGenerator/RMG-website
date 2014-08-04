@@ -61,8 +61,8 @@ urlpatterns = patterns('rmgweb.database',
     
     # solvation database
     (r'^solvation/$', 'views.solvation'),
-    (r'^solvation/search/$', 'views.moleculeSearch'),
-    (r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)$', 'views.solvationData'),
+    (r'^solvation/search/$', 'views.solvationSearch'),    
+    (r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)$', 'views.solvationData'),    
     (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', 'views.solvationEntry'),
     (r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', 'views.solvation'),
     (r'^solvation/(?P<section>\w+)/$', 'views.solvation'),   

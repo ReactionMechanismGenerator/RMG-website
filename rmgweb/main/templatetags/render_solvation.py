@@ -267,16 +267,34 @@ def render_solvation_math(solvation, user=None):
             result += '</tr>\n'        
  
         result += '</table>\n'
+        
+    elif isinstance(solvation, SolvationCorrection):
+        
+        if solvation.enthalpy is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Enthalpy</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.enthalpy, 'J/mol')
+            result += '</tr>\n'  
+    
+        if solvation.gibbs is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Gibbs Free Energy</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.gibbs, 'J/mol')
+            result += '</tr>\n'  
+            
+        if solvation.entropy is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Entropy</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(solvation.entropy, 'J/mol/K')
+            result += '</tr>\n' 
+                 
+        result += '</table>\n'
 
-    if isinstance(solvation, (SoluteData, SolventData)):
+    if isinstance(solvation, (SoluteData, SolventData, SolvationCorrection)):
         result += '<table class="solvationEntryData">'
-#         if solvation.Tmin is not None and solvation.Tmax is not None:
-#             result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(solvation.Tmin.value_si, solvation.Tmax.value_si, Tunits)
         result += '</table>'
 
     return mark_safe(result)
-
-
-
-#def get_solvation_data(solvation, user=None):
-#    Potentially a function for preparing the solvation data for plotting

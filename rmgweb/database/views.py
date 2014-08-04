@@ -328,8 +328,8 @@ def solvation(request, section='', subsection=''):
         # No subsection was specified, so render an outline of the solvation
         # database components and sort them
         solvationLibraries = []
-        solvationLibraries.append((database.solvation.libraries['solvent'].name,database.solvation.libraries['solvent']))
-        solvationLibraries.append((database.solvation.libraries['solute'].name, database.solvation.libraries['solute']))
+        solvationLibraries.append(('solvent',database.solvation.libraries['solvent']))
+        solvationLibraries.append(('solute', database.solvation.libraries['solute']))
         solvationLibraries.sort()
         solvationGroups = [(label, groups) for label, groups in database.solvation.groups.iteritems()]
         solvationGroups.sort()
@@ -382,37 +382,52 @@ def solvationEntry(request, section, subsection, index):
     reference = entry.reference
     return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
 
-def solvationData(request, solute_adjlist, solvent=None):
+def solvationData(request, solute_adjlist, solvent=''):
     """
     Returns an entry with the solute data for a given molecule
     when the solute_adjlist is provided. If solvent is provided,
     the interaction solvation quantities are also displayed. 
     The solvation data is estimated by RMG.
     """
-    #from rmgpy.data.solvation import getAllSoluteData  # will probably need to import class.  getAllSoluteData is a subfunction
+    #from rmgpy.data.solvation import getAllSoluteData  
     # Load the solvation database if necessary
     loadDatabase('solvation')
-    from tools import database
-    from rmgpy.data.solvation import SolvationDatabase
-
-    adjlist = str(solute_adjlist.replace(';', '\n'))
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    db = getSolvationDatabase('','')
+    
+    #adjlist = str(solute_adjlist.replace(';', '\n'))
+    #molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule = [molecule])
     solute.generateResonanceIsomers()
-
-    print solute
-    print getAllSoluteData(solute)
-    #solvationDataList = getAllSoluteData(solute)
-    #if solvent is not None:
-        # Do something    
-    #solvationDataList.append((1, database.solvation.getSolventData(species.label), source, href))
-    solvationDataList = []
-    solvationDataList.append((1, 'fakedata','fakesource','fakelabel'))
     
+    # obtain solute data.  
+    soluteDataList = db.getAllSoluteData(solute)    # length either 1 or 2 entries
+
+    # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
+    solventData = None
+    solventDataInfo = None            
+    if solvent != 'None':
+        solventData = db.getSolventData(solvent)  # only 1 entry for solvent data
+        solventDataInfo = (solvent,solventData)
+    
+    solvationDataList = []
+    for soluteDataTuple in soluteDataList:  # Solute data comes as a tuple (soluteData,library,entry) or if from groups (soluteData,None,None)
+        soluteData = soluteDataTuple[0]
+        soluteSource = soluteDataTuple[1]
+        if soluteSource:
+            soluteSource = soluteSource.name  # It is a library
+        else:
+            soluteSource = 'Group Additivity'
+        correction = ''
+        if solventData:
+            correction = db.getSolvationCorrection(soluteData, solventData)
+        
+        solvationDataList.append((soluteSource, soluteData, correction))  # contains solute and possible interaction data
+              
     # Get the structure of the item we are viewing
     structure = moleculeToInfo(molecule)
 
-    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList}, context_instance=RequestContext(request))
+    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'solventDataInfo': solventDataInfo}, context_instance=RequestContext(request))
 
 
 #################################################################################################################################################
@@ -2305,10 +2320,12 @@ def solvationSearch(request):
                 structure_markup = moleculeToInfo(molecule)
                 solute_adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
                 solvent = posted.cleaned_data['solvent']
+                if solvent == '':
+                    solvent = 'None'
         
             if 'solvation' in request.POST:
                 return HttpResponseRedirect(reverse(solvationData, kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
-            
+                    
             if 'reset' in request.POST:
                 form = SolvationSearchForm()
                 structure_markup = ''
