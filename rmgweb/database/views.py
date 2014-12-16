@@ -262,7 +262,7 @@ def transportData(request, adjlist):
         if library is None:
             source = 'Group additivity'
             href = ''
-            symmetryNumber = molecule.symmetryNumber
+            symmetryNumber = species.getSymmetryNumber()
             entry = Entry(data=data)
         elif library in database.transport.libraries.values():
             source = library.label
@@ -538,18 +538,11 @@ def statmechData(request, adjlist):
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
-    print molecule
-    print adjlist
     species = Species(molecule = [molecule])
-    print species.label
     species.generateResonanceIsomers()
     # Get the statmech data for the molecule
     
-    symmetryNumber = molecule.symmetryNumber
-    print symmetryNumber
-    print repr(species)
-    print request
-    print adjlist
+    symmetryNumber = species.getSymmetryNumber()
     statmechDataList = []   
     source = 'Solute Descriptors'
     href = reverse(statmechEntry, kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
@@ -713,7 +706,7 @@ def thermoData(request, adjlist):
         if library is None:
             source = 'Group additivity'
             href = ''
-            symmetryNumber = molecule.symmetryNumber
+            symmetryNumber = species.getSymmetryNumber()
             entry = Entry(data=data)
         elif library in database.thermo.depository.values():
             source = 'Depository'
