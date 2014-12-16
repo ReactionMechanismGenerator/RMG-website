@@ -1,0 +1,12 @@
+# Required python packages. You can install them all via something like:
+#    pip install -r requirements.txt
+
+# You will first need RMG-Py installed and working
+
+# These are the additional dependencies
+Django=1.3.1
+BeautifulSoup
+xlrd
+pydot
+
+
