@@ -810,7 +810,7 @@ def getUntrainedReactions(family):
                         untrainedReactions.append(entry.item)
     
     # Sort reactions by reactant size
-    untrainedReactions.sort(key=lambda reaction: sum([1 for r in reaction.reactants for a in r.atoms if a.isNonHydrogen()]))
+    untrainedReactions.sort(key=lambda reaction: sum([1 for r in reaction.reactants for a in r.molecule[0].atoms if a.isNonHydrogen()]))
     
     # Build entries
     untrained = KineticsDepository(name='{0}/untrained'.format(family.label),
