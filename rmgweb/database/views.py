@@ -1344,6 +1344,7 @@ def kineticsEntryNew(request, family, type):
     """
     A view for creating a new entry in a kinetics family depository.
     """
+    from forms import KineticsEntryEditForm
     # Load the kinetics database, if necessary
     loadDatabase('kinetics', 'families')
 
@@ -1470,7 +1471,7 @@ def kineticsEntryEdit(request, section, subsection, index):
     """
     A view for editing an entry in a kinetics database.
     """
-
+    from forms import KineticsEntryEditForm
     # Load the kinetics database, if necessary
     loadDatabase('kinetics', section)
 
@@ -1580,6 +1581,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
     """
     A view for creating a new thermodynamics entry into any database section.
     """
+    from forms import ThermoEntryEditForm
     # Load the thermo database, if necessary
     loadDatabase('thermo')
     
@@ -1688,7 +1690,7 @@ def thermoEntryEdit(request, section, subsection, index):
     """
     A view for editing an entry in a thermo database.
     """
-
+    from forms import ThermoEntryEditForm
     # Load the kinetics database, if necessary
     loadDatabase('thermo', section)
 
@@ -2121,7 +2123,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     A view used to present a list of reactions and the associated kinetics
     for each.
     """
-    from forms import RateEvaluationForm
+    from forms import RateEvaluationForm, KineticsEntryEditForm
     # Load the kinetics database if necessary
     loadDatabase('kinetics')
     # Also load the thermo database so we can generate reverse kinetics if necessary
