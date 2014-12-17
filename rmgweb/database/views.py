@@ -275,7 +275,7 @@ def transportData(request, adjlist):
         ))
     
     # Get the structure of the item we are viewing
-    structure = moleculeToInfo(molecule)
+    structure = getStructureInfo(molecule)
 
     return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
 
@@ -425,7 +425,7 @@ def solvationData(request, solute_adjlist, solvent=''):
         solvationDataList.append((soluteSource, soluteData, correction))  # contains solute and possible interaction data
               
     # Get the structure of the item we are viewing
-    structure = moleculeToInfo(molecule)
+    structure = getStructureInfo(molecule)
 
     return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'solventDataInfo': solventDataInfo}, context_instance=RequestContext(request))
 
@@ -549,7 +549,7 @@ def statmechData(request, adjlist):
     statmechDataList.append((1, database.statmech.getSolventData(species.label), source, href))
     
     # Get the structure of the item we are viewing
-    structure = moleculeToInfo(molecule)
+    structure = getStructureInfo(molecule)
 
     return render_to_response('statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmechDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
 
@@ -723,7 +723,7 @@ def thermoData(request, adjlist):
         ))
     
     # Get the structure of the item we are viewing
-    structure = moleculeToInfo(molecule)
+    structure = getStructureInfo(molecule)
 
     return render_to_response('thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
 
@@ -1270,8 +1270,8 @@ def kinetics(request, section='', subsection=''):
                     entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
                     entries.append(entry)
             else:
-                entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
-                entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
+                entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
+                entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
                 entries.append(entry)
             
@@ -1303,8 +1303,8 @@ def kineticsUntrained(request, family):
                 'url': entry0.label,
             }
         
-        entry['reactants'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.reactants])
-        entry['products'] = ' + '.join([moleculeToInfo(reactant) for reactant in entry0.item.products])
+        entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
+        entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
         entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
         
         entries.append(entry)
@@ -1318,9 +1318,10 @@ def getReactionUrl(reaction, family=None, estimator=None):
     of real Species or Molecules."""
     kwargs = dict()
     for index, reactant in enumerate(reaction.reactants):
+        if isinstance(reactant, Entry):
+            reactant = reactant.item
         if isinstance(reactant, Group) or isinstance(reactant, LogicNode):
             return ''
-        
         mol = reactant if isinstance(reactant,Molecule) else reactant.molecule[0]
         kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(mol)
     for index, product in enumerate(reaction.products):
@@ -1854,14 +1855,9 @@ def kineticsEntry(request, section, subsection, index):
                                                          },
                                   context_instance=RequestContext(request))
     else:
-        if 'rules' in subsection:
-            reactants = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.reactants])
-            products = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.products])
-            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
-        else:
-            reactants = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.reactants])
-            products = ' + '.join([moleculeToInfo(reactant) for reactant in entry.item.products])
-            arrow = '&hArr;' if entry.item.reversible else '&rarr;'
+        reactants = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.reactants])
+        products = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.products])
+        arrow = '&hArr;' if entry.item.reversible else '&rarr;'
 
         # Searching for other instances of the reaction only valid for real reactions, not groups
         # If a Group or LogicNode shows up in the reaction, getReactionUrl will return ''
@@ -1942,9 +1938,9 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     if isinstance(reaction.kinetics, ArrheniusEP):
         reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
     
-    reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
     assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
     
     source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
@@ -1985,8 +1981,8 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     
     forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
     
-    reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
-    products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
+    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
     
     if estimator == 'group_additivity':
         reference = rmgpy.data.reference.Reference(
@@ -2107,9 +2103,9 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
     
     reactionDataList = []
     for reaction, count in zip(uniqueReactionList, uniqueReactionCount):
-        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+        reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
-        products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+        products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         reactionUrl = getReactionUrl(reaction)
         
         forward = reactionHasReactants(reaction, reactantList)
@@ -2173,9 +2169,9 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
         #reactants = [getStructureInfo(reactant) for reactant in reaction.reactants]
-        reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
+        reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
-        products = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.products])
+        products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
             
@@ -2274,7 +2270,7 @@ def moleculeSearch(request):
                 saturateH = posted.cleaned_data['saturateH']
                 if adjlist != '':
                     molecule.fromAdjacencyList(adjlist,saturateH=saturateH)
-                    structure_markup = moleculeToInfo(molecule)
+                    structure_markup = getStructureInfo(molecule)
                     adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
@@ -2317,7 +2313,7 @@ def solvationSearch(request):
             adjlist = posted.cleaned_data['adjlist']
             if adjlist != '':
                 molecule.fromAdjacencyList(adjlist)
-                structure_markup = moleculeToInfo(molecule)
+                structure_markup = getStructureInfo(molecule)
                 solute_adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
                 solvent = posted.cleaned_data['solvent']
                 if solvent == '':

@@ -108,12 +108,20 @@ def groupFromURL(adjlist):
 
 def getStructureInfo(object):
     """ 
-    Convert either a Molecule or Group object to its html markup containing 
-    a clickable image of the group or molecule that contains a link to its
-    information page.
+    Convert either a Entry, Molecule, Species, or Group object to its html 
+    markup containing a clickable image of the group or molecule that contains 
+    a link to its information page.
     """
+    from rmgpy.data.base import Entry
+    from rmgpy.species import Species
+    
+    if isinstance(object, Entry):
+        object = object.item
+        
     if isinstance(object, Molecule):
         return moleculeToInfo(object)
+    elif isinstance(object, Species):
+        return moleculeToInfo(object.molecule[0])
     elif isinstance(object, Group):
         return groupToInfo(object)
     else:
