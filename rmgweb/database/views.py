@@ -2269,9 +2269,8 @@ def moleculeSearch(request):
 
         if posted.is_valid():
                 adjlist = posted.cleaned_data['species']
-                saturateH = posted.cleaned_data['saturateH']
                 if adjlist != '':
-                    molecule.fromAdjacencyList(adjlist,saturateH=saturateH)
+                    molecule.fromAdjacencyList(adjlist)
                     structure_markup = getStructureInfo(molecule)
                     adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
         
