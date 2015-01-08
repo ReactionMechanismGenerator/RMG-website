@@ -2262,6 +2262,7 @@ def moleculeSearch(request):
     """
     form = MoleculeSearchForm()
     structure_markup = ''
+    oldAdjlist = ''
     molecule = Molecule()
     if request.method == 'POST':
         posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
@@ -2286,8 +2287,14 @@ def moleculeSearch(request):
             form = MoleculeSearchForm()
             structure_markup = ''
             molecule = Molecule()
+        
+        try:
+            oldAdjlist = molecule.toAdjacencyList(removeH=True,oldStyle=True)
+            print oldAdjlist
+        except:
+            pass
     
-    return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
+    return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
 
 def getSolventList():
     """
@@ -2410,8 +2417,12 @@ def moleculeEntry(request,adjlist):
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
     structure = getStructureInfo(molecule)
-
-    return render_to_response('moleculeEntry.html',{'structure':structure,'molecule':molecule}, context_instance=RequestContext(request))
+    oldAdjlist=''
+    try:
+        oldAdjlist = molecule.toAdjacencyList(removeH=True,oldStyle=True)
+    except:
+        pass
+    return render_to_response('moleculeEntry.html',{'structure':structure,'molecule':molecule,'oldAdjlist':oldAdjlist}, context_instance=RequestContext(request))
 
 def groupEntry(request,adjlist):
     """

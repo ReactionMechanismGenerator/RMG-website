@@ -91,6 +91,10 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 <td>{{ molecule.toAdjacencyList|renderAdjlist }}</td>
 </tr>
 
+<tr class="result">
+<th valign="top">Old Adjacency List:</th>
+<td>{{ oldAdjlist|renderAdjlist }}</td>
+</tr>
 <tr class="result" style="white-space: pre-wrap;">
 <th style="vertical-align: top;">Names:</th>
 <td id="species_names"></td>
