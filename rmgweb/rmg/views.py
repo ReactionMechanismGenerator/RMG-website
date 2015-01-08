@@ -88,6 +88,31 @@ def convertChemkin(request):
         
     return render_to_response('chemkinUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
+def convertAdjlists(request):
+    """
+    Allows user to upload a dictionary txt file and convert it back into old style adjacency lists in the form of a txt file.
+    """
+    conversion = AdjlistConversion()
+    path = ''
+    conversion.deleteDir()
+    
+    if request.method == 'POST':
+        conversion.createDir()
+        form = UploadDictionaryForm(request.POST, request.FILES, instance=conversion)
+        if form.is_valid():
+            form.save()
+            path = 'media/rmg/tools/adjlistConversion/RMG_Dictionary.txt'
+            # Generate the output HTML file
+            conversion.createOutput()
+            # Go back to the network's main page
+            return render_to_response('dictionaryUpload.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+
+    # Otherwise create the form
+    else:
+        form = UploadDictionaryForm(instance=conversion)
+        
+    return render_to_response('dictionaryUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+
 def compareModels(request):
     """
     Allows user to compare 2 RMG models with their chemkin and species dictionaries and generate

@@ -53,6 +53,13 @@ class ModelCompareForm(forms.ModelForm):
     """
     class Meta:
         model = Diff
+        
+class UploadDictionaryForm(forms.ModelForm):
+    """
+    A Django form for uploading a RMG dictionary file.
+    """
+    class Meta:
+        model = AdjlistConversion
 
 class FluxDiagramForm(forms.ModelForm):
     """

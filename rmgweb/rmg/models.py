@@ -245,6 +245,77 @@ class Diff(models.Model):
         except OSError:
             pass
 
+class AdjlistConversion(models.Model):
+    """
+    A Django model for converting new style adjlists to old style ones.
+    """
+    def __init__(self, *args, **kwargs):
+        super(AdjlistConversion, self).__init__(*args, **kwargs)
+        self.path = self.getDirname()
+        self.dictionary = self.path + '/species_dictionary.txt'
+
+    def upload_dictionary_to(instance, filename):
+        return instance.path + '/species_dictionary.txt'
+    DictionaryFile = models.FileField(upload_to=upload_dictionary_to, verbose_name='RMG Dictionary')
+
+    def getDirname(self):
+        """
+        Return the absolute path of the directory that the object uses
+        to store files.
+        """
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','adjlistConversion')
+
+    def createOutput(self):
+        """
+        Generate output html file from the path containing chemkin and dictionary files.
+        """
+        from rmgpy.chemkin import loadSpeciesDictionary
+        
+        speciesList = []    
+        with open(self.dictionary, 'r') as f:
+            adjlist = ''
+            for line in f:
+                if line.strip() == '' and adjlist.strip() != '':
+                    # Finish this adjacency list
+                    species = Species().fromAdjacencyList(adjlist)
+                    speciesList.append(species)
+                    adjlist = ''
+                else:
+                    if "InChI" in line:
+                        line = line.split()[0] + '\n'
+                    if '//' in line:
+                        index = line.index('//')
+                        line = line[0:index]
+                    adjlist += line
+                
+        with open(os.path.join(self.getDirname(),'RMG_Dictionary.txt'), 'w') as f:
+            for spec in speciesList:
+                try:
+                    f.write(spec.molecule[0].toAdjacencyList(label=spec.label, removeH=True, oldStyle=True))
+                    f.write('\n')
+                except:
+                    raise Exception('Ran into error saving adjlist for species {0}. It may not be compatible with old adjacency list format.'.format(spec))
+                
+    def createDir(self):
+        """
+        Create the directory (and any other needed parent directories) that
+        the Network uses for storing files.
+        """
+        try:
+            os.makedirs(self.getDirname())
+        except OSError:
+            # Fail silently on any OS errors
+            pass
+        
+    def deleteDir(self):
+        """
+        Clean up everything by deleting the directory
+        """
+        import shutil
+        try:
+            shutil.rmtree(self.getDirname())
+        except OSError:
+            pass
 
 
 class FluxDiagram(models.Model):

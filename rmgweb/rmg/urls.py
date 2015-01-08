@@ -41,6 +41,9 @@ urlpatterns = patterns('rmgweb.rmg',
     # Compare 2 RMG Models
     (r'^compare','views.compareModels'),
     
+    # Compare 2 RMG Models
+    (r'^adjlist_conversion','views.convertAdjlists'),
+    
     # Merge 2 RMG Models
     (r'^merge_models','views.mergeModels'),
 

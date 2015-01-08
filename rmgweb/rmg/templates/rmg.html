@@ -31,6 +31,8 @@
             and RMG-generated species dictionary.<P>
         <li><a href ="{% url 'rmg.views.compareModels' %}">Model Comparison</a>: compare two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
+        <li><a href ="{% url 'rmg.views.convertAdjlists' %}">Convert Adjacency Lists</a>: convert adjacency lists in a text file to old-style adjacency lists
+        which are compatible with RMG-Java.<P>
         <li><a href ="{% url 'rmg.views.mergeModels' %}">Merge Models</a>: merge two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
         <li><a href ="{% url 'rmg.views.generateFlux' %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}Convert Adjacency Lists{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
+<a href="{% url 'rmg.views.convertAdjlists' %}">Convert Adjacency Lists</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Convert Adjacency Lists{% endblock %}
+
+{% block page_body %}
+
+<p>
+Upload your RMG Dictionary text file and convert them back into old style 
+adjacency lists compatible with RMG-Java. 
+
+Not that adjacency lists containing heteroatoms such as N, Ar, Ne, and He are
+not compatible with old style adjacency lists and will result in conversion
+failure.
+</p>
+<hr/>
+
+{% if path %}
+<a href ="../{{path}}">Click here for your generated output file.</a>
+{% endif %}
+
+<form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" id="submit"/></p>
+</form>
+
+{% endblock %}
