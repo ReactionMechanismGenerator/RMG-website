@@ -1891,7 +1891,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     
     # we need 'database' to reference the top level object that we pass to generateReactions
     from tools import database
-    
+    from forms import KineticsEntryEditForm
     # check the family exists
     try:
         getKineticsDatabase('families', family+'/groups')
