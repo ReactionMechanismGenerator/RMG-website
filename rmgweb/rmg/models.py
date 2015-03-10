@@ -511,7 +511,7 @@ class Input(models.Model):
     saveRestartPeriodUnits = models.CharField(max_length = 50, default = 'hour', choices = restartunits)
     drawMolecules=models.BooleanField()
     generatePlots=models.BooleanField()
-    saveConcentrationProfiles = models.BooleanField()
+    saveSimulationProfiles = models.BooleanField()
 
 
     def getDirname(self):
@@ -631,8 +631,8 @@ class Input(models.Model):
             initial['drawMolecules'] = True
         if self.rmg.generatePlots:
             initial['generatePlots'] = True
-        if self.rmg.saveConcentrationProfiles:
-            initial['saveConcentrationProfiles'] = True       
+        if self.rmg.saveSimulationProfiles:
+            initial['saveSimulationProfiles'] = True       
             
         return initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial
         
@@ -726,7 +726,7 @@ class Input(models.Model):
         self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
         self.rmg.drawMolecules = form.cleaned_data['drawMolecules']
         self.rmg.generatePlots = form.cleaned_data['generatePlots']
-        self.rmg.saveConcentrationProfiles = form.cleaned_data['saveConcentrationProfiles']
+        self.rmg.saveSimulationProfiles = form.cleaned_data['saveSimulationProfiles']
 
         # Save the input.py file        
         self.rmg.saveInput(self.savepath)
