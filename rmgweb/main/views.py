@@ -143,6 +143,11 @@ def getAdjacencyList(request, identifier):
     E.g. it thinks CC[CH] is CCC, so we first try to use the identifier
     directly as a SMILES string, and only pass it through the resolver
     if that does not work. 
+    
+    For specific problematic cases, the NCI resolver is bypassed and the SMILES
+    is returned from a dictionary of values. For O2, the resolver returns the singlet
+    form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
+    is the SMILES for water.
     """
     if identifier.strip() == '':
         return HttpResponse('', mimetype="text/plain")
@@ -152,13 +157,19 @@ def getAdjacencyList(request, identifier):
         # try using the string as a SMILES directly
         molecule.fromSMILES(str(identifier))
     except (IOError, ValueError):
-        # try converting it to a SMILES using the NCI chemical resolver 
-        url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
-        try:
-            f = urllib2.urlopen(url, timeout=5)
-        except urllib2.URLError, e:
-            return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(identifier, e, url))
-        smiles = f.read()
+        known_names = {'O2':'[O][O]',
+                       'oxygen':'[O][O]'}
+        key = str(identifier)
+        if key in known_names:
+            smiles = known_names[key]
+        else:
+            # try converting it to a SMILES using the NCI chemical resolver 
+            url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+            try:
+                f = urllib2.urlopen(url, timeout=5)
+            except urllib2.URLError, e:
+                return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(identifier, e, url))
+            smiles = f.read()
         molecule.fromSMILES(smiles)
     
     adjlist = molecule.toAdjacencyList(removeH=False)
