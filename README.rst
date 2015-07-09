@@ -26,7 +26,7 @@ Django (http://www.djangoproject.com/)
     Version 1.3.0 or later is required.
 	1.5.0 or later is recommended.
 
-RMG-Py  (http://github.com/GreenGroup/RMG-Py)
+RMG-Py  (http://github.com/ReactionMechanismGenerator/RMG-Py)
     Development of the website closely mirrors that of RMG-Py, and in general
     you will need to checkout and update the RMG-Py repository whenever you
     update this repository.
