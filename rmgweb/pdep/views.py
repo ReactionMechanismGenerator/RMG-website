@@ -48,18 +48,18 @@ from forms import *
 
 def index(request):
     """
-    The MEASURE homepage.
+    The Pressure Dependent Networks homepage.
     """
     if request.user.is_authenticated():
         networks = Network.objects.filter(user=request.user)
     else:
         networks = []
-    return render_to_response('measure.html', {'networks': networks}, context_instance=RequestContext(request))
+    return render_to_response('pdep.html', {'networks': networks}, context_instance=RequestContext(request))
 
 @login_required
 def start(request):
     """
-    A view called when a user wants to begin a new MEASURE calculation. This
+    A view called when a user wants to begin a new Pdep Network calculation. This
     view creates a new Network and redirects the user to the main page for that
     network.
     """
@@ -201,11 +201,11 @@ def networkDrawPNG(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in PNG format.
     """
-    from rmgpy.measure.main import execute
+    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
-    # Run MEASURE to draw the PES
+    # Run CanTherm to draw the PES
     execute(
         inputFile = network.getInputFilename(),
         drawFile = network.getSurfaceFilenamePNG(),
@@ -219,11 +219,11 @@ def networkDrawPDF(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in PDF format.
     """
-    from rmgpy.measure.main import execute
+    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
-    # Run MEASURE to draw the PES
+    # Run CanTherm to draw the PES
     execute(
         inputFile = network.getInputFilename(),
         drawFile = network.getSurfaceFilenamePDF(),
@@ -237,11 +237,11 @@ def networkDrawSVG(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in SVG format.
     """
-    from rmgpy.measure.main import execute
+    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
-    # Run MEASURE to draw the PES
+    # Run CanTherm to draw the PES
     # For some reason SVG drawing seems to be much slower than the other formats
     execute(
         inputFile = network.getInputFilename(),
@@ -253,14 +253,14 @@ def networkDrawSVG(request, networkKey):
 
 def networkRun(request, networkKey):
     """
-    A view called when a user wants to run MEASURE on the input file for a
+    A view called when a user wants to run CanTherm on the pdep input file for a
     given Network.
     """
-    from rmgpy.measure.main import execute
+    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
-    # Run MEASURE! This may take some time...
+    # Run CanTherm! This may take some time...
     execute(
         inputFile = network.getInputFilename(),
         outputFile = network.getOutputFilename(),

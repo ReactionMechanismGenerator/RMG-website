@@ -63,7 +63,7 @@ class Network(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)
-        self.measure = None
+        self.pdep = None
 
     def getDirname(self):
         """
@@ -88,7 +88,7 @@ class Network(models.Model):
         """
         Return the absolute path of the log file.
         """
-        return os.path.join(self.getDirname(), 'MEASURE.log')
+        return os.path.join(self.getDirname(), 'cantherm.log')
     
     def getSurfaceFilenamePNG(self):
         """
@@ -274,20 +274,20 @@ class Network(models.Model):
     
     def load(self):
         """
-        Load the contents of the input and output files into a MEASURE object.
+        Load the contents of the input and output files into a PressureDependenceJob object.
         """
-        from rmgpy.measure.main import MEASURE
+        from rmgpy.cantherm.pdep import PressureDependenceJob
         
-        self.measure = MEASURE()
+        self.pdep = PressureDependenceJob()
         
         if self.outputFileExists():
-            self.measure.loadOutput(self.getOutputFilename())
+            self.pdep.loadOutput(self.getOutputFilename())
         elif self.inputFileExists():
-            self.measure.loadInput(self.getInputFilename())
+            self.pdep.loadInput(self.getInputFilename())
         
-        if self.measure.network is not None:
-            self.title = self.measure.network.title
+        if self.pdep.network is not None:
+            self.title = self.pdep.network.title
             self.save()
         
-        return self.measure.network
+        return self.pdep.network
     
