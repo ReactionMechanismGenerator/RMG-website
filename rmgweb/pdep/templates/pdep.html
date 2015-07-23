@@ -3,23 +3,25 @@
 {# Required if running Django 1.3 or 1.4 #}
 {% load url from future %}
 
-{% block title %}RMG: CanTherm: Pressure Dependent Networks{% endblock %}
+{% block title %}RMG: Pressure Dependent Networks{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'main.views.cantherm' %}">CanTherm</a>  &raquo;
 <a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a>
 {% endblock %}
 
 {% block sidebar_items %}
 {% endblock %}
 
-{% block page_title %}CanTherm: Pressure Dependent Networks{% endblock %}
+{% block page_title %}Pressure Dependent Networks{% endblock %}
 
 {% block page_body %}
 
 
-<p><strong>CanTherm</strong> computes pressure-dependent rate
-coefficients <i>k</i>(<i>T</i>,<i>P</i>)</span> for chemical reaction networks.
+<p><strong>CanTherm</strong> can estimate pressure-dependent phenomenological rate coefficients k(T,P) for unimolecular reaction networks of arbitrary complexity. 
+The approach is to first generate a detailed model of the reaction network using the one-dimensional master equation,
+ then apply one of several available model reduction methods of varying accuracy, speed, and robustness to simplify the detailed model 
+ into a set of phenomenological rate coefficients. The result is a set of k(T,P) functions suitable for use in chemical reaction mechanisms.
+ 
 You can use it right from your web browser by following the links below:</p>
 
 <p class="biglink"><a href="{% url 'pdep.views.start' %}">Pressure Dependent Networks</a></p>
