@@ -6,7 +6,7 @@
 {% block title %}Edit Input File{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
 <a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">Network {{ networkKey }}</a> &raquo;
 <a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">Edit</a>
 {% endblock %}
@@ -29,8 +29,8 @@
 {% block page_body %}
 
 <p>
-For more information on the MEASURE input file format,
-<a href="/documentation/users/measure/input.html">click here</a>.
+For more information on the CanTherm input file format for pressure dependent networks,
+<a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/cantherm/input_pdep.html">click here</a>.
 </p>
 
 <form action="" method="POST">{% csrf_token %}

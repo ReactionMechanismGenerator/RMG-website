@@ -6,7 +6,7 @@
 {% block title %}{{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
 <a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a>
 {% endblock %}
 
@@ -149,7 +149,7 @@
 <br/>
 {% endif %}
 {% if network.logFileExists %}
-{% include "networkFile.html" with filename="MEASURE.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
+{% include "networkFile.html" with filename="cantherm.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
 <br/>
 {% endif %}
 

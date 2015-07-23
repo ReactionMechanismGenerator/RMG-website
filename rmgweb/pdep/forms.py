@@ -40,7 +40,7 @@ from models import *
 
 class EditNetworkForm(forms.ModelForm):
     """
-    A Django form for editing a MEASURE input file.
+    A Django form for editing a CanTherm pressure dependent input file.
     """
     class Meta:
         model = Network
@@ -50,7 +50,7 @@ class EditNetworkForm(forms.ModelForm):
 
 class UploadNetworkForm(forms.ModelForm):
     """
-    A Django form for uploading a MEASURE input file.
+    A Django form for uploading a CanTherm pressure dependent input file.
     """
     class Meta:
         model = Network
