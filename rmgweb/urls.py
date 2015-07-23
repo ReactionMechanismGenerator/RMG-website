@@ -68,10 +68,6 @@ urlpatterns = patterns('rmgweb',
     # Database
     (r'^database/', include('database.urls')),
 
-
-    # CanTherm 
-    (r'^cantherm/', include('main.views.cantherm')),
-    
     # Pressure dependence
     (r'^pdep/', include('pdep.urls')),
 
