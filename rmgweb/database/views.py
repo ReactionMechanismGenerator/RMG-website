@@ -49,8 +49,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 import rmgweb.settings
 
-import exportOldDatabase
-
 # from django.forms.models import BaseInlineFormSet, inlineformset_factory
 # from rmgweb.rmg.models import *
 # from rmgweb.rmg.forms import *
@@ -117,9 +115,8 @@ def export(request, type):
     if not os.path.exists(os.path.join(path, file)):
 
         # Export old database
-        exportOldDatabase.export(rmgweb.settings.DATABASE_PATH,
-                                 output,
-                                 loadDatabase())
+        cmd_export = ['python', rmgweb.settings.DATABASE_PATH + '../scripts/exportOldDatabase.py', output]
+        subprocess.check_call(cmd_export)
 
         # Compress database to zip
         cmd_zip = ['zip', '-r', base, 'RMG_database']
