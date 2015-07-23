@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
+{% block title %}RMG: CanTherm{% endblock %}
+
+{% block navbar_items %}
+<a href="{% url 'main.views.cantherm' %}">CanTherm</a>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}CanTherm{% endblock %}
+
+{% block page_body %}
+
+\
+<p class="biglink">Calculating Thermodynamic Parameters and Rate Coefficients from Quantum Chemical Calculations</a></p>
+
+
+<b>CanTherm</b> can be used to compute the thermodynamic properties of chemical species and high-pressure-limit rate coefficients for
+ chemical reactions using the results of a quantum chemistry calculation. Thermodynamic properties are computed using the rigid rotor-harmonic 
+ oscillator approximation with optional corrections for hindered internal rotors. Kinetic parameters are computed using canonical transition
+  state theory with optional tunneling correction.
+  
+Currently, there is no web module for running this part of CanTherm.
+
+ 
+<p class="biglink"><a href="{% url 'pdep.views.start' %}">Pressure Dependent Networks</a></p>
+
+CanTherm can also estimate pressure-dependent phenomenological rate coefficients k(T,P) for unimolecular reaction networks of arbitrary complexity. 
+The approach is to first generate a detailed model of the reaction network using the one-dimensional master equation,
+ then apply one of several available model reduction methods of varying accuracy, speed, and robustness to simplify the detailed model 
+ into a set of phenomenological rate coefficients. The result is a set of k(T,P) functions suitable for use in chemical reaction mechanisms.
+ 
+ Clicking the link above will allow you to generate pressure-dependent rate coefficients online.
+
+{% endblock %}
