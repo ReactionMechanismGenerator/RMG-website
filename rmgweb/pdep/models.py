@@ -293,7 +293,7 @@ class Network(models.Model):
         self.pdep = job #PressureDependenceJob(network=None)
         
         if self.pdep.network is not None:
-            self.title = self.pdep.network.title
+            self.title = self.pdep.network.label
             self.save()
         
         return self.pdep.network
