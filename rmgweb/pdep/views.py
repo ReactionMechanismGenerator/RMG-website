@@ -105,16 +105,18 @@ def networkIndex(request, networkKey):
             speciesType = []
             if spec in network.isomers:
                 speciesType.append('isomer')
-            if any([spec in reactants for reactants in network.reactants]):
+            print network.reactants
+            if any([spec in reactants.species for reactants in network.reactants]):
                 speciesType.append('reactant')
-            if any([spec in products for products in network.products]):
+            if any([spec in products.species for products in network.products]):
                 speciesType.append('product')
             if spec in network.bathGas:
                 speciesType.append('bath gas')
-            collision = 'yes' if spec.lennardJones is not None else ''
-            states = 'yes' if spec.states is not None else ''
-            thermo = 'yes' if spec.states is not None or spec.thermo is not None else ''
-            speciesList.append((spec.label, getStructureMarkup(spec), ', '.join(speciesType), collision, states, thermo))
+            print repr(spec)
+            collision = 'yes' if spec.transportData is not None else ''
+            conformer = 'yes' if spec.conformer is not None else ''
+            thermo = 'yes' if spec.conformer is not None or spec.thermo is not None else ''
+            speciesList.append((spec.label, getStructureMarkup(spec), ', '.join(speciesType), collision, conformer, thermo))
     
     # Get path reaction information
     pathReactionList = []
@@ -123,9 +125,9 @@ def networkIndex(request, networkKey):
             reactants = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.reactants])
             products = ' + '.join([getStructureMarkup(reactant) for reactant in rxn.products])
             arrow = '&hArr;' if rxn.reversible else '&rarr;'
-            states = 'yes' if rxn.transitionState.states is not None else ''
+            conformer = 'yes' if rxn.transitionState.conformer is not None else ''
             kinetics = 'yes' if rxn.kinetics is not None else ''
-            pathReactionList.append((reactants, arrow, products, states, kinetics))
+            pathReactionList.append((reactants, arrow, products, conformer, kinetics))
     
     # Get net reaction information
     netReactionList = []
@@ -147,7 +149,6 @@ def networkIndex(request, networkKey):
             'netReactionList': netReactionList, 
             'filesize': filesize, 
             'modificationTime': modificationTime,
-            'errorString': network.errorString if network else '',
         }, 
         context_instance=RequestContext(request),
     )
@@ -219,13 +220,12 @@ def networkDrawPDF(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in PDF format.
     """
-    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
     # Run CanTherm to draw the PES
-    execute(
-        inputFile = network.getInputFilename(),
+    network.execute(
+        outputFile = network.getOutputFilename(),
         drawFile = network.getSurfaceFilenamePDF(),
     )
     
@@ -256,14 +256,13 @@ def networkRun(request, networkKey):
     A view called when a user wants to run CanTherm on the pdep input file for a
     given Network.
     """
-    from rmgpy.cantherm.main import execute
     
     network = get_object_or_404(Network, pk=networkKey)
     
     # Run CanTherm! This may take some time...
-    execute(
-        inputFile = network.getInputFilename(),
+    network.execute(
         outputFile = network.getOutputFilename(),
+        plot = False
     )
     
     # Go back to the network's main page
@@ -286,9 +285,9 @@ def networkSpecies(request, networkKey, species):
         raise Http404
     
     structure = getStructureMarkup(species)
-    E0 = '{0:g}'.format(species.E0.value / 1000.)
-    states = species.states
-    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
+    E0 = '{0:g}'.format(species.conformer.E0.value_si / 4184.)  # convert to kcal/mol
+    conformer = species.conformer
+    hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
     thermo = species.thermo
     
     return render_to_response(
@@ -300,7 +299,7 @@ def networkSpecies(request, networkKey, species):
             'label': label,
             'structure': structure,
             'E0': E0,
-            'states': states,
+            'conformer': conformer,
             'hasTorsions': hasTorsions,
             'thermo': thermo,
         }, 
@@ -329,13 +328,13 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
     for i in range(Nisom):
         for rxn in network.pathReactions:
             if rxn.reactants[0] == network.isomers[i] or rxn.products[0] == network.isomers[i]:
-                if rxn.transitionState.E0.value < Ereac[i]:
-                    Ereac[i] = rxn.transitionState.E0.value
+                if rxn.transitionState.conformer.E0.value_si < Ereac[i]:
+                    Ereac[i] = rxn.transitionState.conformer.E0.value
 
     # Shift energy grains such that lowest is zero
     Emin = Elist[0]
     for rxn in network.pathReactions:
-        rxn.transitionState.E0.value -= Emin
+        rxn.transitionState.conformer.E0.value -= Emin
     E0 -= Emin
     Ereac -= Emin
     Elist -= Emin
@@ -370,10 +369,10 @@ def networkPathReaction(request, networkKey, reaction):
     products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
     
-    E0 = '{0:g}'.format(reaction.transitionState.E0.value / 1000.)
+    E0 = '{0:g}'.format(reaction.transitionState.conformer.E0.value_si / 4184.) # convert to kcal/mol
     
-    states = reaction.transitionState.states
-    hasTorsions = states and any([isinstance(mode, HinderedRotor) for mode in states.modes])
+    conformer = reaction.transitionState.conformer
+    hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
     kinetics = reaction.kinetics
     
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
@@ -423,7 +422,7 @@ def networkPathReaction(request, networkKey, reaction):
             'products': products,
             'arrow': arrow,
             'E0': E0,
-            'states': states,
+            'conformer': conformer,
             'hasTorsions': hasTorsions,
             'kinetics': kinetics,
             'microcanonicalRates': microcanonicalRates,

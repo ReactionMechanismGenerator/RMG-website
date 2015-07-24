@@ -274,16 +274,23 @@ class Network(models.Model):
     
     def load(self):
         """
-        Load the contents of the input and output files into a PressureDependenceJob object.
+        Load the contents of the input file into a PressureDependenceJob object.
         """
         from rmgpy.cantherm.pdep import PressureDependenceJob
+        from rmgpy.cantherm.input import loadInputFile
         
-        self.pdep = PressureDependenceJob(network=None)
         
-        if self.outputFileExists():
-            self.pdep.loadOutput(self.getOutputFilename())
-        elif self.inputFileExists():
-            self.pdep.loadInput(self.getInputFilename())
+        #if self.outputFileExists():
+        #    self.pdep.loadOutput(self.getOutputFilename())
+        if self.inputFileExists():
+            jobList = loadInputFile(self.getInputFilename())
+            assert len(jobList) == 1
+            job = jobList[0]
+            if isinstance(job, PressureDependenceJob) is False:
+                raise Exception('Input file given did not provide a pressure dependence network.')
+        
+        
+        self.pdep = job #PressureDependenceJob(network=None)
         
         if self.pdep.network is not None:
             self.title = self.pdep.network.title

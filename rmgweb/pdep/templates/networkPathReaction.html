@@ -31,11 +31,11 @@ jQuery(document).ready(function() {
     {% include "kineticsModel.js" %}
     {% endif %}
     
-    {% if states %}
+    {% if conformer %}
     var Qseries = new Array();
     var rhoseries = new Array();
     var Vseries = new Array();
-    {{ states|get_states_data:user }}
+    {{ conformer|get_states_data:user }}
     {% include "statesModel.js" %}
     {% endif %}
     
@@ -113,7 +113,7 @@ jQuery(document).ready(function() {
         {% if kinetics %}
         plotKinetics('plotk', kseries);
         {% endif %}
-        {% if statesParameters %}
+        {% if conformer %}
         plotPartitionFunction('plotQ', Qseries);
         plotDensityOfStates('plotRho', rhoseries);
         if (Vseries.length > 0)
@@ -147,7 +147,7 @@ jQuery(document).ready(function() {
 
 <h2>Transition-state energy</h2>
 
-<p>{{ E0 }} kJ/mol</p>
+<p>{{ E0 }} kcal/mol</p>
 
 {% if kinetics %}
 <h2>High-Pressure Limit Kinetics</h2>
@@ -157,9 +157,9 @@ jQuery(document).ready(function() {
 
 {% endif %}
 
-{% if states %}
+{% if conformer %}
 <h2>Transition State Degrees of Freedom</h2>
-{{ states|render_states_math:user }}
+{{ conformer|render_states_math:user }}
     
 <div id="plotQ" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotRho" style="width: 500px; height: 300px; margin: auto;"></div>
