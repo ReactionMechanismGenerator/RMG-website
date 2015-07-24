@@ -697,7 +697,7 @@ class Input(models.Model):
         # Pressure Dependence
         pdep = form.cleaned_data['pdep'].encode()
         if pdep != 'off':
-            self.rmg.pressureDependence = PressureDependenceJob()
+            self.rmg.pressureDependence = PressureDependenceJob(network=None)
             self.rmg.pressureDependence.method = pdep
             # Temperature and pressure range
             self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])

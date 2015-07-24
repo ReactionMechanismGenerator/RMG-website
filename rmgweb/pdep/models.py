@@ -278,7 +278,7 @@ class Network(models.Model):
         """
         from rmgpy.cantherm.pdep import PressureDependenceJob
         
-        self.pdep = PressureDependenceJob()
+        self.pdep = PressureDependenceJob(network=None)
         
         if self.outputFileExists():
             self.pdep.loadOutput(self.getOutputFilename())
