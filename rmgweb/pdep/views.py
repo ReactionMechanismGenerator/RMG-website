@@ -311,40 +311,55 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
     Compute all of the microcanonical rate coefficients k(E) for the given
     network.
     """
-    Elist = network.autoGenerateEnergyGrains(Tmax=2000, grainSize=0.5*4184, Ngrains=250)
-
+    if network.Elist is None:
+        Elist = network.selectEnergyGrains(T=2000, grainSize=0.5*4184, grainCount=250)
+        network.Elist = Elist
+    else:
+        Elist = network.Elist
     # Determine the values of some counters
-    Ngrains = len(Elist)
+    # Ngrains = len(Elist)
     Nisom = len(network.isomers)
     Nreac = len(network.reactants)
     Nprod = len(network.products)
-    dE = Elist[1] - Elist[0]
-
-    # Get ground-state energies of all configurations
-    E0 = network.calculateGroundStateEnergies()
+#    dE = Elist[1] - Elist[0]
+#
+#    # Get ground-state energies of all configurations
+#    E0 = network.calculateGroundStateEnergies()
+#    
+#    # Get first reactive grain for each isomer
+#    Ereac = numpy.ones(Nisom, numpy.float64) * 1e20
+#    for i in range(Nisom):
+#        for rxn in network.pathReactions:
+#            if rxn.reactants[0] == network.isomers[i] or rxn.products[0] == network.isomers[i]:
+#                if rxn.transitionState.conformer.E0.value_si < Ereac[i]:
+#                    Ereac[i] = rxn.transitionState.conformer.E0.value
+#
+#    # Shift energy grains such that lowest is zero
+#    Emin = Elist[0]
+#    for rxn in network.pathReactions:
+#        rxn.transitionState.conformer.E0.value -= Emin
+#    E0 -= Emin
+#    Ereac -= Emin
+#    Elist -= Emin
+    if not hasattr(network, 'densStates'):
+        # Calculate density of states for each isomer and each reactant channel
+        # that has the necessary parameters
+        network.calculateDensitiesOfStates()
+        # Map the densities of states onto this set of energies
+        # Also shift each density of states to a common zero of energy
+        network.mapDensitiesOfStates()
+        
+        # Use free energy to determine equilibrium ratios of each isomer and product channel
+        network.calculateEquilibriumRatios()
+        network.calculateMicrocanonicalRates()
+        
+    densStates0 = network.densStates
+    Kij = network.Kij
+    Gnj = network.Gnj
+    Fim = network.Fim
     
-    # Get first reactive grain for each isomer
-    Ereac = numpy.ones(Nisom, numpy.float64) * 1e20
-    for i in range(Nisom):
-        for rxn in network.pathReactions:
-            if rxn.reactants[0] == network.isomers[i] or rxn.products[0] == network.isomers[i]:
-                if rxn.transitionState.conformer.E0.value_si < Ereac[i]:
-                    Ereac[i] = rxn.transitionState.conformer.E0.value
-
-    # Shift energy grains such that lowest is zero
-    Emin = Elist[0]
-    for rxn in network.pathReactions:
-        rxn.transitionState.conformer.E0.value -= Emin
-    E0 -= Emin
-    Ereac -= Emin
-    Elist -= Emin
-
-    # Calculate density of states for each isomer and each reactant channel
-    # that has the necessary parameters
-    densStates0 = network.calculateDensitiesOfStates(Elist, E0)
-    Kij, Gnj, Fim = network.calculateMicrocanonicalRates(Elist, densStates0, T=1000)
     
-    Elist += Emin
+    #Elist += Emin
     
     return Kij, Gnj, Fim, Elist, densStates0, Nisom, Nreac, Nprod
 

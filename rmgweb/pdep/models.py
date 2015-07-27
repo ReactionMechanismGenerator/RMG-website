@@ -292,6 +292,7 @@ class Network(models.Model):
             if isinstance(job, PressureDependenceJob) is False:
                 raise Exception('Input file given did not provide a pressure dependence network.')
             self.pdep = job 
+            self.pdep.initialize()
         
         if self.pdep.network is not None:
             self.title = self.pdep.network.label
