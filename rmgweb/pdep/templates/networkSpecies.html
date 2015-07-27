@@ -73,11 +73,14 @@ jQuery(document).ready(function() {
 
 <p>{{ structure|safe }}</p>
 
+
+{% if E0 %}
 <h2>Ground-state energy</h2>
 
 <p>{{ E0 }} kcal/mol</p>
+{% endif %}
 
-{% if species.lennardJones %}
+{% if species.transportData %}
 <h2>Collision Parameters</h2>
 {{ species|render_collision_math:user }}
 

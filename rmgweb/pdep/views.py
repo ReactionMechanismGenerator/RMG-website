@@ -285,10 +285,12 @@ def networkSpecies(request, networkKey, species):
         raise Http404
     
     structure = getStructureMarkup(species)
-    E0 = '{0:g}'.format(species.conformer.E0.value_si / 4184.)  # convert to kcal/mol
-    conformer = species.conformer
-    hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
-    thermo = species.thermo
+    E0 = None
+    if species.conformer:
+        conformer = species.conformer
+        hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
+        if conformer.E0:
+            E0 = '{0:g}'.format(conformer.E0.value_si / 4184.)  # convert to kcal/mol
     
     return render_to_response(
         'networkSpecies.html', 
@@ -299,9 +301,7 @@ def networkSpecies(request, networkKey, species):
             'label': label,
             'structure': structure,
             'E0': E0,
-            'conformer': conformer,
             'hasTorsions': hasTorsions,
-            'thermo': thermo,
         }, 
         context_instance=RequestContext(request),
     )
