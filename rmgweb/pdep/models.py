@@ -279,7 +279,10 @@ class Network(models.Model):
         from rmgpy.cantherm.pdep import PressureDependenceJob
         from rmgpy.cantherm.input import loadInputFile
         
-        
+        # Seed with a PdepJob object
+        if self.pdep is None:
+            self.pdep = PressureDependenceJob(network=None)
+            
         #if self.outputFileExists():
         #    self.pdep.loadOutput(self.getOutputFilename())
         if self.inputFileExists():
@@ -288,9 +291,7 @@ class Network(models.Model):
             job = jobList[0]
             if isinstance(job, PressureDependenceJob) is False:
                 raise Exception('Input file given did not provide a pressure dependence network.')
-        
-        
-        self.pdep = job #PressureDependenceJob(network=None)
+            self.pdep = job 
         
         if self.pdep.network is not None:
             self.title = self.pdep.network.label
