@@ -18,14 +18,7 @@
 
 {% block page_body %}
 
-<h2>Simulation</h2>
-	<ol>
-        <li><a href="{% url 'rmg.views.input' %}">Create Input File</a>: generate an input file for an RMG-Py job through a web form, or 
-        upload an existing input file for easy editing through the web form.<P>
-        <li><b>Submit Job:</b> Submit a RMG-Py job online by providing your email address.  We will email you the result when it's done.
-</ol>
 
-<h2>Tools</h2>
     <ol>
         <li><a href ="{% url 'rmg.views.convertChemkin' %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
             and RMG-generated species dictionary.<P>
