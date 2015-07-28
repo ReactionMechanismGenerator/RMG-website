@@ -504,6 +504,21 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
+    # Generated Species Constraints
+    on_off=(('off','off',),('on','on',))
+    speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
+    allowed_inputSpecies = models.BooleanField(default = True)
+    allowed_seedMechanisms = models.BooleanField(default = True)
+    allowed_reactionLibraries = models.BooleanField(default = True)
+    maximumCarbonAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumHydrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumOxygenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumNitrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumSiliconAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumSulfurAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
+    allowSingletO2 = models.BooleanField()
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
@@ -511,6 +526,8 @@ class Input(models.Model):
     drawMolecules=models.BooleanField()
     generatePlots=models.BooleanField()
     saveSimulationProfiles = models.BooleanField()
+    saveEdgeSpecies = models.BooleanField()
+    verboseComments = models.BooleanField()
 
 
     def getDirname(self):
@@ -622,6 +639,14 @@ class Input(models.Model):
         else:
             initial['pdep'] = 'off'    
             
+        # Species Constraints
+        if self.rmg.speciesConstraints:
+            initial['speciesConstraints'] = 'on'
+            for key, value in self.rmg.speciesConstraints.items():
+                initial[key] = value
+        else:
+            initial['speciesConstraints'] = 'off'
+            
         # Additional Options
         if self.rmg.saveRestartPeriod:
             initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
@@ -631,7 +656,11 @@ class Input(models.Model):
         if self.rmg.generatePlots:
             initial['generatePlots'] = True
         if self.rmg.saveSimulationProfiles:
-            initial['saveSimulationProfiles'] = True       
+            initial['saveSimulationProfiles'] = True
+        if self.rmg.saveEdgeSpecies:
+            initial['saveEdgeSpecies'] = True
+        if self.rmg.verboseComments:
+            initial['verboseComments'] = True
             
         return initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial
         
@@ -726,7 +755,27 @@ class Input(models.Model):
         self.rmg.drawMolecules = form.cleaned_data['drawMolecules']
         self.rmg.generatePlots = form.cleaned_data['generatePlots']
         self.rmg.saveSimulationProfiles = form.cleaned_data['saveSimulationProfiles']
-
+        self.rmg.saveEdgeSpecies = form.cleaned_data['saveEdgeSpecies']
+        self.rmg.verboseComments = form.cleaned_data['verboseComments']
+        
+        # Species Constraints
+        speciesConstraints = form.cleaned_data['speciesConstraints']
+        if speciesConstraints == 'on':
+            allowed = []
+            if form.cleaned_data['allowed_inputSpecies']: allowed.append('input species')
+            if form.cleaned_data['allowed_seedMechanisms']: allowed.append('seed mechanisms')
+            if form.cleaned_data['allowed_reactionLibraries']: allowed.append('reaction libraries')
+            self.rmg.speciesConstraints['allowed'] = allowed
+            self.rmg.speciesConstraints['maximumCarbonAtoms'] = form.cleaned_data['maximumCarbonAtoms']
+            self.rmg.speciesConstraints['maximumHydrogenAtoms'] = form.cleaned_data['maximumHydrogenAtoms']
+            self.rmg.speciesConstraints['maximumOxygenAtoms'] = form.cleaned_data['maximumOxygenAtoms']
+            self.rmg.speciesConstraints['maximumNitrogenAtoms'] = form.cleaned_data['maximumNitrogenAtoms']
+            self.rmg.speciesConstraints['maximumSiliconAtoms'] = form.cleaned_data['maximumSiliconAtoms']
+            self.rmg.speciesConstraints['maximumSulfurAtoms'] = form.cleaned_data['maximumSulfurAtoms']
+            self.rmg.speciesConstraints['maximumHeavyAtoms'] = form.cleaned_data['maximumHeavyAtoms']
+            self.rmg.speciesConstraints['maximumRadicalElectrons'] = form.cleaned_data['maximumRadicalElectrons']
+            self.rmg.speciesConstraints['allowSingletO2'] = form.cleaned_data['allowSingletO2']
+        
         # Save the input.py file        
         self.rmg.saveInput(self.savepath)
 

@@ -102,9 +102,25 @@ function initMenu2(){
   }
 }
 
+function initMenu3(){
+  var menus, menu, text, a, i;
+  menus = getChildrenByElement(document.getElementById("constraintmenu"));
+  for(i = 0; i < menus.length; i++){
+    menu = menus[i];
+    text = getFirstChildByText(menu);
+    a = document.createElement("a");
+    menu.replaceChild(a, text);
+    a.appendChild(text);
+    a.href = "#";
+    a.onclick = showMenu;
+    a.onfocus = function(){this.blur()};
+  }
+}
+
 function start() {
   initMenu();
   initMenu2();
+  initMenu3();
 }
 
 if(document.createElement) window.onload = start;

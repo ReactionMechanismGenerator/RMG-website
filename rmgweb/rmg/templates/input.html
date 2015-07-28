@@ -157,6 +157,12 @@ ul {
   margin: 0;
 }
 
+ ul#constraintmenu ol {
+  display: none;
+  list-style-type: none;
+  margin: 0;
+}
+
  .delete-row {
         margin-left:30px;
         font-weight:bold;
@@ -391,12 +397,40 @@ This is translated into an adjacency list using the <a href="http://cactus.nci.n
                 <br><table><tr><th>Absolute Tolerance: </th><td> {{ form.simulator_atol }}</td></tr>
                 <tr><th>Relative Rolerance: </th><td> {{ form.simulator_rtol }}</td></tr></table>
             </li></ol>
-  </li></ul>
+			</li></ul>
 
             <P><br>
-
+            
             <ol>
-        <li value="7"><h3>Additional Options</h3>
+            <li value="7"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
+            Optional constraints on allowed species.
+            
+            <P><table>
+                <tr><th>Maximum Carbon Atoms:</th><td>{{ form.maximumCarbonAtoms }}</td></tr>
+                <tr><th>Maximum Hydrogen Atoms:</th><td>{{ form.maximumHydrogenAtoms }}</td></tr>
+                <tr><th>Maximum Oxygen Atoms:</th><td>{{ form.maximumOxygenAtoms }}</td></tr>
+                <tr><th>Maximum Nitrogen Atoms:</th><td>{{ form.maximumNitrogenAtoms }}</td></tr>
+                <tr><th>Maximum Silicon Atoms:</th><td>{{ form.maximumSiliconAtoms }}</td></tr>
+                <tr><th>Maximum Sulfur Atoms:</th><td>{{ form.maximumSulfurAtoms }}</td></tr>
+                <tr><th>Maximum Heavy Atoms:</th><td>{{ form.maximumHeavyAtoms }}</td></tr>
+                <tr><th>Maximum Radical Electrons:</th><td>{{ form.maximumRadicalElectrons }}</td></tr>
+            </table>
+
+            </ol>
+            
+            <ul id="constraintmenu"><li>[x] Advanced Options
+            <ol><li><table>
+            	<tr><th>Allow Input Species:</th><td>{{ form.allowed_inputSpecies }}</td></tr>
+            	<tr><th>Allow Seed Mechanisms:</th><td>{{ form.allowed_seedMechanisms }}</td></tr>
+            	<tr><th>Allow Reaction Libraries:</th><td>{{ form.allowed_reactionLibraries }}</td></tr>
+                <tr><th>Allow Singlet O2:</th><td>{{ form.allowSingletO2 }}</td></tr></table>
+            </li></ol>
+			</li></ul>
+
+            <P><br>
+            
+            <ol>
+        	<li value="8"><h3>Additional Options</h3>
         	Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
         	of a run rather than starting completely from scratch if there is a failure or memory issue.          	
         	The save restart period may be optionally left empty if no restart files are desired.  
@@ -410,8 +444,12 @@ This is translated into an adjacency list using the <a href="http://cactus.nci.n
                 <tr><th>Generate Plots:</th><td>
                 {{ form.generatePlots }}</td></tr>
                 <tr><th>Save Concentration Profiles:</th><td>
-                {{ form.saveSimulationProfiles }}</td></tr></table>
-    </ol>
+                {{ form.saveSimulationProfiles }}</td></tr>
+                <tr><th>Save Edge Species:</th><td>
+                {{ form.saveEdgeSpecies }}</td></tr>
+                <tr><th>Verbose Chemkin Comments:</th><td>
+                {{ form.verboseComments }}</td></tr></table>
+    		</ol>
 
     <P><br>
     <blockquote>
