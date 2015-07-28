@@ -203,17 +203,18 @@ def networkDrawPNG(request, networkKey):
     a given Network in PNG format.
     """
     
-    network = get_object_or_404(Network, pk=networkKey)
+    networkModel = get_object_or_404(Network, pk=networkKey)
     
-    # Run CanTherm to draw the PES
-    network.pdep.execute(
-        outputFile = network.getOutputFilename(),
+    networkModel.load()
+    # Run CanTherm! This may take some time...
+    networkModel.pdep.execute(
+        outputFile = networkModel.getOutputFilename(),
         plot = False, 
         format = 'png'
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
 def networkDrawPDF(request, networkKey):
     """
@@ -221,35 +222,36 @@ def networkDrawPDF(request, networkKey):
     a given Network in PDF format.
     """
     
-    network = get_object_or_404(Network, pk=networkKey)
+    networkModel = get_object_or_404(Network, pk=networkKey)
     
-    # Run CanTherm to draw the PES
-    network.pdep.execute(
-        outputFile = network.getOutputFilename(),
+    networkModel.load()
+    # Run CanTherm! This may take some time...
+    networkModel.pdep.execute(
+        outputFile = networkModel.getOutputFilename(),
         plot = False, 
         format = 'pdf'
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
 def networkDrawSVG(request, networkKey):
     """
     A view called when a user wants to draw the potential energy surface for
     a given Network in SVG format.
     """    
-    network = get_object_or_404(Network, pk=networkKey)
+    networkModel = get_object_or_404(Network, pk=networkKey)
     
-    # Run CanTherm to draw the PES
-    # For some reason SVG drawing seems to be much slower than the other formats
-    network.pdep.execute(
-        outputFile = network.getOutputFilename(),
+    networkModel.load()
+    # Run CanTherm! This may take some time...
+    networkModel.pdep.execute(
+        outputFile = networkModel.getOutputFilename(),
         plot = False, 
         format = 'svg'
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
 def networkRun(request, networkKey):
     """

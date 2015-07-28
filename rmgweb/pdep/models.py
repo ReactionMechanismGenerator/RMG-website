@@ -94,19 +94,19 @@ class Network(models.Model):
         """
         Return the absolute path of the PES image file in PNG format.
         """
-        return os.path.join(self.getDirname(), 'PES.png')
+        return os.path.join(self.getDirname(), 'network.png')
     
     def getSurfaceFilenamePDF(self):
         """
         Return the absolute path of the PES image file in PDF format.
         """
-        return os.path.join(self.getDirname(), 'PES.pdf')
+        return os.path.join(self.getDirname(), 'network.pdf')
     
     def getSurfaceFilenameSVG(self):
         """
         Return the absolute path of the PES image file in SVG format.
         """
-        return os.path.join(self.getDirname(), 'PES.svg')
+        return os.path.join(self.getDirname(), 'network.svg')
     
     def getLastModifiedDate(self):
         """

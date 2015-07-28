@@ -38,7 +38,7 @@
 </div>
 {% endif %}
 <p style="text-align: center;">
-<a href="/media/pdep/networks/{{ networkKey }}/PES.png"><img src="/media/pdep/networks/{{ networkKey }}/PES.png"/></a>
+<a href="/media/pdep/networks/{{ networkKey }}/network.png"><img src="/media/pdep/networks/{{ networkKey }}/network.png"/></a>
 </p>
 {% else %}
 <div class="messagebox">
@@ -137,15 +137,15 @@
 {% endif %}
 
 {% if network.surfaceFilePNGExists %}
-{% include "networkFile.html" with filename="PES.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
+{% include "networkFile.html" with filename="network.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFilePDFExists %}
-{% include "networkFile.html" with filename="PES.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
+{% include "networkFile.html" with filename="network.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFileSVGExists %}
-{% include "networkFile.html" with filename="PES.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
+{% include "networkFile.html" with filename="network.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
 <br/>
 {% endif %}
 
