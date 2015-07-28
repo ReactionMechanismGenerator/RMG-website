@@ -22,25 +22,25 @@ The approach is to first generate a detailed model of the reaction network using
  then apply one of several available model reduction methods of varying accuracy, speed, and robustness to simplify the detailed model 
  into a set of phenomenological rate coefficients. The result is a set of k(T,P) functions suitable for use in chemical reaction mechanisms.
  
-You can use it right from your web browser by following the links below:</p>
+You can use it right from your web browser by following the link below:</p>
 
-<p class="biglink"><a href="{% url 'pdep.views.start' %}">Pressure Dependent Networks</a></p>
-
-<p class="biglink"><a href="{% url 'pdep.views.start' %}">Create new network</a></p>
+<p class="biglink"><a href="{% url 'pdep.views.start' %}">Create New Pressure Dependent Network</a></p>
 
 {% if user.is_authenticated %}
 <h2>Your previous reaction networks</h2>
-<table class="networks">
+<table class="networks" cellpadding="5">
     <tr>
         <th style="width: 8em;">Network Id</th>
         <th>Network Title</th>
-        <th style="width: 8em;"></th>
+        <th style="width: 10em;"></th>
+        <th style="width: 10em;"></th>
     </tr>
 {% for network in networks %}
     <tr>
         <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.pk|slice:":8" }}</a></td>
         <td><a href="{% url 'rmgweb.pdep.views.networkIndex' networkKey=network.pk %}">{{ network.title }}</a></td>
         <td style="font-size: 80%; white-space: nowrap;">Last modified on {{ network.getLastModifiedDate }}</td>
+        <td><a href="{% url 'rmgweb.pdep.views.networkDelete' networkKey=network.pk %}">Delete this Network</a></td>
     </tr>
 {% endfor %}
 </table>

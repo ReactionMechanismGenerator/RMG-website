@@ -175,6 +175,15 @@ def networkEditor(request, networkKey):
         form = EditNetworkForm(instance=network)
     return render_to_response('networkEditor.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
 
+def networkDelete(request, networkKey):
+    """
+    A view called when a user wants to delete a network with the specified networkKey.
+    """
+    network = get_object_or_404(Network, pk=networkKey)
+    network.delete()
+    return HttpResponseRedirect(reverse(index))
+
+
 def networkUpload(request, networkKey):
     """
     A view called when a user wants to add/edit Network input parameters by

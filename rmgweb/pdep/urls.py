@@ -58,4 +58,7 @@ urlpatterns = patterns('rmgweb.pdep',
     (r'^networks/(?P<networkKey>[^/]+)/kinetics$', 'views.networkPlotKinetics'),
     (r'^networks/(?P<networkKey>[^/]+)/microdata$', 'views.networkPlotMicro'),
     
+    # Delete a network    
+    (r'^networks/(?P<networkKey>[^/]+)/delete$', 'views.networkDelete'),
+    
 )
