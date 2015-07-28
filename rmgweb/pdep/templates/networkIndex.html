@@ -1,4 +1,4 @@
-{% extends "pdepbase.html" %}
+{% extends "base.html" %}
 
 {# Required if running Django 1.3 or 1.4 #}
 {% load url from future %}
@@ -6,7 +6,7 @@
 {% block title %}{{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
 <a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a>
 {% endblock %}
 
@@ -24,28 +24,11 @@
 <p class="bigmessage">No input has been provided for this network.</p>
 <p>You can add input by using
 <a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">the editor</a>, or by
-<a href="{% url 'pdep.views.networkUpload 'networkKey=networkKey%}">uploading a file</a>.
+<a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">uploading a file</a>.
 </p>
 </div>
 
 {% else %}
-
-{% if errorString != '' %}
-<div class="warning">
-<p class="bigmessage">One or more errors exists in your input file.</p>
-<p>The error messages are shown below:
-</p>
-<p>
-<textarea style="width: 90%; height: 20em; border: 1px solid #E0C0C0; background-color: inherit">
-{{ errorString }}
-</textarea>
-</p>
-<p>To fix these errors, use
-<a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">the editor</a>, or
-<a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">upload a new file</a>.
-</p>
-</div>
-{% endif %}
 
 <h2>Potential Energy Surface</h2>
 {% if network.surfaceFilePNGExists %}
@@ -55,7 +38,7 @@
 </div>
 {% endif %}
 <p style="text-align: center;">
-<a href="/media/pdep/networks/{{ networkKey }}/PES.png"><img src="/media/pdep/networks/{{ networkKey }}/PES.png"/></a>
+<a href="/media/pdep/networks/{{ networkKey }}/network.png"><img src="/media/pdep/networks/{{ networkKey }}/network.png"/></a>
 </p>
 {% else %}
 <div class="messagebox">
@@ -68,7 +51,7 @@
 {% if network.inputFileExists %}
 <h2>Species</h2>
 <p>
-<table class="networkData">
+<table class="networkData" cellpadding="5">
 <tr>
     <th>Label</th>
     <th>Structure</th>
@@ -92,7 +75,7 @@
 
 <h2>Path Reactions</h2>
 <p>
-<table class="networkData">
+<table class="networkData" cellpadding="5">
 <tr>
     <th>Index</th>
     <th colspan="3">Path reaction</th>
@@ -117,7 +100,7 @@
 {% if network.outputFileExists %}
 <h2>Net Reactions</h2>
 <p>
-<table class="networkData">
+<table class="networkData" cellpadding="5">
 <tr>
     <th>Index</th>
     <th colspan="3">Net reaction</th>
@@ -149,20 +132,20 @@
 <br/>
 {% endif %}
 {% if network.logFileExists %}
-{% include "networkFile.html" with filename="MEASURE.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
+{% include "networkFile.html" with filename="cantherm.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
 <br/>
 {% endif %}
 
 {% if network.surfaceFilePNGExists %}
-{% include "networkFile.html" with filename="PES.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
+{% include "networkFile.html" with filename="network.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFilePDFExists %}
-{% include "networkFile.html" with filename="PES.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
+{% include "networkFile.html" with filename="network.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFileSVGExists %}
-{% include "networkFile.html" with filename="PES.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
+{% include "networkFile.html" with filename="network.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
 <br/>
 {% endif %}
 

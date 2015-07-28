@@ -1,4 +1,8 @@
-{% extends "pdepbase.html" %}
+{% extends "base.html" %}
+
+{# Required if running Django 1.3 or 1.4 #}
+{% load url from future %}
+
 {% load render_thermo %}
 {% load render_states %}
 {% load render_collision %}
@@ -6,15 +10,15 @@
 {% block title %}{{ label }} - {{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">MEASURE</a> &raquo;
+<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
 <a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a> &raquo;
-{# Required if running Django 1.3 or 1.4 #}
-{% load url from future %}
+
 
 <a href="{% url 'pdep.views.networkSpecies' species=label networkKey=networkKey%}">{{ label }}</a>
 {% endblock %}
 
 {% block sidebar_items %}
+{% include "networkSidebar.html" %}
 {% endblock %}
 
 {% block page_title %}{{ label }} - {{ network.title }}{% endblock %}
@@ -39,8 +43,8 @@ jQuery(document).ready(function() {
     {% include "thermoModel.js" %}
     {% endif %}
     
-    {% if species.states %}
-    {{ species.states|get_states_data:user }}
+    {% if species.conformer %}
+    {{ species.conformer|get_states_data:user }}
     {% include "statesModel.js" %}
     {% endif %}
     
@@ -51,7 +55,7 @@ jQuery(document).ready(function() {
         plotEntropy('plotS', Sseries);
         plotFreeEnergy('plotG', Gseries);
         {% endif %}
-        {% if species.states %}
+        {% if species.conformer %}
         plotPartitionFunction('plotQ', Qseries);
         plotDensityOfStates('plotRho', rhoseries);
         if (Vseries.length > 0)
@@ -70,19 +74,22 @@ jQuery(document).ready(function() {
 
 <p>{{ structure|safe }}</p>
 
+
+{% if E0 %}
 <h2>Ground-state energy</h2>
 
-<p>{{ E0 }} kJ/mol</p>
+<p>{{ E0 }} kcal/mol</p>
+{% endif %}
 
-{% if species.lennardJones %}
+{% if species.transportData %}
 <h2>Collision Parameters</h2>
 {{ species|render_collision_math:user }}
 
 {% endif %}
 
-{% if species.states %}
+{% if species.conformer %}
 <h2>Molecular Degrees of Freedom</h2>
-{{ species.states|render_states_math:user }}
+{{ species.conformer|render_states_math:user }}
 
 <div id="plotQ" style="width: 500px; height: 300px; margin: auto;"></div>
 <div id="plotRho" style="width: 500px; height: 300px; margin: auto;"></div>

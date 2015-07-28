@@ -69,7 +69,7 @@ urlpatterns = patterns('rmgweb',
     (r'^database/', include('database.urls')),
 
     # Pressure dependence
-    (r'^measure/', include('pdep.urls')),
+    (r'^pdep/', include('pdep.urls')),
 
     # Molecule drawing
     (r'^molecule/(?P<adjlist>[\S\s]+)$', 'main.views.drawMolecule'),

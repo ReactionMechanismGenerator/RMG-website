@@ -441,8 +441,7 @@ class PopulateReactions(models.Model):
 # INPUT MODEL
 ################################################################################
 
-from rmgpy.measure.input import getTemperaturesForModel, getPressuresForModel
-from rmgpy.measure.main import MEASURE
+from rmgpy.cantherm.pdep import PressureDependenceJob
 from rmgpy.solver.base import TerminationTime, TerminationConversion
 from rmgpy.solver.simple import SimpleReactor
 from rmgpy.species import Species        
@@ -698,20 +697,20 @@ class Input(models.Model):
         # Pressure Dependence
         pdep = form.cleaned_data['pdep'].encode()
         if pdep != 'off':
-            self.rmg.pressureDependence = MEASURE()
+            self.rmg.pressureDependence = PressureDependenceJob(network=None)
             self.rmg.pressureDependence.method = pdep
             # Temperature and pressure range
-            interpolation = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
+            self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
             self.rmg.pressureDependence.Tmin = Quantity(form.cleaned_data['temp_low'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tmax = Quantity(form.cleaned_data['temp_high'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tcount = form.cleaned_data['temp_interp']
-            Tlist = getTemperaturesForModel(interpolation, self.rmg.pressureDependence.Tmin.value, self.rmg.pressureDependence.Tmax.value, self.rmg.pressureDependence.Tcount)
+            self.rmg.pressureDependence.generateTemperatureList() 
             self.rmg.pressureDependence.Tlist = Quantity(Tlist,"K")
             
             self.rmg.pressureDependence.Pmin = Quantity(form.cleaned_data['p_low'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pmax = Quantity(form.cleaned_data['p_high'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pcount = form.cleaned_data['p_interp']
-            Plist = getPressuresForModel(interpolation, self.rmg.pressureDependence.Pmin.value, self.rmg.pressureDependence.Pmax.value, self.rmg.pressureDependence.Pcount)
+            self.rmg.pressureDependence.generatePressureList()
             self.rmg.pressureDependence.Plist = Quantity(Plist,"Pa")
             
             # Process grain size and count

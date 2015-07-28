@@ -63,7 +63,7 @@ class Network(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)
-        self.measure = None
+        self.pdep = None
 
     def getDirname(self):
         """
@@ -88,25 +88,25 @@ class Network(models.Model):
         """
         Return the absolute path of the log file.
         """
-        return os.path.join(self.getDirname(), 'MEASURE.log')
+        return os.path.join(self.getDirname(), 'cantherm.log')
     
     def getSurfaceFilenamePNG(self):
         """
         Return the absolute path of the PES image file in PNG format.
         """
-        return os.path.join(self.getDirname(), 'PES.png')
+        return os.path.join(self.getDirname(), 'network.png')
     
     def getSurfaceFilenamePDF(self):
         """
         Return the absolute path of the PES image file in PDF format.
         """
-        return os.path.join(self.getDirname(), 'PES.pdf')
+        return os.path.join(self.getDirname(), 'network.pdf')
     
     def getSurfaceFilenameSVG(self):
         """
         Return the absolute path of the PES image file in SVG format.
         """
-        return os.path.join(self.getDirname(), 'PES.svg')
+        return os.path.join(self.getDirname(), 'network.svg')
     
     def getLastModifiedDate(self):
         """
@@ -274,20 +274,27 @@ class Network(models.Model):
     
     def load(self):
         """
-        Load the contents of the input and output files into a MEASURE object.
+        Load the contents of the input file into a PressureDependenceJob object.
         """
-        from rmgpy.measure.main import MEASURE
+        from rmgpy.cantherm.pdep import PressureDependenceJob
+        from rmgpy.cantherm.input import loadInputFile
         
-        self.measure = MEASURE()
+        # Seed with a PdepJob object
+        if self.pdep is None:
+            self.pdep = PressureDependenceJob(network=None)
+            
+            if self.inputFileExists():
+                jobList = loadInputFile(self.getInputFilename())
+                assert len(jobList) == 1
+                job = jobList[0]
+                if isinstance(job, PressureDependenceJob) is False:
+                    raise Exception('Input file given did not provide a pressure dependence network.')
+                self.pdep = job 
+                self.pdep.initialize()
         
-        if self.outputFileExists():
-            self.measure.loadOutput(self.getOutputFilename())
-        elif self.inputFileExists():
-            self.measure.loadInput(self.getInputFilename())
+            if self.pdep.network is not None:
+                self.title = self.pdep.network.label
+                self.save()
         
-        if self.measure.network is not None:
-            self.title = self.measure.network.title
-            self.save()
-        
-        return self.measure.network
+        return self.pdep.network
     

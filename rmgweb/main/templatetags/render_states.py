@@ -43,8 +43,10 @@ import numpy
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
 from rmgweb.main.models import UserProfile
 
-from rmgpy.quantity import Quantity
+from rmgpy.quantity import Quantity, ArrayQuantity
 from rmgpy.statmech import *
+import rmgpy.constants as constants
+import math
 
 ################################################################################
 
@@ -73,29 +75,29 @@ def render_states_math(states, user=None):
 
     hindIndex = 0
     for mode in states.modes:
-        if isinstance(mode, Translation):
+        if isinstance(mode, IdealGasTranslation):
             result += '<tr>'
             result += r'    <td colspan="2" class="section">External translation</td>'
             result += '</tr>\n'
             result += '<tr>'
             result += r'    <td class="label">Mass (g/mol):</td>'
-            result += r'    <td>{0:g}</td>'.format(mode.mass.value * 1000.)
+            result += r'    <td>{0:g}</td>'.format(mode.mass.value_si * 1000. * constants.Na)
             result += '</tr>\n'
         
-        elif isinstance(mode, RigidRotor):
+        elif isinstance(mode, LinearRotor) or isinstance(mode, NonlinearRotor):
             result += '<tr>'
             result += r'    <td colspan="2" class="section">External rotation</td>'
             result += '</tr>\n'
             result += '<tr>'
             result += r'    <td class="label">Linearity:</td>'
-            result += r'    <td>{0}</td>'.format(mode.linear)
+            result += r'    <td>{0}</td>'.format(isinstance(mode, LinearRotor))
             result += '</tr>\n'
             result += '<tr>'
             result += r'    <td class="label">Moments of inertia (amu&times;&Aring;^2):</td>'
-            if mode.inertia.isArray():
-                inertia = ', '.join(['{0:.1f}'.format(I * constants.Na * 1e23) for I in mode.inertia.values])
+            if isinstance(mode.inertia, ArrayQuantity):
+                inertia = ', '.join(['{0:.1f}'.format(I * constants.Na * 1e23) for I in mode.inertia.value_si])
             else:
-                inertia = '{0:.1f}'.format(mode.inertia.value * constants.Na * 1e23)
+                inertia = '{0:.1f}'.format(mode.inertia.value_si * constants.Na * 1e23)
             result += r'    <td>{0!s}</td>'.format(inertia)
             result += '</tr>\n'
             result += '<tr>'
@@ -108,7 +110,7 @@ def render_states_math(states, user=None):
             result += r'    <td colspan="2" class="section">Vibrations</td>'
             result += '</tr>\n'
             result += '<tr>'
-            frequencies = ', '.join(['{0:.1f}'.format(freq) for freq in mode.frequencies.values])
+            frequencies = ', '.join(['{0:.1f}'.format(freq) for freq in mode.frequencies.value_si])
             result += r'    <td class="label" class="section">Frequencies (cm^-1):</td>'
             result += r'    <td>{0!s}</td>'.format(frequencies)
             result += '</tr>\n'
@@ -119,8 +121,8 @@ def render_states_math(states, user=None):
             result += r'    <td colspan="2" class="section">Hindered rotor #{0:d}:</td>'.format(hindIndex)
             result += '</tr>\n'
             if mode.fourier:
-                fourierA = ', '.join(['{0:g}'.format(a_k) for a_k in mode.fourier.values[0,:]])  
-                fourierB = ', '.join(['{0:g}'.format(b_k) for b_k in mode.fourier.values[1,:]])
+                fourierA = ', '.join(['{0:g}'.format(a_k) for a_k in mode.fourier.value_si[0,:]])  
+                fourierB = ', '.join(['{0:g}'.format(b_k) for b_k in mode.fourier.value_si[1,:]])
                 result += '<tr>'
                 result += r'    <td colspan="2"><span class="math">V(\phi) = A + \sum_k \left( a_k \cos k \phi + b_k \sin k \phi \right)</span></td>'
                 result += '</tr>\n'
@@ -138,11 +140,11 @@ def render_states_math(states, user=None):
                 result += '</tr>\n'
                 result += '<tr>'
                 result += r'    <td class="label">Barrier height ({0!s}):</td>'.format(Eunits)
-                result += r'    <td>{0:.2f}</td>'.format(mode.barrier.value * Efactor)
+                result += r'    <td>{0:.2f}</td>'.format(mode.barrier.value_si * Efactor)
                 result += '</tr>\n'
             result += '<tr>'
             result += r'    <td class="label">Moment of inertia (amu&times;&Aring;^2):</td>'
-            result += r'    <td>{0:.1f}</td>'.format(mode.inertia.value * constants.Na * 1e23)
+            result += r'    <td>{0:.1f}</td>'.format(mode.inertia.value_si * constants.Na * 1e23)
             result += '</tr>\n'
             result += '<tr>'
             result += r'    <td class="label">Symmetry number:</td>'
@@ -170,7 +172,7 @@ def get_states_data(states, user=None):
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
     """
-    
+    import rmgpy.constants as constants
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
@@ -197,15 +199,21 @@ def get_states_data(states, user=None):
         Qdata.append(states.getPartitionFunction(T) * Qfactor)
     
     Edata = numpy.arange(0, 400001, 1000, numpy.float)
-    rhodata = states.getDensityOfStates(Edata)
+    rhodata = []
+    try:
+        rhodata = states.getDensityOfStates(Edata)
+    except Exception as e:
+        print "Could not calculate density of states", e
+        pass
     Edata = list(Edata * Efactor)
-    rhodata = list(rhodata * rhofactor)
+    if len(rhodata) != 0:
+        rhodata = list(rhodata * rhofactor)
     
     phidata = numpy.arange(0, 2*math.pi, math.pi/200)
     Vdata = []
     for mode in states.modes:
         if isinstance(mode, HinderedRotor):
-            Vdata.append(list(mode.getPotential(phidata) * Vfactor))
+            Vdata.append([mode.getPotential(phi) * Vfactor for phi in phidata])
     phidata = list(phidata * phifactor)
     
     return mark_safe("""
