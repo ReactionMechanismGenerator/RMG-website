@@ -283,20 +283,18 @@ class Network(models.Model):
         if self.pdep is None:
             self.pdep = PressureDependenceJob(network=None)
             
-        #if self.outputFileExists():
-        #    self.pdep.loadOutput(self.getOutputFilename())
-        if self.inputFileExists():
-            jobList = loadInputFile(self.getInputFilename())
-            assert len(jobList) == 1
-            job = jobList[0]
-            if isinstance(job, PressureDependenceJob) is False:
-                raise Exception('Input file given did not provide a pressure dependence network.')
-            self.pdep = job 
-            self.pdep.initialize()
+            if self.inputFileExists():
+                jobList = loadInputFile(self.getInputFilename())
+                assert len(jobList) == 1
+                job = jobList[0]
+                if isinstance(job, PressureDependenceJob) is False:
+                    raise Exception('Input file given did not provide a pressure dependence network.')
+                self.pdep = job 
+                self.pdep.initialize()
         
-        if self.pdep.network is not None:
-            self.title = self.pdep.network.label
-            self.save()
+            if self.pdep.network is not None:
+                self.title = self.pdep.network.label
+                self.save()
         
         return self.pdep.network
     
