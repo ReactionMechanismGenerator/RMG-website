@@ -105,14 +105,12 @@ def networkIndex(request, networkKey):
             speciesType = []
             if spec in network.isomers:
                 speciesType.append('isomer')
-            print network.reactants
             if any([spec in reactants.species for reactants in network.reactants]):
                 speciesType.append('reactant')
             if any([spec in products.species for products in network.products]):
                 speciesType.append('product')
             if spec in network.bathGas:
                 speciesType.append('bath gas')
-            print repr(spec)
             collision = 'yes' if spec.transportData is not None else ''
             conformer = 'yes' if spec.conformer is not None else ''
             thermo = 'yes' if spec.conformer is not None or spec.thermo is not None else ''
