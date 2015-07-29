@@ -139,11 +139,11 @@ ol li {
 }
 
 ul {
-		list-style: none;
-		margin-left: 50px;
-		padding: 0;
-		border: none;
-		}
+        list-style: none;
+        margin-left: 50px;
+        padding: 0;
+        border: none;
+        }
 
  ul#pdepmenu ol {
   display: none;
@@ -229,233 +229,239 @@ If you already have a saved input.py file that you would like to modify, you can
 
     <li><h3>Thermodynamics Libraries</h3>
 
-    Select the thermochemistry libraries you would like to be included
+    Select the thermochemistry libraries you would like to be included 
     in your RMG job in order of priority. You may select multiple libraries.
-    If no libraries are selected, RMG will estimate all species'
-    thermochemistry through Benson group additivity.  We recommend using at least the 'primaryThermoLibrary'. 
+    If no libraries are selected, RMG will estimate all species' thermochemistry through 
+    Benson group additivity. We recommend using at least the 'primaryThermoLibrary'.
+    
     <P>You can browse the available libraries here: <a href="{% url 'database.views.thermo' section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
     <P>
     <table id="thermo_libraries">
-                <thead><tr><th scope="col">Library</th></tr></thead>
-                <tbody>                    
-                    {% for form in thermolibformset.forms %}
-                    <tr id="{{ form.prefix }}-row">          
-                        <td>
-                            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                            {{ form.thermolib }}
-                        </td>                
-                    </tr>
-                    {% endfor %}
+        <thead><tr><th scope="col">Library</th></tr></thead>
+        <tbody>                    
+            {% for form in thermolibformset.forms %}
+            <tr id="{{ form.prefix }}-row">          
+                <td>
+                {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                {{ form.thermolib }}
+                </td>                
+            </tr>
+            {% endfor %}
             {{ thermolibformset.management_form }}
-    </tbody></table>
+        </tbody>
+    </table>
 
     <li><h3>Reaction Libraries</h3>
-Select reaction libraries you would like to be included in your RMG job in order of priority.  Rates from reactions within the library will be used
-if the reaction is found in your job.  You may select multiple libraries.
-If no libraries are selected, RMG will estimate kinetic rates using RMG-database rate rules alone.
-<P>
-Normally, the kinetic library of reactions is used to estimate a reaction found on the edge.
+    
+    Select reaction libraries you would like to be included in your RMG job in order of priority. Rates from reactions within the library will be used 
+    if the reaction is found in your job. You may select multiple libraries.
+    If no libraries are selected, RMG will estimate kinetic rates using RMG-database rate rules alone.
+    <P>
+    Normally, the kinetic library of reactions is used to estimate a reaction found on the edge.
     However, if you believe the reactions should be included within the mechanism core, select the
     "SeedMech" option to allow to the library to be added to the core.
     If you do not wish for these reactions to be automatically included in the core but do want to
     retain it in your mechanism, you may also select the "Edge" option.
-<P>You can browse the available libraries here: <a href="{% url 'database.views.kinetics' section='libraries' %}" target="_blank">Kinetics Libraries</a>
     <P>
-<table id="reaction_libraries">
-                <thead><tr><th scope="col">Library</th>
-                        <th scope="col">SeedMech</th>
-                        <th scope="col">Edge</th></tr></thead>
-                <tbody>
-                    {% for form in reactionlibformset.forms %}
-                    <tr id="{{ form.prefix }}-row">
-                        <td>
-                            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                            {{ form.reactionlib }} </td>
-                        <td align="center">{{ form.seedmech }}</td>
-                        <td align="center">{{ form.edge }}</td>
-                    </tr>
-                    {% endfor %}
+    You can browse the available libraries here: <a href="{% url 'database.views.kinetics' section='libraries' %}" target="_blank">Kinetics Libraries</a>
+    <P>
+    <table id="reaction_libraries">
+        <thead><tr><th scope="col">Library</th>
+            <th scope="col">SeedMech</th>
+            <th scope="col">Edge</th></tr></thead>
+        <tbody>
+            {% for form in reactionlibformset.forms %}
+            <tr id="{{ form.prefix }}-row">
+                <td>
+                {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                {{ form.reactionlib }} </td>
+                <td align="center">{{ form.seedmech }}</td>
+                <td align="center">{{ form.edge }}</td>
+            </tr>
+             {% endfor %}
             {{ reactionlibformset.management_form }}
-</tbody></table>
+        </tbody>
+    </table>
 
 
-<li><h3>Reactor Species:</h3>
-Use this form to add a species to the RMG job from its adjacency list.  The "name" field will be used throughout your mechanism to identify this species.
-You can quickly fill in the adjacency list part of the form by entering any species identifier,
-such as a SMILES, InChI, CAS number</a>, or
-species name in the 'species identifier' field and pressing tab.
-This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
-<P>
+    <li><h3>Reactor Species:</h3>
+    
+    Use this form to add a species to the RMG job from its adjacency list.  The "name" field will be used throughout your mechanism to identify this species.
+    You can quickly fill in the adjacency list part of the form by entering any species identifier,
+    such as a SMILES, InChI, CAS number, or species name in the 'species identifier' field and pressing tab.
+    This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
+    <P>
+    
 </ol>
-     <ol start="1">
-<table id="reactor_species" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
-    <tbody>{% for form in reactorspecformset.forms %}
-   
-    <tr id="{{ form.prefix }}-row"><td><li>
-        <b>Species Name:</b> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                            {{ form.name }}
-       <br><b>Species Identifier:</b> {{ form.identifier }}
-       <br><b>Adjacency List:</b>
-       <br>{{ form.adjlist }}
-       <br><b>Mole Fraction:</b> {{form.molefrac}}
-       <br><b>Inert Species:</b> {{ form.inert }}
-    </td><br>
-</tr>
-    {% endfor %}
- {{ reactorspecformset.management_form }}
-                </tbody>
-</table>
-
-     </ol>
-
+    
+<ol start="1">
+    <table id="reactor_species" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
+        <tbody>{% for form in reactorspecformset.forms %}
+            <tr id="{{ form.prefix }}-row"><td><li>
+                <b>Species Name:</b> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                                     {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                                     {{ form.name }}
+                <br><b>Species Identifier:</b> {{ form.identifier }}
+                <br><b>Adjacency List:</b>
+                <br>{{ form.adjlist }}
+                <br><b>Mole Fraction:</b> {{form.molefrac}}
+                <br><b>Inert Species:</b> {{ form.inert }}
+            </td><br>
+            </tr>
+            {% endfor %}
+            {{ reactorspecformset.management_form }}
+        </tbody>
+    </table>
+</ol>
 
 <ol>
- <li value="4"><h3>Reactor Systems</h3>
-            <p>Enter individual reactor system settings for which the RMG model will be valid.
-                You may add multiple reactor systems for which the overall mechanism will be valid.
+    <li value="4"><h3>Reactor Systems</h3>
+    <p>
+    Enter individual reactor system settings for which the RMG model will be valid.
+    You may add multiple reactor systems for which the overall mechanism will be valid.
+    <P>
+    You must provide a maximum reaction time for the job.
+    A species conversion requirement is optional- be sure to use the 
+    same species name as provided previously.  The RMG job will stop as soon as
+    one of the termination criteria is fulfilled.
+</ol>
 
-            <P>You must provide a maximum reaction time for the job.
-            A species conversion requirement is optional- be sure to use the 
-            same species name as provided previously.  The RMG job will stop as soon as
-                one of the termination criteria is fulfilled.</ol>
+<ol start="1">
+    <table id="reactor_systems" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
+        <tbody>{% for form in reactorformset.forms %}
+            <tr id="{{ form.prefix }}-row"><td><li> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+            <b>Temperature:</b> {{ form.temperature }} {{ form.temperature_units }}
+            <br><b>Pressure:</b> {{ form.pressure }} {{ form.pressure_units }}    
+            <P><b>Termination Criteria:</b>
+            <blockquote>
+                <b>End Time:</b> {{ form.terminationtime }} {{ form.time_units }}
+                <br><b>Species:</b> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
+            </blockquote>
+            </td></tr>
+            {% endfor %}
+            {{ reactorformset.management_form }}
+        </tbody>
+    </table>
+</ol>
 
-    <ol start="1">
+<ol>
+    <li value="5"><h3>Pressure Dependence: {{ form.pdep }}</h3>
+    <P>
+    If you would like to generate a pressure-dependent model, please select the form of interpolation as well as the pressure dependent 
+    reaction format (Chebyshev or Pdep Arrhenius) you would like RMG to output.
+    <P>
+    
+    <table>
+        <tr><th colspan="2">Model: {{form.interpolation}}</th></tr>
+        <tr><th>Temperature Range:</th><td> {{form.temp_low}} to {{form.temp_high}} {{form.temprange_high}} {{form.temprange_units}}</td></tr>
+        <tr><th>Pressure Range:</th><td>{{ form.p_low }} to {{form.p_high}} {{form.prange_units}}</td></tr>
+    </table>
+</ol>
 
-        <table id="reactor_systems" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
-    <tbody>{% for form in reactorformset.forms %}
+<ul id="pdepmenu"><li>[x] Advanced Options
+    <ol><li>
+        <P><i>Number of Interpolation Points Used in Model</i>
+            <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
+            <tr><th>Pressure:</th><td> {{form.p_interp}}</td></tr></table>
 
-        <tr id="{{ form.prefix }}-row"><td><li> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                           
-        <b>Temperature:</b> {{ form.temperature }} {{ form.temperature_units }}
-    <br><b>Pressure:</b> {{ form.pressure }} {{ form.pressure_units }}    
-    <P><b>Termination Criteria:</b>
-    <blockquote>
-            <b>End Time:</b> {{ form.terminationtime }} {{ form.time_units }}
-            <br><b>Species:</b> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
-    </blockquote>
-                </td></tr>
-    {% endfor %}
- {{ reactorformset.management_form }}
-                                </tbody>
-</table>
-
-     </ol>
-   
-   <ol>
-        <li value="5"><h3>Pressure Dependence: {{ form.pdep }}</h3>
-            <P>
-            If you would like to generate a pressure-dependent model, please select the form of interpolation as well as the pressure dependent 
-			reaction format (Chebyshev or Pdep Arrhenius) you would like RMG to output.
-            <P>
-            
-            <table>
-                <tr><th colspan="2">Model: {{form.interpolation}}</th></tr>
-                <tr><th>Temperature Range:</th><td> {{form.temp_low}} to {{form.temp_high}} {{form.temprange_high}} {{form.temprange_units}}</td></tr>
-                <tr><th>Pressure Range:</th><td>{{ form.p_low }} to {{form.p_high}} {{form.prange_units}}</td></tr>
-            </table>
-
-    </ol>
-            <ul id="pdepmenu"><li>[x] Advanced Options
-   
-                    <ol> <li>
-          
-            <P><i>Number of Interpolation Points Used in Model</i>
-                <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
-                    <tr><th>Pressure:</th><td> {{form.p_interp}}</td></tr></table>
-
-            <P><i>Grain Size</i>
+        <P><i>Grain Size</i>
             <br><table><tr><th>Maximum Size:</th><td> {{form.maximumGrainSize}} {{form.grainsize_units}}</td></tr>
-                <tr><th>Minimum Number:</th><td> {{form.minimumNumberOfGrains}}</td></tr></table>
+            <tr><th>Minimum Number:</th><td> {{form.minimumNumberOfGrains}}</td></tr></table>
 
-            <P><i>Number of Basis Functions Used in Model (For Chebyshev Only)</i>
+        <P><i>Number of Basis Functions Used in Model (For Chebyshev Only)</i>
             <br><table><tr><th>Temperature:</th><td> {{form.temp_basis}}</td></tr>
             <tr><th>Pressure:</th><td> {{form.p_basis}}</td></tr></table>
-                </li></ol>
+    </li></ol>
+</li></ul>
 
-                </li></ul>
+<P><br>
 
+<ol>
+    <li value="6"><h3>Tolerances</h3>
+    
+    <P>Indicate your allowed flux tolerance for moving a reaction to the core or keeping
+    the reaction on the edge.  In the advanced options, you can set additional tolerances for the solver, and 
+    for the edge reactions (the possible reactions generated from the species in the core).
+    Generally, the edge tolerance is set to zero unless you need to prune the edge to reduce 
+    model generation time.
+    
+    <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
+</ol>
 
-            <P><br>
-            <ol><li value="6"><h3>Tolerances</h3>
-                    <P>Indicate your allowed flux tolerance for moving a reaction to the core or keeping
-                        the reaction on the edge.  In the advanced options, you can set additional tolerances for the solver, and 
-                        for the edge reactions (the possible reactions generated from the species in the core).
-                        Generally, the edge tolerance is set to zero you need to prune the edge to reduce 
-                        model generation time.
-            <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
-            </ol>
+<ul id="tolmenu"><li>[x] Advanced Options
+    <ol><li>
+        <table>
+            <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
+            <tr><th>Tolerance to Interrupt Simulation:</th>       <td>{{form.toleranceInterruptSimulation}}</td></tr>
+            <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr></table>
+            <P><i>Numerical Solver</i>
+                <br><table>
+                <tr><th>Absolute Tolerance: </th>    <td>{{ form.simulator_atol }}</td></tr>
+                <tr><th>Relative Tolerance: </th>    <td>{{ form.simulator_rtol }}</td></tr>
+        </table>
+    </li></ol>
+</li></ul>
 
-            <ul id="tolmenu"><li>[x] Advanced Options
-            <ol><li><table><tr><th>Edge Tolerance: </th><td>{{ form.toleranceKeepInEdge }}</td></tr>
-            <tr><th>Tolerance to Interrupt Simulation:  </th><td>{{form.toleranceInterruptSimulation}}</td></tr>
-                <tr><th>Maximum Number of Allowed Edge Species:  </th><td>{{form.maximumEdgeSpecies}}</td></tr></table>
-                <P><i>Numerical Solver</i>
-                <br><table><tr><th>Absolute Tolerance: </th><td> {{ form.simulator_atol }}</td></tr>
-                <tr><th>Relative Rolerance: </th><td> {{ form.simulator_rtol }}</td></tr></table>
-            </li></ol>
-			</li></ul>
+<P><br>
+    
+<ol>
+    <li value="7"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
+    
+    Optional constraints on allowed species.
+    
+    <P><table>
+        <tr><th>Maximum Carbon Atoms:</th>        <td>{{ form.maximumCarbonAtoms }}</td></tr>
+        <tr><th>Maximum Hydrogen Atoms:</th>      <td>{{ form.maximumHydrogenAtoms }}</td></tr>
+        <tr><th>Maximum Oxygen Atoms:</th>        <td>{{ form.maximumOxygenAtoms }}</td></tr>
+        <tr><th>Maximum Nitrogen Atoms:</th>      <td>{{ form.maximumNitrogenAtoms }}</td></tr>
+        <tr><th>Maximum Silicon Atoms:</th>       <td>{{ form.maximumSiliconAtoms }}</td></tr>
+        <tr><th>Maximum Sulfur Atoms:</th>        <td>{{ form.maximumSulfurAtoms }}</td></tr>
+        <tr><th>Maximum Heavy Atoms:</th>         <td>{{ form.maximumHeavyAtoms }}</td></tr>
+        <tr><th>Maximum Radical Electrons:</th>   <td>{{ form.maximumRadicalElectrons }}</td></tr>
+    </table>
 
-            <P><br>
-            
-            <ol>
-            <li value="7"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
-            Optional constraints on allowed species.
-            
-            <P><table>
-                <tr><th>Maximum Carbon Atoms:</th><td>{{ form.maximumCarbonAtoms }}</td></tr>
-                <tr><th>Maximum Hydrogen Atoms:</th><td>{{ form.maximumHydrogenAtoms }}</td></tr>
-                <tr><th>Maximum Oxygen Atoms:</th><td>{{ form.maximumOxygenAtoms }}</td></tr>
-                <tr><th>Maximum Nitrogen Atoms:</th><td>{{ form.maximumNitrogenAtoms }}</td></tr>
-                <tr><th>Maximum Silicon Atoms:</th><td>{{ form.maximumSiliconAtoms }}</td></tr>
-                <tr><th>Maximum Sulfur Atoms:</th><td>{{ form.maximumSulfurAtoms }}</td></tr>
-                <tr><th>Maximum Heavy Atoms:</th><td>{{ form.maximumHeavyAtoms }}</td></tr>
-                <tr><th>Maximum Radical Electrons:</th><td>{{ form.maximumRadicalElectrons }}</td></tr>
-            </table>
+</ol>
+    
+<ul id="constraintmenu"><li>[x] Advanced Options
+    <ol><li>
+        <table>
+            <tr><th>Allow Input Species:</th>       <td>{{ form.allowed_inputSpecies }}</td></tr>
+            <tr><th>Allow Seed Mechanisms:</th>     <td>{{ form.allowed_seedMechanisms }}</td></tr>
+            <tr><th>Allow Reaction Libraries:</th>  <td>{{ form.allowed_reactionLibraries }}</td></tr>
+            <tr><th>Allow Singlet O2:</th>          <td>{{ form.allowSingletO2 }}</td></tr>
+        </table>
+    </li></ol>
+</li></ul>
 
-            </ol>
-            
-            <ul id="constraintmenu"><li>[x] Advanced Options
-            <ol><li><table>
-            	<tr><th>Allow Input Species:</th><td>{{ form.allowed_inputSpecies }}</td></tr>
-            	<tr><th>Allow Seed Mechanisms:</th><td>{{ form.allowed_seedMechanisms }}</td></tr>
-            	<tr><th>Allow Reaction Libraries:</th><td>{{ form.allowed_reactionLibraries }}</td></tr>
-                <tr><th>Allow Singlet O2:</th><td>{{ form.allowSingletO2 }}</td></tr></table>
-            </li></ol>
-			</li></ul>
+<P><br>
+    
+<ol>
+    <li value="8"><h3>Additional Options</h3>
+    
+    Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
+    of a run rather than starting completely from scratch if there is a failure or memory issue.              
+    The save restart period may be optionally left empty if no restart files are desired.  
 
-            <P><br>
-            
-            <ol>
-        	<li value="8"><h3>Additional Options</h3>
-        	Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
-        	of a run rather than starting completely from scratch if there is a failure or memory issue.          	
-        	The save restart period may be optionally left empty if no restart files are desired.  
-        
-            <P><table>
-                <tr><th>Save Restart:</th><td>
-                {{ form.saveRestartPeriod }} {{ form.saveRestartPeriodUnits }}
-                </td></tr>
-                <tr><th>Draw Molecules:</th><td>
-                {{ form.drawMolecules }}</td></tr>
-                <tr><th>Generate Plots:</th><td>
-                {{ form.generatePlots }}</td></tr>
-                <tr><th>Save Concentration Profiles:</th><td>
-                {{ form.saveSimulationProfiles }}</td></tr>
-                <tr><th>Save Edge Species:</th><td>
-                {{ form.saveEdgeSpecies }}</td></tr>
-                <tr><th>Verbose Chemkin Comments:</th><td>
-                {{ form.verboseComments }}</td></tr></table>
-    		</ol>
+    <P><table>
+        <tr><th>Save Restart:</th>                 <td>{{ form.saveRestartPeriod }}{{ form.saveRestartPeriodUnits }}</td></tr>
+        <tr><th>Draw Molecules:</th>               <td>{{ form.drawMolecules }}</td></tr>
+        <tr><th>Generate Plots:</th>               <td>{{ form.generatePlots }}</td></tr>
+        <tr><th>Save Concentration Profiles:</th>  <td>{{ form.saveSimulationProfiles }}</td></tr>
+        <tr><th>Save Edge Species:</th>            <td>{{ form.saveEdgeSpecies }}</td></tr>
+        <tr><th>Verbose Chemkin Comments:</th>     <td>{{ form.verboseComments }}</td></tr>
+    </table>
+</ol>
 
-    <P><br>
-    <blockquote>
-       <input type="submit" value="Submit" name="submit" />
+<P><br>
+
+<blockquote>
+    <input type="submit" value="Submit" name="submit" />
     <P>By pressing submit, you will be prompted to save an input.py file ready for use in RMG-Py.
-        </blockquote>
+</blockquote>
+
 </form>
 </div>
 
