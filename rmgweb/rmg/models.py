@@ -620,9 +620,14 @@ class Input(models.Model):
                 
         # Pressure Dependence
         if self.rmg.pressureDependence:
-            initial['interpolation'] = self.rmg.pressureDependence.model[0]
-            initial['temp_basis'] = self.rmg.pressureDependence.model[1]
-            initial['p_basis'] = self.rmg.pressureDependence.model[2]
+            # Pressure dependence method
+            initial['pdep'] = self.rmg.pressureDependence.method.lower()
+            # Process interpolation model
+            initial['interpolation'] = self.rmg.pressureDependence.interpolationModel[0]
+            if initial['interpolation'] == 'chebyshev':
+                initial['temp_basis'] = self.rmg.pressureDependence.interpolationModel[1]
+                initial['p_basis'] = self.rmg.pressureDependence.interpolationModel[2]
+            # Temperature and pressure ranges
             initial['temp_low'] = self.rmg.pressureDependence.Tmin.getValue()
             initial['temp_high'] = self.rmg.pressureDependence.Tmax.getValue()
             initial['temprange_units'] = self.rmg.pressureDependence.Tmax.units
@@ -630,12 +635,11 @@ class Input(models.Model):
             initial['p_low'] = self.rmg.pressureDependence.Pmin.getValue()
             initial['p_high'] = self.rmg.pressureDependence.Pmax.getValue()
             initial['prange_units'] = self.rmg.pressureDependence.Pmax.units
-            initial['p_interp'] = self.rmg.pressureDepence.Pcount
-            
-            initial['maximumGrainSize'] = self.rmg.pressureDependence.grainSize.getValue()
-            initial['grainsize_units'] = self.rmg.pressureDependence.grainSize.units
-            initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.grainCount
-
+            initial['p_interp'] = self.rmg.pressureDependence.Pcount
+            # Process grain size and count
+            initial['maximumGrainSize'] = self.rmg.pressureDependence.maximumGrainSize.getValue()
+            initial['grainsize_units'] = self.rmg.pressureDependence.maximumGrainSize.units
+            initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.minimumGrainCount
         else:
             initial['pdep'] = 'off'    
             
@@ -728,26 +732,27 @@ class Input(models.Model):
         if pdep != 'off':
             self.rmg.pressureDependence = PressureDependenceJob(network=None)
             self.rmg.pressureDependence.method = pdep
+            
+            # Process interpolation model
+            if form.cleaned_data['interpolation'].encode() == 'chebyshev':
+                self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
+            else:
+                self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(),)
+            
             # Temperature and pressure range
-            self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
             self.rmg.pressureDependence.Tmin = Quantity(form.cleaned_data['temp_low'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tmax = Quantity(form.cleaned_data['temp_high'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tcount = form.cleaned_data['temp_interp']
             self.rmg.pressureDependence.generateTemperatureList() 
-            self.rmg.pressureDependence.Tlist = Quantity(Tlist,"K")
-            
             self.rmg.pressureDependence.Pmin = Quantity(form.cleaned_data['p_low'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pmax = Quantity(form.cleaned_data['p_high'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pcount = form.cleaned_data['p_interp']
             self.rmg.pressureDependence.generatePressureList()
-            self.rmg.pressureDependence.Plist = Quantity(Plist,"Pa")
             
             # Process grain size and count
             self.rmg.pressureDependence.grainSize = Quantity(form.cleaned_data['maximumGrainSize'], form.cleaned_data['grainsize_units'].encode())
             self.rmg.pressureDependence.grainCount = form.cleaned_data['minimumNumberOfGrains']
-        
-            # Process interpolation model
-            self.rmg.pressureDependence.model = interpolation
+            
         
         # Additional Options
         self.rmg.units = 'si' 
