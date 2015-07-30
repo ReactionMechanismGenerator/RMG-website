@@ -221,13 +221,12 @@ def drawMolecule(request, adjlist):
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
 
-    response = HttpResponse(mimetype="image/png")
 
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
     surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
-    surface.write_to_png(response)
-
+    png_string = surface.write_to_png()
+    response = HttpResponse(png_string, mimetype="image/png")
     return response
 
 def drawGroup(request, adjlist):
