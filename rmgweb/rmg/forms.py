@@ -134,8 +134,8 @@ class ReactorSpeciesForm(forms.ModelForm):
     class Meta:
         model = ReactorSpecies
         widgets ={
-        'name': forms.TextInput(attrs={'style':'width:100%;'}),
-        'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier', 'style':'width:100%;'}),
+        'name': forms.TextInput(),
+        'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier'}),
         'adjlist':forms.Textarea(attrs={'cols': 50, 'rows': 10 }),
         'molefrac': forms.TextInput(attrs={'size':'5'}),
         }

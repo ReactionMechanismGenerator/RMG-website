@@ -52,9 +52,9 @@ $(document).ready(function() {
     }
    });
 
-   
+
 // add images to the right of all the text areas
-   $("textarea").closest('td').append("<img src='/media/moleculedraw-logo-small.png' align='middle'></img>");
+   $("textarea").closest('td').append("<img style='float:right' src='/media/moleculedraw-logo-small.png'></img>");
 // add onChange handlers to all the text areas to modify the image sources
    $("textarea").change( function() {
       var src = adjlist2img( $(this).val() );
@@ -96,9 +96,11 @@ $(document).ready(function() {
 
 
 <style type="text/css">
-    table {
-        margin-left:50px;
+
+table {
+    margin-left:50px;
 }
+
 table.contents {
     width: 100%;
     margin-top: 1.3em;
@@ -121,64 +123,98 @@ th {
 table.contents .icon {
     float: left;
 }
+
 table.contents .biglink {
     font-size: 150%;
     text-align: left;
     vertical-align: bottom;
 }
+
 table.contents .linkdesc {
     text-align: left;
     vertical-align: top;
     font-style: italic;
 }
+
 img {
     padding:10px;
 }
+
 ol li {
-        padding:10px;
+    padding:10px;
 }
 
 ul {
-        list-style: none;
-        margin-left: 50px;
-        padding: 0;
-        border: none;
-        }
-
- ul#pdepmenu ol {
-  display: none;
-  list-style-type: none;
-  margin: 0;
+    list-style: none;
+    margin-left: 50px;
+    padding: 0;
+    border: none;
 }
 
- ul#tolmenu ol {
-  display: none;
-  list-style-type: none;
-  margin: 0;
+    ul#pdepmenu ol {
+        display: none;
+        list-style-type: none;
+        margin: 0;
+    }
+
+    ul#tolmenu ol {
+        display: none;
+        list-style-type: none;
+        margin: 0;
+    }
+
+    ul#constraintmenu ol {
+        display: none;
+        list-style-type: none;
+        margin: 0;
+    }
+
+    ul.form li{
+        padding: 7px
+    }
+
+field {
+    width: 150px;
+    display: inline-block;
+    vertical-align: top;
+    font-weight: bold;
+}
+    field#short {
+        width: 100px;
+    }
+
+.delete-row {
+    margin-left:30px;
+    font-weight:bold;
 }
 
- ul#constraintmenu ol {
-  display: none;
-  list-style-type: none;
-  margin: 0;
+.add-row {
+    font-weight:bold;
 }
 
- .delete-row {
-        margin-left:30px;
-        font-weight:bold;
-    }
+#reactor_species .delete-row {
+    margin-left:7px;
+}
 
- .add-row {
-        padding-top:5px;
-        font-weight:bold;
-    }
+#reactor_systems .delete-row {
+    margin-left: 7px;
+}
 
- #reactor_species .delete-row {
-       margin:130px;
-    }
+#reactor_species .add-row {
+    margin-left:10px;
+}
 
- #reactor_systems .delete-row {
-        margin: 200px;
+#reactor_systems .add-row {
+    margin-left: 10px;
+}
+
+blockquote {
+    display: block;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    margin-left: 50px;
+    margin-right: 0px;
+    
 }
 
 </style>
@@ -196,18 +232,17 @@ ul {
 
 {% block page_body %}
 
-
 This form will generate an input file for a RMG-Py job.
-<P><br>
-
+<P>
 
 <hr/>
+
 <P>{% if upload_error %}<h3>{{ upload_error }}</h3>{% endif %}
 
 <p>
 If you already have a saved input.py file that you would like to modify, you can upload it here to load it into the form for easy editing and saving.
-
 </p>
+
 <form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
 {{ uploadform.as_p }}
 <p><input type="submit" value="Submit" name="upload"/></p>
@@ -279,7 +314,7 @@ If you already have a saved input.py file that you would like to modify, you can
                 <td align="center">{{ form.seedmech }}</td>
                 <td align="center">{{ form.edge }}</td>
             </tr>
-             {% endfor %}
+            {% endfor %}
             {{ reactionlibformset.management_form }}
         </tbody>
     </table>
@@ -291,29 +326,27 @@ If you already have a saved input.py file that you would like to modify, you can
     You can quickly fill in the adjacency list part of the form by entering any species identifier,
     such as a SMILES, InChI, CAS number, or species name in the 'species identifier' field and pressing tab.
     This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
-    <P>
     
 </ol>
     
-<ol start="1">
+<ul class="form">
     <table id="reactor_species" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
         <tbody>{% for form in reactorspecformset.forms %}
             <tr id="{{ form.prefix }}-row"><td><li>
-                <b>Species Name:</b> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                                     {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                                     {{ form.name }}
-                <br><b>Species Identifier:</b> {{ form.identifier }}
-                <br><b>Adjacency List:</b>
-                <br>{{ form.adjlist }}
-                <br><b>Mole Fraction:</b> {{form.molefrac}}
-                <br><b>Inert Species:</b> {{ form.inert }}
+                {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                <field>Species Name:</field> {{ form.name }}
+                <br><field>Species Identifier:</field> {{ form.identifier }}
+                <br><field>Adjacency List:</field> {{ form.adjlist }}
+                <br><field>Mole Fraction:</field> {{form.molefrac}}
+                <br><field>Inert Species:</field> {{ form.inert }}
             </td><br>
             </tr>
             {% endfor %}
             {{ reactorspecformset.management_form }}
         </tbody>
     </table>
-</ol>
+</ul>
 
 <ol>
     <li value="4"><h3>Reactor Systems</h3>
@@ -327,24 +360,25 @@ If you already have a saved input.py file that you would like to modify, you can
     one of the termination criteria is fulfilled.
 </ol>
 
-<ol start="1">
+<ul class="form">
     <table id="reactor_systems" border="1" cellpadding ="3" cellspacing ="30" rules="rows">
         <tbody>{% for form in reactorformset.forms %}
-            <tr id="{{ form.prefix }}-row"><td><li> {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
-                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-            <b>Temperature:</b> {{ form.temperature }} {{ form.temperature_units }}
-            <br><b>Pressure:</b> {{ form.pressure }} {{ form.pressure_units }}    
+            <tr id="{{ form.prefix }}-row"><td><li>
+            {% for fld in form.hidden_fields %}{{ fld }}{% endfor %}
+            {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+            <field>Temperature:</field> {{ form.temperature }} {{ form.temperature_units }}
+            <br><field>Pressure:</field> {{ form.pressure }} {{ form.pressure_units }}    
             <P><b>Termination Criteria:</b>
             <blockquote>
-                <b>End Time:</b> {{ form.terminationtime }} {{ form.time_units }}
-                <br><b>Species:</b> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
+                <field id="short">End Time:</field> {{ form.terminationtime }} {{ form.time_units }}
+                <br><field id="short">Species:</field> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
             </blockquote>
             </td></tr>
             {% endfor %}
             {{ reactorformset.management_form }}
         </tbody>
     </table>
-</ol>
+</ul>
 
 <ol>
     <li value="5"><h3>Pressure Dependence: {{ form.pdep }}</h3>
@@ -360,7 +394,7 @@ If you already have a saved input.py file that you would like to modify, you can
     </table>
 </ol>
 
-<ul id="pdepmenu"><li>[x] Advanced Options
+<ul id="pdepmenu"><li>Advanced Options
     <ol><li>
         <P><i>Number of Interpolation Points Used in Model</i>
             <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
@@ -390,7 +424,7 @@ If you already have a saved input.py file that you would like to modify, you can
     <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
 </ol>
 
-<ul id="tolmenu"><li>[x] Advanced Options
+<ul id="tolmenu"><li>Advanced Options
     <ol><li>
         <table>
             <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
@@ -424,7 +458,7 @@ If you already have a saved input.py file that you would like to modify, you can
 
 </ol>
     
-<ul id="constraintmenu"><li>[x] Advanced Options
+<ul id="constraintmenu"><li>Advanced Options
     <ol><li>
         <table>
             <tr><th>Allow Input Species:</th>       <td>{{ form.allowed_inputSpecies }}</td></tr>
@@ -457,8 +491,8 @@ If you already have a saved input.py file that you would like to modify, you can
 <P><br>
 
 <blockquote>
+    <p>By pressing submit, you will be prompted to save an input.py file ready for use in RMG-Py.</p>
     <input type="submit" value="Submit" name="submit" />
-    <P>By pressing submit, you will be prompted to save an input.py file ready for use in RMG-Py.
 </blockquote>
 
 </form>
