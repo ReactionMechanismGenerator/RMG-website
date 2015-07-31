@@ -504,8 +504,20 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
+    
+    # Quantum Calculations
+    on_off = (('off','off',),('on','on',))
+    quantumCalc = models.CharField(max_length = 50, default = 'off', choices = on_off)
+    software_options = (('mopac','MOPAC',),('gaussian','GAUSSIAN',))
+    software = models.CharField(max_length = 50, default = 'off', choices = software_options)
+    method_options = (('pm3','pm3',),('pm6','pm6',),('pm7','pm7 (MOPAC2012 only)',))
+    method = models.CharField(max_length = 50, default = 'off', choices = method_options)
+    fileStore = models.CharField(max_length = 100, default = 'QMfiles', blank = True)
+    scratchDirectory = models.CharField(max_length = 100, blank = True)
+    onlyCyclics = models.BooleanField()
+    maxRadicalNumber = models.PositiveSmallIntegerField(blank = True, null = True)
+    
     # Generated Species Constraints
-    on_off=(('off','off',),('on','on',))
     speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
     allowed_inputSpecies = models.BooleanField(default = True)
     allowed_seedMechanisms = models.BooleanField(default = True)
@@ -519,6 +531,7 @@ class Input(models.Model):
     maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
     allowSingletO2 = models.BooleanField()
+    
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
@@ -650,7 +663,25 @@ class Input(models.Model):
                 initial[key] = value
         else:
             initial['speciesConstraints'] = 'off'
-            
+        
+        # Quantum Calculations
+        if self.rmg.quantumMechanics:
+            initial['quantumCalc'] = 'on'
+            initial['software'] = self.rmg.quantumMechanics.settings.software
+            initial['method'] = self.rmg.quantumMechanics.settings.method
+            if self.rmg.quantumMechanics.settings.fileStore:
+                initial['fileStore'] = os.path.split(self.rmg.quantumMechanics.settings.fileStore)[0]
+            else:
+                initial['fileStore'] = ''
+            if self.rmg.quantumMechanics.settings.scratchDirectory:
+                initial['scratchDirectory'] = os.path.split(self.rmg.quantumMechanics.settings.scratchDirectory)[0]
+            else:
+                initial['scratchDirectory'] = ''
+            initial['onlyCyclics'] = self.rmg.quantumMechanics.settings.onlyCyclics
+            initial['maxRadicalNumber'] = self.rmg.quantumMechanics.settings.maxRadicalNumber
+        else:
+            initial['quantumCalc'] = 'off'
+        
         # Additional Options
         if self.rmg.saveRestartPeriod:
             initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
@@ -780,6 +811,18 @@ class Input(models.Model):
             self.rmg.speciesConstraints['maximumHeavyAtoms'] = form.cleaned_data['maximumHeavyAtoms']
             self.rmg.speciesConstraints['maximumRadicalElectrons'] = form.cleaned_data['maximumRadicalElectrons']
             self.rmg.speciesConstraints['allowSingletO2'] = form.cleaned_data['allowSingletO2']
+        
+        # Quantum Calculations
+        quantumCalc = form.cleaned_data['quantumCalc']
+        if quantumCalc == 'on':
+            from rmgpy.qm.main import QMCalculator
+            self.rmg.quantumMechanics = QMCalculator(software = form.cleaned_data['software'].encode(),
+                                                     method = form.cleaned_data['method'].encode(),
+                                                     fileStore = form.cleaned_data['fileStore'].encode(),
+                                                     scratchDirectory = form.cleaned_data['scratchDirectory'].encode(),
+                                                     onlyCyclics = form.cleaned_data['onlyCyclics'],
+                                                     maxRadicalNumber = form.cleaned_data['maxRadicalNumber'],
+                                                     )
         
         # Save the input.py file        
         self.rmg.saveInput(self.savepath)

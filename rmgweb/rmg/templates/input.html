@@ -441,7 +441,23 @@ If you already have a saved input.py file that you would like to modify, you can
 <P><br>
     
 <ol>
-    <li value="7"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
+    <li value="7"><h3>Quantum Calculations {{ form.quantumCalc }}</h3>
+    
+    Optional block for performing on the fly quantum mechanical calculations to determine thermodynamic parameters.
+    
+    <P><table>
+        <tr><th>Software:</th>                  <td>{{ form.software }}</td></tr>
+        <tr><th>Method:</th>                    <td>{{ form.method }}</td></tr>
+        <tr><th>File Store:</th>                <td>{{ form.fileStore }}</td></tr>
+        <tr><th>Scratch Directory:</th>         <td>{{ form.scratchDirectory }}</td></tr>
+        <tr><th>Only Cyclics:</th>              <td>{{ form.onlyCyclics }}</td></tr>
+        <tr><th>Maximum Radical Number:</th>    <td>{{ form.maxRadicalNumber }}</td></tr>
+    </table>
+
+</ol>
+
+<ol>
+    <li value="8"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
     
     Optional constraints on allowed species.
     
@@ -472,7 +488,7 @@ If you already have a saved input.py file that you would like to modify, you can
 <P><br>
     
 <ol>
-    <li value="8"><h3>Additional Options</h3>
+    <li value="9"><h3>Additional Options</h3>
     
     Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
     of a run rather than starting completely from scratch if there is a failure or memory issue.              

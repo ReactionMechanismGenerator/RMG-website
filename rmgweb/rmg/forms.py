@@ -119,6 +119,7 @@ class InputForm(forms.ModelForm):
             'maximumSulfurAtoms':forms.TextInput(attrs={'size':'2'}),
             'maximumHeavyAtoms':forms.TextInput(attrs={'size':'2'}),
             'maximumRadicalElectrons':forms.TextInput(attrs={'size':'2'}),
+            'maxRadicalNumber':forms.TextInput(attrs={'size':'2'}),
         }
 
 
