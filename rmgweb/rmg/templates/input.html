@@ -373,6 +373,11 @@ If you already have a saved input.py file that you would like to modify, you can
                 <field id="short">End Time:</field> {{ form.terminationtime }} {{ form.time_units }}
                 <br><field id="short">Species:</field> {{ form.species }} <b>Conversion:</b> {{ form.conversion }}
             </blockquote>
+            <P><b>Sensitivity Analysis:</b>
+            <blockquote>
+                <field id="short">Species:</field> {{ form.sensitivity }}
+                <br><field id="short">Threshold:</field> {{ form.sensitivityThreshold }}
+            </blockquote>
             </td></tr>
             {% endfor %}
             {{ reactorformset.management_form }}

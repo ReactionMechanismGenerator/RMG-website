@@ -606,10 +606,21 @@ class Input(models.Model):
                 else:
                     species = item.species.label
                     conversion = item.conversion
+            # Sensitivity
+            if system.sensitiveSpecies:
+                sensitivity = []
+                for item in system.sensitiveSpecies:
+                    sensitivity.append(item.label)
+                sensitivity = ','.join(sensitivity)
+                sensitivityThreshold = system.sensitivityThreshold
+            else:
+                sensitivity = ''
+                sensitivityThreshold = 0.001
             initial_reactor_systems.append({'temperature': temperature, 'temperature_units': temperature_units,
                                             'pressure': pressure, 'pressure_units': pressure_units,
                                             'terminationtime': terminationtime, 'time_units': time_units,
-                                            'species': species, 'conversion': conversion})       
+                                            'species': species, 'conversion': conversion,
+                                            'sensitivity': sensitivity, 'sensitivityThreshold': sensitivityThreshold})
         
         # Species
         initial_species = []
@@ -747,7 +758,14 @@ class Input(models.Model):
             if item.conversion:
                 termination.append(TerminationConversion(speciesDict[item.species.encode()], item.conversion))
             termination.append(TerminationTime(Quantity(item.terminationtime, item.time_units.encode())))
-            system = SimpleReactor(T, P, initialMoleFractions, termination)
+            # Sensitivity Analysis
+            sensitiveSpecies = []
+            if item.sensitivity:
+                if isinstance(item.sensitivity.encode(), str): sensitivity = item.sensitivity.encode().split(',')
+                for spec in sensitivity:
+                    sensitiveSpecies.append(speciesDict[spec])
+            print sensitiveSpecies
+            system = SimpleReactor(T, P, initialMoleFractions, termination, sensitiveSpecies, item.sensitivityThreshold)
             self.rmg.reactionSystems.append(system)
     
         # Simulator tolerances
@@ -884,4 +902,7 @@ class Reactor(models.Model):
     time_units = models.CharField(max_length=50, choices=t_units, default = 's')
     species = models.CharField(max_length=50, blank=True, null=True)
     conversion = models.FloatField(blank=True, null=True)
+    # Sensitivity
+    sensitivity = models.CharField(max_length=200, blank=True, null=True)
+    sensitivityThreshold = models.FloatField(default = 0.001)
     
