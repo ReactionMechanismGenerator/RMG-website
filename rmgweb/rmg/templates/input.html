@@ -232,7 +232,8 @@ blockquote {
 
 {% block page_body %}
 
-This form will generate an input file for a RMG-Py job.
+This form will generate an input file for a RMG-Py job. For more detailed explanations of each option, 
+please see the <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/input.html" target="_blank">documentation</a>.
 <P>
 
 <hr/>
@@ -294,9 +295,9 @@ If you already have a saved input.py file that you would like to modify, you can
     <P>
     Normally, the kinetic library of reactions is used to estimate a reaction found on the edge.
     However, if you believe the reactions should be included within the mechanism core, select the
-    "SeedMech" option to allow to the library to be added to the core.
+    "SeedMech" option to force the entire library to be added to the core.
     If you do not wish for these reactions to be automatically included in the core but do want to
-    retain it in your mechanism, you may also select the "Edge" option.
+    retain it in your mechanism, you may select the "Edge" option instead.
     <P>
     You can browse the available libraries here: <a href="{% url 'database.views.kinetics' section='libraries' %}" target="_blank">Kinetics Libraries</a>
     <P>
@@ -322,10 +323,10 @@ If you already have a saved input.py file that you would like to modify, you can
 
     <li><h3>Reactor Species:</h3>
     
-    Use this form to add a species to the RMG job from its adjacency list.  The "name" field will be used throughout your mechanism to identify this species.
+    Use this form to add a species to the RMG job using its adjacency list. The "name" field will be used throughout your mechanism to identify this species.
     You can quickly fill in the adjacency list part of the form by entering any species identifier,
-    such as a SMILES, InChI, CAS number, or species name in the 'species identifier' field and pressing tab.
-    This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
+    such as a SMILES, InChI, CAS number, or species name in the "species identifier" field and pressing tab.
+    This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure" target="_blank">NCI Chemical Identifier Resolver</a>.
     
 </ol>
     
@@ -353,11 +354,16 @@ If you already have a saved input.py file that you would like to modify, you can
     <p>
     Enter individual reactor system settings for which the RMG model will be valid.
     You may add multiple reactor systems for which the overall mechanism will be valid.
-    <P>
+    <p>
     You must provide a maximum reaction time for the job.
-    A species conversion requirement is optional- be sure to use the 
-    same species name as provided previously.  The RMG job will stop as soon as
+    A species conversion requirement is optional - be sure to use the 
+    same species name as provided previously. The RMG job will stop as soon as
     one of the termination criteria is fulfilled.
+    <p>
+    RMG is also able to perform sensitivity analysis, provided it was compiled with the DASPK solver.
+    To enable sensitivity analysis, provide the species that the analysis should be done for.
+    Multiple species should be comma separated, without spaces.
+    The sensitivity threshold is the minimum sensitivity to be saved to the output file.
 </ol>
 
 <ul class="form">
@@ -386,10 +392,40 @@ If you already have a saved input.py file that you would like to modify, you can
 </ul>
 
 <ol>
-    <li value="5"><h3>Pressure Dependence: {{ form.pdep }}</h3>
+    <li value="5"><h3>Tolerances</h3>
+    
+    <P>Indicate your allowed flux tolerance for moving a reaction from the edge to the core.
+    In advanced options, you can set additional tolerances for the solver, and 
+    for the edge reactions (the possible reactions generated from the species in the core).
+    Generally, the edge tolerance is set to zero unless you need to prune the edge to reduce 
+    model generation time and memory consumption. For more information on pruning, please see the 
+    <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/input.html#pruning" target="_blank">documentation</a>.
+    
+    <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
+</ol>
+
+<ul id="tolmenu"><li>Advanced Options
+    <ol><li>
+        <table>
+            <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
+            <tr><th>Tolerance to Interrupt Simulation:</th>       <td>{{form.toleranceInterruptSimulation}}</td></tr>
+            <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr></table>
+            <P><i>Numerical Solver</i>
+                <br><table>
+                <tr><th>Absolute Tolerance: </th>    <td>{{ form.simulator_atol }}</td></tr>
+                <tr><th>Relative Tolerance: </th>    <td>{{ form.simulator_rtol }}</td></tr>
+        </table>
+    </li></ol>
+</li></ul>
+
+<P><br>
+
+<ol>
+    <li value="6"><h3>Pressure Dependence: {{ form.pdep }}</h3>
     <P>
-    If you would like to generate a pressure-dependent model, please select the form of interpolation as well as the pressure dependent 
-    reaction format (Chebyshev or Pdep Arrhenius) you would like RMG to output.
+    If you would like to generate a pressure-dependent model, please select the pressure dependence method (above) as well as the interpolation model
+    (Chebyshev or Pdep Arrhenius) you would like RMG to use. See advanced options to set the number of interpolation points, 
+    grain size, or number of basis function for Chebyshev interpolation.
     <P>
     
     <table>
@@ -418,37 +454,10 @@ If you already have a saved input.py file that you would like to modify, you can
 <P><br>
 
 <ol>
-    <li value="6"><h3>Tolerances</h3>
-    
-    <P>Indicate your allowed flux tolerance for moving a reaction to the core or keeping
-    the reaction on the edge.  In the advanced options, you can set additional tolerances for the solver, and 
-    for the edge reactions (the possible reactions generated from the species in the core).
-    Generally, the edge tolerance is set to zero unless you need to prune the edge to reduce 
-    model generation time.
-    
-    <P><table><tr><th>Core Tolerance:</th><td> {{ form.toleranceMoveToCore }}</td></tr></table>
-</ol>
-
-<ul id="tolmenu"><li>Advanced Options
-    <ol><li>
-        <table>
-            <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
-            <tr><th>Tolerance to Interrupt Simulation:</th>       <td>{{form.toleranceInterruptSimulation}}</td></tr>
-            <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr></table>
-            <P><i>Numerical Solver</i>
-                <br><table>
-                <tr><th>Absolute Tolerance: </th>    <td>{{ form.simulator_atol }}</td></tr>
-                <tr><th>Relative Tolerance: </th>    <td>{{ form.simulator_rtol }}</td></tr>
-        </table>
-    </li></ol>
-</li></ul>
-
-<P><br>
-    
-<ol>
     <li value="7"><h3>Quantum Calculations {{ form.quantumCalc }}</h3>
     
     Optional block for performing on the fly quantum mechanical calculations to determine thermodynamic parameters.
+    Calculations are only performed for molecules not present in the specified thermo libraries.
     
     <P><table>
         <tr><th>Software:</th>                  <td>{{ form.software }}</td></tr>
@@ -464,7 +473,10 @@ If you already have a saved input.py file that you would like to modify, you can
 <ol>
     <li value="8"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>
     
-    Optional constraints on allowed species.
+    Optional constraints on allowed species. Species exceeding these constrainted will not be included in the model.
+    In advanced options, allowing input species, seed mechanisms, or reaction libraries lets them bypass these constraints.
+    For more information regarding singlet O2, please see 
+    <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/species.html#representing-oxygen" target="_blank">Representing Oxygen</a>.
     
     <P><table>
         <tr><th>Maximum Carbon Atoms:</th>        <td>{{ form.maximumCarbonAtoms }}</td></tr>
@@ -496,8 +508,10 @@ If you already have a saved input.py file that you would like to modify, you can
     <li value="9"><h3>Additional Options</h3>
     
     Restart files can be generated automatically during the progress of a RMG-Py job in order to pick up a job in the middle
-    of a run rather than starting completely from scratch if there is a failure or memory issue.              
-    The save restart period may be optionally left empty if no restart files are desired.  
+    of a run rather than starting completely from scratch if there is a failure or memory issue.
+    The save restart period may be optionally left empty if no restart files are desired.
+    Note that saving restart files for large models can take a significant amount of time, so use caution when selecting the restart period.
+    Explanations for the other options can be found <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/input.html#miscellaneous-options" target="_blank">here</a>.
 
     <P><table>
         <tr><th>Save Restart:</th>                 <td>{{ form.saveRestartPeriod }}{{ form.saveRestartPeriodUnits }}</td></tr>
