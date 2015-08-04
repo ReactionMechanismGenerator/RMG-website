@@ -497,7 +497,7 @@ class Input(models.Model):
     p_basis = models.PositiveIntegerField(blank = True, default = 4, null = True)
 
     # Tolerance
-    toleranceMoveToCore = models.FloatField(blank=True, null=True)
+    toleranceMoveToCore = models.FloatField(default = 0.1)
     toleranceKeepInEdge= models.FloatField(default = 0.0)
     # Tolerance Advanced Options
     toleranceInterruptSimulation = models.FloatField(default = 1.0)
@@ -585,7 +585,7 @@ class Input(models.Model):
         
         initial_reaction_libraries = []
         if self.rmg.seedMechanisms:
-            for item in self.rmg.seedMechanism:
+            for item in self.rmg.seedMechanisms:
                 initial_reaction_libraries.append({'reactionlib': item, 'seedmech': True, 'edge': False})
         if self.rmg.reactionLibraries:
             for item, edge in self.rmg.reactionLibraries:
@@ -722,8 +722,8 @@ class Input(models.Model):
                 else:
                     self.rmg.seedMechanisms.append(item.reactionlib.encode())
         self.rmg.statmechLibraries = []
-        self.rmg.kineticsDepositories = ['training']
-        self.rmg.kineticsFamilies = ['!Intra_Disproportionation']        
+        self.rmg.kineticsDepositories = 'default'
+        self.rmg.kineticsFamilies = 'default'
         self.rmg.kineticsEstimator = 'rate rules'
         
         # Species
