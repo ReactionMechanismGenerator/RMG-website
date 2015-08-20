@@ -651,7 +651,7 @@ class Input(models.Model):
             # Pressure dependence method
             initial['pdep'] = self.rmg.pressureDependence.method.lower()
             # Process interpolation model
-            initial['interpolation'] = self.rmg.pressureDependence.interpolationModel[0]
+            initial['interpolation'] = self.rmg.pressureDependence.interpolationModel[0].lower()
             if initial['interpolation'] == 'chebyshev':
                 initial['temp_basis'] = self.rmg.pressureDependence.interpolationModel[1]
                 initial['p_basis'] = self.rmg.pressureDependence.interpolationModel[2]
