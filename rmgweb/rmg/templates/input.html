@@ -444,7 +444,10 @@ If you already have a saved input.py file that you would like to modify, you can
 </ol>
 
 <ul id="pdepmenu"><li>Advanced Options
-    <ol><li>
+    <ol><li><P><i>Maximum Atoms of Isomers in Network</i>
+        <table><tr><th>Maximum Atoms:</th><td> {{ form.maximumAtoms}}</td></tr>
+        <tr><td colspan=2>If used, the number of maximum atoms turns off pressure dependence for molecules with atoms greater than the number specified.
+ 	This is due to faster internal rate of energy transfer for larger molecules. </td></tr> </table>
         <P><i>Number of Interpolation Points Used in Model</i>
             <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
             <tr><th>Pressure:</th><td> {{form.p_interp}}</td></tr></table>

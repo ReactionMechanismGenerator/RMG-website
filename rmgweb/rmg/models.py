@@ -481,6 +481,7 @@ class Input(models.Model):
     grain_units = (('kcal/mol','kcal/mol',),('kJ/mol','kJ/mol',))
     grainsize_units = models.CharField(max_length = 50, default = 'kcal/mol', choices = grain_units)
     minimumNumberOfGrains = models.PositiveIntegerField(blank = True, default = 200, null = True)
+    maximumAtoms = models.PositiveIntegerField(blank = True, null = True)
     # P and T Range
     p_low = models.FloatField(blank = True, null = True)
     p_high = models.FloatField(blank = True, null = True)
@@ -668,6 +669,8 @@ class Input(models.Model):
             initial['maximumGrainSize'] = self.rmg.pressureDependence.maximumGrainSize.getValue()
             initial['grainsize_units'] = self.rmg.pressureDependence.maximumGrainSize.units
             initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.minimumGrainCount
+            
+            initial['maximumAtoms'] = self.rmg.pressureDependence.maximumAtoms
         else:
             initial['pdep'] = 'off'    
             
@@ -807,7 +810,7 @@ class Input(models.Model):
             self.rmg.pressureDependence.grainSize = Quantity(form.cleaned_data['maximumGrainSize'], form.cleaned_data['grainsize_units'].encode())
             self.rmg.pressureDependence.grainCount = form.cleaned_data['minimumNumberOfGrains']
             
-        
+            self.rmg.pressureDependence.maximumAtoms = form.cleaned_data['maximumAtoms']
         # Additional Options
         self.rmg.units = 'si' 
         self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
