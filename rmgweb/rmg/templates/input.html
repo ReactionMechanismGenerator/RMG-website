@@ -162,6 +162,12 @@ ul {
         list-style-type: none;
         margin: 0;
     }
+    
+    ul#qmmenu ol {
+        display: none;
+        list-style-type: none;
+        margin: 0;
+    }
 
     ul#constraintmenu ol {
         display: none;
@@ -462,13 +468,26 @@ If you already have a saved input.py file that you would like to modify, you can
     <P><table>
         <tr><th>Software:</th>                  <td>{{ form.software }}</td></tr>
         <tr><th>Method:</th>                    <td>{{ form.method }}</td></tr>
-        <tr><th>File Store:</th>                <td>{{ form.fileStore }}</td></tr>
-        <tr><th>Scratch Directory:</th>         <td>{{ form.scratchDirectory }}</td></tr>
         <tr><th>Only Cyclics:</th>              <td>{{ form.onlyCyclics }}</td></tr>
         <tr><th>Maximum Radical Number:</th>    <td>{{ form.maxRadicalNumber }}</td></tr>
     </table>
 
 </ol>
+
+<ul id="qmmenu"><li>Advanced Options
+
+    <ol><li>
+    
+    You may provide user specified directories for where to store thermo files as well as the the temporary scratch files.  The default directories
+    are QMfiles and QMscratch, respectively, in your job directory.   
+        <table>
+        <tr><th>File Store:</th>                <td>{{ form.fileStore }}</td></tr>
+        <tr><th>Scratch Directory:</th>         <td>{{ form.scratchDirectory }}</td></tr>
+        </table>
+    </li></ol>
+</li></ul>
+
+<P><br>
 
 <ol>
     <li value="8"><h3>Generated Species Constraints {{ form.speciesConstraints }}</h3>

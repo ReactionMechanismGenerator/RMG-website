@@ -117,10 +117,27 @@ function initMenu3(){
   }
 }
 
+
+function initMenu4(){
+  var menus, menu, text, a, i;
+  menus = getChildrenByElement(document.getElementById("qmmenu"));
+  for(i = 0; i < menus.length; i++){
+    menu = menus[i];
+    text = getFirstChildByText(menu);
+    a = document.createElement("a");
+    menu.replaceChild(a, text);
+    a.appendChild(text);
+    a.href = "#";
+    a.onclick = showMenu;
+    a.onfocus = function(){this.blur()};
+  }
+}
+
 function start() {
   initMenu();
   initMenu2();
   initMenu3();
+  initMenu4();
 }
 
 if(document.createElement) window.onload = start;
