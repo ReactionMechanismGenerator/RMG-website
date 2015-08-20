@@ -293,7 +293,7 @@ If you already have a saved input.py file that you would like to modify, you can
         </tbody>
     </table>
 
-    <li><h3>Reaction Libraries</h3>
+    <li><h3>Reaction Libraries and Seed Mechanisms</h3>
     
     Select reaction libraries you would like to be included in your RMG job in order of priority. Rates from reactions within the library will be used 
     if the reaction is found in your job. You may select multiple libraries.
@@ -513,7 +513,7 @@ If you already have a saved input.py file that you would like to modify, you can
         <tr><th>Maximum Nitrogen Atoms:</th>      <td>{{ form.maximumNitrogenAtoms }}</td></tr>
         <tr><th>Maximum Silicon Atoms:</th>       <td>{{ form.maximumSiliconAtoms }}</td></tr>
         <tr><th>Maximum Sulfur Atoms:</th>        <td>{{ form.maximumSulfurAtoms }}</td></tr>
-        <tr><th>Maximum Heavy Atoms:</th>         <td>{{ form.maximumHeavyAtoms }}</td></tr>
+        <tr><th>Maximum Heavy Atoms (Non-Hydrogen):</th>         <td>{{ form.maximumHeavyAtoms }}</td></tr>
         <tr><th>Maximum Radical Electrons:</th>   <td>{{ form.maximumRadicalElectrons }}</td></tr>
     </table>
 
@@ -544,7 +544,7 @@ If you already have a saved input.py file that you would like to modify, you can
     <P><table>
         <tr><th>Save Restart:</th>                 <td>{{ form.saveRestartPeriod }}{{ form.saveRestartPeriodUnits }}</td></tr>
         <tr><th>Draw Molecules:</th>               <td>{{ form.drawMolecules }}</td></tr>
-        <tr><th>Generate Plots:</th>               <td>{{ form.generatePlots }}</td></tr>
+        <tr><th>Generate Performance Statistics Plots:</th>               <td>{{ form.generatePlots }}</td></tr>
         <tr><th>Save Concentration Profiles:</th>  <td>{{ form.saveSimulationProfiles }}</td></tr>
         <tr><th>Save Edge Species:</th>            <td>{{ form.saveEdgeSpecies }}</td></tr>
         <tr><th>Verbose Chemkin Comments:</th>     <td>{{ form.verboseComments }}</td></tr>
