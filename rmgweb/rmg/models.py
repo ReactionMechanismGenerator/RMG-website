@@ -481,6 +481,7 @@ class Input(models.Model):
     grain_units = (('kcal/mol','kcal/mol',),('kJ/mol','kJ/mol',))
     grainsize_units = models.CharField(max_length = 50, default = 'kcal/mol', choices = grain_units)
     minimumNumberOfGrains = models.PositiveIntegerField(blank = True, default = 200, null = True)
+    maximumAtoms = models.PositiveIntegerField(blank = True, null = True)
     # P and T Range
     p_low = models.FloatField(blank = True, null = True)
     p_high = models.FloatField(blank = True, null = True)
@@ -497,13 +498,43 @@ class Input(models.Model):
     p_basis = models.PositiveIntegerField(blank = True, default = 4, null = True)
 
     # Tolerance
-    toleranceMoveToCore = models.FloatField(blank=True, null=True)
+    toleranceMoveToCore = models.FloatField(default = 0.1)
     toleranceKeepInEdge= models.FloatField(default = 0.0)
     # Tolerance Advanced Options
     toleranceInterruptSimulation = models.FloatField(default = 1.0)
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
+    simulator_sens_atol = models.FloatField(default = 1e-6)
+    simulator_sens_rtol = models.FloatField(default = 1e-4)
+    
+    # Quantum Calculations
+    on_off = (('off','off',),('on','on',))
+    quantumCalc = models.CharField(max_length = 50, default = 'off', choices = on_off)
+    software_options = (('mopac','MOPAC',),('gaussian','GAUSSIAN',))
+    software = models.CharField(max_length = 50, default = 'off', choices = software_options)
+    method_options = (('pm3','pm3',),('pm6','pm6',),('pm7','pm7 (MOPAC2012 only)',))
+    method = models.CharField(max_length = 50, default = 'off', choices = method_options)
+    fileStore = models.CharField(max_length = 100, default = 'QMfiles', blank = True)
+    scratchDirectory = models.CharField(max_length = 100, default = 'QMscratch', blank = True)
+    onlyCyclics = models.BooleanField(default=True)
+    maxRadicalNumber = models.PositiveSmallIntegerField(blank = True, default=0)
+    
+    # Generated Species Constraints
+    speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
+    allowed_inputSpecies = models.BooleanField(default = False)
+    allowed_seedMechanisms = models.BooleanField(default = False)
+    allowed_reactionLibraries = models.BooleanField(default = False)
+    maximumCarbonAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumHydrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumOxygenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumNitrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumSiliconAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumSulfurAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
+    maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
+    allowSingletO2 = models.BooleanField()
+    
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
@@ -511,6 +542,8 @@ class Input(models.Model):
     drawMolecules=models.BooleanField()
     generatePlots=models.BooleanField()
     saveSimulationProfiles = models.BooleanField()
+    saveEdgeSpecies = models.BooleanField()
+    verboseComments = models.BooleanField()
 
 
     def getDirname(self):
@@ -555,7 +588,7 @@ class Input(models.Model):
         
         initial_reaction_libraries = []
         if self.rmg.seedMechanisms:
-            for item in self.rmg.seedMechanism:
+            for item in self.rmg.seedMechanisms:
                 initial_reaction_libraries.append({'reactionlib': item, 'seedmech': True, 'edge': False})
         if self.rmg.reactionLibraries:
             for item, edge in self.rmg.reactionLibraries:
@@ -576,10 +609,21 @@ class Input(models.Model):
                 else:
                     species = item.species.label
                     conversion = item.conversion
+            # Sensitivity
+            if system.sensitiveSpecies:
+                sensitivity = []
+                for item in system.sensitiveSpecies:
+                    sensitivity.append(item.label)
+                sensitivity = ','.join(sensitivity)
+                sensitivityThreshold = system.sensitivityThreshold
+            else:
+                sensitivity = ''
+                sensitivityThreshold = 0.001
             initial_reactor_systems.append({'temperature': temperature, 'temperature_units': temperature_units,
                                             'pressure': pressure, 'pressure_units': pressure_units,
                                             'terminationtime': terminationtime, 'time_units': time_units,
-                                            'species': species, 'conversion': conversion})       
+                                            'species': species, 'conversion': conversion,
+                                            'sensitivity': sensitivity, 'sensitivityThreshold': sensitivityThreshold})
         
         # Species
         initial_species = []
@@ -596,6 +640,8 @@ class Input(models.Model):
         initial = {}
         initial['simulator_atol'] = self.rmg.absoluteTolerance 
         initial['simulator_rtol'] = self.rmg.relativeTolerance 
+        initial['simulator_sens_atol'] = self.rmg.sensitivityAbsoluteTolerance 
+        initial['simulator_sens_rtol'] = self.rmg.sensitivityRelativeTolerance 
         initial['toleranceKeepInEdge'] = self.rmg.fluxToleranceKeepInEdge 
         initial['toleranceMoveToCore']= self.rmg.fluxToleranceMoveToCore
         initial['toleranceInterruptSimulation'] = self.rmg.fluxToleranceInterrupt
@@ -603,9 +649,14 @@ class Input(models.Model):
                 
         # Pressure Dependence
         if self.rmg.pressureDependence:
-            initial['interpolation'] = self.rmg.pressureDependence.model[0]
-            initial['temp_basis'] = self.rmg.pressureDependence.model[1]
-            initial['p_basis'] = self.rmg.pressureDependence.model[2]
+            # Pressure dependence method
+            initial['pdep'] = self.rmg.pressureDependence.method.lower()
+            # Process interpolation model
+            initial['interpolation'] = self.rmg.pressureDependence.interpolationModel[0].lower()
+            if initial['interpolation'] == 'chebyshev':
+                initial['temp_basis'] = self.rmg.pressureDependence.interpolationModel[1]
+                initial['p_basis'] = self.rmg.pressureDependence.interpolationModel[2]
+            # Temperature and pressure ranges
             initial['temp_low'] = self.rmg.pressureDependence.Tmin.getValue()
             initial['temp_high'] = self.rmg.pressureDependence.Tmax.getValue()
             initial['temprange_units'] = self.rmg.pressureDependence.Tmax.units
@@ -613,15 +664,51 @@ class Input(models.Model):
             initial['p_low'] = self.rmg.pressureDependence.Pmin.getValue()
             initial['p_high'] = self.rmg.pressureDependence.Pmax.getValue()
             initial['prange_units'] = self.rmg.pressureDependence.Pmax.units
-            initial['p_interp'] = self.rmg.pressureDepence.Pcount
+            initial['p_interp'] = self.rmg.pressureDependence.Pcount
+            # Process grain size and count
+            initial['maximumGrainSize'] = self.rmg.pressureDependence.maximumGrainSize.getValue()
+            initial['grainsize_units'] = self.rmg.pressureDependence.maximumGrainSize.units
+            initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.minimumGrainCount
             
-            initial['maximumGrainSize'] = self.rmg.pressureDependence.grainSize.getValue()
-            initial['grainsize_units'] = self.rmg.pressureDependence.grainSize.units
-            initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.grainCount
-
+            initial['maximumAtoms'] = self.rmg.pressureDependence.maximumAtoms
         else:
             initial['pdep'] = 'off'    
             
+        # Species Constraints
+        if self.rmg.speciesConstraints:
+            initial['speciesConstraints'] = 'on'
+            for key, value in self.rmg.speciesConstraints.items():
+                if key == 'allowed':
+                    allowed_dict = {'input species':'allowed_inputSpecies', 'reaction libraries':'allowed_reactionLibraries', 'seed mechanisms':'allowed_seedMechanisms'}
+                    if isinstance(value,list):
+                        for allowed_name in value:
+                            field = allowed_dict[allowed_name.lower()]
+                            initial[field] = True
+                    else:
+                        raise Exception("Input File generatedSpeciesConstraints(allowed='[..]'), allowed block must be a list containing either 'reaction libraries', 'seed mechanisms', or 'input species'." )
+                else:
+                    initial[key] = value
+        else:
+            initial['speciesConstraints'] = 'off'
+        
+        # Quantum Calculations
+        if self.rmg.quantumMechanics:
+            initial['quantumCalc'] = 'on'
+            initial['software'] = self.rmg.quantumMechanics.settings.software
+            initial['method'] = self.rmg.quantumMechanics.settings.method
+            if self.rmg.quantumMechanics.settings.fileStore:
+                initial['fileStore'] = os.path.split(self.rmg.quantumMechanics.settings.fileStore)[0]
+            else:
+                initial['fileStore'] = ''
+            if self.rmg.quantumMechanics.settings.scratchDirectory:
+                initial['scratchDirectory'] = os.path.split(self.rmg.quantumMechanics.settings.scratchDirectory)[0]
+            else:
+                initial['scratchDirectory'] = ''
+            initial['onlyCyclics'] = self.rmg.quantumMechanics.settings.onlyCyclics
+            initial['maxRadicalNumber'] = self.rmg.quantumMechanics.settings.maxRadicalNumber
+        else:
+            initial['quantumCalc'] = 'off'
+        
         # Additional Options
         if self.rmg.saveRestartPeriod:
             initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
@@ -631,7 +718,11 @@ class Input(models.Model):
         if self.rmg.generatePlots:
             initial['generatePlots'] = True
         if self.rmg.saveSimulationProfiles:
-            initial['saveSimulationProfiles'] = True       
+            initial['saveSimulationProfiles'] = True
+        if self.rmg.saveEdgeSpecies:
+            initial['saveEdgeSpecies'] = True
+        if self.rmg.verboseComments:
+            initial['verboseComments'] = True
             
         return initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial
         
@@ -658,8 +749,8 @@ class Input(models.Model):
                 else:
                     self.rmg.seedMechanisms.append(item.reactionlib.encode())
         self.rmg.statmechLibraries = []
-        self.rmg.kineticsDepositories = ['training']
-        self.rmg.kineticsFamilies = ['!Intra_Disproportionation']        
+        self.rmg.kineticsDepositories = 'default'
+        self.rmg.kineticsFamilies = 'default'
         self.rmg.kineticsEstimator = 'rate rules'
         
         # Species
@@ -683,12 +774,20 @@ class Input(models.Model):
             if item.conversion:
                 termination.append(TerminationConversion(speciesDict[item.species.encode()], item.conversion))
             termination.append(TerminationTime(Quantity(item.terminationtime, item.time_units.encode())))
-            system = SimpleReactor(T, P, initialMoleFractions, termination)
+            # Sensitivity Analysis
+            sensitiveSpecies = []
+            if item.sensitivity:
+                if isinstance(item.sensitivity.encode(), str): sensitivity = item.sensitivity.encode().split(',').strip()
+                for spec in sensitivity:
+                    sensitiveSpecies.append(speciesDict[spec])
+            system = SimpleReactor(T, P, initialMoleFractions, termination, sensitiveSpecies, item.sensitivityThreshold)
             self.rmg.reactionSystems.append(system)
     
         # Simulator tolerances
         self.rmg.absoluteTolerance = form.cleaned_data['simulator_atol']
         self.rmg.relativeTolerance = form.cleaned_data['simulator_rtol']
+        self.rmg.sensitivityAbsoluteTolerance = form.cleaned_data['simulator_sens_atol']
+        self.rmg.sensitivityRelativeTolerance = form.cleaned_data['simulator_sens_rtol']
         self.rmg.fluxToleranceKeepInEdge = form.cleaned_data['toleranceKeepInEdge']
         self.rmg.fluxToleranceMoveToCore = form.cleaned_data['toleranceMoveToCore']
         self.rmg.fluxToleranceInterrupt = form.cleaned_data['toleranceInterruptSimulation']
@@ -699,34 +798,67 @@ class Input(models.Model):
         if pdep != 'off':
             self.rmg.pressureDependence = PressureDependenceJob(network=None)
             self.rmg.pressureDependence.method = pdep
+            
+            # Process interpolation model
+            if form.cleaned_data['interpolation'].encode() == 'chebyshev':
+                self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
+            else:
+                self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(),)
+            
             # Temperature and pressure range
-            self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
             self.rmg.pressureDependence.Tmin = Quantity(form.cleaned_data['temp_low'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tmax = Quantity(form.cleaned_data['temp_high'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tcount = form.cleaned_data['temp_interp']
             self.rmg.pressureDependence.generateTemperatureList() 
-            self.rmg.pressureDependence.Tlist = Quantity(Tlist,"K")
-            
             self.rmg.pressureDependence.Pmin = Quantity(form.cleaned_data['p_low'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pmax = Quantity(form.cleaned_data['p_high'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pcount = form.cleaned_data['p_interp']
             self.rmg.pressureDependence.generatePressureList()
-            self.rmg.pressureDependence.Plist = Quantity(Plist,"Pa")
             
             # Process grain size and count
             self.rmg.pressureDependence.grainSize = Quantity(form.cleaned_data['maximumGrainSize'], form.cleaned_data['grainsize_units'].encode())
             self.rmg.pressureDependence.grainCount = form.cleaned_data['minimumNumberOfGrains']
-        
-            # Process interpolation model
-            self.rmg.pressureDependence.model = interpolation
-        
+            
+            self.rmg.pressureDependence.maximumAtoms = form.cleaned_data['maximumAtoms']
         # Additional Options
         self.rmg.units = 'si' 
         self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
         self.rmg.drawMolecules = form.cleaned_data['drawMolecules']
         self.rmg.generatePlots = form.cleaned_data['generatePlots']
         self.rmg.saveSimulationProfiles = form.cleaned_data['saveSimulationProfiles']
-
+        self.rmg.saveEdgeSpecies = form.cleaned_data['saveEdgeSpecies']
+        self.rmg.verboseComments = form.cleaned_data['verboseComments']
+        
+        # Species Constraints
+        speciesConstraints = form.cleaned_data['speciesConstraints']
+        if speciesConstraints == 'on':
+            allowed = []
+            if form.cleaned_data['allowed_inputSpecies']: allowed.append('input species')
+            if form.cleaned_data['allowed_seedMechanisms']: allowed.append('seed mechanisms')
+            if form.cleaned_data['allowed_reactionLibraries']: allowed.append('reaction libraries')
+            self.rmg.speciesConstraints['allowed'] = allowed
+            self.rmg.speciesConstraints['maximumCarbonAtoms'] = form.cleaned_data['maximumCarbonAtoms']
+            self.rmg.speciesConstraints['maximumHydrogenAtoms'] = form.cleaned_data['maximumHydrogenAtoms']
+            self.rmg.speciesConstraints['maximumOxygenAtoms'] = form.cleaned_data['maximumOxygenAtoms']
+            self.rmg.speciesConstraints['maximumNitrogenAtoms'] = form.cleaned_data['maximumNitrogenAtoms']
+            self.rmg.speciesConstraints['maximumSiliconAtoms'] = form.cleaned_data['maximumSiliconAtoms']
+            self.rmg.speciesConstraints['maximumSulfurAtoms'] = form.cleaned_data['maximumSulfurAtoms']
+            self.rmg.speciesConstraints['maximumHeavyAtoms'] = form.cleaned_data['maximumHeavyAtoms']
+            self.rmg.speciesConstraints['maximumRadicalElectrons'] = form.cleaned_data['maximumRadicalElectrons']
+            self.rmg.speciesConstraints['allowSingletO2'] = form.cleaned_data['allowSingletO2']
+        
+        # Quantum Calculations
+        quantumCalc = form.cleaned_data['quantumCalc']
+        if quantumCalc == 'on':
+            from rmgpy.qm.main import QMCalculator
+            self.rmg.quantumMechanics = QMCalculator(software = form.cleaned_data['software'].encode(),
+                                                     method = form.cleaned_data['method'].encode(),
+                                                     fileStore = form.cleaned_data['fileStore'].encode(),
+                                                     scratchDirectory = form.cleaned_data['scratchDirectory'].encode(),
+                                                     onlyCyclics = form.cleaned_data['onlyCyclics'],
+                                                     maxRadicalNumber = form.cleaned_data['maxRadicalNumber'],
+                                                     )
+        
         # Save the input.py file        
         self.rmg.saveInput(self.savepath)
 
@@ -787,4 +919,7 @@ class Reactor(models.Model):
     time_units = models.CharField(max_length=50, choices=t_units, default = 's')
     species = models.CharField(max_length=50, blank=True, null=True)
     conversion = models.FloatField(blank=True, null=True)
+    # Sensitivity
+    sensitivity = models.CharField(max_length=200, blank=True, null=True)
+    sensitivityThreshold = models.FloatField(default = 0.001)
     

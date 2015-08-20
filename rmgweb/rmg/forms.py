@@ -110,8 +110,17 @@ class InputForm(forms.ModelForm):
             'maximumEdgeSpecies' : forms.TextInput(attrs={'size':'5'}),
             'simulator_atol' : forms.TextInput(attrs={'size':'3'}),
             'simulator_rtol': forms.TextInput(attrs={'size':'3'}),
-            'saveRestartPeriod':forms.TextInput(attrs={'size':5}),
-        }  
+            'saveRestartPeriod':forms.TextInput(attrs={'size':'5'}),
+            'maximumCarbonAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumHydrogenAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumOxygenAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumNitrogenAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumSiliconAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumSulfurAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumHeavyAtoms':forms.TextInput(attrs={'size':'2'}),
+            'maximumRadicalElectrons':forms.TextInput(attrs={'size':'2'}),
+            'maxRadicalNumber':forms.TextInput(attrs={'size':'2'}),
+        }
 
 
 class ThermoLibraryForm(forms.ModelForm):
@@ -126,8 +135,8 @@ class ReactorSpeciesForm(forms.ModelForm):
     class Meta:
         model = ReactorSpecies
         widgets ={
-        'name': forms.TextInput(attrs={'style':'width:100%;'}),
-        'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier', 'style':'width:100%;'}),
+        'name': forms.TextInput(),
+        'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier'}),
         'adjlist':forms.Textarea(attrs={'cols': 50, 'rows': 10 }),
         'molefrac': forms.TextInput(attrs={'size':'5'}),
         }

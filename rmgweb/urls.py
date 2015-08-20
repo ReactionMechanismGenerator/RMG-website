@@ -87,6 +87,9 @@ urlpatterns = patterns('rmgweb',
     # RMG-Py Stuff
     (r'^simulate/', include('rmg.urls')),
     
+    # RMG Input Form
+    (r'^input', 'rmg.views.input'),
+    
     # Documentation auto-rebuild
     (r'^rebuild$', 'main.views.rebuild'),
 
