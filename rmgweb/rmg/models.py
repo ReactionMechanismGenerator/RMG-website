@@ -504,6 +504,8 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
+    simulator_sens_atol = models.FloatField(default = 1e-6)
+    simulator_sens_rtol = models.FloatField(default = 1e-4)
     
     # Quantum Calculations
     on_off = (('off','off',),('on','on',))
@@ -637,6 +639,8 @@ class Input(models.Model):
         initial = {}
         initial['simulator_atol'] = self.rmg.absoluteTolerance 
         initial['simulator_rtol'] = self.rmg.relativeTolerance 
+        initial['simulator_sens_atol'] = self.rmg.sensitivityAbsoluteTolerance 
+        initial['simulator_sens_rtol'] = self.rmg.sensitivityRelativeTolerance 
         initial['toleranceKeepInEdge'] = self.rmg.fluxToleranceKeepInEdge 
         initial['toleranceMoveToCore']= self.rmg.fluxToleranceMoveToCore
         initial['toleranceInterruptSimulation'] = self.rmg.fluxToleranceInterrupt
@@ -770,6 +774,8 @@ class Input(models.Model):
         # Simulator tolerances
         self.rmg.absoluteTolerance = form.cleaned_data['simulator_atol']
         self.rmg.relativeTolerance = form.cleaned_data['simulator_rtol']
+        self.rmg.sensitivityAbsoluteTolerance = form.cleaned_data['simulator_sens_atol']
+        self.rmg.sensitivityRelativeTolerance = form.cleaned_data['simulator_sens_rtol']
         self.rmg.fluxToleranceKeepInEdge = form.cleaned_data['toleranceKeepInEdge']
         self.rmg.fluxToleranceMoveToCore = form.cleaned_data['toleranceMoveToCore']
         self.rmg.fluxToleranceInterrupt = form.cleaned_data['toleranceInterruptSimulation']
