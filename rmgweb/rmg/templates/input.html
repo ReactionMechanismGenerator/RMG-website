@@ -469,8 +469,15 @@ If you already have a saved input.py file that you would like to modify, you can
         <tr><th>Software:</th>                  <td>{{ form.software }}</td></tr>
         <tr><th>Method:</th>                    <td>{{ form.method }}</td></tr>
         <tr><th>Only Cyclics:</th>              <td>{{ form.onlyCyclics }}</td></tr>
+        <tr><td colspan=2>It is recommended that Only Cyclics is set to True, since it is very time consuming to perform 
+        QM jobs on non-cyclie molecules, and it is likely that group additivity values will be more accurate.</td></tr>
         <tr><th>Maximum Radical Number:</th>    <td>{{ form.maxRadicalNumber }}</td></tr>
+        <tr><td colspan=2>It is recommended that Maximum Radical Number be set to 0, because semi-empirical methods such as 
+        PM3, PM6, and PM7 are generally fitted with nonradical species, and therefore quantum calculations on radical species
+        may not be accurate.  Thermochemistry for radicals is computed by applying a Hydrogen Bond Increment value onto the
+        neutral species to produce the most accurate value.</td></tr>
     </table>
+
 
 </ol>
 

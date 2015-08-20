@@ -513,9 +513,9 @@ class Input(models.Model):
     method_options = (('pm3','pm3',),('pm6','pm6',),('pm7','pm7 (MOPAC2012 only)',))
     method = models.CharField(max_length = 50, default = 'off', choices = method_options)
     fileStore = models.CharField(max_length = 100, default = 'QMfiles', blank = True)
-    scratchDirectory = models.CharField(max_length = 100, blank = True)
-    onlyCyclics = models.BooleanField()
-    maxRadicalNumber = models.PositiveSmallIntegerField(blank = True, null = True)
+    scratchDirectory = models.CharField(max_length = 100, default = 'QMscratch', blank = True)
+    onlyCyclics = models.BooleanField(default=True)
+    maxRadicalNumber = models.PositiveSmallIntegerField(blank = True, default=0)
     
     # Generated Species Constraints
     speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
