@@ -521,9 +521,9 @@ class Input(models.Model):
     
     # Generated Species Constraints
     speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
-    allowed_inputSpecies = models.BooleanField(default = True)
-    allowed_seedMechanisms = models.BooleanField(default = True)
-    allowed_reactionLibraries = models.BooleanField(default = True)
+    allowed_inputSpecies = models.BooleanField(default = False)
+    allowed_seedMechanisms = models.BooleanField(default = False)
+    allowed_reactionLibraries = models.BooleanField(default = False)
     maximumCarbonAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumHydrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumOxygenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
