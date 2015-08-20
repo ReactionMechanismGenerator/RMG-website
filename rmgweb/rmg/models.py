@@ -678,7 +678,16 @@ class Input(models.Model):
         if self.rmg.speciesConstraints:
             initial['speciesConstraints'] = 'on'
             for key, value in self.rmg.speciesConstraints.items():
-                initial[key] = value
+                if key == 'allowed':
+                    allowed_dict = {'input species':'allowed_inputSpecies', 'reaction libraries':'allowed_reactionLibraries', 'seed mechanisms':'allowed_seedMechanisms'}
+                    if isinstance(value,list):
+                        for allowed_name in value:
+                            field = allowed_dict[allowed_name.lower()]
+                            initial[field] = True
+                    else:
+                        raise Exception("Input File generatedSpeciesConstraints(allowed='[..]'), allowed block must be a list containing either 'reaction libraries', 'seed mechanisms', or 'input species'." )
+                else:
+                    initial[key] = value
         else:
             initial['speciesConstraints'] = 'off'
         
