@@ -1410,7 +1410,12 @@ def kineticsEntryNew(request, family, type):
                 
             # Format the new entry as a string
             entry_buffer = StringIO.StringIO(u'')
-            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            try:
+                rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            except Exception, e:
+                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+                entry_buffer += e
+                pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
             
@@ -1498,7 +1503,12 @@ def kineticsEntryEdit(request, section, subsection, index):
             
             # Get the entry as a entry_string
             entry_buffer = StringIO.StringIO(u'')
-            rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            try:
+                rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+            except Exception, e:
+                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+                entry_buffer += e
+                pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
             
@@ -1553,7 +1563,12 @@ def kineticsEntryEdit(request, section, subsection, index):
     else: # not POST
         # Get the entry as a entry_string
         entry_buffer = StringIO.StringIO(u'')
-        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+        try:
+            rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+        except Exception, e:
+            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+            entry_buffer += e
+            pass
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
         
@@ -1611,7 +1626,12 @@ def thermoEntryNew(request, section, subsection, adjlist):
             
             # Format the new entry as a string
             entry_buffer = StringIO.StringIO(u'')
-            rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            try:
+                rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            except Exception, e:
+                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+                entry_buffer += e
+                pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
             
@@ -1717,7 +1737,12 @@ def thermoEntryEdit(request, section, subsection, index):
             
             # Get the entry as a entry_string
             entry_buffer = StringIO.StringIO(u'')
-            rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            try:
+                rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+            except Exception, e:
+                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+                entry_buffer += e
+                pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
             
@@ -1772,7 +1797,12 @@ def thermoEntryEdit(request, section, subsection, index):
     else: # not POST
         # Get the entry as a entry_string
         entry_buffer = StringIO.StringIO(u'')
-        rmgpy.data.thermo.saveEntry(entry_buffer, entry)
+        try:
+            rmgpy.data.thermo.saveEntry(entry_buffer, entry)
+        except Exception, e:
+            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+            entry_buffer += e
+            pass
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
         
@@ -1969,7 +1999,12 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
         raise Exception('Unexpected group kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
     
     entry_buffer = StringIO.StringIO(u'')
-    rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+    try:
+        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)            
+    except Exception, e:
+        entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+        entry_buffer += e
+        pass
     entry_string = entry_buffer.getvalue()
     entry_buffer.close()
     # replace the kinetics with the original ones
@@ -2218,11 +2253,15 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
         reaction = additiveList[0]
         new_entry = StringIO.StringIO(u'')
-        if reactionHasReactants(reaction, reactantList):
-            rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=Reaction(reactants=reaction.reactants, products=reaction.products)))
-        else:
-            rmgpy.data.kinetics.saveEntry(new_entry, Entry(item=Reaction(reactants=reaction.products, products=reaction.reactants)))
-        
+        try:
+            if reactionHasReactants(reaction, reactantList):
+                rmgpy.data.kinetics.saveEntry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.reactants, products=reaction.products)))
+            else:
+                rmgpy.data.kinetics.saveEntry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.products, products=reaction.reactants)))
+        except Exception, e:
+            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
+            entry_buffer += e
+            pass
         entry_string = new_entry.getvalue()
         entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
         entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
