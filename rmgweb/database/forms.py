@@ -310,7 +310,6 @@ class KineticsEntryEditForm(forms.Form):
             local_context['entry'] = new_depository.loadEntry
             for key,value in rmgpy.data.base.Database.local_context.iteritems():
                 local_context[key]=value
-            print local_context
             
             entry_string = str(self.cleaned_data['entry'])
             try:
