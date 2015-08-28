@@ -41,11 +41,18 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
-<ul>
+
+
+<table class="kineticsData">
 {% for subsection, library in kineticsLibraries %}
-<li><a href="{% url 'database.views.kinetics' section='libraries' subsection=subsection %}">{{ library.label }}</a> ({{ library.entries|length }} entries)</li>
+    <tr>
+        <td><a href="{% url 'database.views.kinetics' section='libraries' subsection=subsection %}">{{ library.label }}</a></td>
+        <td>({{ library.entries|length }} entries)</td>
+        <td>{{ library.shortDesc}}</td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
+
 {% endif %}
 
 {% if section == '' %}
@@ -53,11 +60,14 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == 'families' or section == '' %}
-<ul>
+
+<table class="kineticsData">
 {% for subsection, family in kineticsFamilies %}
-    <li>
-        <a href="{% url 'database.views.kinetics' section='families' subsection=subsection %}">{{ family.name }}</a>
-        <ul>
+    <tr>
+        <td><a href="{% url 'database.views.kinetics' section='families' subsection=subsection %}">{{ family.name }}</a></td>
+        <td><img src="/media/families/{{family.name}}.png" width="300"/></td>
+        <td>        
+        	<ul>
             <li><a href="{% url 'database.views.kinetics' section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
             {% if family.rules.entries %}
             <li><a href="{% url 'database.views.kinetics' section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a> ({{ family.rules.entries|length }} entries)</li>
@@ -67,10 +77,12 @@ RMG Kinetics Database
             <li><a href="{% url 'database.views.kinetics' section='families' subsection=depository.label %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
             {% endif %}
             {% endfor %}
-        </ul>
-    </li>
+        	</ul>
+        </td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
+
 {% endif %}
 
 {% endblock %}

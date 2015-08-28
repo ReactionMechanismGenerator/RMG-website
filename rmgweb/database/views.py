@@ -1272,7 +1272,7 @@ def kinetics(request, section='', subsection=''):
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
                 entries.append(entry)
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
+        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'databaseDesc':database.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
