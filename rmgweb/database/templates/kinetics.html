@@ -11,7 +11,16 @@ RMG Kinetics Database
 {% endif %}
 {% endblock %}
 
-{% block extrahead %}{% endblock %}
+{% block extrahead %}
+<style>
+span.scaling_img{
+    display: inline-block;
+}
+img.family {
+    width: 50%;
+}​
+</style>
+{% endblock %}
 
 {% block navbar_items %}
 <a href="{% url 'database.views.index' %}">Database</a>
@@ -65,7 +74,6 @@ RMG Kinetics Database
 {% for subsection, family in kineticsFamilies %}
     <tr>
         <td><a href="{% url 'database.views.kinetics' section='families' subsection=subsection %}">{{ family.name }}</a></td>
-        <td><img src="/media/families/{{family.name}}.png" width="300"/></td>
         <td>        
         	<ul>
             <li><a href="{% url 'database.views.kinetics' section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
@@ -79,6 +87,12 @@ RMG Kinetics Database
             {% endfor %}
         	</ul>
         </td>
+        <td>   
+        <span class="scaling_img">
+            <img class="family" src="/media/families/{{family.name}}.png"/>
+		</span>
+        </td>
+
     </tr>
 {% endfor %}
 </table>
