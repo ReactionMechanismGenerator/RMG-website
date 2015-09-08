@@ -1413,8 +1413,8 @@ def kineticsEntryNew(request, family, type):
             try:
                 rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
             except Exception, e:
-                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-                entry_buffer += e
+                entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+                entry_buffer.write(str(e))
                 pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
@@ -1506,8 +1506,8 @@ def kineticsEntryEdit(request, section, subsection, index):
             try:
                 rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
             except Exception, e:
-                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-                entry_buffer += e
+                entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+                entry_buffer.write(str(e))
                 pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
@@ -1566,8 +1566,8 @@ def kineticsEntryEdit(request, section, subsection, index):
         try:
             rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
         except Exception, e:
-            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-            entry_buffer += e
+            entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+            entry_buffer.write(str(e))
             pass
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
@@ -1629,8 +1629,8 @@ def thermoEntryNew(request, section, subsection, adjlist):
             try:
                 rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
             except Exception, e:
-                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-                entry_buffer += e
+                entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+                entry_buffer.write(str(e))
                 pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
@@ -1740,8 +1740,8 @@ def thermoEntryEdit(request, section, subsection, index):
             try:
                 rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
             except Exception, e:
-                entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-                entry_buffer += e
+                entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+                entry_buffer.write(str(e))
                 pass
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
@@ -1800,8 +1800,8 @@ def thermoEntryEdit(request, section, subsection, index):
         try:
             rmgpy.data.thermo.saveEntry(entry_buffer, entry)
         except Exception, e:
-            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-            entry_buffer += e
+            entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+            entry_buffer.write(str(e))
             pass
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
@@ -2002,8 +2002,8 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     try:
         rmgpy.data.kinetics.saveEntry(entry_buffer, entry)            
     except Exception, e:
-        entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-        entry_buffer += e
+        entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+        entry_buffer.write(str(e))
         pass
     entry_string = entry_buffer.getvalue()
     entry_buffer.close()
@@ -2259,8 +2259,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             else:
                 rmgpy.data.kinetics.saveEntry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.products, products=reaction.reactants)))
         except Exception, e:
-            entry_buffer = "ENTRY WAS NOT PARSED CORRECTLY.\n"
-            entry_buffer += e
+            new_entry.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
+            new_entry.write(str(e))
             pass
         entry_string = new_entry.getvalue()
         entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
