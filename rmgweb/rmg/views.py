@@ -155,7 +155,7 @@ def mergeModels(request):
         if form.is_valid():
             form.save()
             model.merge()
-            path = 'media/rmg/tools/compare/'
+            path = 'media/rmg/tools/compare'
             #[os.path.join(model.path,'chem.inp'), os.path.join(model.path,'species_dictionary.txt'), os.path.join(model.path,'merging_log.txt')]
             return render_to_response('mergeModels.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
     else:
