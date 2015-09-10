@@ -406,7 +406,7 @@ class PopulateReactions(models.Model):
         import subprocess
         import rmgpy
         command = ('python',
-            os.path.join(rmgpy.getPath(), '..', 'generateReactions.py'),
+            os.path.realpath(os.path.join(rmgpy.getPath(), '..', 'scripts', 'generateReactions.py')),
             self.input,
         )
         subprocess.check_call(command, cwd=self.path)
