@@ -180,13 +180,13 @@ ul {
     }
 
 field {
-    width: 150px;
+    width: 12em;
     display: inline-block;
     vertical-align: top;
     font-weight: bold;
 }
     field#short {
-        width: 100px;
+        width: 10em;
     }
 
 .delete-row {
@@ -218,8 +218,8 @@ blockquote {
     display: block;
     margin-top: 1em;
     margin-bottom: 1em;
-    margin-left: 50px;
-    margin-right: 0px;
+    margin-left: 2em;
+    margin-right: 0em;
     
 }
 
@@ -437,27 +437,27 @@ If you already have a saved input.py file that you would like to modify, you can
     <P>
     
     <table>
-        <tr><th colspan="2">Model: {{form.interpolation}}</th></tr>
-        <tr><th>Temperature Range:</th><td> {{form.temp_low}} to {{form.temp_high}} {{form.temprange_high}} {{form.temprange_units}}</td></tr>
-        <tr><th>Pressure Range:</th><td>{{ form.p_low }} to {{form.p_high}} {{form.prange_units}}</td></tr>
+        <tr><th>Model:</th>                <td>{{form.interpolation}}</td></tr>
+        <tr><th>Temperature Range:</th>    <td>{{form.temp_low}} to {{form.temp_high}} {{form.temprange_units}}</td></tr>
+        <tr><th>Pressure Range:</th>       <td>{{ form.p_low }} to {{form.p_high}} {{form.prange_units}}</td></tr>
     </table>
 </ol>
 
 <ul id="pdepmenu"><li>Advanced Options
     <ol><li><P><i>Maximum Atoms of Isomers in Network</i>
-        <table><tr><th>Maximum Atoms:</th><td> {{ form.maximumAtoms}}</td></tr>
+        <table><tr><th style="width:10em">Maximum Atoms:</th><td> {{ form.maximumAtoms}}</td></tr>
         <tr><td colspan=2>If used, the number of maximum atoms turns off pressure dependence for molecules with atoms greater than the number specified.
  	This is due to faster internal rate of energy transfer for larger molecules. </td></tr> </table>
         <P><i>Number of Interpolation Points Used in Model</i>
-            <br><table><tr><th>Temperature:</th><td> {{ form.temp_interp}}</td></tr>
+            <br><table><tr><th style="width:10em">Temperature:</th><td> {{ form.temp_interp}}</td></tr>
             <tr><th>Pressure:</th><td> {{form.p_interp}}</td></tr></table>
 
         <P><i>Grain Size</i>
-            <br><table><tr><th>Maximum Size:</th><td> {{form.maximumGrainSize}} {{form.grainsize_units}}</td></tr>
+            <br><table><tr><th style="width:10em">Maximum Size:</th><td> {{form.maximumGrainSize}} {{form.grainsize_units}}</td></tr>
             <tr><th>Minimum Number:</th><td> {{form.minimumNumberOfGrains}}</td></tr></table>
 
         <P><i>Number of Basis Functions Used in Model (For Chebyshev Only)</i>
-            <br><table><tr><th>Temperature:</th><td> {{form.temp_basis}}</td></tr>
+            <br><table><tr><th style="width:10em">Temperature:</th><td> {{form.temp_basis}}</td></tr>
             <tr><th>Pressure:</th><td> {{form.p_basis}}</td></tr></table>
     </li></ol>
 </li></ul>
@@ -471,15 +471,15 @@ If you already have a saved input.py file that you would like to modify, you can
     Calculations are only performed for molecules not present in the specified thermo libraries.
     
     <P><table>
-        <tr><th>Software:</th>                  <td>{{ form.software }}</td></tr>
-        <tr><th>Method:</th>                    <td>{{ form.method }}</td></tr>
-        <tr><th>Only Cyclics:</th>              <td>{{ form.onlyCyclics }}</td></tr>
+        <tr><th style="width:16em">Software:</th>           <td>{{ form.software }}</td></tr>
+        <tr><th>Method:</th>                                 <td>{{ form.method }}</td></tr>
+        <tr><th>Only Cyclics:</th>                           <td>{{ form.onlyCyclics }}</td></tr>
         <tr><td colspan=2>It is recommended that Only Cyclics is set to True, since it is very time consuming to perform 
-        QM jobs on non-cyclie molecules, and it is likely that group additivity values will be more accurate.</td></tr>
-        <tr><th>Maximum Radical Number:</th>    <td>{{ form.maxRadicalNumber }}</td></tr>
+        QM jobs on non-cyclic molecules, and it is likely that group additivity values will be more accurate.</td></tr>
+        <tr><th>Maximum Radical Number:</th>                 <td>{{ form.maxRadicalNumber }}</td></tr>
         <tr><td colspan=2>It is recommended that Maximum Radical Number be set to 0, because semi-empirical methods such as 
         PM3, PM6, and PM7 are generally fitted with nonradical species, and therefore quantum calculations on radical species
-        may not be accurate.  Thermochemistry for radicals is computed by applying a Hydrogen Bond Increment value onto the
+        may not be accurate. Thermochemistry for radicals is computed by applying a Hydrogen Bond Increment value onto the
         neutral species to produce the most accurate value.</td></tr>
     </table>
 

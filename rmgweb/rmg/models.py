@@ -217,7 +217,7 @@ class Diff(models.Model):
         logfile = os.path.join(self.path,'merging_log.txt')
         out = open(logfile,"w")
         
-        pypath = os.path.join(settings.PROJECT_PATH, '..','..', 'RMG-Py','mergeModels.py')
+        pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'mergeModels.py'))
         subprocess.Popen(['python', pypath, 
                     '--model1', self.chemkin1, self.dict1,
                     '--model2', self.chemkin2, self.dict2
@@ -406,7 +406,7 @@ class PopulateReactions(models.Model):
         import subprocess
         import rmgpy
         command = ('python',
-            os.path.join(rmgpy.getPath(), '..', 'generateReactions.py'),
+            os.path.realpath(os.path.join(rmgpy.getPath(), '..', 'scripts', 'generateReactions.py')),
             self.input,
         )
         subprocess.check_call(command, cwd=self.path)
