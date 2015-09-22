@@ -32,5 +32,3 @@ import os.path
 import sys
 import rmgpy
 
-# Add RMG-Py scripts folder to system path
-sys.path.insert(1, os.path.realpath(os.path.join(rmgpy.getPath(), '..', 'scripts')))
