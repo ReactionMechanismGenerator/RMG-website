@@ -4,7 +4,19 @@
 {% load url from future %}
 
 {% block title %}Merge Models{% endblock %}
+{% block extrahead %}
 
+<script type="text/javascript">
+$().ready(function() {
+        // Show a loading animation when after hitting the submit button before the video is created.
+        $('[id$=submit]').click(function() {
+            $('#loading_image').show();
+            $('#videos').hide();
+        });
+});
+</script>
+
+{%endblock%}
 {% block navbar_items %}
 <a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
 <a href="{% url 'rmg.views.mergeModels' %}">Merge Models</a>
@@ -31,6 +43,8 @@ all common species thermochemistry and reaction kinetics from the second model w
 </form>
 
 
+<hr/>
+<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
 {% if path %}
 <hr/>
 <P><b>Done merging. Your files are below:</b>

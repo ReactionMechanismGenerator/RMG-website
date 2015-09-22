@@ -209,7 +209,7 @@ class Diff(models.Model):
         out = open(logfile,"w")
         
         pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'diffModels.py'))
-        subprocess.Popen(['python', pypath, 
+        subprocess.check_call(['python', pypath, 
                     self.chemkin1, self.dict1,
                     self.chemkin2, self.dict2, 
                     '--web',
@@ -225,7 +225,7 @@ class Diff(models.Model):
         out = open(logfile,"w")
         
         pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'mergeModels.py'))
-        subprocess.Popen(['python', pypath, 
+        subprocess.check_call(['python', pypath, 
                     '--model1', self.chemkin1, self.dict1,
                     '--model2', self.chemkin2, self.dict2
                     ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)

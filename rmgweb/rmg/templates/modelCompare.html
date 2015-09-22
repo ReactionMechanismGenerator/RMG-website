@@ -4,7 +4,19 @@
 {% load url from future %}
 
 {% block title %}Model Comparison{% endblock %}
+{% block extrahead %}
 
+<script type="text/javascript">
+$().ready(function() {
+        // Show a loading animation when after hitting the submit button before the video is created.
+        $('[id$=submit]').click(function() {
+            $('#loading_image').show();
+            $('#videos').hide();
+        });
+});
+</script>
+
+{%endblock%}
 {% block navbar_items %}
 <a href="{% url 'rmg.views.index' %}">Simulation and Tools</a> &raquo;
 <a href="{% url 'rmg.views.compareModels' %}">Model Comparison</a>
@@ -23,7 +35,7 @@ page comparing the two models..  You must include an adjacency list for all spec
 inerts.
 </p>
 <hr/>
-
+<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
 {% if path %}
 <a href ="../{{path}}">Click here for your generated output file.</a>
 {% endif %}
