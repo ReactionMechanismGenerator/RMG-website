@@ -27,7 +27,3 @@
 #	DEALINGS IN THE SOFTWARE.
 #
 ################################################################################
-
-# Add global template tags to __builtins__
-from django.template import add_to_builtins
-add_to_builtins('main.templatetags.universal')
