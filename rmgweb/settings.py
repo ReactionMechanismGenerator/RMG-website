@@ -125,11 +125,11 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     # RMG website apps
-    'main',
-    'main.templatetags',
-    'database',
-    'pdep',
-    'rmg',
+    'rmgweb.main',
+    'rmgweb.main.templatetags',
+    'rmgweb.database',
+    'rmgweb.pdep',
+    'rmgweb.rmg',
 )
 
 # Settings relating to user account management
