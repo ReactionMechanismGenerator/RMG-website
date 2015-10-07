@@ -31,7 +31,7 @@
 import re
 
 from django import forms
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.utils.safestring import mark_safe
 from django.contrib import auth
 
