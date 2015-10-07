@@ -546,7 +546,7 @@ class Input(models.Model):
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
     saveRestartPeriodUnits = models.CharField(max_length = 50, default = 'hour', choices = restartunits)
-    drawMolecules=models.BooleanField()
+    generateOutputHTML=models.BooleanField()
     generatePlots=models.BooleanField()
     saveSimulationProfiles = models.BooleanField()
     saveEdgeSpecies = models.BooleanField()
@@ -720,8 +720,8 @@ class Input(models.Model):
         if self.rmg.saveRestartPeriod:
             initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
             initial['saveRestartPeriodUnits'] = self.rmg.saveRestartPeriod.units
-        if self.rmg.drawMolecules:
-            initial['drawMolecules'] = True
+        if self.rmg.generateOutputHTML:
+            initial['generateOutputHTML'] = True
         if self.rmg.generatePlots:
             initial['generatePlots'] = True
         if self.rmg.saveSimulationProfiles:
@@ -830,7 +830,7 @@ class Input(models.Model):
         # Additional Options
         self.rmg.units = 'si' 
         self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
-        self.rmg.drawMolecules = form.cleaned_data['drawMolecules']
+        self.rmg.generateOutputHTML = form.cleaned_data['generateOutputHTML']
         self.rmg.generatePlots = form.cleaned_data['generatePlots']
         self.rmg.saveSimulationProfiles = form.cleaned_data['saveSimulationProfiles']
         self.rmg.saveEdgeSpecies = form.cleaned_data['saveEdgeSpecies']
