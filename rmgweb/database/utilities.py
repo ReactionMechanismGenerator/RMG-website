@@ -1,3 +1,7 @@
+# utilities.py
+# A file that contains a method for creating SolventList outside of models, forms or views
+# Created to break cyclic import error created from importing getSolventList() from database.views
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -28,16 +32,45 @@
 #
 ################################################################################
 
-from django.db import models
-#from django import forms
-from utilities import getSolventList
-SolventList = getSolventList()
-#SolventList = []
+import cookielib
+import copy
+import os
+import re
+import shutil
+import socket
+import StringIO # cStringIO is faster, but can't do Unicode
+import subprocess
+import sys
+import time
+import urllib
+import urllib2
 
-class SolventSelection(models.Model):
-    def __init__(self, *args, **kwargs):
-        super(SolventSelection, self).__init__(*args, **kwargs)  
-    
-    species_identifier = models.CharField(verbose_name="Solute Species Identifier", max_length=200, blank = True)
-    adjlist = models.TextField(verbose_name="Solute Adjacency List")
-    solvent = models.CharField(verbose_name="Solvent (Optional)",choices = SolventList, max_length=200, blank=True)
+from BeautifulSoup import BeautifulSoup
+
+from rmgpy.molecule.molecule import Molecule
+from rmgpy.molecule.group import Group
+from rmgpy.thermo import *
+from rmgpy.kinetics import *
+from rmgpy.transport import *
+from rmgpy.reaction import Reaction
+from rmgpy.quantity import Quantity
+
+import rmgpy
+from rmgpy.data.base import *
+from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.kinetics import *
+from rmgpy.data.rmg import RMGDatabase
+from rmgpy.data.solvation import * 
+from rmgpy.data.statmech import *
+from rmgpy.data.transport import *
+
+from rmgweb.database.tools import loadDatabase
+
+# Creating the SolventList
+def getSolventList():
+    """
+    Return list of solvent molecules for initializing solvation search form.
+    """
+    loadDatabase('solvation','')
+    SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
+    return SolventList

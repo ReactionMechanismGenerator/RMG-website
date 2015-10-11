@@ -179,8 +179,8 @@ class SolvationSearchForm(forms.ModelForm):
     Form for searching for solvation properties between a solute and a solvent. 
     """    
     class Meta:
-        
         from models import SolventSelection
+        
         model = SolventSelection 
         widgets ={
         'species_identifier': forms.TextInput(attrs={'onchange':'resolve("adjlist");','class':'identifier', 'style':'width:100%;'}),
