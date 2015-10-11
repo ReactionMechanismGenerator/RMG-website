@@ -64,7 +64,7 @@ from rmgpy.data.solvation import *
 from rmgpy.data.statmech import *
 from rmgpy.data.transport import *
 
-from rmgweb.database.tools import loadDatabase
+from rmgweb.database.tools import *
 
 # Creating the SolventList
 def getSolventList():
