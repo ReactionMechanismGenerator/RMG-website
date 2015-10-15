@@ -2332,13 +2332,6 @@ def moleculeSearch(request):
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
 
-def getSolventList():
-    """
-    Return list of solvent molecules for initializing solvation search form.
-    """
-    loadDatabase('solvation','')
-    SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
-    return SolventList
 
 def solvationSearch(request):
     """

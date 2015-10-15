@@ -30,7 +30,16 @@
 
 from django.db import models
 #from django import forms
-from views import getSolventList
+
+from rmgweb.database.tools import database, loadDatabase
+
+def getSolventList():
+    """
+    Return list of solvent molecules for initializing solvation search form.
+    """
+    loadDatabase('solvation','')
+    SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
+    return SolventList
 
 SolventList = getSolventList()
 
