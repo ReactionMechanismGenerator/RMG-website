@@ -108,6 +108,8 @@ class InputForm(forms.ModelForm):
             'toleranceKeepInEdge': forms.TextInput(attrs={'size':'3'}),
             'toleranceInterruptSimulation': forms.TextInput(attrs={'size':'3'}),
             'maximumEdgeSpecies' : forms.TextInput(attrs={'size':'5'}),
+            'minCoreSizeForPrune' : forms.TextInput(attrs={'size':'5'}),
+            'minSpeciesExistIterationsForPrune' : forms.TextInput(attrs={'size':'3'}),
             'simulator_atol' : forms.TextInput(attrs={'size':'3'}),
             'simulator_rtol': forms.TextInput(attrs={'size':'3'}),
             'saveRestartPeriod':forms.TextInput(attrs={'size':'5'}),

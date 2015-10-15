@@ -510,6 +510,8 @@ class Input(models.Model):
     # Tolerance Advanced Options
     toleranceInterruptSimulation = models.FloatField(default = 1.0)
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
+    minCoreSizeForPrune = models.PositiveIntegerField(default = 50)
+    minSpeciesExistIterationsForPrune = models.PositiveIntegerField(default = 2)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
     simulator_sens_atol = models.FloatField(default = 1e-6)
@@ -653,6 +655,8 @@ class Input(models.Model):
         initial['toleranceMoveToCore']= self.rmg.fluxToleranceMoveToCore
         initial['toleranceInterruptSimulation'] = self.rmg.fluxToleranceInterrupt
         initial['maximumEdgeSpecies'] = self.rmg.maximumEdgeSpecies 
+        initial['minCoreSizeForPrune'] = self.rmg.minCoreSizeForPrune
+        initial['minSpeciesExistIterationsForPrune'] = self.rmg.minSpeciesExistIterationsForPrune
                 
         # Pressure Dependence
         if self.rmg.pressureDependence:
@@ -799,6 +803,8 @@ class Input(models.Model):
         self.rmg.fluxToleranceMoveToCore = form.cleaned_data['toleranceMoveToCore']
         self.rmg.fluxToleranceInterrupt = form.cleaned_data['toleranceInterruptSimulation']
         self.rmg.maximumEdgeSpecies = form.cleaned_data['maximumEdgeSpecies']
+        self.rmg.minCoreSizeForPrune = form.cleaned_data['minCoreSizeForPrune']
+        self.rmg.minSpeciesExistIterationsForPrune = form.cleaned_data['minSpeciesExistIterationsForPrune']
         
         # Pressure Dependence
         pdep = form.cleaned_data['pdep'].encode()

@@ -415,7 +415,9 @@ If you already have a saved input.py file that you would like to modify, you can
         <table>
             <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
             <tr><th>Tolerance to Interrupt Simulation:</th>       <td>{{form.toleranceInterruptSimulation}}</td></tr>
-            <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr></table>
+            <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr>
+            <tr><th>Minimum Number of Core Species Before Pruning:</th>  <td>{{form.minCoreSizeForPrune}}</td></tr>
+            <tr><th>Number of Iterations a Species Must Exist Before Pruning:</th>  <td>{{form.minSpeciesExistIterationsForPrune}}</td></tr></table>
             <P><i>Numerical Solver</i>
                 <br><table>
                 <tr><th>Absolute Tolerance: </th>    <td>{{ form.simulator_atol }}</td></tr>
@@ -546,7 +548,7 @@ If you already have a saved input.py file that you would like to modify, you can
 
     <P><table>
         <tr><th>Save Restart:</th>                 <td>{{ form.saveRestartPeriod }}{{ form.saveRestartPeriodUnits }}</td></tr>
-        <tr><th>Generate Output HTML (draw molecules and save Model to HTML):</th>               <td>{{ form.generateOutputHTML }}</td></tr>
+        <tr><th>Generate Output HTML (Draw molecules and save model to HTML):</th>               <td>{{ form.generateOutputHTML }}</td></tr>
         <tr><th>Generate Performance Statistics Plots:</th>               <td>{{ form.generatePlots }}</td></tr>
         <tr><th>Save Concentration Profiles:</th>  <td>{{ form.saveSimulationProfiles }}</td></tr>
         <tr><th>Save Edge Species:</th>            <td>{{ form.saveEdgeSpecies }}</td></tr>
