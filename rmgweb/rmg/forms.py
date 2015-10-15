@@ -46,6 +46,7 @@ class UploadChemkinForm(forms.ModelForm):
     """
     class Meta:
         model = Chemkin
+        fields = '__all__'
 
 class ModelCompareForm(forms.ModelForm):
     """
@@ -53,6 +54,7 @@ class ModelCompareForm(forms.ModelForm):
     """
     class Meta:
         model = Diff
+        fields = '__all__'
         
 class UploadDictionaryForm(forms.ModelForm):
     """
@@ -60,6 +62,7 @@ class UploadDictionaryForm(forms.ModelForm):
     """
     class Meta:
         model = AdjlistConversion
+        fields = '__all__'
 
 class FluxDiagramForm(forms.ModelForm):
     """
@@ -67,6 +70,7 @@ class FluxDiagramForm(forms.ModelForm):
     """
     class Meta:
         model = FluxDiagram
+        fields = '__all__'
         
 class PopulateReactionsForm(forms.ModelForm):
     """
@@ -74,7 +78,7 @@ class PopulateReactionsForm(forms.ModelForm):
     """
     class Meta:
         model = PopulateReactions
-        
+        fields = '__all__'
 
 class UploadInputForm(forms.ModelForm):
     """
@@ -128,14 +132,17 @@ class InputForm(forms.ModelForm):
 class ThermoLibraryForm(forms.ModelForm):
     class Meta:
         model = ThermoLibrary
+        fields = '__all__'
 
 class ReactionLibraryForm(forms.ModelForm):
     class Meta:
         model= ReactionLibrary
+        fields = '__all__'
 
 class ReactorSpeciesForm(forms.ModelForm):
     class Meta:
         model = ReactorSpecies
+        fields = '__all__'
         widgets ={
         'name': forms.TextInput(),
         'identifier': forms.TextInput(attrs={'onchange':'resolve(this.id);','class':'identifier'}),
@@ -162,6 +169,7 @@ class ReactorSpeciesForm(forms.ModelForm):
 class ReactorForm(forms.ModelForm):
     class Meta:
         model = Reactor
+        fields = '__all__'
         widgets ={
             'temperature': forms.TextInput(attrs={'size':'5'}),
             'pressure': forms.TextInput(attrs={'size':'5'}),

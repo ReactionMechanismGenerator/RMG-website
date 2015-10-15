@@ -182,6 +182,7 @@ class SolvationSearchForm(forms.ModelForm):
         
         from models import SolventSelection
         model = SolventSelection 
+        fields = '__all__'
         widgets ={
         'species_identifier': forms.TextInput(attrs={'onchange':'resolve("adjlist");','class':'identifier', 'style':'width:100%;'}),
         'adjlist':forms.Textarea(attrs={'cols': 50, 'rows': 10 }),       
