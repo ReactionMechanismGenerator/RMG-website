@@ -30,10 +30,9 @@
 
 from django.db import models
 #from django import forms
-from views import getSolventList
-
+from utilities import getSolventList
 SolventList = getSolventList()
-
+#SolventList = []
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):

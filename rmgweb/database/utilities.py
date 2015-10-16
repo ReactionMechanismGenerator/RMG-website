@@ -1,3 +1,7 @@
+# utilities.py
+# A file that contains a method for creating SolventList outside of models, forms or views
+# Created to break cyclic import error created from importing getSolventList() from database.views
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -28,13 +32,45 @@
 #
 ################################################################################
 
-from django.core.management import execute_manager
-try:
-    import settings # Assumed to be in the same directory.
-except ImportError:
-    import sys
-    sys.stderr.write("Error: Can't find the file 'settings.py' in the directory containing %r. It appears you've customized things.\nYou'll have to run django-admin.py, passing it your settings module.\n(If the file settings.py does indeed exist, it's causing an ImportError somehow.)\n" % __file__)
-    sys.exit(1)
+import cookielib
+import copy
+import os
+import re
+import shutil
+import socket
+import StringIO # cStringIO is faster, but can't do Unicode
+import subprocess
+import sys
+import time
+import urllib
+import urllib2
 
-if __name__ == "__main__":
-    execute_manager(settings)
+from BeautifulSoup import BeautifulSoup
+
+from rmgpy.molecule.molecule import Molecule
+from rmgpy.molecule.group import Group
+from rmgpy.thermo import *
+from rmgpy.kinetics import *
+from rmgpy.transport import *
+from rmgpy.reaction import Reaction
+from rmgpy.quantity import Quantity
+
+import rmgpy
+from rmgpy.data.base import *
+from rmgpy.data.thermo import ThermoDatabase
+from rmgpy.data.kinetics import *
+from rmgpy.data.rmg import RMGDatabase
+from rmgpy.data.solvation import * 
+from rmgpy.data.statmech import *
+from rmgpy.data.transport import *
+
+from rmgweb.database.tools import *
+
+# Creating the SolventList
+def getSolventList():
+    """
+    Return list of solvent molecules for initializing solvation search form.
+    """
+    loadDatabase('solvation','')
+    SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
+    return SolventList
