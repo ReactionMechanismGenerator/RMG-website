@@ -1428,7 +1428,7 @@ def kineticsEntryNew(request, family, type):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
                 database.entries[index] = new_entry
@@ -1514,7 +1514,7 @@ def kineticsEntryEdit(request, section, subsection, index):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
                 return render_to_response('kineticsEntry.html', {'section': section,
@@ -1539,7 +1539,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                     ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
-                #return HttpResponse(commit_result, mimetype="text/plain")
+                #return HttpResponse(commit_result, content_type="text/plain")
                 
                 kwargs = { 'section': section,
                        'subsection': subsection,
@@ -1644,7 +1644,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
                 database.entries[index] = new_entry
@@ -1748,7 +1748,7 @@ def thermoEntryEdit(request, section, subsection, index):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
                 return render_to_response('thermoEntry.html', {'section': section,
@@ -1773,7 +1773,7 @@ def thermoEntryEdit(request, section, subsection, index):
                     ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
-                #return HttpResponse(commit_result, mimetype="text/plain")
+                #return HttpResponse(commit_result, content_type="text/plain")
                 
                 kwargs = { 'section': section,
                        'subsection': subsection,

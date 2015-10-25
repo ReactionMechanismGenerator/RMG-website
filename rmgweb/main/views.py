@@ -150,7 +150,7 @@ def getAdjacencyList(request, identifier):
     is the SMILES for water.
     """
     if identifier.strip() == '':
-        return HttpResponse('', mimetype="text/plain")
+        return HttpResponse('', content_type="text/plain")
     from rmgpy.molecule.molecule import Molecule
     molecule = Molecule()
     try:
@@ -173,7 +173,7 @@ def getAdjacencyList(request, identifier):
         molecule.fromSMILES(smiles)
     
     adjlist = molecule.toAdjacencyList(removeH=False)
-    return HttpResponse(adjlist, mimetype="text/plain")
+    return HttpResponse(adjlist, content_type="text/plain")
 
 def getNISTcas(request, inchi):
     """
@@ -192,7 +192,7 @@ def getNISTcas(request, inchi):
             break
     else:
         return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
-    return HttpResponse(number, mimetype="text/plain")
+    return HttpResponse(number, content_type="text/plain")
     
 def cactusResolver(request, query):
     """
@@ -202,7 +202,7 @@ def cactusResolver(request, query):
     use it via ajax, avoiding cross-domain scripting security constraints.
     """
     if query.strip() == '':
-        return HttpResponse('', mimetype="text/plain")
+        return HttpResponse('', content_type="text/plain")
    
     url = "http://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
     try:
@@ -210,7 +210,7 @@ def cactusResolver(request, query):
     except urllib2.URLError, e:
         return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(query, e, url))
     response = f.read()
-    return HttpResponse(response, mimetype="text/plain")
+    return HttpResponse(response, content_type="text/plain")
     
 def drawMolecule(request, adjlist):
     """
@@ -225,8 +225,8 @@ def drawMolecule(request, adjlist):
     adjlist = str(adjlist.replace(';', '\n'))
     molecule = Molecule().fromAdjacencyList(adjlist)
     surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
-    png_string = surface.write_to_png()
-    response = HttpResponse(png_string, mimetype="image/png")
+    response = HttpResponse(content_type="image/png")
+    surface.write_to_png(response)
     return response
 
 def drawGroup(request, adjlist):
@@ -238,7 +238,7 @@ def drawGroup(request, adjlist):
     from rmgpy.molecule.group import Group
     import pydot
 
-    response = HttpResponse(mimetype="image/png")
+    response = HttpResponse(content_type="image/png")
 
     adjlist = str(adjlist.replace(';', '\n'))
     pattern = Group().fromAdjacencyList(adjlist)
