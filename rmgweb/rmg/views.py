@@ -171,7 +171,7 @@ def generateFlux(request):
     to generate a flux diagram video.
     """
 
-    from generateFluxDiagram import createFluxDiagram
+    from rmgpy.tools.fluxdiagram import createFluxDiagram
         
     flux = FluxDiagram()
     path = ''
