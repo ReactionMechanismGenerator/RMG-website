@@ -221,9 +221,9 @@ def drawMolecule(request, adjlist):
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
 
-
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
+
     surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
     response = HttpResponse(content_type="image/png")
     surface.write_to_png(response)
@@ -240,7 +240,7 @@ def drawGroup(request, adjlist):
 
     response = HttpResponse(content_type="image/png")
 
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     pattern = Group().fromAdjacencyList(adjlist)
 
     graph = pydot.Dot(graph_type='graph', dpi="52")
