@@ -1,3 +1,5 @@
+{% load universal %}
+
 var reftitle = '';
 {% if entry.reference %}
 reftitle += ' - {% filter split:','|first %}{{ entry.reference.authors.0 }}{% endfilter %}, {{ entry.reference.year }}';
