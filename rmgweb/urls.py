@@ -28,7 +28,7 @@
 #
 ################################################################################
 
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 from django.conf import settings
 import os
 
@@ -66,10 +66,10 @@ urlpatterns = patterns('rmgweb',
     (r'^user/(?P<username>\w+)$', 'main.views.viewProfile'),
 
     # Database
-    (r'^database/', include('database.urls')),
+    (r'^database/', include('rmgweb.database.urls')),
 
     # Pressure dependence
-    (r'^pdep/', include('pdep.urls')),
+    (r'^pdep/', include('rmgweb.pdep.urls')),
 
     # Molecule drawing
     (r'^molecule/(?P<adjlist>[\S\s]+)$', 'main.views.drawMolecule'),
@@ -85,7 +85,7 @@ urlpatterns = patterns('rmgweb',
     (r'^solvation_search', 'database.views.solvationSearch'),
 
     # RMG-Py Stuff
-    (r'^simulate/', include('rmg.urls')),
+    (r'^simulate/', include('rmgweb.rmg.urls')),
     
     # RMG Input Form
     (r'^input', 'rmg.views.input'),

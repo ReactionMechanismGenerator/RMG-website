@@ -1,9 +1,9 @@
-{% load markup %}
+
 <table class="reference">
    {% if reference %}
     <tr>
         <td class="label">Reference:</td>
-        <td class="reference">{{ reference|restructuredtext }}</td>
+        <td class="reference">{{ reference }}</td>
     </tr>
 {% endif %}
 {% if reference.doi %}

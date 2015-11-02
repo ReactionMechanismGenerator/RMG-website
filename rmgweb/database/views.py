@@ -248,7 +248,7 @@ def transportData(request, adjlist):
     loadDatabase('transport')
     from tools import database
 
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
     species.generateResonanceIsomers()
@@ -391,7 +391,6 @@ def solvationData(request, solute_adjlist, solvent=''):
     loadDatabase('solvation')
     db = getSolvationDatabase('','')
     
-    #adjlist = str(solute_adjlist.replace(';', '\n'))
     #molecule = Molecule().fromAdjacencyList(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule = [molecule])
@@ -533,7 +532,7 @@ def statmechData(request, adjlist):
     loadDatabase('statmech')
     from tools import database
 
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule = [molecule])
     species.generateResonanceIsomers()
@@ -686,7 +685,7 @@ def thermoData(request, adjlist):
     from tools import database
     from rmgpy.chemkin import writeThermoEntry
 
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
     species.generateResonanceIsomers()
@@ -1428,7 +1427,7 @@ def kineticsEntryNew(request, family, type):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
                 database.entries[index] = new_entry
@@ -1514,7 +1513,7 @@ def kineticsEntryEdit(request, section, subsection, index):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
                 return render_to_response('kineticsEntry.html', {'section': section,
@@ -1539,7 +1538,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                     ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
-                #return HttpResponse(commit_result, mimetype="text/plain")
+                #return HttpResponse(commit_result, content_type="text/plain")
                 
                 kwargs = { 'section': section,
                        'subsection': subsection,
@@ -1597,7 +1596,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
     # Load the thermo database, if necessary
     loadDatabase('thermo')
     
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
     try:
@@ -1644,7 +1643,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
                 database.entries[index] = new_entry
@@ -1748,7 +1747,7 @@ def thermoEntryEdit(request, section, subsection, index):
             
             if False:
                 # Just return the text.
-                return HttpResponse(entry_string, mimetype="text/plain")
+                return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
                 return render_to_response('thermoEntry.html', {'section': section,
@@ -1773,7 +1772,7 @@ def thermoEntryEdit(request, section, subsection, index):
                     ], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
                 
-                #return HttpResponse(commit_result, mimetype="text/plain")
+                #return HttpResponse(commit_result, content_type="text/plain")
                 
                 kwargs = { 'section': section,
                        'subsection': subsection,
@@ -2071,19 +2070,23 @@ def kineticsSearch(request):
             kwargs = {}
 
             reactant1 = form.cleaned_data['reactant1']
-            kwargs['reactant1'] = re.sub('\s+', '%20', reactant1.replace('\n', ';'))
+            urlr1 = urllib.quote(reactant1)
+            kwargs['reactant1'] = urlr1
 
             reactant2 = form.cleaned_data['reactant2']
             if reactant2 != '':
-                kwargs['reactant2'] = re.sub('\s+', '%20', reactant2.replace('\n', ';'))
+                urlr2 = urllib.quote(reactant2)
+                kwargs['reactant2'] = urlr2
 
             product1 = form.cleaned_data['product1']
             if product1 != '':
-                kwargs['product1'] = re.sub('\s+', '%20', product1.replace('\n', ';'))
+                urlp1 = urllib.quote(product1)
+                kwargs['product1'] = urlp1
 
             product2 = form.cleaned_data['product2']
             if product2 != '':
-                kwargs['product2'] = re.sub('\s+', '%20', product2.replace('\n', ';'))
+                urlp2 = urllib.quote(product2)
+                kwargs['product2'] = urlp2
 
             return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
     else:
@@ -2332,13 +2335,6 @@ def moleculeSearch(request):
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
 
-def getSolventList():
-    """
-    Return list of solvent molecules for initializing solvation search form.
-    """
-    loadDatabase('solvation','')
-    SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
-    return SolventList
 
 def solvationSearch(request):
     """
@@ -2450,7 +2446,7 @@ def moleculeEntry(request,adjlist):
 
     Basically works as an equivalent of the molecule search function.
     """
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     structure = getStructureInfo(molecule)
     oldAdjlist=''
@@ -2466,7 +2462,7 @@ def groupEntry(request,adjlist):
 
     Basically works as an equivalent of the group search function.
     """
-    adjlist = str(adjlist.replace(';', '\n'))
+    adjlist = str(urllib.unquote(adjlist))
     group = Group().fromAdjacencyList(adjlist)
     structure = getStructureInfo(group)
     

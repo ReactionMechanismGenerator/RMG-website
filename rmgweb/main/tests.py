@@ -28,26 +28,26 @@
 #
 ################################################################################
 
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
+class AdjancencyListViewTests(TestCase):
+    def test_getAdjacencyList_Empty(self):
+        identifier = ''
+        response = self.client.get('/adjacencylist/' + identifier)
+        self.assertEquals(response.content, "")
+        self.assertEqual(response.status_code, 200)
 
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
+    def test_getAdjacencyList_SMILES(self):
+        identifier = 'C'
+        response = self.client.get('/adjacencylist/' + identifier)
+        self.assertEqual(response.status_code, 200)
 
->>> 1 + 1 == 2
-True
-"""}
+    def test_getAdjacencyList_InChI(self):
+        identifier = 'InChI=1S/CH4/h1H4'
+        response = self.client.get('/adjacencylist/' + identifier)
+        self.assertEqual(response.status_code, 200)
 
+    def test_getAdjacencyList_IUPACName(self):
+        identifier = 'methane'
+        response = self.client.get('/adjacencylist/' + identifier)
+        self.assertEqual(response.status_code, 200)
