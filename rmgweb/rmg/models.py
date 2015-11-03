@@ -219,16 +219,22 @@ class Diff(models.Model):
         """
         Merge the two models together to generate both chemkin and dictionary files.
         """
-        import subprocess        
-        
-        logfile = os.path.join(self.path,'merging_log.txt')
-        out = open(logfile,"w")
-        
-        pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'mergeModels.py'))
-        subprocess.check_call(['python', pypath, 
-                    '--model1', self.chemkin1, self.dict1,
-                    '--model2', self.chemkin2, self.dict2
-                    ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
+
+        import rmgpy.tools.merge_models as merge_models
+
+        inputModelFiles = []
+        inputModelFiles.append((self.chemkin1, self.dict1, None))
+        inputModelFiles.append((self.chemkin2, self.dict2, None))
+
+        kwargs = {
+            'wd': self.path,
+            'transport': False,
+        }
+
+        merge_models.execute(
+                    inputModelFiles,
+                    **kwargs
+                    )
         
     def createDir(self):
         """
