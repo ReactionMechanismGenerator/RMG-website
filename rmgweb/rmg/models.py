@@ -203,17 +203,17 @@ class Diff(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        import subprocess        
-        
-        logfile = os.path.join(self.path,'diff_log.txt')
-        out = open(logfile,"w")
-        
-        pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'diffModels.py'))
-        subprocess.check_call(['python', pypath, 
-                    self.chemkin1, self.dict1,
-                    self.chemkin2, self.dict2, 
-                    '--web',
-                    ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
+        import rmgpy.tools.diff_models as diff_models
+
+        kwargs = {
+                'web':True,
+                'wd': self.path,
+                }
+        diff_models.execute(
+                    self.chemkin1, self.dict1, None,
+                    self.chemkin2, self.dict2, None,
+                    **kwargs
+                    )
 
     def merge(self):
         """
