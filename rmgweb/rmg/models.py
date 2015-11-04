@@ -203,32 +203,38 @@ class Diff(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        import subprocess        
-        
-        logfile = os.path.join(self.path,'diff_log.txt')
-        out = open(logfile,"w")
-        
-        pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'diffModels.py'))
-        subprocess.check_call(['python', pypath, 
-                    self.chemkin1, self.dict1,
-                    self.chemkin2, self.dict2, 
-                    '--web',
-                    ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
+        import rmgpy.tools.diff_models as diff_models
+
+        kwargs = {
+                'web':True,
+                'wd': self.path,
+                }
+        diff_models.execute(
+                    self.chemkin1, self.dict1, None,
+                    self.chemkin2, self.dict2, None,
+                    **kwargs
+                    )
 
     def merge(self):
         """
         Merge the two models together to generate both chemkin and dictionary files.
         """
-        import subprocess        
-        
-        logfile = os.path.join(self.path,'merging_log.txt')
-        out = open(logfile,"w")
-        
-        pypath = os.path.realpath(os.path.join(settings.PROJECT_PATH, '..', '..', 'RMG-Py', 'scripts', 'mergeModels.py'))
-        subprocess.check_call(['python', pypath, 
-                    '--model1', self.chemkin1, self.dict1,
-                    '--model2', self.chemkin2, self.dict2
-                    ], cwd=self.path, stderr=subprocess.STDOUT, stdout=out)
+
+        import rmgpy.tools.merge_models as merge_models
+
+        inputModelFiles = []
+        inputModelFiles.append((self.chemkin1, self.dict1, None))
+        inputModelFiles.append((self.chemkin2, self.dict2, None))
+
+        kwargs = {
+            'wd': self.path,
+            'transport': False,
+        }
+
+        merge_models.execute(
+                    inputModelFiles,
+                    **kwargs
+                    )
         
     def createDir(self):
         """
@@ -409,17 +415,11 @@ class PopulateReactions(models.Model):
         Generate output html file from the path containing chemkin and dictionary files.
         """
         
+        import rmgpy.tools.generate_reactions as generate_reactions
         
-        import subprocess
-        import rmgpy
-        command = ('python',
-            os.path.realpath(os.path.join(rmgpy.getPath(), '..', 'scripts', 'generateReactions.py')),
-            self.input,
-        )
-        subprocess.check_call(command, cwd=self.path)
-        
-        #from generateReactions import populateReactions
-        #populateReactions(self.input)
+        inputFile = self.input
+        output_directory = self.getDirname()
+        generate_reactions.execute(inputFile, output_directory)
 
     def createDir(self):
         """
