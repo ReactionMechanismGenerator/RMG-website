@@ -1971,7 +1971,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
     assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
     
-    source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
+    source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
     
     if reaction.kinetics:
         entry = Entry(
@@ -2210,11 +2210,11 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
-            source = '%s (RMG-Py %s)' % (reaction.family.name, reaction.estimator)
+            source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
             
-            href = getReactionUrl(reaction, family=reaction.family.name, estimator=reaction.estimator)
+            href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator)
             entry = Entry(data=reaction.kinetics)
-            family = reaction.family.name
+            family = reaction.family
         elif reaction in rmgJavaReactionList:
             source = 'RMG-Java'
             href = ''

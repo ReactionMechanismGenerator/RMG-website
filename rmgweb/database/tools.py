@@ -345,7 +345,7 @@ def generateReactions(database, reactants, products=None, only_families=None):
     If `only_families` is a list of strings, only those labeled families are 
     used: no libraries and no RMG-Java kinetics are returned.
     """
-    
+    from rmgpy.rmg.model import getFamilyLibraryObject
     # get RMG-py reactions
     reactionList = []
     if only_families is None:
@@ -373,9 +373,10 @@ def generateReactions(database, reactants, products=None, only_families=None):
             # Only reactions from families should be missing kinetics
             assert isinstance(reaction, TemplateReaction)
             # Get all of the kinetics for the reaction
-            kineticsList = reaction.family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
-            if reaction.family.ownReverse and hasattr(reaction,'reverse'):
-                kineticsListReverse = reaction.family.getKinetics(reaction.reverse, template=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, returnAllKinetics=True)
+            family = getFamilyLibraryObject(reaction.family)
+            kineticsList = family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
+            if family.ownReverse and hasattr(reaction,'reverse'):
+                kineticsListReverse = family.getKinetics(reaction.reverse, template=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, returnAllKinetics=True)
                 for kinetics, source, entry, isForward in kineticsListReverse:
                     for kinetics0, source0, entry0, isForward0 in kineticsList:
                         if source0 is not None and source is not None and entry0 is entry and isForward != isForward0:
