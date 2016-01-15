@@ -416,10 +416,19 @@ class PopulateReactions(models.Model):
         """
         
         import rmgpy.tools.generate_reactions as generate_reactions
+        from rmgpy.rmg.main import initializeLog, RMG
+        from rmgpy.chemkin import ChemkinWriter
+        from rmgpy.rmg.output import OutputHTMLWriter
         
         inputFile = self.input
         output_directory = self.getDirname()
-        generate_reactions.execute(inputFile, output_directory)
+        
+        rmg = RMG()
+        # Add output listeners:
+        rmg.attach(ChemkinWriter(output_directory))
+        rmg.attach(OutputHTMLWriter(output_directory))
+    
+        generate_reactions.execute(rmg, inputFile, output_directory)
 
     def createDir(self):
         """
