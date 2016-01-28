@@ -16,19 +16,7 @@
 <p>
 Queries made to this website are automatically stored in the server logs, 
 which are accessible to administrators of the webserver.
-According to the settings file for this website, these administrators include, 
-but may not be limited to:
-<ul>
-    {% for name, email in admins %}
-        <li>
-            {% if email %}<a href="mailto:{{ email }}">{% endif %}
-            {{ name }}
-            {% if email %}</a>{% endif %}
-        </li>
-    {% endfor %}
-</ul>
-</p>
-<p>
+
 These logs are primarily for debugging purposes.
 It may be interesting, and useful to the scientific community, to data-mine these
 server logs, or to share the calculated species, reactions, and/or properties
@@ -47,18 +35,22 @@ If these policies cause you any concern whatsoever then please contact the
 administrators of the site, or the principal investigators listed below,
 e.g. to discuss the possibility of private access to a server with no logging,
 or just to express your opinions on  
-<a href="http://sourceforge.net/mailarchive/message.php?msg_id=29727688" title="A relevant discussion on the Blue-Obelisk mailing list">this thorny issue</a>.
+<a href="http://www.github.com/ReactionMechanismGenerator/RMG-website/issues">our issues page</a>.
 Or <a href="https://github.com/ReactionMechanismGenerator/RMG-website/">copy our source code</a> and run your own server!
 </p>
 <p>
 
 The website is (primarily) developed by the research groups of 
 <ul>
-    <li><a href="http://web.mit.edu/greengp/">William H. Green</a> in the <a href="http://web.mit.edu/cheme/">
+    <li><a href="http://cheme.scripts.mit.edu/green-group/">William H. Green</a> in the <a href="http://web.mit.edu/cheme/">
 Department of Chemical Engineering</a> at <a href="http://web.mit.edu/">MIT</a>.</li>
     <li><a href="http://www.northeastern.edu/comocheng/">Richard H. West</a> in the <a href="http://www.northeastern.edu/che/">
 Department of Chemical Engineering</a> at <a href="http://www.northeastern.edu/">Northeastern University</a>.</li>
 </ul>
+
+Please post comments or concerns about the website to 
+<a href="http://www.github.com/ReactionMechanismGenerator/RMG-website/issues">our issues page</a>
+or email the RMG Development Team at <a href="mailto:rmg_dev@mit.edu">rmg_dev@mit.edu</a>
 </p>
 
 {% endblock %}
