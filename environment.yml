@@ -1,8 +1,7 @@
-name: rmg
+name: rmg_env
 channels:
   - defaults
   - rmg
-  - rdkit
 dependencies:
   - libgcc # [unix]
   - python
