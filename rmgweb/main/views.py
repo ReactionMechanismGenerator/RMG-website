@@ -46,7 +46,8 @@ def index(request):
     """
     The RMG website homepage.
     """
-    return render_to_response('index.html', context_instance=RequestContext(request))
+    from rmgpy import __version__
+    return render_to_response('index.html', {'version': __version__}, context_instance=RequestContext(request))
 
 def privacy(request):
     """
