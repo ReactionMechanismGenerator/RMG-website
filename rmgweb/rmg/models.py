@@ -521,6 +521,7 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     minCoreSizeForPrune = models.PositiveIntegerField(default = 50)
     minSpeciesExistIterationsForPrune = models.PositiveIntegerField(default = 2)
+    filterReactions = models.BooleanField()
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
     simulator_sens_atol = models.FloatField(default = 1e-6)
@@ -666,6 +667,7 @@ class Input(models.Model):
         initial['maximumEdgeSpecies'] = self.rmg.maximumEdgeSpecies 
         initial['minCoreSizeForPrune'] = self.rmg.minCoreSizeForPrune
         initial['minSpeciesExistIterationsForPrune'] = self.rmg.minSpeciesExistIterationsForPrune
+        initial['filterReactions'] = self.rmg.filterReactions
                 
         # Pressure Dependence
         if self.rmg.pressureDependence:
@@ -814,6 +816,7 @@ class Input(models.Model):
         self.rmg.maximumEdgeSpecies = form.cleaned_data['maximumEdgeSpecies']
         self.rmg.minCoreSizeForPrune = form.cleaned_data['minCoreSizeForPrune']
         self.rmg.minSpeciesExistIterationsForPrune = form.cleaned_data['minSpeciesExistIterationsForPrune']
+        self.rmg.filterReactions = form.cleaned_data['filterReactions']
         
         # Pressure Dependence
         pdep = form.cleaned_data['pdep'].encode()

@@ -411,7 +411,9 @@ If you already have a saved input.py file that you would like to modify, you can
 <ul id="tolmenu"><li>Advanced Options
     <ol><li>
         <table>
-            <tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
+            <tr><th>Pre-filter Reactions:</th>                    <td>{{form.filterReactions}}</td></tr></table>
+             <P><i>Pruning parameters</i>
+            <br><table><tr><th>Edge Tolerance:</th>                          <td>{{ form.toleranceKeepInEdge }}</td></tr>
             <tr><th>Tolerance to Interrupt Simulation:</th>       <td>{{form.toleranceInterruptSimulation}}</td></tr>
             <tr><th>Maximum Number of Allowed Edge Species:</th>  <td>{{form.maximumEdgeSpecies}}</td></tr>
             <tr><th>Minimum Number of Core Species Before Pruning:</th>  <td>{{form.minCoreSizeForPrune}}</td></tr>
