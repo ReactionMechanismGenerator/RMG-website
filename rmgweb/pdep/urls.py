@@ -28,37 +28,36 @@
 #
 ################################################################################
 
-from django.conf.urls import patterns, url, include
-
-urlpatterns = patterns('rmgweb.pdep',
-
+from django.conf.urls import url, include
+from rmgweb.pdep import views
+urlpatterns = [
     # Pressure dependence homepage
-    (r'^$', 'views.index'),
+    url(r'^$', views.index),
 
     # URL for beginning a new calculation
-    (r'^start$', 'views.start'),
+    url(r'^start$', views.start),
 
     # URL for the main page of an individual Network
-    (r'^networks/(?P<networkKey>[^/]+)$', 'views.networkIndex'),
+    url(r'^networks/(?P<networkKey>[^/]+)$', views.networkIndex),
     
     # URLs for various methods of adding/editing input parameters
-    (r'^networks/(?P<networkKey>[^/]+)/edit$', 'views.networkEditor'),
-    (r'^networks/(?P<networkKey>[^/]+)/upload$', 'views.networkUpload'),
+    url(r'^networks/(?P<networkKey>[^/]+)/edit$', views.networkEditor),
+    url(r'^networks/(?P<networkKey>[^/]+)/upload$', views.networkUpload),
 
     # URLs for generating various output files
-    (r'^networks/(?P<networkKey>[^/]+)/draw/png$', 'views.networkDrawPNG'),
-    (r'^networks/(?P<networkKey>[^/]+)/draw/pdf$', 'views.networkDrawPDF'),
-    (r'^networks/(?P<networkKey>[^/]+)/draw/svg$', 'views.networkDrawSVG'),
-    (r'^networks/(?P<networkKey>[^/]+)/run$', 'views.networkRun'),
+    url(r'^networks/(?P<networkKey>[^/]+)/draw/png$', views.networkDrawPNG),
+    url(r'^networks/(?P<networkKey>[^/]+)/draw/pdf$', views.networkDrawPDF),
+    url(r'^networks/(?P<networkKey>[^/]+)/draw/svg$', views.networkDrawSVG),
+    url(r'^networks/(?P<networkKey>[^/]+)/run$', views.networkRun),
     
     # URLs for browsing network information
-    (r'^networks/(?P<networkKey>[^/]+)/species/(?P<species>[^/]+)$', 'views.networkSpecies'),
-    (r'^networks/(?P<networkKey>[^/]+)/pathReactions/(?P<reaction>[^/]+)$', 'views.networkPathReaction'),
-    (r'^networks/(?P<networkKey>[^/]+)/netReactions/(?P<reaction>[^/]+)$', 'views.networkNetReaction'),
-    (r'^networks/(?P<networkKey>[^/]+)/kinetics$', 'views.networkPlotKinetics'),
-    (r'^networks/(?P<networkKey>[^/]+)/microdata$', 'views.networkPlotMicro'),
+    url(r'^networks/(?P<networkKey>[^/]+)/species/(?P<species>[^/]+)$', views.networkSpecies),
+    url(r'^networks/(?P<networkKey>[^/]+)/pathReactions/(?P<reaction>[^/]+)$', views.networkPathReaction),
+    url(r'^networks/(?P<networkKey>[^/]+)/netReactions/(?P<reaction>[^/]+)$', views.networkNetReaction),
+    url(r'^networks/(?P<networkKey>[^/]+)/kinetics$', views.networkPlotKinetics),
+    url(r'^networks/(?P<networkKey>[^/]+)/microdata$', views.networkPlotMicro),
     
     # Delete a network    
-    (r'^networks/(?P<networkKey>[^/]+)/delete$', 'views.networkDelete'),
+    url(r'^networks/(?P<networkKey>[^/]+)/delete$', views.networkDelete),
     
-)
+]
