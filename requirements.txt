@@ -5,7 +5,7 @@
 
 # These are the additional dependencies
 Django>=1.8.4
-BeautifulSoup
+beautifulsoup4
 xlrd
 pydot
 cairocffi
