@@ -92,8 +92,7 @@ urlpatterns = [
     url(r'^solvation_search', rmgweb.database.views.solvationSearch),
 
     # RMG-Py Stuff
-    url(r'^simulate/', include('rmgweb.rmg.urls')),
-    url(r'^simulate/input', rmgweb.rmg.views.input),
+    url(r'^tools/', include('rmgweb.rmg.urls')),
     
     # RMG Input Form
     url(r'^input', rmgweb.rmg.views.input),
