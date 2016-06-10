@@ -35,7 +35,12 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import DEBUG, TEMPLATE_DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
+from secretsettings import DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
+
+try:
+    from secretsettings import TEMPLATE_DEBUG as template_debug_setting
+except ImportError:
+    template_debug_setting = DEBUG
 
 MANAGERS = ADMINS
 
@@ -76,14 +81,43 @@ MEDIA_URL = '/media/'
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/admin/media/'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-('django.template.loaders.cached.Loader', (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)),
-)
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+            # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+            # Always use forward slashes, even on Windows.
+            # Don't forget to use absolute paths, not relative paths.
+            os.path.join(PROJECT_PATH, 'templates'),
+        ],
+        'OPTIONS': {
+            'debug': template_debug_setting,
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                # extra ones
+                "django.core.context_processors.request",  # adds 'request' to every view
+            ],
+            'loaders': [
+                # insert your TEMPLATE_LOADERS here
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
+            ]
+        },
+    },
+]
+
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -93,26 +127,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-# default ones
-"django.contrib.auth.context_processors.auth",
-"django.core.context_processors.debug",
-"django.core.context_processors.i18n",
-"django.core.context_processors.media",
-"django.core.context_processors.static",
-"django.contrib.messages.context_processors.messages",
-# extra ones
-"django.core.context_processors.request", # adds 'request' to every view
-)
 
 ROOT_URLCONF = 'rmgweb.urls'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_PATH, 'templates'),
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
