@@ -32,8 +32,7 @@ function resolve(identifier_id){
 
 // convert an adjacency list into an image url
 function adjlist2img(s) {
-   adjlist = s.replace(/\n/g,';').replace(/\s+/g,' ');
-   adjlist = encodeURI(adjlist);
+   adjlist = encodeURI(s);
    return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
