@@ -31,6 +31,6 @@ dependencies:
   - mopac
   - graphviz
   - django
-  - beautifulsoup
+  - beautifulsoup4
   - xlrd
   - docutils

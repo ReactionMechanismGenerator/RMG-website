@@ -28,39 +28,37 @@
 #
 ################################################################################
 
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
+from rmgweb.rmg import views
 
-urlpatterns = patterns('rmgweb.rmg',
-
+urlpatterns = [
     # RMG Simulation Homepage
-    (r'^$', 'views.index'),
+    url(r'^$', views.index),
 
     # Convert Chemkin File to Output File
-    (r'^chemkin','views.convertChemkin'),
+    url(r'^chemkin', views.convertChemkin),
 
     # Compare 2 RMG Models
-    (r'^compare','views.compareModels'),
+    url(r'^compare', views.compareModels),
     
     # Compare 2 RMG Models
-    (r'^adjlist_conversion','views.convertAdjlists'),
+    url(r'^adjlist_conversion', views.convertAdjlists),
     
     # Merge 2 RMG Models
-    (r'^merge_models','views.mergeModels'),
+    url(r'^merge_models', views.mergeModels),
 
     # Generate Flux Diagram
-    (r'^flux','views.generateFlux'),
+    url(r'^flux', views.generateFlux),
     
     # Populate Reactions with an Input File
-    (r'^populate_reactions','views.runPopulateReactions'),
+    url(r'^populate_reactions', views.runPopulateReactions),
     
     # Plot Kinetics
-    (r'^plot_kinetics', 'views.plotKinetics'),
+    url(r'^plot_kinetics', views.plotKinetics),
     
     # Generate RMG-Java Kinetics Library
-    (r'^java_kinetics_library', 'views.javaKineticsLibrary'),
+    url(r'^java_kinetics_library', views.javaKineticsLibrary),
     
     # Evaluate NASA Polynomial
-    (r'^evaluate_nasa', 'views.evaluateNASA')
-
-
-)
+    url(r'^evaluate_nasa', views.evaluateNASA),
+]

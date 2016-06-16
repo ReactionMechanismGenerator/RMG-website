@@ -216,8 +216,7 @@ def cactusResolver(request, query):
 def drawMolecule(request, adjlist):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
-    Note that the newline character cannot be represented in a URL;
-    semicolons should be used instead.
+    urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
@@ -233,8 +232,7 @@ def drawMolecule(request, adjlist):
 def drawGroup(request, adjlist):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecular
-    pattern. Note that the newline character cannot be represented in a URL;
-    semicolons should be used instead.
+    pattern.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
     import pydot
