@@ -38,10 +38,11 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.groupDraw' %}">Group Draw</a>
+<a href="{% url 'rmg.views.index' %}">RMG Tools</a> &raquo;
+<a href="{% url 'database.views.groupDraw' %}">Draw Functional Group</a>
 {% endblock %}
 
-{% block page_title %}Group Draw{% endblock %}
+{% block page_title %}Draw Functional Group{% endblock %}
 
 {% block page_body %}
 
