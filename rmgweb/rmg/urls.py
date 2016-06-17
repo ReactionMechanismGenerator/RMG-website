@@ -30,10 +30,13 @@
 
 from django.conf.urls import url, include
 from rmgweb.rmg import views
+import rmgweb.database.views
 
 urlpatterns = [
     # RMG Simulation Homepage
     url(r'^$', views.index),
+
+    url(r'^group_draw', rmgweb.database.views.groupDraw),
 
     # Convert Chemkin File to Output File
     url(r'^chemkin', views.convertChemkin),

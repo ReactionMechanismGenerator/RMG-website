@@ -88,12 +88,10 @@ urlpatterns = [
 
     # Molecule and solvation search,  group drawing webpages
     url(r'^molecule_search$', rmgweb.database.views.moleculeSearch),
-    url(r'^group_draw$', rmgweb.database.views.groupDraw),
     url(r'^solvation_search', rmgweb.database.views.solvationSearch),
 
     # RMG-Py Stuff
-    url(r'^simulate/', include('rmgweb.rmg.urls')),
-    url(r'^simulate/input', rmgweb.rmg.views.input),
+    url(r'^tools/', include('rmgweb.rmg.urls')),
     
     # RMG Input Form
     url(r'^input', rmgweb.rmg.views.input),
