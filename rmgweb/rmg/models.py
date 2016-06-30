@@ -34,12 +34,25 @@ import os.path
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
+from django.utils.deconstruct import deconstructible
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
 from rmgweb.database.tools import database, loadDatabase
 
 import rmgweb.settings as settings
+
+@deconstructible
+class uploadTo(object):
+    """
+    Factory class for path generation.
+    """
+    
+    def __init__(self, subpath):
+        self.subpath = subpath
+    
+    def __call__(self, instance, filename):
+        return instance.path + self.subpath
 
 class Chemkin(models.Model):
     """
@@ -50,12 +63,8 @@ class Chemkin(models.Model):
         super(Chemkin, self).__init__(*args, **kwargs)
         self.path = self.getDirname()
 
-    def upload_chemkin_to(instance, filename):
-        return instance.path + '/chemkin/chem.inp'
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/RMG_Dictionary.txt'
-    ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary', blank=True, null=True)
+    ChemkinFile = models.FileField(upload_to=uploadTo('/chemkin/chem.inp'), verbose_name='Chemkin File')
+    DictionaryFile = models.FileField(upload_to=uploadTo('/RMG_Dictionary.txt'),verbose_name='RMG Dictionary', blank=True, null=True)
     Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
     
     def getDirname(self):
@@ -177,19 +186,11 @@ class Diff(models.Model):
         self.chemkin2 = self.path + '/chem2.inp'
         self.dict2 = self.path + '/RMG_Dictionary2.txt'
 
-    def upload_chemkin1_to(instance, filename):
-        return instance.path + '/chem1.inp'
-    def upload_dictionary1_to(instance, filename):
-        return instance.path + '/RMG_Dictionary1.txt'
-    def upload_chemkin2_to(instance, filename):
-        return instance.path + '/chem2.inp'
-    def upload_dictionary2_to(instance, filename):
-        return instance.path + '/RMG_Dictionary2.txt'
-    ChemkinFile1 = models.FileField(upload_to=upload_chemkin1_to, verbose_name='Model 1: Chemkin File')
-    DictionaryFile1 = models.FileField(upload_to=upload_dictionary1_to,verbose_name='Model 1: RMG Dictionary')    
+    ChemkinFile1 = models.FileField(upload_to=uploadTo('/chem1.inp'), verbose_name='Model 1: Chemkin File')
+    DictionaryFile1 = models.FileField(upload_to=uploadTo('/RMG_Dictionary1.txt'),verbose_name='Model 1: RMG Dictionary')    
     Foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
-    ChemkinFile2 = models.FileField(upload_to=upload_chemkin2_to, verbose_name='Model 2: Chemkin File')
-    DictionaryFile2 = models.FileField(upload_to=upload_dictionary2_to,verbose_name='Model 2: RMG Dictionary')    
+    ChemkinFile2 = models.FileField(upload_to=uploadTo('/chem2.inp'), verbose_name='Model 2: Chemkin File')
+    DictionaryFile2 = models.FileField(upload_to=uploadTo('/RMG_Dictionary2.txt'),verbose_name='Model 2: RMG Dictionary')    
     Foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def getDirname(self):
@@ -277,9 +278,7 @@ class AdjlistConversion(models.Model):
         self.path = self.getDirname()
         self.dictionary = self.path + '/species_dictionary.txt'
 
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/species_dictionary.txt'
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to, verbose_name='RMG Dictionary')
+    DictionaryFile = models.FileField(upload_to=uploadTo('/species_dictionary.txt'), verbose_name='RMG Dictionary')
 
     def getDirname(self):
         """
@@ -349,18 +348,10 @@ class FluxDiagram(models.Model):
         super(FluxDiagram, self).__init__(*args, **kwargs)
         self.path = self.getDirname()
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input.py'
-    def upload_chemkin_to(instance, filename):
-        return instance.path + '/chem.inp'
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/species_dictionary.txt'
-    def upload_chemkinoutput_to(instance, filename):
-        return instance.path + '/chemkin_output.out'
-    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='RMG Input File')
-    ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary')
-    ChemkinOutput = models.FileField(upload_to=upload_chemkinoutput_to, verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
+    InputFile = models.FileField(upload_to=uploadTo('/input.py'), verbose_name='RMG Input File')
+    ChemkinFile = models.FileField(upload_to=uploadTo('/chem.inp'), verbose_name='Chemkin File')
+    DictionaryFile = models.FileField(upload_to=uploadTo('/species_dictionary.txt'),verbose_name='RMG Dictionary')
+    ChemkinOutput = models.FileField(upload_to=uploadTo('/chemkin_output.out'), verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
     Java = models.BooleanField(verbose_name="From RMG-Java")
     MaxNodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
     MaxEdges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
@@ -409,10 +400,8 @@ class PopulateReactions(models.Model):
         self.path = self.getDirname()
         self.input = self.path + '/input.txt'
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input.txt'
-    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input File')
-  
+    InputFile = models.FileField(upload_to=uploadTo('/input.txt'), verbose_name='Input File')
+
     def getDirname(self):
         """
         Return the absolute path of the directory that the object uses
@@ -488,10 +477,7 @@ class Input(models.Model):
         self.loadpath = self.path + '/input_upload.py'
         self.savepath = self.path + '/input.py'
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input_upload.py'
-
-    input_upload = models.FileField(upload_to=upload_input_to, verbose_name='Input File', blank = True)
+    input_upload = models.FileField(upload_to=uploadTo('/input_upload.py'), verbose_name='Input File', blank = True)
     
     # Pressure Dependence
     p_methods=(('off','off',),('modified strong collision','Modified Strong Collision',),('reservoir state','Reservoir State',))
