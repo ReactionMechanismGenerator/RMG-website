@@ -40,6 +40,7 @@ import rmgweb.settings
 import pybel
 import openbabel as ob
 import xlrd
+import itertools
 
 
 from rmgpy.kinetics import Arrhenius
@@ -426,6 +427,10 @@ def generateReactions(database, reactants, products=None, only_families=None):
     else:
         rmgJavaReactionList = []
     
+    for rxn in itertools.chain(reactionList, rmgJavaReactionList):
+        rxn.reactants = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.reactants]
+        rxn.products = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.products]
+
     return reactionList, rmgJavaReactionList
     
 ################################################################################
