@@ -221,6 +221,7 @@ class Diff(models.Model):
         """
 
         import rmgpy.tools.merge_models as merge_models
+        import sys
 
         inputModelFiles = []
         inputModelFiles.append((self.chemkin1, self.dict1, None))
@@ -230,11 +231,20 @@ class Diff(models.Model):
             'wd': self.path,
             'transport': False,
         }
-
-        merge_models.execute(
-                    inputModelFiles,
-                    **kwargs
-                    )
+        
+        logfile = os.path.join(self.path,'merging_log.txt')
+        
+        # Save stdout to logfile which the user can download
+        with open(logfile, 'w') as f:
+            stdout_orig = sys.stdout
+            sys.stdout = f
+            
+            merge_models.execute(
+                        inputModelFiles,
+                        **kwargs
+                        )
+            
+            sys.stdout = stdout_orig
         
     def createDir(self):
         """
