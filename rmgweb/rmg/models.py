@@ -63,7 +63,7 @@ class Chemkin(models.Model):
         Return the absolute path of the directory that the object uses
         to store files.
         """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools/')
+        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','chemkin/')
 
     def createOutput(self):
         """
