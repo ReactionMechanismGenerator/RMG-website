@@ -531,7 +531,7 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     minCoreSizeForPrune = models.PositiveIntegerField(default = 50)
     minSpeciesExistIterationsForPrune = models.PositiveIntegerField(default = 2)
-    filterReactions = models.BooleanField()
+    filterReactions = models.BooleanField(default = False)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
     simulator_sens_atol = models.FloatField(default = 1e-6)
@@ -555,24 +555,23 @@ class Input(models.Model):
     allowed_seedMechanisms = models.BooleanField(default = False)
     allowed_reactionLibraries = models.BooleanField(default = False)
     maximumCarbonAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
-    maximumHydrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumOxygenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumNitrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumSiliconAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumSulfurAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
-    allowSingletO2 = models.BooleanField()
+    allowSingletO2 = models.BooleanField(default = False)
     
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
     saveRestartPeriodUnits = models.CharField(max_length = 50, default = 'hour', choices = restartunits)
-    generateOutputHTML=models.BooleanField()
-    generatePlots=models.BooleanField()
-    saveSimulationProfiles = models.BooleanField()
-    saveEdgeSpecies = models.BooleanField()
-    verboseComments = models.BooleanField()
+    generateOutputHTML=models.BooleanField(default = False)
+    generatePlots=models.BooleanField(default = False)
+    saveSimulationProfiles = models.BooleanField(default = False)
+    saveEdgeSpecies = models.BooleanField(default = False)
+    verboseComments = models.BooleanField(default = False)
 
 
     def getDirname(self):
@@ -873,7 +872,6 @@ class Input(models.Model):
             if form.cleaned_data['allowed_reactionLibraries']: allowed.append('reaction libraries')
             self.rmg.speciesConstraints['allowed'] = allowed
             self.rmg.speciesConstraints['maximumCarbonAtoms'] = form.cleaned_data['maximumCarbonAtoms']
-            self.rmg.speciesConstraints['maximumHydrogenAtoms'] = form.cleaned_data['maximumHydrogenAtoms']
             self.rmg.speciesConstraints['maximumOxygenAtoms'] = form.cleaned_data['maximumOxygenAtoms']
             self.rmg.speciesConstraints['maximumNitrogenAtoms'] = form.cleaned_data['maximumNitrogenAtoms']
             self.rmg.speciesConstraints['maximumSiliconAtoms'] = form.cleaned_data['maximumSiliconAtoms']

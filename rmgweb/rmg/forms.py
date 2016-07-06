@@ -118,7 +118,6 @@ class InputForm(forms.ModelForm):
             'simulator_rtol': forms.TextInput(attrs={'size':'3'}),
             'saveRestartPeriod':forms.TextInput(attrs={'size':'5'}),
             'maximumCarbonAtoms':forms.TextInput(attrs={'size':'2'}),
-            'maximumHydrogenAtoms':forms.TextInput(attrs={'size':'2'}),
             'maximumOxygenAtoms':forms.TextInput(attrs={'size':'2'}),
             'maximumNitrogenAtoms':forms.TextInput(attrs={'size':'2'}),
             'maximumSiliconAtoms':forms.TextInput(attrs={'size':'2'}),
