@@ -425,20 +425,15 @@ class PopulateReactions(models.Model):
         Generate output html file from the path containing chemkin and dictionary files.
         """
         
-        import rmgpy.tools.generate_reactions as generate_reactions
-        from rmgpy.rmg.main import initializeLog, RMG
-        from rmgpy.chemkin import ChemkinWriter
-        from rmgpy.rmg.output import OutputHTMLWriter
+        import subprocess
+        import rmgpy
+        command = ('python',
+            os.path.join(os.path.dirname(rmgpy.getPath()), 'scripts', 'generateReactions.py'),
+            self.input,
+            '-q',
+        )
+        subprocess.check_call(command, cwd=self.path)
         
-        inputFile = self.input
-        output_directory = self.getDirname()
-        
-        rmg = RMG()
-        # Add output listeners:
-        rmg.attach(ChemkinWriter(output_directory))
-        rmg.attach(OutputHTMLWriter(output_directory))
-    
-        generate_reactions.execute(rmg, inputFile, output_directory)
 
     def createDir(self):
         """
