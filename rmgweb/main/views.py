@@ -57,6 +57,32 @@ def privacy(request):
                               {'admins': settings.ADMINS},
                               context_instance=RequestContext(request))
 
+def version(request):
+    """
+    Version information for RMG-website, RMG-Py, and RMG-database
+    """
+    
+    import os.path
+    import rmgpy
+    import rmgweb
+    from rmgpy.rmg.main import RMG
+    
+    pyPath = os.path.dirname(rmgpy.__file__)
+    dataPath = rmgpy.settings['database.directory']
+    webPath = os.path.dirname(rmgweb.__file__)
+    
+    rmg = RMG()
+    
+    pyCommit, pyDate = rmg.getGitCommit(pyPath)
+    dataCommit, dataDate = rmg.getGitCommit(dataPath)
+    webCommit, webDate = rmg.getGitCommit(webPath)
+    
+    return render_to_response('version.html',
+                              {'pc':pyCommit, 'pd':pyDate,
+                               'dc':dataCommit, 'dd':dataDate,
+                               'wc':webCommit, 'wd':webDate},
+                              context_instance=RequestContext(request))
+
 def login(request):
     """
     Called when the user wishes to log in to his/her account.

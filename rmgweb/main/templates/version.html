@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}Version Control{% endblock %}
+
+{% block extrahead %}
+
+<style type="text/css">
+
+table {
+    border-collapse: collapse
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid black
+}
+
+</style>
+
+{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block sidebar_items %}{% endblock %}
+
+{% block page_title %}Version Control{% endblock %}
+
+{% block page_body %}
+<p>
+The RMG-website provides an interface for accessing useful functions in RMG-Py and RMG-database.
+</p>
+
+<p>
+Git repositories for these projects can be found at the 
+<a href="https://github.com/ReactionMechanismGenerator" target="_blank">Reaction Mechanism Generator</a> Github.
+</p>
+
+<p>
+The current Git commits on which the website is operating are as follows:
+
+<table>
+    <tr>
+        <th>Repository</th>
+        <th>Commit</th>
+        <th>Date</th>
+    </tr>
+    <tr>
+        <td><a href="https://github.com/ReactionMechanismGenerator/RMG-Py" target="_blank">RMG-Py</a></td>
+        <td>{{ pc }}</td>
+        <td>{{ pd }}</td>
+    </tr>
+    <tr>
+        <td><a href="https://github.com/ReactionMechanismGenerator/RMG-database" target="_blank">RMG-database</a></td>
+        <td>{{ dc }}</td>
+        <td>{{ dd }}</td>
+    </tr>
+    <tr>
+        <td><a href="https://github.com/ReactionMechanismGenerator/RMG-website" target="_blank">RMG-website</a></td>
+        <td>{{ wc }}</td>
+        <td>{{ wd }}</td>
+    </tr>
+</table>
+
+</p>
+
+
+{% endblock %}
