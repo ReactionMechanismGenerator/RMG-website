@@ -150,8 +150,8 @@ class PlotKineticsTest(SimpleTestCase):
         Test basic functionality of /tools/plot_kinetics/
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','chem.inp')
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','species_dictionary.txt')
+        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
+        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
         with open(chemfile) as cf, open(dictfile) as df:
             response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf, 'DictionaryFile': df})
@@ -163,7 +163,7 @@ class PlotKineticsTest(SimpleTestCase):
         Test without uploading dictionary file
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','chem.inp')
+        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
         
         with open(chemfile) as cf:
             response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf})
@@ -193,7 +193,7 @@ class AdjlistConversionTest(SimpleTestCase):
         Test basic functionality of /tools/adjlist_conversion/
         """
         
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','species_dictionary.txt')
+        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
         with open(dictfile) as df:
             response = self.client.post('/tools/adjlist_conversion/', {'DictionaryFile': df})
@@ -215,8 +215,8 @@ class JavaLibraryTest(SimpleTestCase):
         Test basic functionality of /tools/java_kinetics_library/
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','chem.inp')
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'rmg','tests','kinetics','species_dictionary.txt')
+        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
+        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
         with open(chemfile) as cf, open(dictfile) as df:
             response = self.client.post('/tools/java_kinetics_library/', {'ChemkinFile': cf, 'DictionaryFile': df})
