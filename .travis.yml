@@ -35,5 +35,6 @@ install:
   - conda env update
 
 script:
-  - python manage.py test rmgweb/tests/
+  - cp ./rmgweb/secretsettings.py.example ./rmgweb/secretsettings.py
+  - python manage.py test rmgweb.tests
 
