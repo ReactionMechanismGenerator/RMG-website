@@ -26,7 +26,9 @@ th, td {
 
 {% endblock %}
 
-{% block navbar_items %}{% endblock %}
+{% block navbar_items %}
+<a href="{% url 'main.views.version' %}">Backend Version</a>
+{% endblock %}
 
 {% block sidebar_items %}{% endblock %}
 
