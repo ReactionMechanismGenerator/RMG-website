@@ -52,7 +52,7 @@ def getGitCommit(modulePath):
             commit = lines[0]
             date = lines[1]
             subject = lines[2]
-            body = ' '.join(lines[3:])
+            body = '\n'.join(lines[3:])
         except:
             pass
         

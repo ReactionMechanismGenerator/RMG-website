@@ -136,6 +136,9 @@
             <i>et al.</i>
             Created using <a href="http://www.djangoproject.com/">Django</a>.
             Read the <a href="/privacy">Privacy Policy</a>.
+            <br />
+            Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
+            See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
             {% endblock %}
         </div>
         
