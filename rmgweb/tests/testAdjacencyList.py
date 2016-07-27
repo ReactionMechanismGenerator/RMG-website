@@ -30,7 +30,7 @@
 
 from django.test import TestCase
 
-class AdjancencyListViewTests(TestCase):
+class AdjacencyListViewTests(TestCase):
     def test_getAdjacencyList_Empty(self):
         identifier = ''
         response = self.client.get('/adjacencylist/' + identifier)
