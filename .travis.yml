@@ -31,8 +31,9 @@ install:
   - conda env create -f environment_linux.yml
   - source activate rmg_env
   - make
+  - cd $TRAVIS_BUILD_DIR
+  - conda env update
 
 script:
-  - cd $TRAVIS_BUILD_DIR/
   - python manage.py test rmgweb/tests/
 
