@@ -18,7 +18,7 @@ dependencies:
   - jinja2
   #- argparse # [py26]
   - pyparsing
-  - pydot
+  - pydot ==1.2.2
   - nose
   - coverage
   - guppy
@@ -30,7 +30,7 @@ dependencies:
   - symmetry
   - mopac
   - graphviz
-  - django
+  - django ==1.8.4
   - beautifulsoup4
   - xlrd
   - docutils
