@@ -7,91 +7,160 @@ import shutil
 
 class ChemkinTest(TestCase):
     
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/chemkin/')
+        
+        self.assertEqual(response.status_code, 200)
+    
     def test_1(self):
         """
-        Test basic functionality of /tools/chemkin/
+        Test post functionality of /tools/chemkin/
         """
         
-        chemfile = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
-        dictfile = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
+        chemFile = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
+        dictFile = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
         
-        with open(chemfile) as cf, open(dictfile) as df:
+        with open(chemFile) as cf, open(dictFile) as df:
             response = self.client.post('/tools/chemkin/', {'ChemkinFile': cf, 'DictionaryFile': df})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','chemkin')
         
-        htmlfile = os.path.join(folder,'output.html')
+        # Check if inputs were correctly uploaded
+        chemInput = os.path.join(folder,'chemkin','chem.inp')
+        dictInput = os.path.join(folder,'RMG_Dictionary.txt')
         
-        self.assertTrue(os.path.isfile(htmlfile),'HTML Output was not generated')
+        self.assertTrue(os.path.isfile(chemInput),'Chemkin file was not uploaded')
+        self.assertTrue(os.path.isfile(dictInput),'Dictionary file was not uploaded')
         
+        # Check if outputs were correctly generated
+        htmlOutput = os.path.join(folder,'output.html')
+        
+        self.assertTrue(os.path.isfile(htmlOutput),'HTML Output was not generated')
+        
+        # Clean up
         shutil.rmtree(folder)
 
 class CompareTest(TestCase):
+    
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/compare/')
+        
+        self.assertEqual(response.status_code, 200)
     
     def test_1(self):
         """
         Test basic functionality of /tools/compare/
         """
         
-        chemfile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
-        dictfile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
-        chemfile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem2.inp')
-        dictfile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary2.txt')
+        chemFile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
+        dictFile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
+        chemFile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem2.inp')
+        dictFile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary2.txt')
         
-        with open(chemfile1) as cf1, open(dictfile1) as df1, open(chemfile2) as cf2, open(dictfile2) as df2:
+        with open(chemFile1) as cf1, open(dictFile1) as df1, open(chemFile2) as cf2, open(dictFile2) as df2:
             response = self.client.post('/tools/compare/', {'ChemkinFile1': cf1, 'DictionaryFile1': df1, 'ChemkinFile2': cf2, 'DictionaryFile2': df2})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','compare')
         
-        htmlfile = os.path.join(folder,'diff.html')
+        # Check if inputs were correctly uploaded
+        chemInput1 = os.path.join(folder,'chem1.inp')
+        dictInput1 = os.path.join(folder,'RMG_Dictionary1.txt')
+        chemInput2 = os.path.join(folder,'chem2.inp')
+        dictInput2 = os.path.join(folder,'RMG_Dictionary2.txt')
         
-        self.assertTrue(os.path.isfile(htmlfile),'HTML Output was not generated')
+        self.assertTrue(os.path.isfile(chemInput1),'Chemkin file 1 was not uploaded')
+        self.assertTrue(os.path.isfile(dictInput1),'Dictionary file 1 was not uploaded')
+        self.assertTrue(os.path.isfile(chemInput2),'Chemkin file was 2 not uploaded')
+        self.assertTrue(os.path.isfile(dictInput2),'Dictionary file 2 was not uploaded')
+        
+        # Check if outputs were correctly generated
+        htmlOutput = os.path.join(folder,'diff.html')
+        
+        self.assertTrue(os.path.isfile(htmlOutput),'HTML Output was not generated')
         
         shutil.rmtree(folder)
     
     def test_2(self):
         """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/merge_models/')
+        
+        self.assertEqual(response.status_code, 200)
+    
+    def test_3(self):
+        """
         Test basic functionality of /tools/merge_models/
         """
         
-        chemfile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
-        dictfile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
-        chemfile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem2.inp')
-        dictfile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary2.txt')
+        chemFile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem1.inp')
+        dictFile1 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary1.txt')
+        chemFile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','chem2.inp')
+        dictFile2 = os.path.join(rmgpy.getPath(),'tools','data','diffmodels','species_dictionary2.txt')
         
-        with open(chemfile1) as cf1, open(dictfile1) as df1, open(chemfile2) as cf2, open(dictfile2) as df2:
+        with open(chemFile1) as cf1, open(dictFile1) as df1, open(chemFile2) as cf2, open(dictFile2) as df2:
             response = self.client.post('/tools/merge_models/', {'ChemkinFile1': cf1, 'DictionaryFile1': df1, 'ChemkinFile2': cf2, 'DictionaryFile2': df2})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','compare')
         
-        chemfile = os.path.join(folder,'chem.inp')
-        dictfile = os.path.join(folder,'species_dictionary.txt')
-        logfile = os.path.join(folder,'merging_log.txt')
+        # Check if inputs were correctly uploaded
+        chemInput1 = os.path.join(folder,'chem1.inp')
+        dictInput1 = os.path.join(folder,'RMG_Dictionary1.txt')
+        chemInput2 = os.path.join(folder,'chem2.inp')
+        dictInput2 = os.path.join(folder,'RMG_Dictionary2.txt')
         
-        self.assertTrue(os.path.isfile(chemfile),'CHEMKIN file was not generated')
-        self.assertTrue(os.path.isfile(dictfile),'Species dictionary was not generated')
-        self.assertTrue(os.path.isfile(logfile),'Merging log file was not generated')
+        self.assertTrue(os.path.isfile(chemInput1),'Chemkin file 1 was not uploaded')
+        self.assertTrue(os.path.isfile(dictInput1),'Dictionary file 1 was not uploaded')
+        self.assertTrue(os.path.isfile(chemInput2),'Chemkin file was 2 not uploaded')
+        self.assertTrue(os.path.isfile(dictInput2),'Dictionary file 2 was not uploaded')
+        
+        # Check if outputs were correctly generated
+        chemOutput = os.path.join(folder,'chem.inp')
+        dictOutput = os.path.join(folder,'species_dictionary.txt')
+        logOutput = os.path.join(folder,'merging_log.txt')
+        
+        self.assertTrue(os.path.isfile(chemOutput),'CHEMKIN file was not generated')
+        self.assertTrue(os.path.isfile(dictOutput),'Species dictionary was not generated')
+        self.assertTrue(os.path.isfile(logOutput),'Merging log file was not generated')
         
         shutil.rmtree(folder)
 
 class FluxDiagramTest(TestCase):
+    
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/flux/')
+        
+        self.assertEqual(response.status_code, 200)
     
     def test_1(self):
         """
         Test basic functionality of /tools/flux/
         """
         
-        inputfile = os.path.join(rmgpy.getPath(),'tools','data','flux','input.py')
-        chemfile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','chem.inp')
-        dictfile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','species_dictionary.txt')
+        inputFile = os.path.join(rmgpy.getPath(),'tools','data','flux','input.py')
+        chemFile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','chem.inp')
+        dictFile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','species_dictionary.txt')
         
-        with open(inputfile) as nf, open(chemfile) as cf, open(dictfile) as df:
+        with open(inputFile) as nf, open(chemFile) as cf, open(dictFile) as df:
             response = self.client.post('/tools/flux/', {'InputFile': nf, 'ChemkinFile': cf, 'DictionaryFile': df, 
                                                          'MaxNodes': 50, 'MaxEdges': 50, 'TimeStep': 1.25, 
                                                          'ConcentrationTolerance': 1e-6, 'SpeciesRateTolerance': 1e-6})
@@ -100,15 +169,34 @@ class FluxDiagramTest(TestCase):
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','flux')
         
-        videofile = os.path.join(folder,'1','flux_diagram.avi')
+        # Check if inputs were correctly uploaded
+        pyInput = os.path.join(folder,'input.py')
+        chemInput = os.path.join(folder,'chem.inp')
+        dictInput = os.path.join(folder,'species_dictionary.txt')
+        
+        self.assertTrue(os.path.isfile(pyInput),'RMG input file was not uploaded')
+        self.assertTrue(os.path.isfile(chemInput),'Chemkin file was not uploaded')
+        self.assertTrue(os.path.isfile(dictInput),'Dictionary file was not uploaded')
+        
+        # Check if outputs were correctly generated
+        videoOutput = os.path.join(folder,'1','flux_diagram.avi')
         species = os.path.join(folder,'species')
         
-        self.assertTrue(os.path.isfile(videofile),'Video output was not generated')
+        self.assertTrue(os.path.isfile(videoOutput),'Video output was not generated')
         self.assertTrue(os.path.isdir(species),'Species directory was not generated')
         
         shutil.rmtree(folder)
 
 class PopulateReactionsTest(TestCase):
+    
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/populate_reactions/')
+        
+        self.assertEqual(response.status_code, 200)
     
     def test_1(self):
         """
@@ -118,25 +206,32 @@ class PopulateReactionsTest(TestCase):
         from rmgpy.chemkin import loadChemkinFile
         from rmgpy.rmg.model import ReactionModel
         
-        inputfile = os.path.join(rmgpy.getPath(),'tools','data','generate','input.py')
+        inputFile = os.path.join(rmgpy.getPath(),'tools','data','generate','input.py')
         
-        with open(inputfile) as fp:
+        with open(inputFile) as fp:
             response = self.client.post('/tools/populate_reactions/', {'InputFile': fp})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','populateReactions')
         
-        htmlfile = os.path.join(folder,'output.html')
-        chemfile = os.path.join(folder,'chemkin','chem.inp')
-        dictfile = os.path.join(folder,'chemkin','species_dictionary.txt')
+        # Check if inputs were correctly uploaded
+        pyInput = os.path.join(folder,'input.txt')
         
-        self.assertTrue(os.path.isfile(htmlfile),'HTML Output was not generated')
-        self.assertTrue(os.path.isfile(chemfile),'CHEMKIN file was not generated')
-        self.assertTrue(os.path.isfile(dictfile),'Species dictionary was not generated')
+        self.assertTrue(os.path.isfile(pyInput),'RMG input file was not uploaded')
         
+        # Check if outputs were correctly generated
+        htmlOutput = os.path.join(folder,'output.html')
+        chemOutput = os.path.join(folder,'chemkin','chem.inp')
+        dictOutput = os.path.join(folder,'chemkin','species_dictionary.txt')
+        
+        self.assertTrue(os.path.isfile(htmlOutput),'HTML Output was not generated')
+        self.assertTrue(os.path.isfile(chemOutput),'CHEMKIN file was not generated')
+        self.assertTrue(os.path.isfile(dictOutput),'Species dictionary was not generated')
+        
+        # Check that the output is not empty
         model = ReactionModel()
-        model.species, model.reactions = loadChemkinFile(chemfile, dictfile)
+        model.species, model.reactions = loadChemkinFile(chemOutput, dictOutput)
         
         self.assertTrue(model.species,'No species were generated')
         self.assertTrue(model.reactions, 'No reactions were generated')
@@ -145,32 +240,54 @@ class PopulateReactionsTest(TestCase):
 
 class PlotKineticsTest(TestCase):
     
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/plot_kinetics/')
+        
+        self.assertEqual(response.status_code, 200)
+    
     def test_1(self):
         """
         Test basic functionality of /tools/plot_kinetics/
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
+        chemFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
+        dictFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
-        with open(chemfile) as cf, open(dictfile) as df:
+        with open(chemFile) as cf, open(dictFile) as df:
             response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf, 'DictionaryFile': df})
         
         self.assertEqual(response.status_code, 200)
+        
+        shutil.rmtree(os.path.join(settings.MEDIA_ROOT,'rmg','tools','chemkin'))
         
     def test_2(self):
         """
         Test without uploading dictionary file
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
+        chemFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
         
-        with open(chemfile) as cf:
+        with open(chemFile) as cf:
             response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf})
         
         self.assertEqual(response.status_code, 200)
+        
+        shutil.rmtree(os.path.join(settings.MEDIA_ROOT,'rmg','tools','chemkin'))
 
 class EvaluateNASATest(TestCase):
+    
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/evaluate_nasa/')
+        
+        self.assertEqual(response.status_code, 200)
     
     def test_1(self):
         """
@@ -188,43 +305,75 @@ class EvaluateNASATest(TestCase):
 
 class AdjlistConversionTest(TestCase):
     
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/adjlist_conversion/')
+        
+        self.assertEqual(response.status_code, 200)
+    
     def test_1(self):
         """
         Test basic functionality of /tools/adjlist_conversion/
         """
         
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
+        dictFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
-        with open(dictfile) as df:
+        with open(dictFile) as df:
             response = self.client.post('/tools/adjlist_conversion/', {'DictionaryFile': df})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','adjlistConversion')
         
-        htmlfile = os.path.join(folder,'RMG_Dictionary.txt')
+        # Check if inputs were correctly uploaded
+        dictInput = os.path.join(folder,'species_dictionary.txt')
         
-        self.assertTrue(os.path.isfile(htmlfile),'Species dictionary was not generated')
+        self.assertTrue(os.path.isfile(dictInput),'Dictionary file was not uploaded')
+        
+        # Check if outputs were correctly generated
+        htmlOutput = os.path.join(folder,'RMG_Dictionary.txt')
+        
+        self.assertTrue(os.path.isfile(htmlOutput),'Species dictionary was not generated')
         
         shutil.rmtree(folder)
 
 class JavaLibraryTest(TestCase):
+    
+    def test_0(self):
+        """
+        Test that webpage gives expected response
+        """
+        
+        response = self.client.get('/tools/java_kinetics_library/')
+        
+        self.assertEqual(response.status_code, 200)
     
     def test_1(self):
         """
         Test basic functionality of /tools/java_kinetics_library/
         """
         
-        chemfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
-        dictfile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
+        chemFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','chem.inp')
+        dictFile = os.path.join(os.path.dirname(rmgweb.__file__),'tests','files','kinetics','species_dictionary.txt')
         
-        with open(chemfile) as cf, open(dictfile) as df:
+        with open(chemFile) as cf, open(dictFile) as df:
             response = self.client.post('/tools/java_kinetics_library/', {'ChemkinFile': cf, 'DictionaryFile': df})
         
         self.assertEqual(response.status_code, 200)
         
         folder = os.path.join(settings.MEDIA_ROOT,'rmg','tools','chemkin')
         
+        # Check if inputs were correctly uploaded
+        chemInput = os.path.join(folder,'chemkin','chem.inp')
+        dictInput = os.path.join(folder,'RMG_Dictionary.txt')
+        
+        self.assertTrue(os.path.isfile(chemInput),'Chemkin file was not uploaded')
+        self.assertTrue(os.path.isfile(dictInput),'Dictionary file was not uploaded')
+        
+        # Check if outputs were correctly generated
         reactions = os.path.join(folder,'reactions.txt')
         pdep = os.path.join(folder,'pdepreactions.txt')
         species = os.path.join(folder,'species.txt')
