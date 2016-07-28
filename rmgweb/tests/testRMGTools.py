@@ -1,11 +1,11 @@
-from django.test import SimpleTestCase
+from django.test import TestCase
 import os.path
 import rmgpy
 import rmgweb
 import rmgweb.settings as settings
 import shutil
 
-class ChemkinTest(SimpleTestCase):
+class ChemkinTest(TestCase):
     
     def test_1(self):
         """
@@ -28,7 +28,7 @@ class ChemkinTest(SimpleTestCase):
         
         shutil.rmtree(folder)
 
-class CompareTest(SimpleTestCase):
+class CompareTest(TestCase):
     
     def test_1(self):
         """
@@ -80,7 +80,7 @@ class CompareTest(SimpleTestCase):
         
         shutil.rmtree(folder)
 
-class FluxDiagramTest(SimpleTestCase):
+class FluxDiagramTest(TestCase):
     
     def test_1(self):
         """
@@ -108,7 +108,7 @@ class FluxDiagramTest(SimpleTestCase):
         
         shutil.rmtree(folder)
 
-class PopulateReactionsTest(SimpleTestCase):
+class PopulateReactionsTest(TestCase):
     
     def test_1(self):
         """
@@ -143,7 +143,7 @@ class PopulateReactionsTest(SimpleTestCase):
         
         shutil.rmtree(folder)
 
-class PlotKineticsTest(SimpleTestCase):
+class PlotKineticsTest(TestCase):
     
     def test_1(self):
         """
@@ -170,7 +170,7 @@ class PlotKineticsTest(SimpleTestCase):
         
         self.assertEqual(response.status_code, 200)
 
-class EvaluateNASATest(SimpleTestCase):
+class EvaluateNASATest(TestCase):
     
     def test_1(self):
         """
@@ -186,7 +186,7 @@ class EvaluateNASATest(SimpleTestCase):
         
         self.assertEqual(response.status_code, 200)
 
-class AdjlistConversionTest(SimpleTestCase):
+class AdjlistConversionTest(TestCase):
     
     def test_1(self):
         """
@@ -208,7 +208,7 @@ class AdjlistConversionTest(SimpleTestCase):
         
         shutil.rmtree(folder)
 
-class JavaLibraryTest(SimpleTestCase):
+class JavaLibraryTest(TestCase):
     
     def test_1(self):
         """
