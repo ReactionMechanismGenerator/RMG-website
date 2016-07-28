@@ -38,5 +38,5 @@ install:
   - cp ./rmgweb/secretsettings.py.example ./rmgweb/secretsettings.py
 
 script:
-  - python manage.py test rmgweb.tests
+  - python manage.py test rmgweb.tests -v 2
 
