@@ -30,7 +30,7 @@ dependencies:
   - symmetry
   - mopac
   - graphviz
-  - django
+  - django ==1.8.4
   - beautifulsoup4
   - xlrd
   - docutils
