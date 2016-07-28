@@ -38,6 +38,7 @@ import time
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.deconstruct import deconstructible
 
 import rmgweb.settings as settings
 
@@ -47,17 +48,27 @@ def _createId():
     import os
     import binascii
     return binascii.hexlify(os.urandom(16))
+
+@deconstructible
+class uploadTo(object):
+    """
+    Factory class for path generation.
+    """
     
+    def __init__(self, subpath):
+        self.subpath = subpath
+    
+    def __call__(self, instance, filename):
+        # Always name the uploaded input file "input.py"
+        return 'pdep/networks/{0}/input.py'.format(instance.pk)
+
 class Network(models.Model):
     """
     A Django model of a pressure-dependent reaction network. 
     """
-    def upload_input_to(instance, filename):
-        # Always name the uploaded input file "input.py"
-        return 'pdep/networks/{0}/input.py'.format(instance.pk)
     id = models.CharField(max_length=32, primary_key=True, default=_createId)
     title = models.CharField(max_length=50)
-    inputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input file')
+    inputFile = models.FileField(upload_to=uploadTo, verbose_name='Input file')
     inputText = models.TextField(blank=True, verbose_name='')
     user = models.ForeignKey(User)
 

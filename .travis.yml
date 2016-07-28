@@ -1,0 +1,42 @@
+language: python
+sudo: false
+python:
+  - "2.7"
+virtualenv:
+    system_site_packages: true
+env:
+  global:
+    - secure: "L2ja+ZnV83w4qG3E8FwTjm0D6IWNOnj5wuFOjYTwbzQP4OAgLAWBzCMtxzWy5sMxFLtRgkswBH1d5f5kg8Ab7GIyAMFgQwe8UFqMJ+N05QNszE1mJkAvJtv2XN7669XXQhTt5EXfHrCcGZaODVnI2CEA8GB5DxiHO2Lcqf/xvgE="
+addons:
+  apt:
+    packages:
+    - git
+services:
+  - sqlite
+
+before_install:
+  # Set up anaconda
+  - wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b -p $HOME/miniconda
+  - export PATH=$HOME/miniconda/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
+  - cd ..
+  - git clone https://github.com/ReactionMechanismGenerator/RMG-Py.git
+  - git clone https://github.com/ReactionMechanismGenerator/RMG-database.git
+  # Add RMG-Py to PYTHONPATH
+  - export PYTHONPATH=$TRAVIS_BUILD_DIR/../RMG-Py:$PYTHONPATH
+  - cd RMG-Py
+
+install:
+  - conda env create -f environment_linux.yml
+  - source activate rmg_env
+  - make
+  - cd $TRAVIS_BUILD_DIR
+  - conda env update
+  - cp ./rmgweb/secretsettings.py.example ./rmgweb/secretsettings.py
+
+script:
+  - python manage.py test rmgweb.tests -v 2
+

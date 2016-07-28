@@ -75,7 +75,7 @@ def convertChemkin(request):
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         if form.is_valid():
             form.save()
-            path = 'media/rmg/tools/output.html'
+            path = 'media/rmg/tools/chemkin/output.html'
             # Generate the output HTML file
             chemkin.createOutput()
             # Go back to the network's main page
