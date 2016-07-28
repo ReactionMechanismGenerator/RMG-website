@@ -11,6 +11,8 @@ addons:
   apt:
     packages:
     - git
+services:
+  - sqlite
 
 before_install:
   # Set up anaconda
@@ -33,8 +35,8 @@ install:
   - make
   - cd $TRAVIS_BUILD_DIR
   - conda env update
+  - cp ./rmgweb/secretsettings.py.example ./rmgweb/secretsettings.py
 
 script:
-  - cp ./rmgweb/secretsettings.py.example ./rmgweb/secretsettings.py
   - python manage.py test rmgweb.tests
 
