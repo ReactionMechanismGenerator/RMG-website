@@ -20,10 +20,11 @@ before_install:
   - export PATH=$HOME/miniconda/bin:$PATH
   # Update conda itself
   - conda update --yes conda
+  - cd ..
   - git clone https://github.com/ReactionMechanismGenerator/RMG-Py.git
   - git clone https://github.com/ReactionMechanismGenerator/RMG-database.git
   # Add RMG-Py to PYTHONPATH
-  - export PYTHONPATH=$TRAVIS_BUILD_DIR/RMG-Py:$PYTHONPATH
+  - export PYTHONPATH=$TRAVIS_BUILD_DIR/../RMG-Py:$PYTHONPATH
   - cd RMG-Py
 
 install:
