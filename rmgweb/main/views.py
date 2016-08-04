@@ -57,6 +57,12 @@ def privacy(request):
                               {'admins': settings.ADMINS},
                               context_instance=RequestContext(request))
 
+def version(request):
+    """
+    Version information for RMG-website, RMG-Py, and RMG-database
+    """
+    return render_to_response('version.html', context_instance=RequestContext(request))
+
 def login(request):
     """
     Called when the user wishes to log in to his/her account.

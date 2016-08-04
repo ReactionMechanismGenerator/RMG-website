@@ -34,12 +34,25 @@ import os.path
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
+from django.utils.deconstruct import deconstructible
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
 from rmgweb.database.tools import database, loadDatabase
 
 import rmgweb.settings as settings
+
+@deconstructible
+class uploadTo(object):
+    """
+    Factory class for path generation.
+    """
+    
+    def __init__(self, subpath=''):
+        self.subpath = subpath
+    
+    def __call__(self, instance, filename):
+        return os.path.join(instance.folder, self.subpath)
 
 class Chemkin(models.Model):
     """
@@ -48,23 +61,13 @@ class Chemkin(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(Chemkin, self).__init__(*args, **kwargs)
-        self.path = self.getDirname()
+        self.folder = os.path.join('rmg', 'tools', 'chemkin')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
 
-    def upload_chemkin_to(instance, filename):
-        return instance.path + '/chemkin/chem.inp'
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/RMG_Dictionary.txt'
-    ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary', blank=True, null=True)
+    ChemkinFile = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
+    DictionaryFile = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
     
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools/')
-
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
@@ -82,8 +85,8 @@ class Chemkin(models.Model):
         the Network uses for storing files.
         """
         try:
-            os.makedirs(os.path.join(self.getDirname(),'chemkin'))
-            os.makedirs(os.path.join(self.getDirname(),'species'))
+            os.makedirs(os.path.join(self.path,'chemkin'))
+            os.makedirs(os.path.join(self.path,'species'))
         except OSError:
             # Fail silently on any OS errors
             pass
@@ -94,7 +97,7 @@ class Chemkin(models.Model):
         """
         import shutil
         try:
-            shutil.rmtree(self.getDirname())
+            shutil.rmtree(self.path)
         except OSError:
             pass
         
@@ -108,8 +111,8 @@ class Chemkin(models.Model):
         from rmgpy.data.base import Entry
         
         kineticsDataList = []    
-        chemkinPath= self.path + '/chemkin/chem.inp'
-        dictionaryPath = self.path + 'RMG_Dictionary.txt' 
+        chemkinPath= os.path.join(self.path, 'chemkin','chem.inp')
+        dictionaryPath = os.path.join(self.path, 'RMG_Dictionary.txt' )
         if self.Foreign:
             readComments = False
         else:
@@ -158,8 +161,8 @@ class Chemkin(models.Model):
         """
         from rmgpy.chemkin import loadChemkinFile, saveJavaKineticsLibrary
         
-        chemkinPath = self.path + '/chemkin/chem.inp'
-        dictionaryPath = self.path + 'RMG_Dictionary.txt' 
+        chemkinPath = os.path.join(self.path, 'chemkin','chem.inp')
+        dictionaryPath = os.path.join(self.path, 'RMG_Dictionary.txt' )
         speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
         saveJavaKineticsLibrary(self.path, speciesList, reactionList)
         return
@@ -171,33 +174,19 @@ class Diff(models.Model):
     """
     def __init__(self, *args, **kwargs):
         super(Diff, self).__init__(*args, **kwargs)
-        self.path = self.getDirname()
-        self.chemkin1 = self.path + '/chem1.inp'
-        self.dict1 = self.path + '/RMG_Dictionary1.txt'
-        self.chemkin2 = self.path + '/chem2.inp'
-        self.dict2 = self.path + '/RMG_Dictionary2.txt'
+        self.folder = os.path.join('rmg', 'tools', 'compare')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.chemkin1 = os.path.join(self.path, 'chem1.inp')
+        self.dict1 = os.path.join(self.path, 'RMG_Dictionary1.txt')
+        self.chemkin2 = os.path.join(self.path, 'chem2.inp')
+        self.dict2 = os.path.join(self.path, 'RMG_Dictionary2.txt')
 
-    def upload_chemkin1_to(instance, filename):
-        return instance.path + '/chem1.inp'
-    def upload_dictionary1_to(instance, filename):
-        return instance.path + '/RMG_Dictionary1.txt'
-    def upload_chemkin2_to(instance, filename):
-        return instance.path + '/chem2.inp'
-    def upload_dictionary2_to(instance, filename):
-        return instance.path + '/RMG_Dictionary2.txt'
-    ChemkinFile1 = models.FileField(upload_to=upload_chemkin1_to, verbose_name='Model 1: Chemkin File')
-    DictionaryFile1 = models.FileField(upload_to=upload_dictionary1_to,verbose_name='Model 1: RMG Dictionary')    
+    ChemkinFile1 = models.FileField(upload_to=uploadTo('chem1.inp'), verbose_name='Model 1: Chemkin File')
+    DictionaryFile1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'),verbose_name='Model 1: RMG Dictionary')    
     Foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
-    ChemkinFile2 = models.FileField(upload_to=upload_chemkin2_to, verbose_name='Model 2: Chemkin File')
-    DictionaryFile2 = models.FileField(upload_to=upload_dictionary2_to,verbose_name='Model 2: RMG Dictionary')    
+    ChemkinFile2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File')
+    DictionaryFile2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'),verbose_name='Model 2: RMG Dictionary')    
     Foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
-
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','compare/')
 
     def createOutput(self):
         """
@@ -221,6 +210,7 @@ class Diff(models.Model):
         """
 
         import rmgpy.tools.merge_models as merge_models
+        import sys
 
         inputModelFiles = []
         inputModelFiles.append((self.chemkin1, self.dict1, None))
@@ -230,11 +220,20 @@ class Diff(models.Model):
             'wd': self.path,
             'transport': False,
         }
-
-        merge_models.execute(
-                    inputModelFiles,
-                    **kwargs
-                    )
+        
+        logfile = os.path.join(self.path,'merging_log.txt')
+        
+        # Save stdout to logfile which the user can download
+        with open(logfile, 'w') as f:
+            stdout_orig = sys.stdout
+            sys.stdout = f
+            
+            merge_models.execute(
+                        inputModelFiles,
+                        **kwargs
+                        )
+            
+            sys.stdout = stdout_orig
         
     def createDir(self):
         """
@@ -242,8 +241,8 @@ class Diff(models.Model):
         the Network uses for storing files.
         """
         try:         
-            os.makedirs(os.path.join(self.getDirname(),'species1'))
-            os.makedirs(os.path.join(self.getDirname(),'species2'))
+            os.makedirs(os.path.join(self.path,'species1'))
+            os.makedirs(os.path.join(self.path,'species2'))
         except OSError:
             # Fail silently on any OS errors
             pass
@@ -254,7 +253,7 @@ class Diff(models.Model):
         """
         import shutil
         try:
-            shutil.rmtree(self.getDirname())
+            shutil.rmtree(self.path)
         except OSError:
             pass
 
@@ -264,25 +263,16 @@ class AdjlistConversion(models.Model):
     """
     def __init__(self, *args, **kwargs):
         super(AdjlistConversion, self).__init__(*args, **kwargs)
-        self.path = self.getDirname()
-        self.dictionary = self.path + '/species_dictionary.txt'
+        self.folder = os.path.join('rmg', 'tools', 'adjlistConversion')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.dictionary = os.path.join(self.path, 'species_dictionary.txt')
 
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/species_dictionary.txt'
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to, verbose_name='RMG Dictionary')
-
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','adjlistConversion')
+    DictionaryFile = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
 
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        from rmgpy.chemkin import loadSpeciesDictionary
         
         speciesList = []    
         with open(self.dictionary, 'r') as f:
@@ -301,7 +291,7 @@ class AdjlistConversion(models.Model):
                         line = line[0:index]
                     adjlist += line
                 
-        with open(os.path.join(self.getDirname(),'RMG_Dictionary.txt'), 'w') as f:
+        with open(os.path.join(self.path,'RMG_Dictionary.txt'), 'w') as f:
             for spec in speciesList:
                 try:
                     f.write(spec.molecule[0].toAdjacencyList(label=spec.label, removeH=True, oldStyle=True))
@@ -315,7 +305,7 @@ class AdjlistConversion(models.Model):
         the Network uses for storing files.
         """
         try:
-            os.makedirs(self.getDirname())
+            os.makedirs(self.path)
         except OSError:
             # Fail silently on any OS errors
             pass
@@ -326,10 +316,9 @@ class AdjlistConversion(models.Model):
         """
         import shutil
         try:
-            shutil.rmtree(self.getDirname())
+            shutil.rmtree(self.path)
         except OSError:
             pass
-
 
 class FluxDiagram(models.Model):
     """
@@ -337,35 +326,19 @@ class FluxDiagram(models.Model):
     """
     def __init__(self, *args, **kwargs):
         super(FluxDiagram, self).__init__(*args, **kwargs)
-        self.path = self.getDirname()
+        self.folder = os.path.join('rmg', 'tools', 'flux')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input.py'
-    def upload_chemkin_to(instance, filename):
-        return instance.path + '/chem.inp'
-    def upload_dictionary_to(instance, filename):
-        return instance.path + '/species_dictionary.txt'
-    def upload_chemkinoutput_to(instance, filename):
-        return instance.path + '/chemkin_output.out'
-    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='RMG Input File')
-    ChemkinFile = models.FileField(upload_to=upload_chemkin_to, verbose_name='Chemkin File')
-    DictionaryFile = models.FileField(upload_to=upload_dictionary_to,verbose_name='RMG Dictionary')
-    ChemkinOutput = models.FileField(upload_to=upload_chemkinoutput_to, verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
+    InputFile = models.FileField(upload_to=uploadTo('input.py'), verbose_name='RMG Input File')
+    ChemkinFile = models.FileField(upload_to=uploadTo('chem.inp'), verbose_name='Chemkin File')
+    DictionaryFile = models.FileField(upload_to=uploadTo('species_dictionary.txt'),verbose_name='RMG Dictionary')
+    ChemkinOutput = models.FileField(upload_to=uploadTo('chemkin_output.out'), verbose_name='Chemkin Output File (Optional)', blank=True,null=True)
     Java = models.BooleanField(verbose_name="From RMG-Java")
     MaxNodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
     MaxEdges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
     TimeStep = models.FloatField(default=1.25, verbose_name='Multiplicative Time Step Factor')
     ConcentrationTolerance = models.FloatField(default=1e-6, verbose_name='Concentration Tolerance')   # The lowest fractional concentration to show (values below this will appear as zero)
     SpeciesRateTolerance = models.FloatField(default=1e-6, verbose_name='Species Rate Tolerance')   # The lowest fractional species rate to show (values below this will appear as zero)
-    
-    
-
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','flux/')
 
     def createDir(self):
         """
@@ -373,7 +346,7 @@ class FluxDiagram(models.Model):
         the Network uses for storing files.
         """
         try:
-            os.makedirs(self.getDirname())
+            os.makedirs(self.path)
         except OSError:
             # Fail silently on any OS errors
             pass
@@ -384,7 +357,7 @@ class FluxDiagram(models.Model):
         """
         import shutil
         try:
-            shutil.rmtree(self.getDirname())
+            shutil.rmtree(self.path)
         except OSError:
             pass
 
@@ -393,42 +366,28 @@ class PopulateReactions(models.Model):
     """
     A Django model for a PopulateReactions input file.
     """
-
     def __init__(self, *args, **kwargs):
-        super(PopulateReactions, self).__init__(*args, **kwargs)        
-        self.path = self.getDirname()
-        self.input = self.path + '/input.txt'
+        super(PopulateReactions, self).__init__(*args, **kwargs)
+        self.folder = os.path.join('rmg', 'tools', 'populateReactions')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.input = os.path.join(self.path, 'input.txt')
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input.txt'
-    InputFile = models.FileField(upload_to=upload_input_to, verbose_name='Input File')
-  
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','populateReactions/')
+    InputFile = models.FileField(upload_to=uploadTo('input.txt'), verbose_name='Input File')
 
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
         
-        import rmgpy.tools.generate_reactions as generate_reactions
-        from rmgpy.rmg.main import initializeLog, RMG
-        from rmgpy.chemkin import ChemkinWriter
-        from rmgpy.rmg.output import OutputHTMLWriter
+        import subprocess
+        import rmgpy
+        command = ('python',
+            os.path.join(os.path.dirname(rmgpy.getPath()), 'scripts', 'generateReactions.py'),
+            self.input,
+            '-q',
+        )
+        subprocess.check_call(command, cwd=self.path)
         
-        inputFile = self.input
-        output_directory = self.getDirname()
-        
-        rmg = RMG()
-        # Add output listeners:
-        rmg.attach(ChemkinWriter(output_directory))
-        rmg.attach(OutputHTMLWriter(output_directory))
-    
-        generate_reactions.execute(rmg, inputFile, output_directory)
 
     def createDir(self):
         """
@@ -479,14 +438,12 @@ class Input(models.Model):
     def __init__(self, *args, **kwargs):
         super(Input, self).__init__(*args, **kwargs)
         self.rmg = RMG()
-        self.path = self.getDirname()
-        self.loadpath = self.path + '/input_upload.py'
-        self.savepath = self.path + '/input.py'
+        self.folder = os.path.join('rmg', 'tools', 'input')
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.loadpath = os.path.join(self.path, 'input_upload.py')
+        self.savepath = os.path.join(self.path, 'input.py')
 
-    def upload_input_to(instance, filename):
-        return instance.path + '/input_upload.py'
-
-    input_upload = models.FileField(upload_to=upload_input_to, verbose_name='Input File', blank = True)
+    input_upload = models.FileField(upload_to=uploadTo('input_upload.py'), verbose_name='Input File', blank = True)
     
     # Pressure Dependence
     p_methods=(('off','off',),('modified strong collision','Modified Strong Collision',),('reservoir state','Reservoir State',))
@@ -521,7 +478,7 @@ class Input(models.Model):
     maximumEdgeSpecies = models.PositiveIntegerField(default = 100000)
     minCoreSizeForPrune = models.PositiveIntegerField(default = 50)
     minSpeciesExistIterationsForPrune = models.PositiveIntegerField(default = 2)
-    filterReactions = models.BooleanField()
+    filterReactions = models.BooleanField(default = False)
     simulator_atol = models.FloatField(default = 1e-16)
     simulator_rtol = models.FloatField(default = 1e-8)
     simulator_sens_atol = models.FloatField(default = 1e-6)
@@ -545,32 +502,23 @@ class Input(models.Model):
     allowed_seedMechanisms = models.BooleanField(default = False)
     allowed_reactionLibraries = models.BooleanField(default = False)
     maximumCarbonAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
-    maximumHydrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumOxygenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumNitrogenAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumSiliconAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumSulfurAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
-    allowSingletO2 = models.BooleanField()
+    allowSingletO2 = models.BooleanField(default = False)
     
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
     saveRestartPeriodUnits = models.CharField(max_length = 50, default = 'hour', choices = restartunits)
-    generateOutputHTML=models.BooleanField()
-    generatePlots=models.BooleanField()
-    saveSimulationProfiles = models.BooleanField()
-    saveEdgeSpecies = models.BooleanField()
-    verboseComments = models.BooleanField()
-
-
-    def getDirname(self):
-        """
-        Return the absolute path of the directory that the object uses
-        to store files.
-        """
-        return os.path.join(settings.MEDIA_ROOT, 'rmg','tools','input/')
+    generateOutputHTML=models.BooleanField(default = False)
+    generatePlots=models.BooleanField(default = False)
+    saveSimulationProfiles = models.BooleanField(default = False)
+    saveEdgeSpecies = models.BooleanField(default = False)
+    verboseComments = models.BooleanField(default = False)
 
     def createDir(self):
         """
@@ -578,7 +526,7 @@ class Input(models.Model):
         the Network uses for storing files.
         """
         try:
-            os.makedirs(self.getDirname())
+            os.makedirs(self.path)
         except OSError:
             # Fail silently on any OS errors
             pass
@@ -589,7 +537,7 @@ class Input(models.Model):
         """
         import shutil
         try:
-            shutil.rmtree(self.getDirname())
+            shutil.rmtree(self.path)
         except OSError:
             pass
         
@@ -863,7 +811,6 @@ class Input(models.Model):
             if form.cleaned_data['allowed_reactionLibraries']: allowed.append('reaction libraries')
             self.rmg.speciesConstraints['allowed'] = allowed
             self.rmg.speciesConstraints['maximumCarbonAtoms'] = form.cleaned_data['maximumCarbonAtoms']
-            self.rmg.speciesConstraints['maximumHydrogenAtoms'] = form.cleaned_data['maximumHydrogenAtoms']
             self.rmg.speciesConstraints['maximumOxygenAtoms'] = form.cleaned_data['maximumOxygenAtoms']
             self.rmg.speciesConstraints['maximumNitrogenAtoms'] = form.cleaned_data['maximumNitrogenAtoms']
             self.rmg.speciesConstraints['maximumSiliconAtoms'] = form.cleaned_data['maximumSiliconAtoms']

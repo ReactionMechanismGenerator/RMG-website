@@ -64,6 +64,9 @@ urlpatterns = [
     # The privacy policy
     url(r'^privacy$', rmgweb.main.views.privacy),
     
+    # Version information
+    url(r'^version$', rmgweb.main.views.version),
+    
     # User account management
     url(r'^login$', rmgweb.main.views.login),
     url(r'^logout$', rmgweb.main.views.logout),
