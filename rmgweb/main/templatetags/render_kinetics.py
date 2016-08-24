@@ -404,8 +404,12 @@ def get_rate_coefficients(kinetics, user=None):
     # Generate data to use for plots
     Tdata = []; Pdata = []; kdata = []
     if kinetics.Tmin is not None and kinetics.Tmax is not None:
-        Tmin = kinetics.Tmin.value_si
-        Tmax = kinetics.Tmax.value_si
+        if kinetics.Tmin.value_si == kinetics.Tmax.value_si:
+            Tmin = kinetics.Tmin.value_si - 5
+            Tmax = kinetics.Tmax.value_si + 5
+        else:
+            Tmin = kinetics.Tmin.value_si
+            Tmax = kinetics.Tmax.value_si
     else:
         Tmin = 300
         Tmax = 2000
