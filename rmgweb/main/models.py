@@ -75,7 +75,7 @@ class UserProfile(models.Model):
     stored in the :class:`User` class built into Django; this class provides
     extra custom information.
     """
-    user = models.ForeignKey(User, unique=True)
+    user = models.OneToOneField(User)
     organization = models.CharField(max_length=100)
     website = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True)

@@ -113,7 +113,7 @@ def viewProfile(request, username):
     """
     from rmgweb.pdep.models import Network
     user0 = User.objects.get(username=username)
-    userProfile = user0.get_profile()
+    userProfile = user0.userprofile
     networks = Network.objects.filter(user=user0)
     return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks}, context_instance=RequestContext(request))
 
