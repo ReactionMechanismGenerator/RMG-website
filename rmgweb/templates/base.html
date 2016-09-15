@@ -106,9 +106,19 @@
             <div class="g-plusone" data-size="medium" data-annotation="none"></div>
             {# End of Google +1 button #}
             {% if user.is_authenticated %}
-            <a href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a> | <a href="{% url 'main.views.editProfile' %}">Edit Profile</a> | <a href="{% url 'main.views.logout' %}?next={{ request.path }}">Log out</a>
+            <form class="buttonOnly" action="{% url 'main.views.viewProfile' user.username %}" method="get">
+                <button class="userButton">{{ user.username }}</button>
+            </form>
+            <form class="buttonOnly" action="{% url 'main.views.editProfile' %}" method="get">
+                <button class="userButton">Edit Profile</button>
+            </form>
+            <form class="buttonOnly" action="{% url 'main.views.logout' %}?next={{ request.path }}" method="get">
+                <button class="userButton">Log Out</button>
+            </form>
             {% else %}
-            <a href="{% url 'main.views.login' %}?next={{ request.path }}">Log in</a>
+            <form class="buttonOnly" action="{% url 'main.views.login' %}?next={{ request.path }}" method="get">
+                <button class="userButton">Log In</button>
+            </form>
             {% endif %}
         </div>
 

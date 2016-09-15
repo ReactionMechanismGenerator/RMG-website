@@ -138,6 +138,25 @@ html, body, #document, #mainbar {
     padding:10px;
 }
 
+/* Button styles */
+form.buttonOnly {
+    height: 20px;
+    display: inline-block;
+    vertical-align: top;
+}
+.userButton {
+    background-color: #993333;
+    color: #EEEEEE;
+    height: 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.userButton:hover {
+    background-color: #AA4444;
+}
+
 /* Database styles */
 
 div.error {
