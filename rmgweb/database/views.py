@@ -2071,25 +2071,20 @@ def kineticsSearch(request):
         form = KineticsSearchForm(request.POST, error_class=DivErrorList)
         if form.is_valid():
             kwargs = {}
-
-            reactant1 = form.cleaned_data['reactant1']
-            urlr1 = urllib.quote(reactant1)
-            kwargs['reactant1'] = urlr1
+            # Save reactants and products as kwargs without quoting because reverse() automatically quotes urls
+            kwargs['reactant1'] = form.cleaned_data['reactant1']
 
             reactant2 = form.cleaned_data['reactant2']
             if reactant2 != '':
-                urlr2 = urllib.quote(reactant2)
-                kwargs['reactant2'] = urlr2
+                kwargs['reactant2'] = reactant2
 
             product1 = form.cleaned_data['product1']
             if product1 != '':
-                urlp1 = urllib.quote(product1)
-                kwargs['product1'] = urlp1
+                kwargs['product1'] = product1
 
             product2 = form.cleaned_data['product2']
             if product2 != '':
-                urlp2 = urllib.quote(product2)
-                kwargs['product2'] = urlp2
+                kwargs['product2'] = product2
 
             return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
     else:

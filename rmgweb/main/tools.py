@@ -49,8 +49,8 @@ def moleculeToURL(molecule):
     mol = molecule.copy(deep=True)
     mol.clearLabeledAtoms()
     adjlist = mol.toAdjacencyList(removeH=False)
-    url = urllib.quote(adjlist)
-    return url
+    # Return adjlist without quoting because reverse() will automatically quote everything properly
+    return adjlist
 
 def moleculeToInfo(molecule):
     """
