@@ -34,7 +34,3 @@ class VersionTest(TestCase):
         self.assertTrue(response.context['ds'], 'RMG-database subject is empty')
         self.assertTrue(response.context['ws'], 'RMG-website subject is empty')
         
-        self.assertTrue(response.context['pb'], 'RMG-Py body is empty')
-        self.assertTrue(response.context['db'], 'RMG-database body is empty')
-        self.assertTrue(response.context['wb'], 'RMG-website body is empty')
-        
