@@ -1322,10 +1322,10 @@ def getReactionUrl(reaction, family=None, estimator=None):
         if isinstance(reactant, Group) or isinstance(reactant, LogicNode):
             return ''
         mol = reactant if isinstance(reactant,Molecule) else reactant.molecule[0]
-        kwargs['reactant{0:d}'.format(index+1)] = moleculeToURL(mol)
+        kwargs['reactant{0:d}'.format(index+1)] = moleculeToAdjlist(mol)
     for index, product in enumerate(reaction.products):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
-        kwargs['product{0:d}'.format(index+1)] = moleculeToURL(mol)
+        kwargs['product{0:d}'.format(index+1)] = moleculeToAdjlist(mol)
     if family:
         if estimator:
             kwargs['family'] = family
