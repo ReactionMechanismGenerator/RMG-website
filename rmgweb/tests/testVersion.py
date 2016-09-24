@@ -2,7 +2,7 @@ from django.test import TestCase
 
 class VersionTest(TestCase):
     
-    def test_0(self):
+    def test_gets_to_version_page(self):
         """
         Test that /version gives expected response
         """
@@ -11,7 +11,7 @@ class VersionTest(TestCase):
         
         self.assertEqual(response.status_code, 200)
     
-    def test_1(self):
+    def test_retrieves_versions_of_rmg_database(self):
         """
         Test that the context contains the expected git info
         """
