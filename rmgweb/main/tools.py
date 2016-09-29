@@ -41,7 +41,7 @@ from rmgpy.molecule.group import Group
 
 ################################################################################
 
-def moleculeToURL(molecule):
+def moleculeToAdjlist(molecule):
     """
     Convert a given :class:`Molecule` object `molecule` to a string 
     representation of its structure suitable for a URL.
@@ -49,8 +49,7 @@ def moleculeToURL(molecule):
     mol = molecule.copy(deep=True)
     mol.clearLabeledAtoms()
     adjlist = mol.toAdjacencyList(removeH=False)
-    url = urllib.quote(adjlist)
-    return url
+    return adjlist
 
 def moleculeToInfo(molecule):
     """
@@ -83,8 +82,7 @@ def groupToURL(group):
     gro = group.copy(deep=True)
     gro.clearLabeledAtoms()
     adjlist = gro.toAdjacencyList(removeH=False)
-    url = urllib.quote(adjlist)
-    return url
+    return adjlist
 
 def groupToInfo(group):
     """
