@@ -103,7 +103,7 @@
             {# End of Facebook like button #}
             {# Google +1 button #}
             <script src="https://apis.google.com/js/platform.js" async defer></script>
-            <div class="g-plusone" data-size="medium" data-annotation="none"></div>
+            <div class="g-plusone" data-size="medium" data-annotation="none" data-href="rmg.mit.edu"></div>
             {# End of Google +1 button #}
             {% if user.is_authenticated %}
             <form class="buttonOnly" action="{% url 'main.views.viewProfile' user.username %}" method="get">
