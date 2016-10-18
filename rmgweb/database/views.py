@@ -616,6 +616,7 @@ def thermoEntry(request, section, subsection, index):
     A view for showing an entry in a thermodynamics database.
     """
     from rmgpy.chemkin import writeThermoEntry
+    from rmgpy.data.thermo import findCp0andCpInf
 
     # Load the thermo database if necessary
     loadDatabase('thermo', section)
@@ -659,7 +660,7 @@ def thermoEntry(request, section, subsection, index):
     if isinstance(entry.item, Molecule):
         species = Species(molecule=[entry.item])
         species.generateResonanceIsomers()
-        ThermoDatabase().findCp0andCpInf(species, thermo)
+        findCp0andCpInf(species, thermo)
         nasa_string = ''
         try:
             if isinstance(thermo,NASA):
