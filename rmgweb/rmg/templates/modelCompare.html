@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
@@ -34,7 +35,7 @@ page comparing the two models..  You must include an adjacency list for all spec
 inerts.
 </p>
 <hr/>
-<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." style="display:none" id="loading_image">
 {% if path %}
 <a href ="../{{path}}">Click here for your generated output file.</a>
 {% endif %}

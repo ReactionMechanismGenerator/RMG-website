@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
 {% block title %}Log in{% endblock %}
 
 {% block extrahead %}
-<link href="/media/main.css" rel="stylesheet" type="text/css"/>
+<link href="{% static 'css/main.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block navbar_items %}{% endblock %}

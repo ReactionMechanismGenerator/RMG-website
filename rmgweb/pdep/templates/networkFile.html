@@ -1,7 +1,9 @@
+{% load static %}
+
 <table>
     <tr>
-        <td rowspan="2"><img src="{{ icon }}"/></td>
-        <td><span class="filename">{{ filename }} ({{ filesize|filesizeformat }})</span> <a href="/media/pdep/networks/{{ networkKey }}/{{ filename }}">download</a></td> 
+        <td rowspan="2"><img src="{% get_static_prefix %}{{ icon }}"/></td>
+        <td><span class="filename">{{ filename }} ({{ filesize|filesizeformat }})</span> <a href="{{ MEDIA_URL }}pdep/networks/{{ networkKey }}/{{ filename }}">download</a></td>
     </tr>
     <tr>
         <td class="filemod">Last modified on {{ modificationTime }}</td> 

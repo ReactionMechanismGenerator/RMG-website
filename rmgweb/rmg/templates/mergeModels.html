@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
@@ -43,7 +44,7 @@ all common species thermochemistry and reaction kinetics from the second model w
 
 
 <hr/>
-<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." style="display:none" id="loading_image">
 {% if path %}
 <hr/>
 <P><b>Done merging. Your files are below:</b>

@@ -37,7 +37,7 @@
 </div>
 {% endif %}
 <p style="text-align: center;">
-<a href="/media/pdep/networks/{{ networkKey }}/network.png"><img src="/media/pdep/networks/{{ networkKey }}/network.png"/></a>
+<a href="{{ MEDIA_URL }}pdep/networks/{{ networkKey }}/network.png"><img src="{{ MEDIA_URL }}pdep/networks/{{ networkKey }}/network.png"/></a>
 </p>
 {% else %}
 <div class="messagebox">
@@ -122,29 +122,29 @@
 <h2>Files</h2>
 
 {% if network.inputFileExists %}
-{% include "networkFile.html" with filename="input.py" filesize=filesize.inputFile modificationTime=modificationTime.inputFile icon="/media/icons/text-x-python.png" %}
+{% include "networkFile.html" with filename="input.py" filesize=filesize.inputFile modificationTime=modificationTime.inputFile icon="img/icons/text-x-python.png" %}
 <br/>
 {% endif %}
 
 {% if network.outputFileExists %}
-{% include "networkFile.html" with filename="output.py" filesize=filesize.outputFile modificationTime=modificationTime.outputFile icon="/media/icons/text-x-python.png" %}
+{% include "networkFile.html" with filename="output.py" filesize=filesize.outputFile modificationTime=modificationTime.outputFile icon="img/icons/text-x-python.png" %}
 <br/>
 {% endif %}
 {% if network.logFileExists %}
-{% include "networkFile.html" with filename="cantherm.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="/media/icons/text-x-generic.png" %}
+{% include "networkFile.html" with filename="cantherm.log" filesize=filesize.logFile modificationTime=modificationTime.logFile icon="img/icons/text-x-generic.png" %}
 <br/>
 {% endif %}
 
 {% if network.surfaceFilePNGExists %}
-{% include "networkFile.html" with filename="network.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="/media/icons/image-x-generic.png" %}
+{% include "networkFile.html" with filename="network.png" filesize=filesize.surfaceFilePNG modificationTime=modificationTime.surfaceFilePNG icon="img/icons/image-x-generic.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFilePDFExists %}
-{% include "networkFile.html" with filename="network.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="/media/icons/application-pdf.png" %}
+{% include "networkFile.html" with filename="network.pdf" filesize=filesize.surfaceFilePDF modificationTime=modificationTime.surfaceFilePDF icon="img/icons/application-pdf.png" %}
 <br/>
 {% endif %}
 {% if network.surfaceFileSVGExists %}
-{% include "networkFile.html" with filename="network.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="/media/icons/image-svg+xml.png" %}
+{% include "networkFile.html" with filename="network.svg" filesize=filesize.surfaceFileSVG modificationTime=modificationTime.surfaceFileSVG icon="img/icons/image-svg+xml.png" %}
 <br/>
 {% endif %}
 

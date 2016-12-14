@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load gravatar %}
 {% load databasefilters %}
 
@@ -40,7 +41,7 @@ $(document).ready(function() {
     }
    });
 // add images to the right of all the text areas
-   $("textarea").closest('tr').append("<img src='/media/moleculedraw-logo-small.png'>");
+   $("textarea").closest('tr').append("<img src='{% static 'img/moleculedraw-logo-small.png' %}'>");
 // add onChange handlers to all the text areas to modify the image sources
    $("textarea").change( function() {
       var src = adjlist2img( $(this).val() );
