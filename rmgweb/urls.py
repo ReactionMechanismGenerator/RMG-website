@@ -112,18 +112,21 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += [
         url(r'^media/(.*)$', django.views.static.serve,
-            {'document_root': os.path.join(settings.PROJECT_PATH, 'media'),
+            {'document_root': settings.MEDIA_ROOT,
              'show_indexes': True, }
-        ),
+            ),
+        url(r'^static/(.*)$', django.views.static.serve,
+            {'document_root': settings.STATIC_ROOT,
+             'show_indexes': True, }
+            ),
         url(r'^database/export/(.*)$', django.views.static.serve,
-         {'document_root': os.path.join(settings.PROJECT_PATH,
-                                        '..',
-                                        'database',
-                                        'export'),
-          'show_indexes': True,
-          },
-         ),
+            {'document_root': os.path.join(settings.PROJECT_PATH,
+                                           '..',
+                                           'database',
+                                           'export'),
+             'show_indexes': True, },
+            ),
         url(r'^(robots\.txt)$', django.views.static.serve,
-            {'document_root': os.path.join(settings.PROJECT_PATH, 'media')}
-        ),
+            {'document_root': settings.STATIC_ROOT}
+            ),
     ]
