@@ -35,14 +35,7 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
-
-try:
-    from secretsettings import TEMPLATE_DEBUG as template_debug_setting
-except ImportError:
-    template_debug_setting = DEBUG
-
-MANAGERS = ADMINS
+from secretsettings import DEBUG, ALLOWED_HOSTS, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -100,7 +93,7 @@ TEMPLATES = [
             os.path.join(PROJECT_PATH, 'templates'),
         ],
         'OPTIONS': {
-            'debug': template_debug_setting,
+            'debug': DEBUG,
             'context_processors': [
                 # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
                 # list if you haven't customized them:
