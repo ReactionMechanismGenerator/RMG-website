@@ -63,6 +63,12 @@ def version(request):
     """
     return render_to_response('version.html', context_instance=RequestContext(request))
 
+def resources(request):
+    """
+    Page for accessing RMG resources, including papers and presentations
+    """
+    return render_to_response('resources.html', context_instance=RequestContext(request))
+
 def login(request):
     """
     Called when the user wishes to log in to his/her account.

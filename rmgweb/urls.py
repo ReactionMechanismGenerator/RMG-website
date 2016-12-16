@@ -67,6 +67,9 @@ urlpatterns = [
     # Version information
     url(r'^version$', rmgweb.main.views.version),
     
+    # Additional resources page
+    url(r'^resources$', rmgweb.main.views.resources),
+
     # User account management
     url(r'^login$', rmgweb.main.views.login),
     url(r'^logout$', rmgweb.main.views.logout),
