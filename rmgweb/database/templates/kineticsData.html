@@ -102,6 +102,7 @@ function calculateAverage() {
     nAverage /= count;
     EaAverage /= count;
     
+    {% if new_entry_form %}
     if (count == 0) document.getElementById("train").disabled = true
     else document.getElementById("train").disabled = false;
 
@@ -119,6 +120,7 @@ function calculateAverage() {
             '\nAverage of ' + count + ' results:' +
             '\n' + refList + '\"\"\",';
     document.getElementById("id_entry").value = output;
+    {% endif %}
     
     var new_data = [];
     for (var n = 0; n <= 10; n++){
