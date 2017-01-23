@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
+
+
 
 {% block title %}Resources{% endblock %}
 
@@ -39,6 +42,7 @@
         </li>
     </ol>
 
+    {% if presentations %}
     <h2>RMG Study Group Presentations:</h2>
 
     <p>
@@ -46,10 +50,10 @@
     </p>
 
     <ol>
-        <li>Placeholder</li>
-        <li>Placeholder</li>
-        <li>Placeholder</li>
-        <li>Placeholder</li>
+        {% for title, date, filename in presentations %}
+            <li><a href="{% get_static_prefix %}presentations/{{ filename }}">{{ title }}</a> ({{ date }})</li>
+        {% endfor %}
     </ol>
+    {% endif %}
 
 {% endblock %}

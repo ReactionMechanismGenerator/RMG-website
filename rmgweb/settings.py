@@ -78,7 +78,8 @@ STATIC_URL = '/static/'
 
 # A list of locations of additional static files
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_PATH, 'static')
+    os.path.join(PROJECT_PATH, 'static'),
+    '/var/www/static/',
 ]
 
 
