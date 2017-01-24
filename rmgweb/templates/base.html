@@ -45,7 +45,12 @@
         <div class="linkdesc">Learn more about the RMG software</div>
         </p>
         
-        
+        <p>
+        <a href="{% url 'main.views.resources' %}"><img src="{% static 'img/resources-icon.png' %}" class="icon" width="32px"/>
+        <div class="biglink">Resources</div></a>
+        <div class="linkdesc">RMG related publications and presentations</div>
+        </p>
+
         <p>
         <a href="{% url 'database.views.index' %}"><img src="{% static 'img/database-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Database</div></a>
