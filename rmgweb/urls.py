@@ -32,6 +32,7 @@ from django.conf.urls import url, include
 from django.conf import settings
 import django
 import django.views.static
+import django.views.defaults
 import os
 
 import rmgweb
@@ -132,4 +133,6 @@ if settings.DEBUG:
         url(r'^(robots\.txt)$', django.views.static.serve,
             {'document_root': settings.STATIC_ROOT}
             ),
+        url(r'^500/$', django.views.defaults.server_error),
+        url(r'^404/$', django.views.defaults.page_not_found),
     ]
