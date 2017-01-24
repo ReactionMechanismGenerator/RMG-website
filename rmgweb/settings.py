@@ -35,7 +35,17 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import DEBUG, ALLOWED_HOSTS, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
+from secretsettings import (
+    ADMINS,
+    ALLOWED_HOSTS,
+    DATABASE_PATH,
+    DATABASES,
+    DEBUG,
+    EMAIL_HOST,
+    PROJECT_PATH,
+    SECRET_KEY,
+    SERVER_EMAIL,
+)
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
