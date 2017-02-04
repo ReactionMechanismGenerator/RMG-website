@@ -106,6 +106,9 @@ urlpatterns = [
     # Documentation auto-rebuild
     url(r'^rebuild$', rmgweb.main.views.rebuild),
 
+    # RMG regression tests Stuff
+    url(r'^regression_tests/', include('rmgweb.regression_tests.urls')),
+
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
     
 ]
