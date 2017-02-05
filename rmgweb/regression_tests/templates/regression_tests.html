@@ -8,85 +8,18 @@
 
 {% block extrahead %}
 <!-- Angular Material style sheet -->
-  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.css">
+  <link rel="stylesheet" type="text/css" href="/media/angular/angular-material.min.css">
 
   <!-- Angular Material requires Angular.js Libraries -->
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+  <script src="/media/angular/angular.min.js"></script>
+  <script src="/media/angular/angular-animate.min.js"></script>
+  <script src="/media/angular/angular-aria.min.js"></script>
+  <script src="/media/angular/angular-messages.min.js"></script>
 
   <!-- Angular Material Library -->
-  <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+  <script src="/media/angular/angular-material.min.js"></script>
 
-  <script type="text/javascript">
-  (function () {
-  'use strict';
-  angular
-      .module('branch_selector', ['ngMaterial', 'ngMessages'])
-      .controller('BranchSelectorController', BranchSelectorController)
-      .config(function($interpolateProvider) {
-    $interpolateProvider.startSymbol('{/{');
-    $interpolateProvider.endSymbol('}/}');
-  });
-  function BranchSelectorController ($timeout, $q) {
-    var self = this;
-    // list of `state` value/display objects
-    self.branches_rmgpy        = load_rmgpy_branches();
-    self.selected_branch_rmgpy  = null;
-    self.search_text_rmgpy    = null;
-    self.branches_rmgdb        = load_rmgdb_branches();
-    self.selected_branch_rmgdb  = null;
-    self.search_text_rmgdb    = null;
-    self.querySearch   = querySearch;
-    // ******************************
-    // Internal methods
-    // ******************************
-    /**
-     * Search for branches... use $timeout to simulate
-     * remote dataservice call.
-     */
-    function querySearch (query, branches) {
-      var results = query ? branches.filter( createFilterFor(query) ) : branches;
-      var deferred = $q.defer();
-      $timeout(function () { deferred.resolve( results ); }, Math.random() * 1000, false);
-      return deferred.promise;
-    }
-    /**
-     * Build `branches` list of key/value pairs
-     */
-    function load_rmgpy_branches() {
-      var allBranches = 'master, nitrogen, polycyclic';
-      return allBranches.split(/, +/g).map( function (branch) {
-        return {
-          value: branch.toLowerCase(),
-          display: branch
-        };
-      });
-    }
-
-    function load_rmgdb_branches() {
-      var allBranches = 'master, nitrogen-db, polycyclic-db';
-      return allBranches.split(/, +/g).map( function (branch) {
-        return {
-          value: branch.toLowerCase(),
-          display: branch
-        };
-      });
-    }
-    /**
-     * Create filter function for a query string
-     */
-    function createFilterFor(query) {
-      var lowercaseQuery = angular.lowercase(query);
-      return function filterFn(branch) {
-        return (branch.value.indexOf(lowercaseQuery) === 0);
-      };
-    }
-  }
-})();
-
-  </script>
+  <script src="/media/regression_tests.js"></script>
 {% endblock %}
 
 {% block navbar_items %}
