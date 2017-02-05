@@ -7,7 +7,86 @@
 {% block title %}RMG: Regression Tests{% endblock %}
 
 {% block extrahead %}
+<!-- Angular Material style sheet -->
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.css">
 
+  <!-- Angular Material requires Angular.js Libraries -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+
+  <!-- Angular Material Library -->
+  <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+
+  <script type="text/javascript">
+  (function () {
+  'use strict';
+  angular
+      .module('branch_selector', ['ngMaterial', 'ngMessages'])
+      .controller('BranchSelectorController', BranchSelectorController)
+      .config(function($interpolateProvider) {
+    $interpolateProvider.startSymbol('{/{');
+    $interpolateProvider.endSymbol('}/}');
+  });
+  function BranchSelectorController ($timeout, $q) {
+    var self = this;
+    // list of `state` value/display objects
+    self.branches_rmgpy        = load_rmgpy_branches();
+    self.selected_branch_rmgpy  = null;
+    self.search_text_rmgpy    = null;
+    self.branches_rmgdb        = load_rmgdb_branches();
+    self.selected_branch_rmgdb  = null;
+    self.search_text_rmgdb    = null;
+    self.querySearch   = querySearch;
+    // ******************************
+    // Internal methods
+    // ******************************
+    /**
+     * Search for branches... use $timeout to simulate
+     * remote dataservice call.
+     */
+    function querySearch (query, branches) {
+      var results = query ? branches.filter( createFilterFor(query) ) : branches;
+      var deferred = $q.defer();
+      $timeout(function () { deferred.resolve( results ); }, Math.random() * 1000, false);
+      return deferred.promise;
+    }
+    /**
+     * Build `branches` list of key/value pairs
+     */
+    function load_rmgpy_branches() {
+      var allBranches = 'master, nitrogen, polycyclic';
+      return allBranches.split(/, +/g).map( function (branch) {
+        return {
+          value: branch.toLowerCase(),
+          display: branch
+        };
+      });
+    }
+
+    function load_rmgdb_branches() {
+      var allBranches = 'master, nitrogen-db, polycyclic-db';
+      return allBranches.split(/, +/g).map( function (branch) {
+        return {
+          value: branch.toLowerCase(),
+          display: branch
+        };
+      });
+    }
+    /**
+     * Create filter function for a query string
+     */
+    function createFilterFor(query) {
+      var lowercaseQuery = angular.lowercase(query);
+      return function filterFn(branch) {
+        return (branch.value.indexOf(lowercaseQuery) === 0);
+      };
+    }
+  }
+})();
+
+  </script>
 {% endblock %}
 
 {% block navbar_items %}
@@ -17,6 +96,56 @@
 {% block page_title %}Regression Tests{% endblock %}
 
 {% block page_body %}
-
+<div ng-controller="BranchSelectorController as ctrl" layout="column" ng-cloak ng-app="branch_selector">
+  <md-content class="md-padding">
+    <form ng-submit="$event.preventDefault()" name="searchForm">
+      <p>Please select testing RMG-Py branch and RMG-database branch.</p>
+      <div layout-gt-sm="row">
+        <md-autocomplete flex required
+            md-input-name="autocompleteField"
+            md-input-minlength="2"
+            md-input-maxlength="18"
+            md-no-cache="ctrl.noCache"
+            md-selected-item="ctrl.selected_branch_rmgpy"
+            md-search-text="ctrl.search_text_rmgpy"
+            md-items="branch_rmgpy in ctrl.querySearch(ctrl.search_text_rmgpy, ctrl.branches_rmgpy)"
+            md-item-text="branch_rmgpy.display"
+            md-require-match
+            md-floating-label="RMG-Py Branch">
+          <md-item-template>
+            <span md-highlight-text="ctrl.search_text_rmgpy">{/{branch_rmgpy.display}/}</span>
+          </md-item-template>
+          <div ng-messages="searchForm.autocompleteField.$error" ng-if="searchForm.autocompleteField.$touched">
+            <div ng-message="required">You <b>must</b> select a branch.</div>
+            <div ng-message="md-require-match">Please select an existing branch.</div>
+            <div ng-message="minlength">Your entry is not long enough.</div>
+            <div ng-message="maxlength">Your entry is too long.</div>
+          </div>
+        </md-autocomplete>
+        <md-autocomplete flex required
+            md-input-name="autocompleteField"
+            md-input-minlength="2"
+            md-input-maxlength="18"
+            md-no-cache="ctrl.noCache"
+            md-selected-item="ctrl.selected_branch_rmgdb"
+            md-search-text="ctrl.search_text_rmgdb"
+            md-items="branch_rmgdb in ctrl.querySearch(ctrl.search_text_rmgdb, ctrl.branches_rmgdb)"
+            md-item-text="branch_rmgdb.display"
+            md-require-match
+            md-floating-label="RMG-database Branch">
+          <md-item-template>
+            <span md-highlight-text="ctrl.search_text_rmgdb">{/{branch_rmgdb.display}/}</span>
+          </md-item-template>
+          <div ng-messages="searchForm.autocompleteField.$error" ng-if="searchForm.autocompleteField.$touched">
+            <div ng-message="required">You <b>must</b> select a branch.</div>
+            <div ng-message="md-require-match">Please select an existing branch.</div>
+            <div ng-message="minlength">Your entry is not long enough.</div>
+            <div ng-message="maxlength">Your entry is too long.</div>
+          </div>
+        </md-autocomplete>
+      </div>
+    </form>
+  </md-content>
+</div>
 
 {% endblock %}
