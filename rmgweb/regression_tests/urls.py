@@ -34,6 +34,6 @@ urlpatterns = [
 
     # Database homepage
     url(r'^$', views.index),
-    
+    url(r'^add_job$', views.add_job, name='add_job'),
     
 ]

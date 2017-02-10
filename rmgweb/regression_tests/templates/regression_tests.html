@@ -30,9 +30,11 @@
 
 {% block page_body %}
 <div ng-controller="BranchSelectorController as ctrl" layout="column" ng-cloak ng-app="branch_selector">
-  <md-content class="md-padding">
-    <form ng-submit="$event.preventDefault()" name="searchForm">
+  <md-content class="layout-padding">
+    <form method="POST" name="regressionTestsForm" action="http://localhost:8000/regression_tests/add_job">
+    {% csrf_token %}
       <p>Please select testing RMG-Py branch and RMG-database branch.</p>
+
       <div layout-gt-sm="row">
           <md-autocomplete flex required
               md-input-name="autocompleteField_py"
@@ -78,8 +80,32 @@
             </div>
           </md-autocomplete>
       </div>
+      
+      <div>
+        <md-button type="submit">Submit</md-button>
+      </div>
     </form>
   </md-content>
+
+  <md-toolbar layout="row" class="md-hue-3">
+      <div class="md-toolbar-tools">
+        <span>Job Queue</span>
+      </div>
+  </md-toolbar>
+  <md-content class="layout-padding">
+      <md-list flex>
+      {% for job in jobs %}
+        <md-list-item class="md-3-line" ng-click="null" aria-label="Show User List">
+          <div class="md-list-item-text" layout="column">
+            <h3>{{ job.rmgpy_branch }}</h3>
+            <h4>{{ job.rmgdb_branch }}</h4>
+            <p>RMG dev</p>
+          </div>
+        </md-list-item>
+      {% endfor %}
+      </md-list>
+
+    <md-content>
 </div>
 
 {% endblock %}
