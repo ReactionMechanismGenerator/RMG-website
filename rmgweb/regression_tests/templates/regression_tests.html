@@ -34,48 +34,49 @@
     <form ng-submit="$event.preventDefault()" name="searchForm">
       <p>Please select testing RMG-Py branch and RMG-database branch.</p>
       <div layout-gt-sm="row">
-        <md-autocomplete flex required
-            md-input-name="autocompleteField"
-            md-input-minlength="2"
-            md-input-maxlength="18"
-            md-no-cache="ctrl.noCache"
-            md-selected-item="ctrl.selected_branch_rmgpy"
-            md-search-text="ctrl.search_text_rmgpy"
-            md-items="branch_rmgpy in ctrl.querySearch(ctrl.search_text_rmgpy, ctrl.branches_rmgpy)"
-            md-item-text="branch_rmgpy.display"
-            md-require-match
-            md-floating-label="RMG-Py Branch">
-          <md-item-template>
-            <span md-highlight-text="ctrl.search_text_rmgpy">{/{branch_rmgpy.display}/}</span>
-          </md-item-template>
-          <div ng-messages="searchForm.autocompleteField.$error" ng-if="searchForm.autocompleteField.$touched">
-            <div ng-message="required">You <b>must</b> select a branch.</div>
-            <div ng-message="md-require-match">Please select an existing branch.</div>
-            <div ng-message="minlength">Your entry is not long enough.</div>
-            <div ng-message="maxlength">Your entry is too long.</div>
-          </div>
-        </md-autocomplete>
-        <md-autocomplete flex required
-            md-input-name="autocompleteField"
-            md-input-minlength="2"
-            md-input-maxlength="18"
-            md-no-cache="ctrl.noCache"
-            md-selected-item="ctrl.selected_branch_rmgdb"
-            md-search-text="ctrl.search_text_rmgdb"
-            md-items="branch_rmgdb in ctrl.querySearch(ctrl.search_text_rmgdb, ctrl.branches_rmgdb)"
-            md-item-text="branch_rmgdb.display"
-            md-require-match
-            md-floating-label="RMG-database Branch">
-          <md-item-template>
-            <span md-highlight-text="ctrl.search_text_rmgdb">{/{branch_rmgdb.display}/}</span>
-          </md-item-template>
-          <div ng-messages="searchForm.autocompleteField.$error" ng-if="searchForm.autocompleteField.$touched">
-            <div ng-message="required">You <b>must</b> select a branch.</div>
-            <div ng-message="md-require-match">Please select an existing branch.</div>
-            <div ng-message="minlength">Your entry is not long enough.</div>
-            <div ng-message="maxlength">Your entry is too long.</div>
-          </div>
-        </md-autocomplete>
+          <md-autocomplete flex required
+              md-input-name="autocompleteField_py"
+              md-input-minlength="2"
+              md-input-maxlength="18"
+              md-no-cache="ctrl.noCache"
+              md-selected-item="ctrl.selected_branch_rmgpy"
+              md-search-text="ctrl.search_text_rmgpy"
+              md-items="branch_rmgpy in ctrl.querySearch(ctrl.search_text_rmgpy, ctrl.branches_rmgpy)"
+              md-item-text="branch_rmgpy.display"
+              md-require-match
+              md-floating-label="RMG-Py Branch">
+            <md-item-template>
+              <span md-highlight-text="ctrl.search_text_rmgpy">{/{branch_rmgpy.display}/}</span>
+            </md-item-template>
+            <div ng-messages="regressionTestsForm.autocompleteField_py.$error" ng-if="regressionTestsForm.autocompleteField_py.$touched">
+              <div ng-message="required">You <b>must</b> select a branch.</div>
+              <div ng-message="md-require-match">Please select an existing branch.</div>
+              <div ng-message="minlength">Your entry is not long enough.</div>
+              <div ng-message="maxlength">Your entry is too long.</div>
+            </div>
+          </md-autocomplete>
+
+          <md-autocomplete flex required
+              md-input-name="autocompleteField_db"
+              md-input-minlength="2"
+              md-input-maxlength="18"
+              md-no-cache="ctrl.noCache"
+              md-selected-item="ctrl.selected_branch_rmgdb"
+              md-search-text="ctrl.search_text_rmgdb"
+              md-items="branch_rmgdb in ctrl.querySearch(ctrl.search_text_rmgdb, ctrl.branches_rmgdb)"
+              md-item-text="branch_rmgdb.display"
+              md-require-match
+              md-floating-label="RMG-database Branch">
+            <md-item-template>
+              <span md-highlight-text="ctrl.search_text_rmgdb">{/{branch_rmgdb.display}/}</span>
+            </md-item-template>
+            <div ng-messages="regressionTestsForm.autocompleteField_db.$error" ng-if="regressionTestsForm.autocompleteField_db.$touched">
+              <div ng-message="required">You <b>must</b> select a branch.</div>
+              <div ng-message="md-require-match">Please select an existing branch.</div>
+              <div ng-message="minlength">Your entry is not long enough.</div>
+              <div ng-message="maxlength">Your entry is too long.</div>
+            </div>
+          </md-autocomplete>
       </div>
     </form>
   </md-content>

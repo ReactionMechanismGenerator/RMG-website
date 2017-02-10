@@ -1,21 +1,44 @@
   angular
       .module('branch_selector', ['ngMaterial', 'ngMessages'])
+      .service('github_connector', function($http) {
+            this.retrieveRMGrepoBranches = function (repo) {
+                return $http.get('https://api.github.com/repos/ReactionMechanismGenerator/'.concat(repo, '/branches'))
+                .then(function(response) {
+                      return response.data.map(function (branch) {
+                                                return {value: branch['name'],
+                                                  display: branch['name']};
+                                              });
+                      });
+            };
+        })
       .controller('BranchSelectorController', BranchSelectorController)
       .config(function($interpolateProvider) {
     $interpolateProvider.startSymbol('{/{');
     $interpolateProvider.endSymbol('}/}');
   });
   
-  function BranchSelectorController ($timeout, $q) {
+  function BranchSelectorController ($timeout, $q, github_connector, $log) {
+
     var self = this;
-    // list of `state` value/display objects
-    self.branches_rmgpy        = load_rmgpy_branches();
+    // list of `state` value/display objects    
+
+    github_connector.retrieveRMGrepoBranches('RMG-Py')
+                    .then(function(data){
+                        self.branches_rmgpy = data;
+                    });
+
+    github_connector.retrieveRMGrepoBranches('RMG-database')
+                    .then(function(data){
+                        self.branches_rmgdb = data;
+
+                    });
+    
     self.selected_branch_rmgpy  = null;
     self.search_text_rmgpy    = null;
-    self.branches_rmgdb        = load_rmgdb_branches();
     self.selected_branch_rmgdb  = null;
     self.search_text_rmgdb    = null;
     self.querySearch   = querySearch;
+    
     // ******************************
     // Internal methods
     // ******************************
@@ -29,28 +52,7 @@
       $timeout(function () { deferred.resolve( results ); }, Math.random() * 1000, false);
       return deferred.promise;
     }
-    /**
-     * Build `branches` list of key/value pairs
-     */
-    function load_rmgpy_branches() {
-      var allBranches = 'master, nitrogen, polycyclic';
-      return allBranches.split(/, +/g).map( function (branch) {
-        return {
-          value: branch.toLowerCase(),
-          display: branch
-        };
-      });
-    }
 
-    function load_rmgdb_branches() {
-      var allBranches = 'master, nitrogen-db, polycyclic-db';
-      return allBranches.split(/, +/g).map( function (branch) {
-        return {
-          value: branch.toLowerCase(),
-          display: branch
-        };
-      });
-    }
     /**
      * Create filter function for a query string
      */
