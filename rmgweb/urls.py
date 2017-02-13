@@ -32,6 +32,7 @@ from django.conf.urls import url, include
 from django.conf import settings
 import django
 import django.views.static
+import django.views.defaults
 import os
 
 import rmgweb
@@ -67,6 +68,9 @@ urlpatterns = [
     # Version information
     url(r'^version$', rmgweb.main.views.version),
     
+    # Additional resources page
+    url(r'^resources$', rmgweb.main.views.resources),
+
     # User account management
     url(r'^login$', rmgweb.main.views.login),
     url(r'^logout$', rmgweb.main.views.logout),
@@ -112,18 +116,23 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += [
         url(r'^media/(.*)$', django.views.static.serve,
-            {'document_root': os.path.join(settings.PROJECT_PATH, 'media'),
+            {'document_root': settings.MEDIA_ROOT,
              'show_indexes': True, }
-        ),
+            ),
+        url(r'^static/(.*)$', django.views.static.serve,
+            {'document_root': settings.STATIC_ROOT,
+             'show_indexes': True, }
+            ),
         url(r'^database/export/(.*)$', django.views.static.serve,
-         {'document_root': os.path.join(settings.PROJECT_PATH,
-                                        '..',
-                                        'database',
-                                        'export'),
-          'show_indexes': True,
-          },
-         ),
+            {'document_root': os.path.join(settings.PROJECT_PATH,
+                                           '..',
+                                           'database',
+                                           'export'),
+             'show_indexes': True, },
+            ),
         url(r'^(robots\.txt)$', django.views.static.serve,
-            {'document_root': os.path.join(settings.PROJECT_PATH, 'media')}
-        ),
+            {'document_root': settings.STATIC_ROOT}
+            ),
+        url(r'^500/$', django.views.defaults.server_error),
+        url(r'^404/$', django.views.defaults.page_not_found),
     ]

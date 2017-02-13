@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+{% block title %}Resources{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+    <a href="{% url 'main.views.resources' %}">Resources</a>
+{% endblock %}
+
+{% block sidebar_items %}{% endblock %}
+
+{% block page_title %}Resources{% endblock %}
+
+{% block page_body %}
+
+    <p>
+    In addition to the RMG <a href="http://reactionmechanismgenerator.github.io/RMG-Py/">documentation</a>, here are some
+    additional resources for learning about RMG theory and usage.
+    </p>
+
+    <h2>Publications:</h2>
+
+    <ol>
+        <li>
+            Gao, C. W.; Allen, J. W.; Green, W. H.; West, R. H. Reaction Mechanism Generator: Automatic Construction of
+            Chemical Kinetic Mechanisms. Comput. Phys. Commun. 2016, 203, 212–225.
+            <a href="http://www.sciencedirect.com/science/article/pii/S0010465516300285">Link</a>
+        </li>
+        <li>
+            Magoon, G. R.; Green, W. H. Design and Implementation of a next-Generation Software Interface for on-the-Fly
+            Quantum and Force Field Calculations in Automated Reaction Mechanism Generation. Comput. Chem. Eng. 2013, 52, 35–45.
+            <a href="http://www.sciencedirect.com/science/article/pii/S0098135412003754">Link</a>
+        </li>
+        <li>
+            Allen, J. W.; Goldsmith, C. F.; Green, W. H. Automatic Estimation of Pressure-Dependent Rate Coefficients.
+            Phys. Chem. Chem. Phys. 2012, 14 (3), 1131–1155.
+            <a href="http://xlink.rsc.org/?DOI=C1CP22765C">Link</a>
+        </li>
+    </ol>
+
+    {% if presentations %}
+    <h2>RMG Study Group Presentations:</h2>
+
+    <p>
+    A series of presentations intended to teach users and developers the theory and usage of RMG.
+    </p>
+
+    <ol>
+        {% for title, date, filename in presentations %}
+            <li><a href="{% get_static_prefix %}presentations/{{ filename }}">{{ title }}</a> ({{ date }})</li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+{% endblock %}

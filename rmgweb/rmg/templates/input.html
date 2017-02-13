@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load gravatar %}
 
 
@@ -7,10 +8,10 @@
 
 {% block extrahead %}
 
-<script type="text/javascript" src="{{ MEDIA_URL }}jquery.js"></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}jquery.formset.js"></script>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
 
-<script type="text/javascript" src="{{ MEDIA_URL }}expandingMenu.js"></script>
+<script type="text/javascript" src="{% static 'js/expandingMenu.js' %}"></script>
 
 <script type="text/javascript">
 // the function used to resolve the identifier into an adjacency list
@@ -52,7 +53,7 @@ $(document).ready(function() {
 
 
 // add images to the right of all the text areas
-   $("textarea").closest('td').append("<img style='float:right' src='/media/moleculedraw-logo-small.png'></img>");
+   $("textarea").closest('td').append("<img style='float:right' src='{% static 'img/moleculedraw-logo-small.png' %}'></img>");
 // add onChange handlers to all the text areas to modify the image sources
    $("textarea").change( function() {
       var src = adjlist2img( $(this).val() );

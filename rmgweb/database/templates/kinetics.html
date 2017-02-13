@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
@@ -88,7 +89,7 @@ RMG Kinetics Database
         </td>
         <td>   
         <span class="scaling_img">
-            <img class="family" src="/media/families/{{family.name}}.png"/>
+            <img class="family" src="{% get_static_prefix %}img/families/{{family.name}}.png"/>
 		</span>
         </td>
 

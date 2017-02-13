@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
@@ -15,7 +16,7 @@
 {% endblock %}
 
 {% block extrahead %}
-<link href="/media/pdep.css" rel="stylesheet" type="text/css"/>
+<link href="{% static 'css/pdep.css' %}" rel="stylesheet" type="text/css"/>
 <style type="text/css">
 #id_inputText {
     width: 100%;

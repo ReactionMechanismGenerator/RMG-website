@@ -4,14 +4,16 @@
 
 <html lang="en">
 
+{% load static %}
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>{% block title %}RMG{% endblock %}</title>
-    <link href="/media/default.css" rel="stylesheet" type="text/css"/>
-    <link href="/media/jsMath-fonts.css" rel="stylesheet" type="text/css"/>
-    <script src="/media/jquery.js"></script>
-    <script src="/media/jsMath/easy/load.js"></script>
-    
+    <link href="{% static 'css/default.css' %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'css/jsMath-fonts.css' %}" rel="stylesheet" type="text/css"/>
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'js/jsMath/easy/load.js' %}"></script>
+
     {# this is for iPhones etc.#}<meta name = "viewport" content = "width = device-width, initial-scale = 0.6">
     {% block extrahead %}{% endblock %}
 <script type="text/javascript">
@@ -32,56 +34,61 @@
 
     <div id="sidebar">
         <div id="logo">
-        {% block sidebar_logo %}<a href="{% url 'main.views.index' %}"><img src="/media/rmg-logo-small.png" alt="RMG"/></a>{% endblock %}
+        {% block sidebar_logo %}<a href="{% url 'main.views.index' %}"><img src="{% static 'img/rmg-logo-small.png' %}" alt="RMG"/></a>{% endblock %}
         </div>
         
         {% block sidebar_items %}{% endblock %}
         
         <p>
-        <a href="http://reactionmechanismgenerator.github.io/RMG-Py"><img src="/media/documentation-icon.png" class="icon" width="32px"/>
+        <a href="http://reactionmechanismgenerator.github.io/RMG-Py"><img src="{% static 'img/documentation-icon.png' %}" class="icon" width="32px"/>
         <div class="biglink">Documentation</div></a>
         <div class="linkdesc">Learn more about the RMG software</div>
         </p>
         
-        
         <p>
-        <a href="{% url 'database.views.index' %}"><img src="/media/database-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'main.views.resources' %}"><img src="{% static 'img/resources-icon.png' %}" class="icon" width="32px"/>
+        <div class="biglink">Resources</div></a>
+        <div class="linkdesc">RMG related publications and presentations</div>
+        </p>
+
+        <p>
+        <a href="{% url 'database.views.index' %}"><img src="{% static 'img/database-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Database</div></a>
         <div class="linkdesc">Browse the RMG database of chemical and kinetic parameters</div>
         </p>
         
                 <p>
-        <a href="{% url 'rmg.views.input' %}"><img src="/media/input-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'rmg.views.input' %}"><img src="{% static 'img/input-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Create Input File</div></a>
         <div class="linkdesc">Online form for making an RMG input file</div>
         </p>
                 
         <p>
-        <a href="{% url 'database.views.moleculeSearch' %}"><img src="/media/moleculedraw-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'database.views.moleculeSearch' %}"><img src="{% static 'img/moleculedraw-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Molecule Search</div></a>
         <div class="linkdesc">Draw a molecule from its adjlist and search or estimate its properties</div>
         </p>
                     
         <p>
-        <a href="{% url 'database.views.kineticsSearch' %}"><img src="/media/kinetics-search-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'database.views.kineticsSearch' %}"><img src="{% static 'img/kinetics-search-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Kinetics Search</div></a>
         <div class="linkdesc">Search or estimate kinetics of a chemical reaction</div>
         </p>
         
         <p>
-        <a href="{% url 'database.views.solvationSearch' %}"><img src="/media/solvation-search-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'database.views.solvationSearch' %}"><img src="{% static 'img/solvation-search-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Solvation Search</div></a>
         <div class="linkdesc">Search or estimate solvation properties of solvent and a solute</div>
         </p>
         
         <p>
-        <a href="{% url 'pdep.views.index' %}"><img src="/media/pdep-logo-small.png" class="icon" height="32px"/>
+        <a href="{% url 'pdep.views.index' %}"><img src="{% static 'img/pdep-logo-small.png' %}" class="icon" height="32px"/>
         <div class="biglink">Pressure Dependent Networks</div></a>
         <div class="linkdesc">CanTherm pdep kinetic calculations</div>
         </p>
         
         <p>
-        <a href="{% url 'rmg.views.index' %}"><img src="/media/tools-icon.png" class="icon" height="32px"/>
+        <a href="{% url 'rmg.views.index' %}"><img src="{% static 'img/tools-icon.png' %}" class="icon" height="32px"/>
         <div class="biglink">Other RMG Tools</div></a>
         <div class="linkdesc">Additional tools to supplement RMG </div>
         </p>

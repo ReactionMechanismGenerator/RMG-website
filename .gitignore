@@ -14,14 +14,17 @@ rmgweb/rmgweb.db
 # The secret settings module
 rmgweb/secretsettings.py
 
+# Static files for deployment
+static/*
+
 # jQuery
-rmgweb/media/jquery.js
+#rmgweb/static/js/jquery.js
 
 # jsMath
-rmgweb/media/jsMath/*
+#rmgweb/static/js/jsMath/*
 
 # Highcharts
-rmgweb/media/Highcharts/*
+#rmgweb/static/js/highcharts.js
 
 # Database files
 database/*

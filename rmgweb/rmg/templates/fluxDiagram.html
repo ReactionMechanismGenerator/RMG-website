@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 
 
@@ -43,14 +44,14 @@ $().ready(function() {
     the .out file associated with a chemkin simulation output for a shock tube or RCM, etc.  Use
     the .out file containing species concentrations.
 <hr/>
-<img src="../media/loading.gif" alt="Loading..." style="display:none" id="loading_image">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." style="display:none" id="loading_image">
 <P>
 {% if path %}
 <div id="videos">
 <b>Generated Videos for Reaction Systems</b>
 <ol>
 {% for item in path %}
-<li><a href ="../media/rmg/tools/flux/{{item}}/flux_diagram.avi">Flux Diagram Video</a>
+<li><a href ="{{  MEDIA_URL }}rmg/tools/flux/{{item}}/flux_diagram.avi">Flux Diagram Video</a>
 {% endfor%}
 </ol>
 </div>

@@ -41,6 +41,7 @@ from django.conf import settings
 import urllib, urllib2
 
 from forms import *
+import os
 
 def index(request):
     """
@@ -62,6 +63,43 @@ def version(request):
     Version information for RMG-website, RMG-Py, and RMG-database
     """
     return render_to_response('version.html', context_instance=RequestContext(request))
+
+def resources(request):
+    """
+    Page for accessing RMG resources, including papers and presentations
+    """
+    folder = os.path.join(settings.STATIC_ROOT, 'presentations')
+    files = []
+
+    if os.path.isdir(folder):
+        files = os.listdir(folder)
+        toRemove = []
+        for f in files:
+            if not os.path.isfile(os.path.join(folder, f)):
+                # Remove any directories
+                toRemove.append(f)
+            elif f[0] == '.':
+                # Remove any hidden files
+                toRemove.append(f)
+        for item in toRemove:
+            files.remove(item)
+
+    # Parse file names for information to display on webpage
+    presentations = []
+    if files:
+        files.sort()
+        for f in files:
+            name = os.path.splitext(f)[0]
+            parts = name.split('_')
+            date = parts[0]
+            date = date[0:4] + '-' + date[4:6] + '-' + date[6:]
+            title = ' '.join(parts[1:])
+            title = title.replace('+', ' and ')
+            presentations.append((title, date, f))
+
+    return render_to_response('resources.html',
+                              {'presentations': presentations},
+                              context_instance=RequestContext(request))
 
 def login(request):
     """

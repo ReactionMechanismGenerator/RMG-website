@@ -35,14 +35,17 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import DEBUG, PROJECT_PATH, DATABASE_PATH, DATABASES, SECRET_KEY, ADMINS
-
-try:
-    from secretsettings import TEMPLATE_DEBUG as template_debug_setting
-except ImportError:
-    template_debug_setting = DEBUG
-
-MANAGERS = ADMINS
+from secretsettings import (
+    ADMINS,
+    ALLOWED_HOSTS,
+    DATABASE_PATH,
+    DATABASES,
+    DEBUG,
+    EMAIL_HOST,
+    PROJECT_PATH,
+    SECRET_KEY,
+    SERVER_EMAIL,
+)
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -67,19 +70,27 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: "/var/www/example.com/media/"
 MEDIA_ROOT = os.path.join(PROJECT_PATH,'media')
 
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
+# URL that handles the media served from MEDIA_ROOT.
+# Examples: "http://example.com/media/", "http://media.example.com/"
 MEDIA_URL = '/media/'
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin/media/'
+# Absolute path to the directory static files should be collected to.
+# Example: "/var/www/example.com/static/"
+STATIC_ROOT = os.path.join(os.path.dirname(PROJECT_PATH), 'static')
+
+# URL that handles the static files served from STATIC_ROOT.
+# Example: "http://example.com/static/", "http://static.example.com/"
+STATIC_URL = '/static/'
+
+# A list of locations of additional static files
+STATICFILES_DIRS = [
+    os.path.join(PROJECT_PATH, 'static'),
+    '/var/www/static/',
+]
 
 
 TEMPLATES = [
@@ -93,7 +104,7 @@ TEMPLATES = [
             os.path.join(PROJECT_PATH, 'templates'),
         ],
         'OPTIONS': {
-            'debug': template_debug_setting,
+            'debug': DEBUG,
             'context_processors': [
                 # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
                 # list if you haven't customized them:
@@ -135,6 +146,7 @@ ROOT_URLCONF = 'rmgweb.urls'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
