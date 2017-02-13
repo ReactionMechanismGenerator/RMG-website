@@ -375,9 +375,9 @@ def generateReactions(database, reactants, products=None, only_families=None):
             assert isinstance(reaction, TemplateReaction)
             # Get all of the kinetics for the reaction
             family = getFamilyLibraryObject(reaction.family)
-            kineticsList = family.getKinetics(reaction, template=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
+            kineticsList = family.getKinetics(reaction, templateLabels=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
             if family.ownReverse and hasattr(reaction,'reverse'):
-                kineticsListReverse = family.getKinetics(reaction.reverse, template=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, returnAllKinetics=True)
+                kineticsListReverse = family.getKinetics(reaction.reverse, templateLabels=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, returnAllKinetics=True)
                 for kinetics, source, entry, isForward in kineticsListReverse:
                     for kinetics0, source0, entry0, isForward0 in kineticsList:
                         if source0 is not None and source is not None and entry0 is entry and isForward != isForward0:
