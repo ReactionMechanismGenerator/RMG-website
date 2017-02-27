@@ -268,9 +268,9 @@ def drawMolecule(request, adjlist):
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
-    surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
-    response = HttpResponse(content_type="image/png")
-    surface.write_to_png(response)
+    response = HttpResponse(content_type="image/svg+xml")
+    MoleculeDrawer().draw(molecule, format='svg', target=response)
+
     return response
 
 def drawGroup(request, adjlist):
