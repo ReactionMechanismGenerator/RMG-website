@@ -589,6 +589,7 @@ def thermo(request, section='', subsection=''):
             elif isinstance(entry.data, Wilhoit): dataFormat = 'Wilhoit'
             elif isinstance(entry.data, NASA): dataFormat = 'NASA'
             elif isinstance(entry.data, str): dataFormat = 'Link'
+            elif isinstance(entry.item, (LogicNode, LogicOr, LogicAnd)): dataFormat = 'Logic'
             
             elif entry.data is None:
                 dataFormat = 'None'

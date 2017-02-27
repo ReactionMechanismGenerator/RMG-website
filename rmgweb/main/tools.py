@@ -113,7 +113,7 @@ def getStructureInfo(object):
     markup containing a clickable image of the group or molecule that contains 
     a link to its information page.
     """
-    from rmgpy.data.base import Entry
+    from rmgpy.data.base import Entry, LogicNode, LogicOr, LogicAnd
     from rmgpy.species import Species
     
     if isinstance(object, Entry):
@@ -125,6 +125,8 @@ def getStructureInfo(object):
         return moleculeToInfo(object.molecule[0])
     elif isinstance(object, Group):
         return groupToInfo(object)
+    elif isinstance(object, (LogicNode, LogicOr, LogicAnd)):
+        return str(object)
     else:
         return ''
 ################################################################################
