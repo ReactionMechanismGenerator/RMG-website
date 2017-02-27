@@ -42,6 +42,7 @@ import urllib, urllib2
 
 from forms import *
 import os
+import re
 
 def index(request):
     """
@@ -279,14 +280,18 @@ def drawGroup(request, adjlist):
     pattern.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
-    import pydot
 
-    response = HttpResponse(content_type="image/png")
+    response = HttpResponse(content_type="image/svg+xml")
 
     adjlist = str(urllib.unquote(adjlist))
     pattern = Group().fromAdjacencyList(adjlist)
 
-    response.write(pattern._repr_png_())
+    # Create an svg drawing of the group
+    svgdata = pattern.draw('svg')
+    # Remove the scale and rotate transformations applied by pydot
+    svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
+
+    response.write(svgdata)
 
     return response
 
