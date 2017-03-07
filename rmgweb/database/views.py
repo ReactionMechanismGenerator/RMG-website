@@ -2307,6 +2307,8 @@ def moleculeSearch(request):
         posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
         initial = request.POST.copy()
 
+        adjlist = None
+
         if posted.is_valid():
                 adjlist = posted.cleaned_data['species']
                 if adjlist != '':
@@ -2315,23 +2317,24 @@ def moleculeSearch(request):
                     adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
         
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
-        
-        if 'thermo' in request.POST:
-            return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
-            
-        if 'transport' in request.POST:
-            return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
-        
-        if 'reset' in request.POST:
-            form = MoleculeSearchForm()
-            structure_markup = ''
-            molecule = Molecule()
-        
-        try:
-            oldAdjlist = molecule.toAdjacencyList(removeH=True,oldStyle=True)
-            print oldAdjlist
-        except:
-            pass
+
+        if adjlist is not None:
+            if 'thermo' in request.POST:
+                return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
+
+            if 'transport' in request.POST:
+                return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
+
+            if 'reset' in request.POST:
+                form = MoleculeSearchForm()
+                structure_markup = ''
+                molecule = Molecule()
+
+            try:
+                oldAdjlist = molecule.toAdjacencyList(removeH=True, oldStyle=True)
+                print oldAdjlist
+            except Exception:
+                pass
     
     return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
 
