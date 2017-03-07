@@ -210,7 +210,7 @@ def getAdjacencyList(request, identifier):
             smiles = known_names[key]
         else:
             # try converting it to a SMILES using the NCI chemical resolver 
-            url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
             try:
                 f = urllib2.urlopen(url, timeout=5)
             except urllib2.URLError, e:
@@ -250,7 +250,7 @@ def cactusResolver(request, query):
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
    
-    url = "http://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
+    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
     try:
         f = urllib2.urlopen(url, timeout=5)
     except urllib2.URLError, e:
