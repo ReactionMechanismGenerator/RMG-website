@@ -10,15 +10,17 @@
 <script type="text/javascript">
 // the function used to resolve the identifier into an adjacency list
 function resolve(){
-   var spField = $('#id_species');
-   var identifier = $('#id_species_identifier').val();
-   var url = '/adjacencylist/'+escape(identifier);
-   spField.val("Loading...");
-   $('.result').hide();
-   var jqxhr = $.get(url,function(structure) {
+    var spField = $('#id_species');
+    var identifier = $('#id_species_identifier').val();
+    var url = '/adjacencylist/' + encodeURIComponent(identifier);
+    spField.val("Loading...");
+    $('.result').hide();
+    var jqxhr = $.get(url,function(structure) {
                      spField.val(structure);
-                  })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+                 })
+                 .fail(function(obj, status, error) {
+                     spField.val(error+'\n'+obj.responseText.split('\n')[0]);
+                 });
 };
 
 // prevent "enter" keypress in the identifier field from submitting the form,
