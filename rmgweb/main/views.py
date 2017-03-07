@@ -267,7 +267,7 @@ def cactusResolver(request, query):
     try:
         f = urllib2.urlopen(url, timeout=5)
     except urllib2.URLError, e:
-        return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(query, e, url))
+        return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
     
