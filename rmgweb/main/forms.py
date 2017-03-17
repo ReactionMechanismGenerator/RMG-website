@@ -42,7 +42,7 @@ class DivErrorList(ErrorList):
         return self.as_divs()
     def as_divs(self):
         if not self: return u''
-        return mark_safe(u''.join([u'<div class="error">%s</div>' % e for e in self]))
+        return mark_safe(u'<div>%s</div>' % (''.join([u'<div class="error">%s</div>' % e for e in self])))
 
 ################################################################################
 

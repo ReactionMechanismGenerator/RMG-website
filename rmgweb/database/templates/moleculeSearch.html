@@ -10,36 +10,44 @@
 <script type="text/javascript">
 // the function used to resolve the identifier into an adjacency list
 function resolve(){
-   var spField = $('#id_species');
-   var identifier = $('#id_species_identifier').val();
-   var url = '/adjacencylist/'+escape(identifier);
-   spField.val("Loading...");
-   $('.result').hide();
-   var jqxhr = $.get(url,function(structure) {
+    var spField = $('#id_species');
+    var identifier = $('#id_species_identifier').val();
+    var url = '/adjacencylist/' + encodeURIComponent(identifier);
+    spField.val("Loading...");
+    $('.result').hide();
+    var jqxhr = $.get(url,function(structure) {
                      spField.val(structure);
-                  })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+                 })
+                 .fail(function(obj, status, error) {
+                     spField.val(error+'\n'+obj.responseText.split('\n')[0]);
+                 });
 };
 
 // prevent "enter" keypress in the identifier field from submitting the form,
 // but instead make it resolve the identifier and select the submit button.
 $(document).ready(function() {
-   $("#id_species_identifier").bind("keypress", function(e) {
-    var c = e.which ? e.which : e.keyCode;
-    if (c == 13) {
-       resolve();
-       $("input:submit:first").focus();
-       return false;
-    }
-   });
+    $("#id_species_identifier").bind("keypress", function(e) {
+        var c = e.which ? e.which : e.keyCode;
+        if (c == 13) {
+            resolve();
+            $("input:submit:first").focus();
+            return false;
+        }
+    });
 
 {% if molecule.toSMILES %}
 // Update list of names
-var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names'
-var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
-               .error(function(j,t,e) { $('#species_names').html(t+'\n'+e) })
+    var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names';
+    var jqxhr = $.get(url,function(names) {
+                     $('#species_names').html(names);
+                 })
+                 .fail(function(obj, status, error) {
+                     $('#species_names').html(error+'\n'+obj.responseText.split('\n')[0]);
+                 });
 {% endif %}
-}) // end of document.ready
+
+});
+// end of document.ready
 </script>
 {% endblock %}
 

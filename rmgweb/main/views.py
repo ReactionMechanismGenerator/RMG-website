@@ -42,6 +42,7 @@ import urllib, urllib2
 
 from forms import *
 import os
+import re
 
 def index(request):
     """
@@ -194,6 +195,8 @@ def getAdjacencyList(request, identifier):
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
     is the SMILES for water.
     """
+    from rmgpy.molecule import AtomTypeError
+
     if identifier.strip() == '':
         return HttpResponse('', content_type="text/plain")
     from rmgpy.molecule.molecule import Molecule
@@ -201,6 +204,10 @@ def getAdjacencyList(request, identifier):
     try:
         # try using the string as a SMILES directly
         molecule.fromSMILES(str(identifier))
+    except AtomTypeError:
+        return HttpResponse('Invalid Molecule', status=501)
+    except KeyError, e:
+        return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
     except (IOError, ValueError):
         known_names = {'O2':'[O][O]',
                        'oxygen':'[O][O]'}
@@ -209,13 +216,20 @@ def getAdjacencyList(request, identifier):
             smiles = known_names[key]
         else:
             # try converting it to a SMILES using the NCI chemical resolver 
-            url = "http://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
             try:
                 f = urllib2.urlopen(url, timeout=5)
             except urllib2.URLError, e:
-                return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(identifier, e, url))
+                return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
             smiles = f.read()
-        molecule.fromSMILES(smiles)
+        try:
+            molecule.fromSMILES(smiles)
+        except AtomTypeError:
+            return HttpResponse('Invalid Molecule', status=501)
+        except KeyError, e:
+            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+        except ValueError, e:
+            return HttpResponse(str(e), status=500)
     
     adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, content_type="text/plain")
@@ -249,11 +263,11 @@ def cactusResolver(request, query):
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
    
-    url = "http://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
+    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
     try:
         f = urllib2.urlopen(url, timeout=5)
     except urllib2.URLError, e:
-        return HttpResponseNotFound("404: Couldn't identify {0}. NCI resolver responded {1} to request for {2}".format(query, e, url))
+        return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
     
@@ -268,9 +282,9 @@ def drawMolecule(request, adjlist):
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
-    surface, cr, rect = MoleculeDrawer().draw(molecule, format='png')
-    response = HttpResponse(content_type="image/png")
-    surface.write_to_png(response)
+    response = HttpResponse(content_type="image/svg+xml")
+    MoleculeDrawer().draw(molecule, format='svg', target=response)
+
     return response
 
 def drawGroup(request, adjlist):
@@ -279,14 +293,18 @@ def drawGroup(request, adjlist):
     pattern.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
-    import pydot
 
-    response = HttpResponse(content_type="image/png")
+    response = HttpResponse(content_type="image/svg+xml")
 
     adjlist = str(urllib.unquote(adjlist))
     pattern = Group().fromAdjacencyList(adjlist)
 
-    response.write(pattern._repr_png_())
+    # Create an svg drawing of the group
+    svgdata = pattern.draw('svg')
+    # Remove the scale and rotate transformations applied by pydot
+    svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
+
+    response.write(svgdata)
 
     return response
 

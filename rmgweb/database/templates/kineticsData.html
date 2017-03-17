@@ -28,7 +28,9 @@ jQuery(document).ready(function() {
     jsMath.Synchronize(function() {
         // Do these things once the jsMath has finished rendering.
         kchart = plotKinetics('plotk', kineticsModelList);
-        calculateAverage();
+        if (kineticsModelList.length > 1) {
+            calculateAverage();
+        }
     });
 
     /* For the kinetics search form */
