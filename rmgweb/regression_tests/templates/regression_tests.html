@@ -33,7 +33,6 @@
   <md-content class="layout-padding">
     <form method="POST" name="regressionTestsForm" action="http://localhost:8000/regression_tests/add_job">
     {% csrf_token %}
-      <p>Please select testing RMG-Py branch and RMG-database branch.</p>
 
       <div layout-gt-sm="row">
           <md-autocomplete flex required
@@ -82,18 +81,15 @@
       </div>
       
       <div>
-        <md-button type="submit">Submit</md-button>
+        <md-button type="submit" class="md-raised md-primary">Submit</md-button>
       </div>
     </form>
   </md-content>
+</div>
 
-  <md-toolbar layout="row" class="md-hue-3">
-      <div class="md-toolbar-tools">
-        <span>Job Queue</span>
-      </div>
-  </md-toolbar>
-  <md-content class="layout-padding">
+<md-content class="layout-padding">
       <md-list flex>
+      <md-subheader class="md-no-sticky">Job Queue</md-subheader>
       {% for job in jobs %}
         <md-list-item class="md-3-line" ng-click="null" aria-label="Show User List">
           <div class="md-list-item-text" layout="column">
@@ -106,6 +102,5 @@
       </md-list>
 
     <md-content>
-</div>
 
 {% endblock %}
