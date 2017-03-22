@@ -2,7 +2,7 @@
       .module('branch_selector', ['ngMaterial', 'ngMessages'])
       .service('github_connector', function($http) {
             this.retrieveRMGrepoBranches = function (repo) {
-                return $http.get('https://api.github.com/repos/ReactionMechanismGenerator/'.concat(repo, '/branches'))
+                return $http.get('https://api.github.com/repos/ReactionMechanismGenerator/'.concat(repo, '/branches?page=1&per_page=100'))
                 .then(function(response) {
                       return response.data.map(function (branch) {
                                                 return {value: branch['name'],
