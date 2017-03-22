@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from rmgweb.regression_tests.models import RegressionTestJob
 from django.shortcuts import redirect
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 def index(request):
     """
@@ -13,6 +14,7 @@ def index(request):
     return render_to_response('regression_tests.html',{'jobs': jobs}, context_instance=RequestContext(request))
 
 
+@ensure_csrf_cookie
 def add_job(request):
 
 	if request.method == 'POST':
