@@ -30,11 +30,13 @@
 
 from rmgpy.quantity import *
 import os.path
+import datetime
 
 from django.db import models
 from django import forms
 from django.utils.text import capfirst
 from django.utils.deconstruct import deconstructible
+from django.contrib.auth.models import User
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
@@ -52,7 +54,10 @@ class uploadTo(object):
         self.subpath = subpath
     
     def __call__(self, instance, filename):
-        return os.path.join(instance.folder, self.subpath)
+        timestr = str(instance.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        username = instance.username
+        return os.path.join(username, instance.folder, timestr, self.subpath)
 
 class Chemkin(models.Model):
     """
@@ -62,17 +67,39 @@ class Chemkin(models.Model):
     def __init__(self, *args, **kwargs):
         super(Chemkin, self).__init__(*args, **kwargs)
         self.folder = os.path.join('rmg', 'tools', 'chemkin')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        temp = uploadTo()
+        upstring = temp(self, '')
+        self.path = os.path.join(settings.MEDIA_ROOT, upstring)
 
+    time = models.DateTimeField(auto_now_add=True)
+    reqObj = None
+    username = 'no_account'
     ChemkinFile = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
     
+    def setReqObj(self, request):
+        self.reqObj = request
+        if self.reqObj.user.is_authenticated:
+            self.username = str(self.reqObj.user.username)
+
+    def getTime(self):
+        return self.time
+
+    def getUsername(self):
+        return self.username
+
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
         from rmgpy.chemkin import saveHTMLFile
+
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.username, 'rmg', 'tools', 'chemkin', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+
         if self.Foreign:
             # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
             saveHTMLFile(self.path, readComments = False)

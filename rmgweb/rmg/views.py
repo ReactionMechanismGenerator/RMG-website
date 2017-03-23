@@ -66,7 +66,9 @@ def convertChemkin(request):
     """
     Allows user to upload chemkin and RMG dictionary files to generate a nice looking html output.
     """
+    user = request.user
     chemkin = Chemkin()
+    chemkin.setReqObj(request)
     path = ''
     chemkin.deleteDir()
     
@@ -75,7 +77,10 @@ def convertChemkin(request):
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         if form.is_valid():
             form.save()
-            path = 'media/rmg/tools/chemkin/output.html'
+            timestr = str(chemkin.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = chemkin.getUsername()
+            path = 'media/'+userid+'/rmg/tools/chemkin/'+timestr+'/output.html'
             # Generate the output HTML file
             chemkin.createOutput()
             # Go back to the network's main page
