@@ -29,11 +29,8 @@ static/*
 # Database files
 database/*
 
-# Uploaded MEASURE files
-rmgweb/media/pdep/networks/*
-
-# Uploaded RMG files
-rmgweb/media/rmg/tools/*
+# User uploaded files
+rmgweb/media/*
 
 /rmgweb/nbproject/private/private.xml
 /rmgweb/nbproject/project.properties
