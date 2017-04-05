@@ -66,14 +66,12 @@ def convertChemkin(request):
     """
     Allows user to upload chemkin and RMG dictionary files to generate a nice looking html output.
     """
-    user = request.user
     chemkin = Chemkin()
     chemkin.setReqObj(request)
     path = ''
     chemkin.deleteDir()
     
     if request.method == 'POST':
-        chemkin.createDir()
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         if form.is_valid():
             form.save()
@@ -98,15 +96,18 @@ def convertAdjlists(request):
     Allows user to upload a dictionary txt file and convert it back into old style adjacency lists in the form of a txt file.
     """
     conversion = AdjlistConversion()
+    conversion.setReqObj(request)
     path = ''
     conversion.deleteDir()
     
     if request.method == 'POST':
-        conversion.createDir()
         form = UploadDictionaryForm(request.POST, request.FILES, instance=conversion)
         if form.is_valid():
             form.save()
-            path = 'media/rmg/tools/adjlistConversion/RMG_Dictionary.txt'
+            timestr = str(conversion.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = conversion.getUsername()
+            path = 'media/'+userid+'/rmg/tools/adjlistConversion/'+timestr+'/RMG_Dictionary.txt'
             # Generate the output HTML file
             conversion.createOutput()
             # Go back to the network's main page
@@ -124,15 +125,18 @@ def compareModels(request):
     a pretty HTML diff file.
     """
     diff = Diff()
+    diff.setReqObj(request)
     path = ''
     diff.deleteDir()
 
     if request.method == 'POST':
-        diff.createDir()
         form = ModelCompareForm(request.POST, request.FILES, instance=diff)
         if form.is_valid():
             form.save()
-            path = 'media/rmg/tools/compare/diff.html'
+            timestr = str(diff.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = diff.getUsername()
+            path = 'media/'+userid+'/rmg/tools/compare/'+timestr+'/diff.html'
             # Generate the output HTML file
             diff.createOutput()
             return render_to_response('modelCompare.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
@@ -151,16 +155,19 @@ def mergeModels(request):
     Produces a merged chemkin file and species dictionary.
     """
     model = Diff()
+    model.setReqObj(request)
     path = ''
     model.deleteDir()
     
     if request.method == 'POST':
-        model.createDir()
         form = ModelCompareForm(request.POST, request.FILES, instance = model)
         if form.is_valid():
             form.save()
             model.merge()
-            path = 'media/rmg/tools/compare'
+            timestr = str(model.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = model.getUsername()
+            path = 'media/'+userid+'/rmg/tools/compare/'+timestr
             #[os.path.join(model.path,'chem.inp'), os.path.join(model.path,'species_dictionary.txt'), os.path.join(model.path,'merging_log.txt')]
             return render_to_response('mergeModels.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
     else:
@@ -176,41 +183,30 @@ def generateFlux(request):
     to generate a flux diagram video.
     """
 
-    from rmgpy.tools.fluxdiagram import createFluxDiagram
-        
     flux = FluxDiagram()
-    path = ''
+    flux.setReqObj(request)
+    subdirs = []
     flux.deleteDir()
 
     if request.method == 'POST':
-        flux.createDir()
         form = FluxDiagramForm(request.POST, request.FILES,instance=flux)
         if form.is_valid():
             form.save()
-            input = os.path.join(flux.path,'input.py')
-            chemkin = os.path.join(flux.path,'chem.inp')
-            dict = os.path.join(flux.path,'species_dictionary.txt')
-            chemkinOutput = ''
-            if 'ChemkinOutput' in request.FILES:
-                chemkinOutput = os.path.join(flux.path,'chemkin_output.out')
-            java = form.cleaned_data['Java']
-            settings = {}
-            settings['maximumNodeCount'] = form.cleaned_data['MaxNodes']  
-            settings['maximumEdgeCount'] = form.cleaned_data['MaxEdges']
-            settings['timeStep'] = form.cleaned_data['TimeStep']
-            settings['concentrationTolerance'] = form.cleaned_data['ConcentrationTolerance']
-            settings['speciesRateTolerance'] = form.cleaned_data['SpeciesRateTolerance']
-       
-            createFluxDiagram(flux.path, input, chemkin, dict, java, settings, chemkinOutput)
+            flux.createOutput(form)
+            timestr = str(flux.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = flux.getUsername()
+            path = flux.getPath()
+            prefix = 'media/'+userid+'/rmg/tools/flux/'+timestr
             # Look at number of subdirectories to determine where the flux diagram videos are
-            subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
-            subdirs.remove('species')
+            subdirs = [prefix+'/'+name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+            subdirs.remove(prefix+'/species')
             return render_to_response('fluxDiagram.html', {'form': form, 'path':subdirs}, context_instance=RequestContext(request))
 
     else:
         form = FluxDiagramForm(instance=flux)
 
-    return render_to_response('fluxDiagram.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render_to_response('fluxDiagram.html', {'form': form,'path':subdirs}, context_instance=RequestContext(request))
 
 
 def runPopulateReactions(request):
@@ -218,17 +214,20 @@ def runPopulateReactions(request):
     Allows user to upload chemkin and RMG dictionary files to generate a nice looking html output.
     """
     populateReactions = PopulateReactions()
+    populateReactions.setReqObj(request)
     outputPath = ''
     chemkinPath = ''
     populateReactions.deleteDir()
     
     if request.method == 'POST':
-        populateReactions.createDir()
         form = PopulateReactionsForm(request.POST, request.FILES, instance=populateReactions)
         if form.is_valid():
             form.save()
-            outputPath = 'media/rmg/tools/populateReactions/output.html'
-            chemkinPath = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
+            timestr = str(populateReactions.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            userid = populateReactions.getUsername()
+            outputPath = 'media/'+userid+'/rmg/tools/populateReactions/'+timestr+'/output.html'
+            chemkinPath = 'media/'+userid+'/rmg/tools/populateReactions/chemkin/'+timestr+'/chem.inp'
             # Generate the output HTML file
             populateReactions.createOutput()
             # Go back to the network's main page
@@ -347,8 +346,8 @@ def plotKinetics(request):
     
     if request.method == 'POST':
         chemkin = Chemkin()           
-        chemkin.createDir()
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
+        chemkin.setReqObj(request)
         rateForm = RateEvaluationForm(request.POST)
         eval = []
         
@@ -377,6 +376,7 @@ def plotKinetics(request):
         
     
         chemkin = Chemkin()
+        chemkin.setReqObj(request)
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
         
@@ -388,22 +388,22 @@ def javaKineticsLibrary(request):
     Allows user to upload chemkin files to generate a plot of reaction kinetics.
     """
     from rmgpy.quantity import Quantity
-            
-    eval = False
-    
+
     if request.method == 'POST':
-        chemkin = Chemkin()           
-        chemkin.createDir()
-        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
-        if form.is_valid():            
+        chemkin = Chemkin()
+        chemkin.setReqObj(request)
+        path = ''
+
+        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
+        if form.is_valid():
             form.save()
             chemkin.createJavaKineticsLibrary()
-            eval = True
-        
-                
-            
+            userid = chemkin.getUsername()
+            timestr = str(chemkin.getTime())
+            timestr = timestr.replace(':','.')[:len(timestr)-7]
+            path = 'media/'+userid+'/rmg/tools/chemkin/'+timestr
         return render_to_response('javaKineticsLibrary.html', {'form': form,
-                                                'eval': eval },
+                                                'path': path },
                                          context_instance=RequestContext(request))
 
     # Otherwise create the form
@@ -411,6 +411,7 @@ def javaKineticsLibrary(request):
         
     
         chemkin = Chemkin()
+        chemkin.setReqObj(request)
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
         

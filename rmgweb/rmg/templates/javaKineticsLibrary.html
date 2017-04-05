@@ -30,16 +30,16 @@ creating a RMG-Java kinetics library: reactions.txt, pdepreactions.txt, and spec
 </form>
 
 
-{% if eval %}
+{% if path %}
 <hr/>
 <b>Your library files are below:</b>
 <br>To save, right click and select "Save as..."
 <P>
-<a href ="{{  MEDIA_URL }}rmg/tools/chemkin/reactions.txt">reactions.txt</a>
+<a href ="../{{path}}/reactions.txt">reactions.txt</a>
 <br>
-<a href ="{{  MEDIA_URL }}rmg/tools/chemkin/pdepreactions.txt">pdepreactions.txt</a>
+<a href ="../{{path}}/pdepreactions.txt">pdepreactions.txt</a>
 <br>
-<a href ="{{  MEDIA_URL }}rmg/tools/chemkin/species.txt">species.txt</a>
+<a href ="../{{path}}/species.txt">species.txt</a>
 {% endif %}
 
 {% endblock %}

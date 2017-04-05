@@ -56,7 +56,7 @@ class uploadTo(object):
     def __call__(self, instance, filename):
         timestr = str(instance.time)
         timestr = timestr.replace(':','.')[:len(timestr)-7]
-        username = instance.username
+        username = instance.name
         return os.path.join(username, instance.folder, timestr, self.subpath)
 
 class Chemkin(models.Model):
@@ -73,21 +73,22 @@ class Chemkin(models.Model):
 
     time = models.DateTimeField(auto_now_add=True)
     reqObj = None
-    username = 'no_account'
+    name = 'no_account'
     ChemkinFile = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
     
     def setReqObj(self, request):
         self.reqObj = request
-        if self.reqObj.user.is_authenticated:
-            self.username = str(self.reqObj.user.username)
+
+        if self.reqObj.user.is_authenticated():
+            self.name = str(self.reqObj.user.username)
 
     def getTime(self):
         return self.time
 
     def getUsername(self):
-        return self.username
+        return self.name
 
     def createOutput(self):
         """
@@ -97,7 +98,7 @@ class Chemkin(models.Model):
 
         timestr = str(self.time)
         timestr = timestr.replace(':','.')[:len(timestr)-7]
-        self.folder = os.path.join(self.username, 'rmg', 'tools', 'chemkin', timestr)
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'chemkin', timestr)
         self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
 
         if self.Foreign:
@@ -105,18 +106,6 @@ class Chemkin(models.Model):
             saveHTMLFile(self.path, readComments = False)
         else:
             saveHTMLFile(self.path)
-
-    def createDir(self):
-        """
-        Create the directory (and any other needed parent directories) that
-        the Network uses for storing files.
-        """
-        try:
-            os.makedirs(os.path.join(self.path,'chemkin'))
-            os.makedirs(os.path.join(self.path,'species'))
-        except OSError:
-            # Fail silently on any OS errors
-            pass
 
     def deleteDir(self):
         """
@@ -136,10 +125,15 @@ class Chemkin(models.Model):
         from rmgpy.kinetics import ArrheniusEP, Chebyshev
         from rmgpy.reaction import Reaction
         from rmgpy.data.base import Entry
-        
-        kineticsDataList = []    
+
+        kineticsDataList = []
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'chemkin', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
         chemkinPath= os.path.join(self.path, 'chemkin','chem.inp')
         dictionaryPath = os.path.join(self.path, 'RMG_Dictionary.txt' )
+
         if self.Foreign:
             readComments = False
         else:
@@ -188,6 +182,11 @@ class Chemkin(models.Model):
         """
         from rmgpy.chemkin import loadChemkinFile, saveJavaKineticsLibrary
         
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'chemkin', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+
         chemkinPath = os.path.join(self.path, 'chemkin','chem.inp')
         dictionaryPath = os.path.join(self.path, 'RMG_Dictionary.txt' )
         speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath)
@@ -202,11 +201,17 @@ class Diff(models.Model):
     def __init__(self, *args, **kwargs):
         super(Diff, self).__init__(*args, **kwargs)
         self.folder = os.path.join('rmg', 'tools', 'compare')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        temp = uploadTo()
+        upstring = temp(self, '')
+        self.path = os.path.join(settings.MEDIA_ROOT, upstring)
         self.chemkin1 = os.path.join(self.path, 'chem1.inp')
         self.dict1 = os.path.join(self.path, 'RMG_Dictionary1.txt')
         self.chemkin2 = os.path.join(self.path, 'chem2.inp')
         self.dict2 = os.path.join(self.path, 'RMG_Dictionary2.txt')
+
+    time = models.DateTimeField(auto_now_add=True)
+    reqObj = None
+    name = 'no_account'
 
     ChemkinFile1 = models.FileField(upload_to=uploadTo('chem1.inp'), verbose_name='Model 1: Chemkin File')
     DictionaryFile1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'),verbose_name='Model 1: RMG Dictionary')    
@@ -215,11 +220,31 @@ class Diff(models.Model):
     DictionaryFile2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'),verbose_name='Model 2: RMG Dictionary')    
     Foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
+    def setReqObj(self, request):
+        self.reqObj = request
+        if self.reqObj.user.is_authenticated():
+            self.name = str(self.reqObj.user.username)
+
+    def getTime(self):
+        return self.time
+
+    def getUsername(self):
+        return self.name
+
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
         import rmgpy.tools.diff_models as diff_models
+
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'compare', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.chemkin1 = os.path.join(self.path, 'chem1.inp')
+        self.dict1 = os.path.join(self.path, 'RMG_Dictionary1.txt')
+        self.chemkin2 = os.path.join(self.path, 'chem2.inp')
+        self.dict2 = os.path.join(self.path, 'RMG_Dictionary2.txt')
 
         kwargs = {
                 'web':True,
@@ -238,6 +263,15 @@ class Diff(models.Model):
 
         import rmgpy.tools.merge_models as merge_models
         import sys
+
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'compare', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.chemkin1 = os.path.join(self.path, 'chem1.inp')
+        self.dict1 = os.path.join(self.path, 'RMG_Dictionary1.txt')
+        self.chemkin2 = os.path.join(self.path, 'chem2.inp')
+        self.dict2 = os.path.join(self.path, 'RMG_Dictionary2.txt')
 
         inputModelFiles = []
         inputModelFiles.append((self.chemkin1, self.dict1, None))
@@ -261,18 +295,6 @@ class Diff(models.Model):
                         )
             
             sys.stdout = stdout_orig
-        
-    def createDir(self):
-        """
-        Create the directory (and any other needed parent directories) that
-        the Network uses for storing files.
-        """
-        try:         
-            os.makedirs(os.path.join(self.path,'species1'))
-            os.makedirs(os.path.join(self.path,'species2'))
-        except OSError:
-            # Fail silently on any OS errors
-            pass
 
     def deleteDir(self):
         """
@@ -291,17 +313,39 @@ class AdjlistConversion(models.Model):
     def __init__(self, *args, **kwargs):
         super(AdjlistConversion, self).__init__(*args, **kwargs)
         self.folder = os.path.join('rmg', 'tools', 'adjlistConversion')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        temp = uploadTo()
+        upstring = temp(self, '')
+        self.path = os.path.join(settings.MEDIA_ROOT, upstring)
         self.dictionary = os.path.join(self.path, 'species_dictionary.txt')
 
+    time = models.DateTimeField(auto_now_add=True)
+    reqObj = None
+    name = 'no_account'
+
     DictionaryFile = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
+
+    def setReqObj(self, request):
+        self.reqObj = request
+        if self.reqObj.user.is_authenticated():
+            self.name = str(self.reqObj.user.username)
+
+    def getTime(self):
+        return self.time
+
+    def getUsername(self):
+        return self.name
 
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        
-        speciesList = []    
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'adjlistConversion', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.dictionary = os.path.join(self.path, 'species_dictionary.txt')
+
+        speciesList = []
         with open(self.dictionary, 'r') as f:
             adjlist = ''
             for line in f:
@@ -325,18 +369,7 @@ class AdjlistConversion(models.Model):
                     f.write('\n')
                 except:
                     raise Exception('Ran into error saving adjlist for species {0}. It may not be compatible with old adjacency list format.'.format(spec))
-                
-    def createDir(self):
-        """
-        Create the directory (and any other needed parent directories) that
-        the Network uses for storing files.
-        """
-        try:
-            os.makedirs(self.path)
-        except OSError:
-            # Fail silently on any OS errors
-            pass
-        
+
     def deleteDir(self):
         """
         Clean up everything by deleting the directory
@@ -354,8 +387,13 @@ class FluxDiagram(models.Model):
     def __init__(self, *args, **kwargs):
         super(FluxDiagram, self).__init__(*args, **kwargs)
         self.folder = os.path.join('rmg', 'tools', 'flux')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        temp = uploadTo()
+        upstring = temp(self, '')
+        self.path = os.path.join(settings.MEDIA_ROOT, upstring)
 
+    time = models.DateTimeField(auto_now_add=True)
+    reqObj = None
+    name = 'no_account'
     InputFile = models.FileField(upload_to=uploadTo('input.py'), verbose_name='RMG Input File')
     ChemkinFile = models.FileField(upload_to=uploadTo('chem.inp'), verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=uploadTo('species_dictionary.txt'),verbose_name='RMG Dictionary')
@@ -367,16 +405,45 @@ class FluxDiagram(models.Model):
     ConcentrationTolerance = models.FloatField(default=1e-6, verbose_name='Concentration Tolerance')   # The lowest fractional concentration to show (values below this will appear as zero)
     SpeciesRateTolerance = models.FloatField(default=1e-6, verbose_name='Species Rate Tolerance')   # The lowest fractional species rate to show (values below this will appear as zero)
 
-    def createDir(self):
-        """
-        Create the directory (and any other needed parent directories) that
-        the Network uses for storing files.
-        """
-        try:
-            os.makedirs(self.path)
-        except OSError:
-            # Fail silently on any OS errors
-            pass
+    def setReqObj(self, request):
+        self.reqObj = request
+        if self.reqObj.user.is_authenticated():
+            self.name = str(self.reqObj.user.username)
+
+
+    def getTime(self):
+        return self.time
+
+    def getUsername(self):
+        return self.name
+
+    def getPath(self):
+
+        return self.path
+
+    def createOutput(self, form):
+        from rmgpy.tools.fluxdiagram import createFluxDiagram
+
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'flux', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+
+        input = os.path.join(self.path,'input.py')
+        chemkin = os.path.join(self.path,'chem.inp')
+        dict = os.path.join(self.path,'species_dictionary.txt')
+        chemkinOutput = ''
+        if 'ChemkinOutput' in self.reqObj.FILES:
+            chemkinOutput = os.path.join(self.path,'chemkin_output.out')
+        java = form.cleaned_data['Java']
+        setting = {}
+        setting['maximumNodeCount'] = form.cleaned_data['MaxNodes']
+        setting['maximumEdgeCount'] = form.cleaned_data['MaxEdges']
+        setting['timeStep'] = form.cleaned_data['TimeStep']
+        setting['concentrationTolerance'] = form.cleaned_data['ConcentrationTolerance']
+        setting['speciesRateTolerance'] = form.cleaned_data['SpeciesRateTolerance']
+
+        createFluxDiagram(self.path, input, chemkin, dict, java, setting, chemkinOutput)
 
     def deleteDir(self):
         """
@@ -396,10 +463,26 @@ class PopulateReactions(models.Model):
     def __init__(self, *args, **kwargs):
         super(PopulateReactions, self).__init__(*args, **kwargs)
         self.folder = os.path.join('rmg', 'tools', 'populateReactions')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        temp = uploadTo()
+        upstring = temp(self, '')
+        self.path = os.path.join(settings.MEDIA_ROOT, upstring)
         self.input = os.path.join(self.path, 'input.txt')
 
+    time = models.DateTimeField(auto_now_add=True)
+    reqObj = None
+    name = 'no_account'
     InputFile = models.FileField(upload_to=uploadTo('input.txt'), verbose_name='Input File')
+
+    def setReqObj(self, request):
+        self.reqObj = request
+        if self.reqObj.user.is_authenticated():
+            self.name = str(self.reqObj.user.username)
+
+    def getTime(self):
+        return self.time
+
+    def getUsername(self):
+        return self.name
 
     def createOutput(self):
         """
@@ -408,6 +491,13 @@ class PopulateReactions(models.Model):
         
         import subprocess
         import rmgpy
+
+        timestr = str(self.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        self.folder = os.path.join(self.name, 'rmg', 'tools', 'populateReactions', timestr)
+        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
+        self.input = os.path.join(self.path, 'input.txt')
+
         command = ('python',
             os.path.join(os.path.dirname(rmgpy.getPath()), 'scripts', 'generateReactions.py'),
             self.input,
