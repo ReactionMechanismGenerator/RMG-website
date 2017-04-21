@@ -43,25 +43,26 @@ urlpatterns = [
 
     # Compare 2 RMG Models
     url(r'^compare', views.compareModels),
-    
+
     # Compare 2 RMG Models
     url(r'^adjlist_conversion', views.convertAdjlists),
-    
+
     # Merge 2 RMG Models
     url(r'^merge_models', views.mergeModels),
 
     # Generate Flux Diagram
     url(r'^flux', views.generateFlux),
-    
+
     # Populate Reactions with an Input File
     url(r'^populate_reactions', views.runPopulateReactions),
-    
+
     # Plot Kinetics
     url(r'^plot_kinetics', views.plotKinetics),
-    
+
     # Generate RMG-Java Kinetics Library
     url(r'^java_kinetics_library', views.javaKineticsLibrary),
-    
+
     # Evaluate NASA Polynomial
     url(r'^evaluate_nasa', views.evaluateNASA),
+    
 ]

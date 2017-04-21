@@ -32,7 +32,7 @@
 <div ng-controller="BranchSelectorController as ctrl" layout="column" ng-cloak ng-app="branch_selector">
   <md-content class="layout-padding">
     <form method="POST" name="regressionTestsForm" action="http://localhost:8000/regression_tests/add_job">
-    {% csrf_token %}
+      {% csrf_token %}
 
       <div layout-gt-sm="row">
           <md-autocomplete flex required
@@ -79,7 +79,7 @@
             </div>
           </md-autocomplete>
       </div>
-      
+
       <div>
         <md-button type="submit" class="md-raised md-primary">Submit</md-button>
       </div>
@@ -97,6 +97,10 @@
             <h4>{{ job.rmgdb_branch }}</h4>
             <p>RMG dev</p>
           </div>
+          <!-- Mode 0 : wait, mode 1: done-->
+            <img src= {{ job.job_status }} style="max-width: 20px;"/>
+          <!-- <img class="{% if }" src="/media/wait.png" style="max-width: 20px;"/> -->
+
         </md-list-item>
       {% endfor %}
       </md-list>

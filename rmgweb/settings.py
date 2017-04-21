@@ -92,7 +92,6 @@ STATICFILES_DIRS = [
     '/var/www/static/',
 ]
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
