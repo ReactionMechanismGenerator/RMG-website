@@ -60,23 +60,59 @@ td.section {
         <td class="fieldKey">Avatar</td>
         <td class="fieldValue">{% gravatar user.username 80 %} Set your avatar via <a href="http://en.gravatar.com/">Gravatar</a></td>
     </tr>
-<tr>
-    <td class="section" colspan="2"><br/>Change password</td>
-</tr>
-<tr>
-    <td></td><td>{{ passwordForm.non_field_errors }}</td>
-</tr>
-{% for field in passwordForm %}
+{% if not user.has_usable_password %}
     <tr>
-        <td></td><td>{{ field.errors }}</td>
+        <td class="section" colspan="2"><br/>Create a password</td>
+    </tr>
+    {% for field in makePasswordForm %}
+        <tr>
+            <td></td><td>{{ field.errors }}</td>
+        </tr>
+        <tr>
+            <td class="fieldKey">{{ field.label_tag }}</td>
+            <td class="fieldValue">{{ field }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <tr>
+        <td class="section" colspan="2"><br/>Change password</td>
     </tr>
     <tr>
-        <td class="fieldKey">{{ field.label_tag }}</td>
-        <td class="fieldValue">{{ field }}</td>
+        <td></td><td>{{ passwordForm.non_field_errors }}</td>
     </tr>
-{% endfor %}
-</table>
+    {% for field in passwordForm %}
+        <tr>
+            <td></td><td>{{ field.errors }}</td>
+        </tr>
+        <tr>
+            <td class="fieldKey">{{ field.label_tag }}</td>
+            <td class="fieldValue">{{ field }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endif %}
 <p><input type="submit" value="Submit" id="submit"/></p>
+<table>
+<tr>
+    <td class="section" colspan="2"><br/>Social Accounts</td>
+</tr>
+</table>
 </form>
 
+<h4><b>GitHub</b></h4>
+  {% if github_login %}
+    <p>Connected as <a href="https://github.com/{{ github_login.extra_data.login }}/" target="_blank">{{ github_login.extra_data.login }}</a></p>
+    {% if can_disconnect %}
+      <form method="post" action="{% url 'social:disconnect' 'github' %}">
+        {% csrf_token %}
+        <button type="submit">Disconnect from GitHub</button>
+      </form>
+    {% else %}
+      <button type="button" disabled>Disconnect from GitHub</button>
+      <p style="color: red">You must define a password for your account before disconnecting from Github.</p>
+    {% endif %}
+  {% else %}
+    <a href="{% url 'social:begin' 'github' %}">Connect to GitHub</a>
+  {% endif %}
 {% endblock %}

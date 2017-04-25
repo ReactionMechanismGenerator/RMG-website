@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from social_django.models import UserSocialAuth
 import urllib, urllib2
 
 from forms import *
@@ -161,22 +162,48 @@ def editProfile(request):
     """
     Called when the user wishes to edit his/her user profile.
     """
+    try:
+        github_login = request.user.social_auth.get(provider='github')
+    except UserSocialAuth.DoesNotExist:
+        github_login = None
+
+    try:
+        google_login = request.user.social_auth.get(provider='google-oauth2')
+    except UserSocialAuth.DoesNotExist:
+        google_login = None
+
+    can_disconnect = (request.user.social_auth.count() > 1 or request.user.has_usable_password())
     user_profile = UserProfile.objects.get_or_create(user=request.user)[0]
     if request.method == 'POST':
         userForm = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
         passwordForm = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            userForm.save()
-            profileForm.save()
-            passwordForm.save()
-            return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
+        makePasswordForm = PasswordCreateForm(request.POST, username=request.user.username, error_class=DivErrorList)
+        if request.user.has_usable_password():
+            if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
+                userForm.save()
+                profileForm.save()
+                passwordForm.save()
+                return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
+        else:
+            if userForm.is_valid() and profileForm.is_valid() and makePasswordForm.is_valid():
+                userForm.save()
+                profileForm.save()
+                password = makePasswordForm.cleaned_data['password']
+                makePasswordForm.save()
+                user = auth.authenticate(username=request.user.username, password=password)
+                user_profile = UserProfile.objects.get_or_create(user=user)[0]
+                profileForm2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
+                profileForm2.save()
+                #auth.login(request, user)
+                return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
         passwordForm = PasswordChangeForm(error_class=DivErrorList)
-        
-    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
+        makePasswordForm = PasswordCreateForm(error_class=DivErrorList)
+
+    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm, 'makePasswordForm': makePasswordForm, 'github_login': github_login, 'can_disconnect': can_disconnect}, context_instance=RequestContext(request))
 
 def getAdjacencyList(request, identifier):
     """

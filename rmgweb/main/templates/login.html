@@ -35,6 +35,11 @@
     </tr>
 {% endfor %}
 </table>
+    
+<br>
+<p><strong>-- OR --</strong></p>
+<a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
+<!-- <a href="{% url 'social:begin' 'google-oauth2' %}">Login with Google</a><br> -->
 
 <p><input type="submit" value="Login" id="submit"/></p>
 <input type="hidden" name="next" value="{{ next }}"/>

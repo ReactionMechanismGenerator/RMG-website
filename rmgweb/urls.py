@@ -72,11 +72,11 @@ urlpatterns = [
     url(r'^resources$', rmgweb.main.views.resources),
 
     # User account management
-    url(r'^login$', rmgweb.main.views.login),
+    url(r'^login', rmgweb.main.views.login),
     url(r'^logout$', rmgweb.main.views.logout),
     url(r'^profile$', rmgweb.main.views.editProfile),
     url(r'^signup', rmgweb.main.views.signup),
-    
+    url(r'^oauth/', include('social_django.urls', namespace='social')),
     url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile),
 
     # Database
