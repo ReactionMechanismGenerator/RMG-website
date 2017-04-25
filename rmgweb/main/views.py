@@ -167,11 +167,6 @@ def editProfile(request):
     except UserSocialAuth.DoesNotExist:
         github_login = None
 
-    try:
-        google_login = request.user.social_auth.get(provider='google-oauth2')
-    except UserSocialAuth.DoesNotExist:
-        google_login = None
-
     can_disconnect = (request.user.social_auth.count() > 1 or request.user.has_usable_password())
     user_profile = UserProfile.objects.get_or_create(user=request.user)[0]
     if request.method == 'POST':
