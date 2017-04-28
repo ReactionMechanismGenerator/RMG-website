@@ -8,18 +8,18 @@
 
 {% block extrahead %}
 <!-- Angular Material style sheet -->
-  <link rel="stylesheet" type="text/css" href="/media/angular/angular-material.min.css">
+  <link rel="stylesheet" type="text/css" href="/static/js/angular/angular-material.min.css">
 
   <!-- Angular Material requires Angular.js Libraries -->
-  <script src="/media/angular/angular.min.js"></script>
-  <script src="/media/angular/angular-animate.min.js"></script>
-  <script src="/media/angular/angular-aria.min.js"></script>
-  <script src="/media/angular/angular-messages.min.js"></script>
+  <script src="/static/js/angular/angular.min.js"></script>
+  <script src="/static/js/angular/angular-animate.min.js"></script>
+  <script src="/static/js/angular/angular-aria.min.js"></script>
+  <script src="/static/js/angular/angular-messages.min.js"></script>
 
   <!-- Angular Material Library -->
-  <script src="/media/angular/angular-material.min.js"></script>
+  <script src="/static/js/angular/angular-material.min.js"></script>
 
-  <script src="/media/regression_tests.js"></script>
+  <script src="/static/js/regression_tests.js"></script>
 {% endblock %}
 
 {% block navbar_items %}
@@ -91,7 +91,7 @@
       <md-list flex>
       <md-subheader class="md-no-sticky">Job Queue</md-subheader>
       {% for job in jobs %}
-        <md-list-item class="md-3-line" ng-click="null" aria-label="Show User List">
+        <md-list-item class="md-3-line" ng-click="null" aria-label="Show Job List">
           <div class="md-list-item-text" layout="column">
             <h3>{{ job.rmgpy_branch }}</h3>
             <h4>{{ job.rmgdb_branch }}</h4>
