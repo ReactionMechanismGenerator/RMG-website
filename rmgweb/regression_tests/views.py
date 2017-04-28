@@ -24,7 +24,7 @@ def add_job(request):
         rmgpy_branch = request.POST['autocompleteField_py']
         rmgdb_branch = request.POST['autocompleteField_db']
         job = RegressionTestJob.objects.create(rmgpy_branch=rmgpy_branch, rmgdb_branch=rmgdb_branch)
-        job.job_status = '/media/wait.png'
+        job.job_status = '/static/img/icons/wait.png'
         job.save()
         test = rmgpy_branch+'--'+rmgdb_branch
         spawn_test_job(rmgpy_branch, rmgdb_branch,job, request)
@@ -72,7 +72,7 @@ def file_exists(rmgpy, rmgdb, job, request):
     os.system('echo '+is_found)
     if(is_found == 'Found'):
         os.system('echo "The file has been found"')
-        job.job_status = '/media/done.jpg'
+        job.job_status = '/static/img/icons/done.jpg'
         job.save()
 
     else:
