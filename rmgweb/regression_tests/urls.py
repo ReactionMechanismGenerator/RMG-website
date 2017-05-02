@@ -30,10 +30,12 @@
 
 from django.conf.urls import url, include
 from rmgweb.regression_tests import views
-urlpatterns = [ 
+from django.http import HttpResponse
+urlpatterns = [
 
     # Database homepage
     url(r'^$', views.index),
     url(r'^add_job$', views.add_job, name='add_job'),
-    
+    url(r'^check_job_status_hello$', lambda request: HttpResponse('Hello World!'), name='hello_world'),
+    url(r'^check_job_status/(?P<job_id>\w+)$', views.check_job_status, name='check_job_status'),
 ]

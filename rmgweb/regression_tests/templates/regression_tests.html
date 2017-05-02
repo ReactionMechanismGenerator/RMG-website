@@ -97,10 +97,9 @@
             <h4>{{ job.rmgdb_branch }}</h4>
             <p>RMG dev</p>
           </div>
-          <!-- Mode 0 : wait, mode 1: done-->
-            <img src= {{ job.job_status }} style="max-width: 20px;"/>
-          <!-- <img class="{% if }" src="/media/wait.png" style="max-width: 20px;"/> -->
-
+          {% with "/static/img/icons/"|add:job.job_status|add:".png" as status %}
+            <img src="{{ status }}" style="max-width: 20px;"/>
+          {% endwith %}
         </md-list-item>
       {% endfor %}
       </md-list>

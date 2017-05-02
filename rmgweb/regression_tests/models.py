@@ -11,4 +11,4 @@ class RegressionTestJob(models.Model):
 
 	rmgdb_branch = models.TextField(default='')
 
-	job_status = models.TextField(default='')
+	job_status = models.TextField(default='wait')
