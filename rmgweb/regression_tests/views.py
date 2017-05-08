@@ -42,31 +42,10 @@ def add_job(request):
 
 def check_job_status(request,job_id):
     from django.http import HttpResponse
-    print('check')
-    #job_id = request.GET.get('job_id','')
-    print(job_id)
     job = RegressionTestJob.objects.get(id=int(job_id))
     return HttpResponse(job.job_status)
-    # return redirect('/regression_tests')
+
 def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
-    # import subprocess
-    # import os
-    # import threading
-    #
-    # #this thread will run every CHECK_FREQ and search for the INST_COMPLETE keyword
-    # search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['test_task_complete',job])
-    # search_thread.start()
-    #
-    # #Mocks waiting for a file to finish
-    # def write_to_file():
-    #     print('writing to file...')
-    #     task_file = open(FILE_LOCATION+'test_task_complete','w')
-    #     task_file.write('INSTALLATION COMPLETE')
-    #     task_file.close()
-    #
-    # writing_thread = threading.Timer(21,write_to_file)
-    # writing_thread.start()
-    #
     import subprocess
     import os
     import threading
@@ -130,3 +109,23 @@ def check_for_file_completion(file_name, job):
         print('FILE CRASHED')
         return
     threading.Timer(CHECK_FREQ,check_for_file_completion,[file_name,job]).start()
+
+#checks server output and returns true if still running
+def check_if_still_running(job):
+    import subprocess
+
+    file_name = 'queue.txt'
+
+    args = ['squeue','>',file_name]
+    subprocess.Popen(args)
+
+    queue_file = open(file_name,'r')
+    file_log = example_file.readlines()
+    queue_file.close()
+
+    #will look for the job and see if it is still in there
+    for line in file_log:
+        if job in line:
+            return True
+
+    return False

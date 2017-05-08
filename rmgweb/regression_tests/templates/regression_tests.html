@@ -20,7 +20,9 @@
   <script src="/static/js/angular/angular-material.min.js"></script>
 
   <script src="/static/js/regression_tests.js"></script>
+
 {% endblock %}
+
 
 {% block navbar_items %}
 <a href="{% url 'regression_tests.views.index' %}">Regression Tests</a>
@@ -29,6 +31,7 @@
 {% block page_title %}Regression Tests{% endblock %}
 
 {% block page_body %}
+
 <div ng-controller="BranchSelectorController as ctrl" layout="column" ng-cloak ng-app="branch_selector">
   <md-content class="layout-padding">
     <form method="POST" name="regressionTestsForm" action="../regression_tests/add_job">
@@ -98,7 +101,7 @@
             <p>RMG dev</p>
           </div>
           {% with "/static/img/icons/"|add:job.job_status|add:".png" as status %}
-            <img src="{{ status }}" style="max-width: 20px;"/>
+            <img class='job-status-img' id="{{ job.id }}" src="{{ status }}" style="max-width: 20px;"/>
           {% endwith %}
         </md-list-item>
       {% endfor %}
