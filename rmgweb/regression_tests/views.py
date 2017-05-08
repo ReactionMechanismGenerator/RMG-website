@@ -12,6 +12,7 @@ FILE_LOCATION = os.getcwd()+'/rmgweb/regression_tests/'
 #these are the keywords used to denote a complete file or complete installation
 TEST_COMPLETE = 'TEST JOB COMPLETE'
 INST_COMPLETE = 'INSTALLATION COMPLETE'
+FILE_CRASHED = 'FILE WRITING COMPLETE'
 
 #this is the number of seconds between each checking of the file.
 CHECK_FREQ = 5
@@ -66,22 +67,25 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     # writing_thread = threading.Timer(21,write_to_file)
     # writing_thread.start()
     #
-	import subprocess
-	import os
+    import subprocess
+    import os
+    import threading
 
-	jobs = 'eg1'
-	rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
-	command = ['bash',
-	           rmg_tests_script]
+    jobs = 'eg1'
+    rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
+    command = ['bash',
+    rmg_tests_script]
 
-	subprocess.Popen(command)
+    subprocess.Popen(command)
 
+    search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
+    search_thread.start()
 
 def check_for_task_completion(file_name, job):
     import threading
 
     #gets all lines from the file
-    example_file = open(FILE_LOCATION+file_name,'r')
+    example_file = open(file_name,'r')
     file_log = example_file.readlines()
     example_file.close()
 
@@ -91,7 +95,7 @@ def check_for_task_completion(file_name, job):
         #if so, the method will search for the file and see if it crashed or succeeded
         if INST_COMPLETE in line:
             print('FILE COMPLETE')
-            check_for_file_completion('test_file_complete', job)
+            check_for_file_completion('main_log.out', job)
             return
 
     #if the keyword was not found a new thread is created to continue the search
@@ -100,11 +104,12 @@ def check_for_task_completion(file_name, job):
 def check_for_file_completion(file_name, job):
     import subprocess
     import os
+    import threading
 
-    print('BEGIN SEARCH')
+    print('SEARCHING...')
 
     #gets all lines in file
-    example_file = open(FILE_LOCATION+file_name,'r')
+    example_file = open(file_name,'r')
     file_log = example_file.readlines()[::-1]
     example_file.close()
 
@@ -119,7 +124,9 @@ def check_for_file_completion(file_name, job):
             return
 
     #if the TEST_COMPLETE keyword is not found, the file has crashed and job_status is updated
-    job.job_status = 'crash'
-    job.save()
-    print('FILE CRASHED')
-    return
+    if FILE_CRASHED in file_log[0]:
+        job.job_status = 'crash'
+        job.save()
+        print('FILE CRASHED')
+        return
+    threading.Timer(CHECK_FREQ,check_for_file_completion,[file_name,job]).start()

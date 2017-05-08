@@ -31,7 +31,7 @@
 {% block page_body %}
 <div ng-controller="BranchSelectorController as ctrl" layout="column" ng-cloak ng-app="branch_selector">
   <md-content class="layout-padding">
-    <form method="POST" name="regressionTestsForm" action="http://localhost:8000/regression_tests/add_job">
+    <form method="POST" name="regressionTestsForm" action="../regression_tests/add_job">
       {% csrf_token %}
 
       <div layout-gt-sm="row">
