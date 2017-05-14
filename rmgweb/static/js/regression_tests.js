@@ -43,7 +43,6 @@
                 if(!(original[id] == result))
                 {
                   setTimeout(function(){ location.reload();}, refresh_frequency/2);
-                  $(this).load(documnt.URL + ' #'+id);
                 }
               },
           });
