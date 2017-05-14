@@ -50,12 +50,12 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     import os
     import threading
 
-    jobs = 'eg1'
-    rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
-    command = ['bash',
-    rmg_tests_script]
-
-    subprocess.Popen(command)
+    # jobs = 'eg1'
+    # rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
+    # command = ['bash',
+    # rmg_tests_script]
+    #
+    # subprocess.Popen(command)
 
     search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
     search_thread.start()
@@ -63,21 +63,15 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
 def check_for_task_completion(file_name, job):
     import threading
 
-    #gets all lines from the file
     example_file = open(file_name,'r')
     file_log = example_file.readlines()
     example_file.close()
 
-    #looks at the lines to see if the INST_COMPLETE keyword in them
-    print('WAITING FOR COMPLETION...')
     for line in file_log:
-        #if so, the method will search for the file and see if it crashed or succeeded
         if INST_COMPLETE in line:
-            print('FILE COMPLETE')
             check_for_file_completion('main_log.out', job)
             return
 
-    #if the keyword was not found a new thread is created to continue the search
     threading.Timer(CHECK_FREQ,check_for_task_completion,[file_name,job]).start()
 
 def check_for_file_completion(file_name, job):
@@ -85,32 +79,24 @@ def check_for_file_completion(file_name, job):
     import os
     import threading
 
-    print('SEARCHING...')
-
-    #gets all lines in file
     example_file = open(file_name,'r')
     file_log = example_file.readlines()[::-1]
     example_file.close()
 
-    #checks to see if any line in the file contains the TEST_COMPLETE keyword
     for line in file_log:
-        #if so, job_status is updated and a message is printed to the console
         if TEST_COMPLETE in line:
             test_name = line.split(':')[0]
             job.job_status = 'done'
             job.save()
-            print(test_name+ '-SUCCESSFUL')
             return
 
-    #if the TEST_COMPLETE keyword is not found, the file has crashed and job_status is updated
     if FILE_CRASHED in file_log[0]:
         job.job_status = 'crash'
         job.save()
-        print('FILE CRASHED')
         return
+
     threading.Timer(CHECK_FREQ,check_for_file_completion,[file_name,job]).start()
 
-#checks server output and returns true if still running
 def check_if_still_running(job):
     import subprocess
 

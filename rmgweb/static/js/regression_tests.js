@@ -18,25 +18,21 @@
   });
 
   $(document).ready(function() {
-        original_results = [];
+        original_results = {};
         url_job_status = '/regression_tests/check_job_status/';
-        //This value should be at least greater than 10000
-        refresh_frequency = 10000;//100 = 1 second.
+        refresh_frequency = 10000;
 
-        //We first collect the original statuses of the jobs on display
         $.each($('.job-status-img'), function(index) {
          id = $(this).attr("id");
          $.ajax({
              type: "GET",
              url: url_job_status + id,
              success: function (result) {
-               original_results.push(result);
+               original_results[id] = result;
              },
          });
        });
 
-       //This function will check every refresh_frequency to see if the statuses have changed
-       //Only if they do, then the full page will refresh to reflect the change
        function refresh(original) {
          $.each($('.job-status-img'), function(index) {
           id = $(this).attr("id");
@@ -44,11 +40,10 @@
               type: "GET",
               url: url_job_status + id,
               success: function (result) {
-                //This will only be true if the result is not the same as the image being displayed...
-                if(!(original[index] == result))
+                if(!(original[id] == result))
                 {
-                  //The timeout here is meant to reduce allow the results to fully fill before a reload is done
                   setTimeout(function(){ location.reload();}, refresh_frequency/2);
+                  $(this).load(documnt.URL + ' #'+id);
                 }
               },
           });
