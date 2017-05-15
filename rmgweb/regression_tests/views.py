@@ -116,7 +116,8 @@ def check_if_still_running(job):
 
     return False
 
-def check_queue():
+def check_queue(request):
+    from django.http import HttpResponse
     import subprocess
 
     file_name = 'queue.txt'
