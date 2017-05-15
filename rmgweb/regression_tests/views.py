@@ -115,3 +115,18 @@ def check_if_still_running(job):
             return True
 
     return False
+
+def check_queue():
+    import subprocess
+
+    file_name = 'queue.txt'
+
+    args = ['squeue','>',file_name]
+    subprocess.Popen(args)
+
+    queue_file = open(file_name,'r')
+    file_log = example_file.readlines()
+    queue_file.close()
+
+    #will look for the job and see if it is still in there
+    return HttpResponse(file_log)

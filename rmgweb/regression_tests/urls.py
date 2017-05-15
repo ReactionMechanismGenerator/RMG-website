@@ -37,4 +37,5 @@ urlpatterns = [
     url(r'^$', views.index),
     url(r'^add_job$', views.add_job, name='add_job'),
     url(r'^check_job_status/(?P<job_id>\w+)$', views.check_job_status, name='check_job_status'),
+    url(r'^check_queue$', views.check_queue, name='check_queue')
 ]
