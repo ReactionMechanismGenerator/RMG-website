@@ -166,3 +166,25 @@ INSTALLED_APPS = (
 # Settings relating to user account management
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'rmgweb':{
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        }
+    },
+}

@@ -18,41 +18,43 @@
   });
 
   $(document).ready(function() {
-    console.log('ready');
-        original_results = {};
-        url_job_status = '/regression_tests/check_job_status/';
-        refresh_frequency = 10000;
-
-        $.each($('.job-status-img'), function(index) {
-         id = $(this).attr("id");
-         $.ajax({
-             type: "GET",
-             url: url_job_status + id,
-             success: function (result) {
-               original_results[id] = result;
-             },
-         });
-       });
-       console.log(original_results);
-       function refresh(original) {
-         $.each($('.job-status-img'), function(index) {
-          id = $(this).attr("id");
-          $.ajax({
-              async: true,
-              type: "GET",
-              url: url_job_status + id,
-              success: function (result) {
-                if(!(original[id] == result))
-                {
-                  setTimeout(function(){ location.reload();}, refresh_frequency/2);
-                }
-              },
-          });
-        });
-       }
-       var auto_refresh = setInterval(function() { refresh(original_results) }, refresh_frequency);
-
-       refresh(original_results);
+    // console.log('ready');
+    //     original_results = {};
+    //     url_job_status = '/regression_tests/check_job_status/';
+    //     refresh_frequency = 10000;
+    //
+    //     $.each($('.job-status-img'), function(index) {
+    //      id = $(this).attr("id");
+    //      $.ajax({
+    //          type: "GET",
+    //          url: url_job_status + id,
+    //          success: function (result) {
+    //            original_results[id] = result;
+    //          },
+    //      });
+    //    });
+    //    console.log(original_results);
+    //    function refresh(original) {
+    //      $.ajaxPrefilter(function( options, original_Options, jqXHR ) {
+    //        options.async = true;
+    //     });
+    //      $.each($('.job-status-img'), function(index) {
+    //       id = $(this).attr("id");
+    //       $.ajax({
+    //           type: "GET",
+    //           url: url_job_status + id,
+    //           success: function (result) {
+    //             if(!(original[id] == result))
+    //             {
+    //               setTimeout(function(){ location.reload();}, refresh_frequency/2);
+    //             }
+    //           },
+    //       });
+    //     });
+    //    }
+    //    var auto_refresh = setInterval(function() { refresh(original_results) }, refresh_frequency);
+    //
+    //    refresh(original_results);
    });
 
   function BranchSelectorController ($timeout, $q, github_connector, $log) {

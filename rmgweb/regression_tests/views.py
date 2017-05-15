@@ -5,6 +5,7 @@ from rmgweb.regression_tests.models import RegressionTestJob
 from django.shortcuts import redirect
 from django.views.decorators.csrf import ensure_csrf_cookie
 import os
+import logging
 
 #Used to determine where to look for the file containing job results
 FILE_LOCATION = os.getcwd()+'/rmgweb/regression_tests/'
@@ -13,6 +14,7 @@ FILE_LOCATION = os.getcwd()+'/rmgweb/regression_tests/'
 TEST_COMPLETE = 'TEST JOB COMPLETE'
 INST_COMPLETE = 'INSTALLATION COMPLETE'
 FILE_CRASHED = 'FILE WRITING COMPLETE'
+logger = logging.getLogger(__name__)
 
 #this is the number of seconds between each checking of the file.
 CHECK_FREQ = 5
@@ -36,6 +38,7 @@ def add_job(request):
         job.job_status = 'wait'
         job.save()
         spawn_test_job(rmgpy_branch, rmgdb_branch, job)
+        logger.debug('redirecting')
         return redirect('/regression_tests')
     else:
         return redirect('/regression_tests')
@@ -50,6 +53,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     import os
     import threading
 
+    logger.debug('Starting new job')
     jobs = 'eg1'
     rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
     command = ['bash',
