@@ -50,12 +50,12 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     import os
     import threading
 
-    # jobs = 'eg1'
-    # rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
-    # command = ['bash',
-    # rmg_tests_script]
-    #
-    # subprocess.Popen(command)
+    jobs = 'eg1'
+    rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
+    command = ['bash',
+    rmg_tests_script]
+
+    subprocess.Popen(command)
 
     search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
     search_thread.start()
@@ -122,7 +122,7 @@ def check_queue(request):
 
     file_name = 'queue.txt'
 
-    args = ['squeue','>',file_name]
+    args = ['squeue','>>',file_name]
     subprocess.Popen(args)
 
     queue_file = open(file_name,'r')
