@@ -18,6 +18,7 @@
   });
 
   $(document).ready(function() {
+    console.log('ready');
         original_results = {};
         url_job_status = '/regression_tests/check_job_status/';
         refresh_frequency = 10000;
@@ -32,11 +33,12 @@
              },
          });
        });
-
+       console.log(original_results);
        function refresh(original) {
          $.each($('.job-status-img'), function(index) {
           id = $(this).attr("id");
           $.ajax({
+              async: true,
               type: "GET",
               url: url_job_status + id,
               success: function (result) {
