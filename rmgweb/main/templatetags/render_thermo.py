@@ -95,7 +95,7 @@ def render_thermo_math(thermo, user=None):
         
         if thermo.S298 is not None:
             result += '<tr>'
-            result += r'    <td class="key"><span class="math">\Delta S_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
+            result += r'    <td class="key"><span class="math">S^\circ(298 \ \mathrm{K})</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
             result += '</tr>\n'
