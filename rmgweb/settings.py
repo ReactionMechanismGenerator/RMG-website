@@ -179,13 +179,13 @@ LOGGING = {
         'debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'debug.log',
+            'filename': 'djangologs/debug.log',
             'formatter': 'verbose',
         },
         'error':{
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': 'error.log',
+            'filename': 'djangologs/error.log',
             'formatter': 'verbose',
         }
     },
