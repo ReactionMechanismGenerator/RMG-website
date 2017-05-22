@@ -14,7 +14,7 @@ FILE_LOCATION = os.getcwd()+'/rmgweb/regression_tests/'
 TEST_COMPLETE = 'TEST JOB COMPLETE'
 INST_COMPLETE = 'INSTALLATION COMPLETE'
 FILE_CRASHED = 'FILE WRITING COMPLETE'
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rmgweb')
 
 #this is the number of seconds between each checking of the file.
 CHECK_FREQ = 5
