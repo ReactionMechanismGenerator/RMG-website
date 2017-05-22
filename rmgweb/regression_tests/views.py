@@ -60,7 +60,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     command = ['bash',
     rmg_tests_script]
     logger.debug('calling',command)
-    subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout,stderr = subprocess.communicate()
 
