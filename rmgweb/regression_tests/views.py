@@ -65,6 +65,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     # subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     os.system('echo hello')
     os.system('bash /home/rmg/RMG-tests/local_tests/submit_serial.sl')
+    debug_file.close()
     # stdout,stderr = subprocess.communicate()
 
     # search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
