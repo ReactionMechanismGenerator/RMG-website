@@ -58,7 +58,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
     command = ['bash',
     rmg_tests_script]
-
+    logger.debug('calling',command)
     subprocess.call(command)
 
     search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
