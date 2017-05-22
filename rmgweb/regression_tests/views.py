@@ -62,7 +62,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     debug_file.write('command')
     logger.debug('calling',command)
     # subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    os.system('echo hello')
+    os.system("echo 'hello' > foo.text")
     os.system('bash /home/rmg/RMG-tests/local_tests/submit_serial.sl')
     debug_file.close()
     # stdout,stderr = subprocess.communicate()
