@@ -179,13 +179,13 @@ LOGGING = {
         'debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/var/logs/debug.log',
+            'filename': 'debug.log',
             'formatter': 'verbose',
         },
         'error':{
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/var/logs/error.log',
+            'filename': 'error.log',
             'formatter': 'verbose',
         }
     },
