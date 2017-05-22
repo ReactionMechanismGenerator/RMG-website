@@ -59,7 +59,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     command = ['bash',
     rmg_tests_script]
 
-    subprocess.Popen(command)
+    subprocess.call(command)
 
     search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
     search_thread.start()
@@ -107,7 +107,7 @@ def check_if_still_running(job):
     file_name = 'queue.txt'
 
     args = ['squeue','>',file_name]
-    subprocess.Popen(args)
+    subprocess.call(args)
 
     queue_file = open(file_name,'r')
     file_log = example_file.readlines()
@@ -127,7 +127,7 @@ def check_queue(request):
     file_name = 'queue.txt'
 
     args = ['squeue','>>',file_name]
-    subprocess.Popen(args)
+    subprocess.call(args)
 
     queue_file = open(file_name,'r')
     file_log = example_file.readlines()

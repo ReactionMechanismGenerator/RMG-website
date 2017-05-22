@@ -1,24 +1,3 @@
-(0.002) QUERY = "\n            SELECT name, type FROM sqlite_master\n            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'\n            ORDER BY name" - PARAMS = (); args=None
-(0.000) QUERY = u'SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"' - PARAMS = (); args=()
-(0.002) QUERY = "\n            SELECT name, type FROM sqlite_master\n            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'\n            ORDER BY name" - PARAMS = (); args=None
-(0.000) QUERY = u'SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"' - PARAMS = (); args=()
-(0.002) QUERY = u'SELECT "regression_tests_regressiontestjob"."id", "regression_tests_regressiontestjob"."developer", "regression_tests_regressiontestjob"."pull_request", "regression_tests_regressiontestjob"."rmgpy_branch", "regression_tests_regressiontestjob"."rmgdb_branch", "regression_tests_regressiontestjob"."job_status" FROM "regression_tests_regressiontestjob"' - PARAMS = (); args=()
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.003) QUERY = u'INSERT INTO "regression_tests_regressiontestjob" ("developer", "pull_request", "rmgpy_branch", "rmgdb_branch", "job_status") VALUES (%s, %s, %s, %s, %s)' - PARAMS = (u'', u'', u'master', u'master', u'wait'); args=['', '', u'master', u'master', 'wait']
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.001) QUERY = u'UPDATE "regression_tests_regressiontestjob" SET "developer" = %s, "pull_request" = %s, "rmgpy_branch" = %s, "rmgdb_branch" = %s, "job_status" = %s WHERE "regression_tests_regressiontestjob"."id" = %s' - PARAMS = (u'', u'', u'master', u'master', u'wait', 225); args=('', '', u'master', u'master', 'wait', 225)
-(0.002) QUERY = u'SELECT "regression_tests_regressiontestjob"."id", "regression_tests_regressiontestjob"."developer", "regression_tests_regressiontestjob"."pull_request", "regression_tests_regressiontestjob"."rmgpy_branch", "regression_tests_regressiontestjob"."rmgdb_branch", "regression_tests_regressiontestjob"."job_status" FROM "regression_tests_regressiontestjob"' - PARAMS = (); args=()
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.003) QUERY = u'UPDATE "regression_tests_regressiontestjob" SET "developer" = %s, "pull_request" = %s, "rmgpy_branch" = %s, "rmgdb_branch" = %s, "job_status" = %s WHERE "regression_tests_regressiontestjob"."id" = %s' - PARAMS = (u'', u'', u'master', u'master', u'done', 225); args=('', '', u'master', u'master', 'done', 225)
-(0.002) QUERY = "\n            SELECT name, type FROM sqlite_master\n            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'\n            ORDER BY name" - PARAMS = (); args=None
-(0.000) QUERY = u'SELECT "django_migrations"."app", "django_migrations"."name" FROM "django_migrations"' - PARAMS = (); args=()
-(0.002) QUERY = u'SELECT "regression_tests_regressiontestjob"."id", "regression_tests_regressiontestjob"."developer", "regression_tests_regressiontestjob"."pull_request", "regression_tests_regressiontestjob"."rmgpy_branch", "regression_tests_regressiontestjob"."rmgdb_branch", "regression_tests_regressiontestjob"."job_status" FROM "regression_tests_regressiontestjob"' - PARAMS = (); args=()
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.003) QUERY = u'INSERT INTO "regression_tests_regressiontestjob" ("developer", "pull_request", "rmgpy_branch", "rmgdb_branch", "job_status") VALUES (%s, %s, %s, %s, %s)' - PARAMS = (u'', u'', u'master', u'master', u'wait'); args=['', '', u'master', u'master', 'wait']
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.001) QUERY = u'UPDATE "regression_tests_regressiontestjob" SET "developer" = %s, "pull_request" = %s, "rmgpy_branch" = %s, "rmgdb_branch" = %s, "job_status" = %s WHERE "regression_tests_regressiontestjob"."id" = %s' - PARAMS = (u'', u'', u'master', u'master', u'wait', 226); args=('', '', u'master', u'master', 'wait', 226)
-Starting new job
-redirecting
-(0.002) QUERY = u'SELECT "regression_tests_regressiontestjob"."id", "regression_tests_regressiontestjob"."developer", "regression_tests_regressiontestjob"."pull_request", "regression_tests_regressiontestjob"."rmgpy_branch", "regression_tests_regressiontestjob"."rmgdb_branch", "regression_tests_regressiontestjob"."job_status" FROM "regression_tests_regressiontestjob"' - PARAMS = (); args=()
-(0.000) QUERY = u'BEGIN' - PARAMS = (); args=None
-(0.002) QUERY = u'UPDATE "regression_tests_regressiontestjob" SET "developer" = %s, "pull_request" = %s, "rmgpy_branch" = %s, "rmgdb_branch" = %s, "job_status" = %s WHERE "regression_tests_regressiontestjob"."id" = %s' - PARAMS = (u'', u'', u'master', u'master', u'done', 226); args=('', '', u'master', u'master', 'done', 226)
+
+DEBUG 2017-05-22 11:27:18,590 views: Starting new job
+DEBUG 2017-05-22 11:27:21,307 views: redirecting

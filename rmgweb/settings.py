@@ -170,20 +170,32 @@ LOGIN_REDIRECT_URL = '/'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s: %(message)s'
+        }
+    },
     'handlers': {
-        'file': {
+        'debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': 'debug.log',
+            'formatter': 'verbose',
         },
+        'error':{
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+            'formatter': 'verbose',
+        }
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
+            'handlers': ['error'],
+            'level': 'ERROR',
         },
         'rmgweb':{
-            'handlers': ['file'],
+            'handlers': ['debug'],
             'level': 'DEBUG',
         }
     },

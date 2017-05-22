@@ -1,0 +1,11 @@
+Internal Server Error: /regression_tests/check_queue
+Traceback (most recent call last):
+  File "/Users/DelRio/anaconda/envs/rmg_env/lib/python2.7/site-packages/django/core/handlers/base.py", line 132, in get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/DelRio/Desktop/RMG/RMG-website/rmgweb/regression_tests/views.py", line 130, in check_queue
+    subprocess.Popen(args)
+  File "/Users/DelRio/anaconda/envs/rmg_env/lib/python2.7/subprocess.py", line 390, in __init__
+    errread, errwrite)
+  File "/Users/DelRio/anaconda/envs/rmg_env/lib/python2.7/subprocess.py", line 1024, in _execute_child
+    raise child_exception
+OSError: [Errno 2] No such file or directory
