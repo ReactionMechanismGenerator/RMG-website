@@ -52,6 +52,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     import os
     import threading
 
+    print >>sys.stderr, 'starting new job'
     logger.debug('Starting new job')
     jobs = 'eg1'
     rmg_tests_script = os.path.join(os.environ["RMGTESTS"], 'local_tests', 'submit_serial.sl')
