@@ -51,6 +51,7 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     import subprocess
     import os
     import threading
+    import sys
 
     print >>sys.stderr, 'starting new job'
     logger.debug('Starting new job')
