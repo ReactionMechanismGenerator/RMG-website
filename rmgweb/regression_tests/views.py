@@ -38,7 +38,6 @@ def add_job(request):
         job.job_status = 'wait'
         job.save()
         spawn_test_job(rmgpy_branch, rmgdb_branch, job)
-        logger.debug('redirecting')
         return redirect('/regression_tests')
     else:
         return redirect('/regression_tests')
@@ -59,10 +58,10 @@ def spawn_test_job(rmgpy_branch, rmgdb_branch, job):
     command = ['bash',
     rmg_tests_script]
     logger.debug('calling',command)
-    subprocess.call(command)
+    # subprocess.call(command)
 
-    search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
-    search_thread.start()
+    # search_thread = threading.Timer(CHECK_FREQ,check_for_task_completion,['main_log.out',job])
+    # search_thread.start()
 
 def check_for_task_completion(file_name, job):
     import threading
