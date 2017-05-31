@@ -12,13 +12,15 @@
 function resolve(fieldName){
    var spField = $('#id_'+fieldName);
    var identifier = $('#id_'+fieldName+'_identifier').val();
-   var url = '/adjacencylist/'+escape(identifier);
+   var url = '/adjacencylist/' + encodeURI(identifier);
    spField.val("Loading...");
    var jqxhr = $.get(url,function(structure) {
-                     spField.val(structure);
-                     spField.change();
-                  })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+                    spField.val(structure);
+                    spField.change();
+                })
+                .fail(function(obj, status, error) {
+                    spField.val(error+'\n'+obj.responseText.split('\n')[0]);
+                });
 };
 // convert an adjancency list into an image url
 function adjlist2img(s) {
