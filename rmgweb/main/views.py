@@ -278,12 +278,18 @@ def drawMolecule(request, adjlist):
     """
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
+    from rmgpy.molecule.adjlist import InvalidAdjacencyListError
+    from django.templatetags.static import static
 
     adjlist = str(urllib.unquote(adjlist))
-    molecule = Molecule().fromAdjacencyList(adjlist)
 
-    response = HttpResponse(content_type="image/svg+xml")
-    MoleculeDrawer().draw(molecule, format='svg', target=response)
+    try:
+        molecule = Molecule().fromAdjacencyList(adjlist)
+    except InvalidAdjacencyListError:
+        response = HttpResponseRedirect(static('img/invalid_icon.png'))
+    else:
+        response = HttpResponse(content_type="image/svg+xml")
+        MoleculeDrawer().draw(molecule, format='svg', target=response)
 
     return response
 
