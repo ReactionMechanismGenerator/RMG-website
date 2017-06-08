@@ -58,10 +58,6 @@
 <li><a href="{% url 'database.views.transport' section='groups' %}">Transport Groups</a></li>
 </ul>
 
-<h3>Export Database</h3>
+<h3><a href="https://github.com/ReactionMechanismGenerator/RMG-database/archive/{{ dc }}.zip" target="_blank">Download Database</a></h3>
 
-<ul>
-<li><a href="{% url 'database.views.export' type='zip' %}" target="_blank">zip</a></li>
-<li><a href="{% url 'database.views.export' type='tar.gz' %}" target="_blank">tar.gz</a></li>
-</ul>
 {% endblock %}

@@ -12,7 +12,7 @@
 function resolve(){
     var spField = $('#id_species');
     var identifier = $('#id_species_identifier').val();
-    var url = '/adjacencylist/' + encodeURIComponent(identifier);
+    var url = '/adjacencylist/' + encodeURI(identifier);
     spField.val("Loading...");
     $('.result').hide();
     var jqxhr = $.get(url,function(structure) {

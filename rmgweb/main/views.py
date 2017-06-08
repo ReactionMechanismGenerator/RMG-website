@@ -196,6 +196,7 @@ def getAdjacencyList(request, identifier):
     is the SMILES for water.
     """
     from rmgpy.molecule import AtomTypeError
+    from ssl import SSLError
 
     if identifier.strip() == '':
         return HttpResponse('', content_type="text/plain")
@@ -221,6 +222,8 @@ def getAdjacencyList(request, identifier):
                 f = urllib2.urlopen(url, timeout=5)
             except urllib2.URLError, e:
                 return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
+            except SSLError:
+                return HttpResponse('NCI resolver timed out, please try again.', status=504)
             smiles = f.read()
         try:
             molecule.fromSMILES(smiles)
@@ -278,12 +281,18 @@ def drawMolecule(request, adjlist):
     """
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
+    from rmgpy.molecule.adjlist import InvalidAdjacencyListError
+    from django.templatetags.static import static
 
     adjlist = str(urllib.unquote(adjlist))
-    molecule = Molecule().fromAdjacencyList(adjlist)
 
-    response = HttpResponse(content_type="image/svg+xml")
-    MoleculeDrawer().draw(molecule, format='svg', target=response)
+    try:
+        molecule = Molecule().fromAdjacencyList(adjlist)
+    except InvalidAdjacencyListError:
+        response = HttpResponseRedirect(static('img/invalid_icon.png'))
+    else:
+        response = HttpResponse(content_type="image/svg+xml")
+        MoleculeDrawer().draw(molecule, format='svg', target=response)
 
     return response
 
