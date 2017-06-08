@@ -263,6 +263,8 @@ def cactusResolver(request, query):
     The reason we have to forward the request from our own server is so that we can 
     use it via ajax, avoiding cross-domain scripting security constraints.
     """
+    from ssl import SSLError
+
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
    
@@ -271,6 +273,8 @@ def cactusResolver(request, query):
         f = urllib2.urlopen(url, timeout=5)
     except urllib2.URLError, e:
         return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
+    except SSLError:
+        return HttpResponse('NCI resolver timed out, please try again.', status=504)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
     
