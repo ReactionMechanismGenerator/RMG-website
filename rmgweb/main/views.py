@@ -28,7 +28,7 @@
 #
 ################################################################################
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 import django.contrib.auth.views
@@ -42,6 +42,7 @@ from social_django.models import UserSocialAuth
 import urllib, urllib2
 
 from forms import *
+from rmgweb.rmg.models import Chemkin
 import os
 import re
 
@@ -199,6 +200,42 @@ def editProfile(request):
         makePasswordForm = PasswordCreateForm(error_class=DivErrorList)
 
     return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm, 'makePasswordForm': makePasswordForm, 'github_login': github_login, 'can_disconnect': can_disconnect}, context_instance=RequestContext(request))
+
+def fileArchive(request):
+    username = request.user.username
+    path = os.path.join(settings.MEDIA_ROOT, username)
+    flux = []
+    #chemkin = []
+    chemkin = Chemkin.objects.filter(userid = request.user)
+    cheminfo = {}
+    for obj in chemkin:
+        timestr = str(obj.time)
+        timestr = timestr.replace(':','.')[:len(timestr)-7]
+        cheminfo[timestr] = (obj.pk, obj.time, ())
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            if 'flux' in root and (f.endswith('.avi') or f.endswith('.inp') or f.endswith('.py') or 'dictionary' in f):
+                full = os.path.join(root, f)
+                index = full.index('media')
+                flux.append(full[index:])
+
+            if 'chemkin' in root and (f.endswith('.html') or f.endswith('.inp') or 'Dictionary' in f):
+                full = os.path.join(root, f)
+                ind = full.index('media')
+                time = full[full.index('tools\chemkin')+14:full.index('tools\chemkin')+33]
+                if time in cheminfo.keys():
+                    cheminfo[time] = cheminfo[time][:2]+(cheminfo[time][2]+((full[ind:],f),),)
+
+    chemkin = [cheminfo[key] for key in sorted(cheminfo)]
+
+    return render_to_response('fileArchive.html', {'username': username, 'prefix': path, 'chemkin': chemkin, 'flux': flux}, context_instance=RequestContext(request))
+
+def deleteObj(request, pkey):
+    chemkin = get_object_or_404(Chemkin, pk=pkey)
+    path = chemkin.path
+
+    chemkin.delete()
+    return HttpResponseRedirect(reverse(fileArchive))
 
 def getAdjacencyList(request, identifier):
     """

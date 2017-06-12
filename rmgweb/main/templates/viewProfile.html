@@ -55,7 +55,8 @@ table.networks th {
 
 {% if user == user0 %}
 <p>
-   <a href="{% url 'rmgweb.main.views.editProfile' %}" title="Edit profile"><button>Edit Profile</button></a>
+   <a href="{% url 'rmgweb.main.views.editProfile' %}" title="Edit profile"><button>Edit Profile</button></a><br><br><br>
+   <a href="{% url 'rmgweb.main.views.fileArchive' %}" title="View saved files"><button>View Saved Files</button></a>
 </p>
 {% endif %}
 

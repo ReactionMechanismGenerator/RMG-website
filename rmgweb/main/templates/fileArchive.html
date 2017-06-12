@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ user.username }}'s File History - RMG{% endblock %}
+
+{% block extrahead %}
+<link href="{% static 'css/main.css' %}" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+td.fieldValue input, td.fieldValue textarea {
+    width: 400px;
+}
+
+td.section {
+    color: #993333;
+    font-size: 125%;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block navbar_items %}{% endblock %}
+
+{% block page_title %}{{ user.username }}'s File History{% endblock %}
+
+{% block page_body %}
+{% if chemkin %}
+    <div id="chemkin">
+    <b>Visualize Chemkin</b><br>
+    
+    {% for value in chemkin %}
+        {{value.1}} -- <a href="{% url 'rmgweb.main.views.deleteObj' pkey=value.0 %}">Delete this entry</a>
+        <ul>
+        {% for entry in value.2 %}
+            <li><a href ="../{{entry.0}}">{{entry.1}}</a>
+        {% endfor %}
+        </ul>
+    {% endfor%}
+   
+    </div>
+    <hr />
+{% endif %}
+
+{% if flux %}
+<div id="flux">
+<b>Flux Diagram Generator</b>
+<ul>
+{% for item in flux %}
+<li><a href ="../{{item}}">{{item}}</a>
+{% endfor%}
+</ul>
+</div>
+<hr />
+{% endif %}
+
+{% endblock %}

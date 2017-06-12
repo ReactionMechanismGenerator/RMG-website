@@ -46,7 +46,8 @@ class UploadChemkinForm(forms.ModelForm):
     """
     class Meta:
         model = Chemkin
-        fields = '__all__'
+        #fields = '__all__'
+        fields = ('ChemkinFile', 'DictionaryFile', 'Foreign')
 
 class ModelCompareForm(forms.ModelForm):
     """
