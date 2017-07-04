@@ -12,7 +12,7 @@
 function resolve(fieldName){
    var spField = $('#id_'+fieldName);
    var identifier = $('#id_'+fieldName+'_identifier').val();
-   var url = '/adjacencylist/' + encodeURI(identifier);
+   var url = '/adjacencylist/' + escape(identifier);
    spField.val("Loading...");
    var jqxhr = $.get(url,function(structure) {
                     spField.val(structure);
