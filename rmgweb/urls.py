@@ -110,6 +110,9 @@ urlpatterns = [
     
 ]
 
+# Set custom 500 handler
+handler500 = 'rmgweb.main.views.custom500'
+
 # When developing in Django we generally don't have a web server available to
 # serve static media; this code enables serving of static media by Django
 # DO NOT USE in a production environment!

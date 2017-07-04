@@ -29,8 +29,8 @@
 ################################################################################
 
 from django.shortcuts import render_to_response
-from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.template import RequestContext, loader
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 import django.contrib.auth.views
 from django.core.urlresolvers import reverse
 from django.contrib import auth
@@ -347,3 +347,10 @@ def rebuild(request):
     with file(rebuild_filename, 'a'):
             os.utime(rebuild_filename, None)
     return HttpResponseRedirect('/')
+
+def custom500(request):
+    import sys, traceback
+    template = loader.get_template('500.html')
+    etype, value = sys.exc_info()[:2]
+    exception = ''.join(traceback.format_exception_only(etype, value)).strip()
+    return HttpResponseServerError(template.render(context={'exception': exception}))

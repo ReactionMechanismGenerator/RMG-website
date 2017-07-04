@@ -19,7 +19,24 @@ RMG Server Error
 {% endblock %}
 
 {% block page_body %}
-<p>Sorry, we made a mistake.</p>
-<p>Would you like to <a href="https://github.com/ReactionMechanismGenerator/RMG-website/issues" title="RMG Website Issue Tracker">tell us about it</a>?</p>
+<p>
+Sorry, an internal error was encountered.
+</p>
+
+{% if exception %}
+<p>
+The error message is as follows:
+</p>
+
+<div style="background-color: #dddddd; margin: 0 10px;">
+<pre style="padding: 10px; overflow-x: auto">
+{{ exception }}
+</pre>
+</div>
+{% endif %}
+
+<p>
+This error has been logged, but you can also tell us about it on <a href="https://github.com/ReactionMechanismGenerator/RMG-website/issues" title="RMG Website Issue Tracker">GitHub</a>.
+</p>
 
 {% endblock %}
