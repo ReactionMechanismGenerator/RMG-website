@@ -747,9 +747,10 @@ class Input(models.Model):
             # Sensitivity Analysis
             sensitiveSpecies = []
             if item.sensitivity:
-                if isinstance(item.sensitivity.encode(), str): sensitivity = item.sensitivity.encode().split(',').strip()
+                if isinstance(item.sensitivity.encode(), str):
+                    sensitivity = item.sensitivity.encode().split(',')
                 for spec in sensitivity:
-                    sensitiveSpecies.append(speciesDict[spec])
+                    sensitiveSpecies.append(speciesDict[spec.strip()])
             system = SimpleReactor(T, P, initialMoleFractions, termination, sensitiveSpecies, item.sensitivityThreshold)
             self.rmg.reactionSystems.append(system)
     
