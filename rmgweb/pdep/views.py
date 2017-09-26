@@ -74,8 +74,8 @@ def networkIndex(request, networkKey):
     indicated by `networkKey`.
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
-    
-    # Get file sizes of files in 
+
+    # Get file sizes of files in
     filesize = {}; modificationTime = {}
     if networkModel.inputFileExists():
         filesize['inputFile'] = '{0:.1f}'.format(os.path.getsize(networkModel.getInputFilename()))
@@ -97,7 +97,7 @@ def networkIndex(request, networkKey):
         modificationTime['surfaceFileSVG'] = time.ctime(os.path.getmtime(networkModel.getSurfaceFilenameSVG()))
 
     network = networkModel.load()
-        
+
     # Get species information
     speciesList = []
     if network is not None:
@@ -115,7 +115,7 @@ def networkIndex(request, networkKey):
             conformer = 'yes' if spec.conformer is not None else ''
             thermo = 'yes' if spec.conformer is not None or spec.thermo is not None else ''
             speciesList.append((spec.label, getStructureMarkup(spec), ', '.join(speciesType), collision, conformer, thermo))
-    
+
     # Get path reaction information
     pathReactionList = []
     if network is not None:
@@ -126,7 +126,7 @@ def networkIndex(request, networkKey):
             conformer = 'yes' if rxn.transitionState.conformer is not None else ''
             kinetics = 'yes' if rxn.kinetics is not None else ''
             pathReactionList.append((reactants, arrow, products, conformer, kinetics))
-    
+
     # Get net reaction information
     netReactionList = []
     if network is not None:
@@ -136,18 +136,18 @@ def networkIndex(request, networkKey):
             arrow = '&hArr;' if rxn.reversible else '&rarr;'
             kinetics = 'yes' if rxn.kinetics is not None else ''
             netReactionList.append((reactants, arrow, products, kinetics))
-    
+
     return render_to_response(
-        'networkIndex.html', 
+        'networkIndex.html',
         {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'speciesList': speciesList, 
-            'pathReactionList': pathReactionList, 
-            'netReactionList': netReactionList, 
-            'filesize': filesize, 
+            'network': networkModel,
+            'networkKey': networkKey,
+            'speciesList': speciesList,
+            'pathReactionList': pathReactionList,
+            'netReactionList': netReactionList,
+            'filesize': filesize,
             'modificationTime': modificationTime,
-        }, 
+        },
         context_instance=RequestContext(request),
     )
 
@@ -209,17 +209,17 @@ def networkDrawPNG(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in PNG format.
     """
-    
+
     networkModel = get_object_or_404(Network, pk=networkKey)
-    
+
     networkModel.load()
     # Run CanTherm! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
-        plot = False, 
+        plot = False,
         format = 'png'
     )
-    
+
     # Go back to the network's main page
     return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
@@ -228,17 +228,17 @@ def networkDrawPDF(request, networkKey):
     A view called when a user wants to draw the potential energy surface for
     a given Network in PDF format.
     """
-    
+
     networkModel = get_object_or_404(Network, pk=networkKey)
-    
+
     networkModel.load()
     # Run CanTherm! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
-        plot = False, 
+        plot = False,
         format = 'pdf'
     )
-    
+
     # Go back to the network's main page
     return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
@@ -246,17 +246,17 @@ def networkDrawSVG(request, networkKey):
     """
     A view called when a user wants to draw the potential energy surface for
     a given Network in SVG format.
-    """    
+    """
     networkModel = get_object_or_404(Network, pk=networkKey)
-    
+
     networkModel.load()
     # Run CanTherm! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
-        plot = False, 
+        plot = False,
         format = 'svg'
     )
-    
+
     # Go back to the network's main page
     return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
@@ -266,15 +266,15 @@ def networkRun(request, networkKey):
     given Network.
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
-    
+
     networkModel.load()
     # Run CanTherm! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
-        plot = False, 
+        plot = False,
         format = 'png'
     )
-    
+
     # Go back to the network's main page
     return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
 
@@ -285,7 +285,7 @@ def networkSpecies(request, networkKey, species):
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     network = networkModel.load()
-    
+
     label = species
     for spec in network.getAllSpecies():
         if spec.label == label:
@@ -293,7 +293,7 @@ def networkSpecies(request, networkKey, species):
             break
     else:
         raise Http404
-    
+
     structure = getStructureMarkup(species)
     E0 = None
     if species.conformer:
@@ -301,18 +301,18 @@ def networkSpecies(request, networkKey, species):
         hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
         if conformer.E0:
             E0 = '{0:g}'.format(conformer.E0.value_si / 4184.)  # convert to kcal/mol
-    
+
     return render_to_response(
-        'networkSpecies.html', 
+        'networkSpecies.html',
         {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'species': species, 
+            'network': networkModel,
+            'networkKey': networkKey,
+            'species': species,
             'label': label,
             'structure': structure,
             'E0': E0,
             'hasTorsions': hasTorsions,
-        }, 
+        },
         context_instance=RequestContext(request),
     )
 
@@ -321,7 +321,7 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
     Compute all of the microcanonical rate coefficients k(E) for the given
     network.
     """
-    
+
     network.T = T
     if network.Elist is None:
         Elist = network.selectEnergyGrains(T=2000, grainSize=0.5*4184, grainCount=250)
@@ -337,7 +337,7 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
 #
 #    # Get ground-state energies of all configurations
 #    E0 = network.calculateGroundStateEnergies()
-#    
+#
 #    # Get first reactive grain for each isomer
 #    Ereac = numpy.ones(Nisom, numpy.float64) * 1e20
 #    for i in range(Nisom):
@@ -362,7 +362,7 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
     else:
         Jlist = network.Jlist = numpy.array([0], numpy.int)
         NJ = network.NJ = 1
-                    
+
     if not hasattr(network, 'densStates'):
         # Calculate density of states for each isomer and each reactant channel
         # that has the necessary parameters
@@ -370,13 +370,13 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
         # Map the densities of states onto this set of energies
         # Also shift each density of states to a common zero of energy
         network.mapDensitiesOfStates()
-        
+
         # Use free energy to determine equilibrium ratios of each isomer and product channel
         network.calculateEquilibriumRatios()
         network.calculateMicrocanonicalRates()
-        
-    
-    
+
+
+
     # Rescale densities of states such that, when they are integrated
     # using the Boltzmann factor as a weighting factor, the result is unity
     for i in range(Nisom+Nreac):
@@ -384,15 +384,15 @@ def computeMicrocanonicalRateCoefficients(network, T=1000):
         for s in range(NJ):
             Q += numpy.sum(network.densStates[i,:,s] * (2*Jlist[s]+1) * numpy.exp(-Elist / constants.R / T))
         network.densStates[i,:,:] /= Q
-        
-    
-    
+
+
+
     Kij = network.Kij
     Gnj = network.Gnj
     Fim = network.Fim
     densStates0 = network.densStates
     #Elist += Emin
-    
+
     return Kij, Gnj, Fim, Elist, densStates0, Nisom, Nreac, Nprod
 
 def networkPathReaction(request, networkKey, reaction):
@@ -402,7 +402,7 @@ def networkPathReaction(request, networkKey, reaction):
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     network = networkModel.load()
-    
+
     try:
         index = int(reaction)
     except ValueError:
@@ -411,20 +411,20 @@ def networkPathReaction(request, networkKey, reaction):
         reaction = network.pathReactions[index-1]
     except IndexError:
         raise Http404
-    
+
     E0 = '{0:g}'.format(reaction.transitionState.conformer.E0.value_si / 4184.) # convert to kcal/mol
-    
+
     conformer = reaction.transitionState.conformer
     hasTorsions = conformer and any([isinstance(mode, HinderedRotor) for mode in conformer.modes])
     kinetics = reaction.kinetics
-    
+
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
-    
-    
+
+
     reactants = [reactant.species for reactant in network.reactants]
     products = [product.species for product in network.products]
     isomers = [isomer.species[0] for isomer in network.isomers]
-    
+
     if reaction.isIsomerization():
         reac = isomers.index(reaction.reactants[0])
         prod = isomers.index(reaction.products[0])
@@ -452,24 +452,24 @@ def networkPathReaction(request, networkKey, reaction):
             prod = reactants.index(reaction.products)
             kflist = Gnj[prod,reac,:]
             krlist = []
-        
+
     microcanonicalRates = {
         'Edata': list(Elist),
         'kfdata': list(kflist),
         'krdata': list(krlist),
     }
-    
-        
+
+
     reactants_render = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
     products_render = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    
+
     return render_to_response(
-        'networkPathReaction.html', 
+        'networkPathReaction.html',
         {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'reaction': reaction, 
+            'network': networkModel,
+            'networkKey': networkKey,
+            'reaction': reaction,
             'index': index,
             'reactants': reactants_render,
             'products': products_render,
@@ -479,7 +479,7 @@ def networkPathReaction(request, networkKey, reaction):
             'hasTorsions': hasTorsions,
             'kinetics': kinetics,
             'microcanonicalRates': microcanonicalRates,
-        }, 
+        },
         context_instance=RequestContext(request),
     )
 
@@ -490,7 +490,7 @@ def networkNetReaction(request, networkKey, reaction):
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     network = networkModel.load()
-    
+
     try:
         index = int(reaction)
     except ValueError:
@@ -499,25 +499,25 @@ def networkNetReaction(request, networkKey, reaction):
         reaction = network.netReactions[index-1]
     except IndexError:
         raise Http404
-    
+
     reactants = ' + '.join([getStructureMarkup(reactant) for reactant in reaction.reactants])
     products = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    
+
     kinetics = reaction.kinetics
-    
+
     return render_to_response(
-        'networkNetReaction.html', 
+        'networkNetReaction.html',
         {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'reaction': reaction, 
+            'network': networkModel,
+            'networkKey': networkKey,
+            'reaction': reaction,
             'index': index,
             'reactants': reactants,
             'products': products,
             'arrow': arrow,
             'kinetics': kinetics,
-        }, 
+        },
         context_instance=RequestContext(request),
     )
 
@@ -528,7 +528,7 @@ def networkPlotKinetics(request, networkKey):
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     network = networkModel.load()
-    
+
     configurations = []
     for isomer in network.isomers:
         configurations.append([isomer])
@@ -539,11 +539,11 @@ def networkPlotKinetics(request, networkKey):
         labels = [spec.label for spec in configuration]
         labels.sort()
         configurationLabels.append(u' + '.join(labels))
-    
+
     source = configurations[0]
     T = 1000
     P = 1e5
-    
+
     if request.method == 'POST':
         form = PlotKineticsForm(configurationLabels, request.POST)
         if form.is_valid():
@@ -552,25 +552,25 @@ def networkPlotKinetics(request, networkKey):
             P = form.cleaned_data['P'] * 1e5
     else:
         form = PlotKineticsForm(configurationLabels)
-    
+
     kineticsSet = {}
     for rxn in network.netReactions:
         if rxn.reactants == source:
             products = u' + '.join([spec.label for spec in rxn.products])
             kineticsSet[products] = rxn.kinetics
-    
+
     return render_to_response(
-        'networkPlotKinetics.html', 
+        'networkPlotKinetics.html',
         {
             'form': form,
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'configurations': configurations, 
+            'network': networkModel,
+            'networkKey': networkKey,
+            'configurations': configurations,
             'source': source,
             'kineticsSet': kineticsSet,
             'T': T,
             'P': P,
-        }, 
+        },
         context_instance=RequestContext(request),
     )
 
@@ -581,16 +581,16 @@ def networkPlotMicro(request, networkKey):
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     network = networkModel.load()
-    
+
     Kij, Gnj, Fim, Elist, densStates, Nisom, Nreac, Nprod = computeMicrocanonicalRateCoefficients(network)
-    
+
     densityOfStatesData = []
-    
-        
+
+
     reactants = [reactant.species for reactant in network.reactants]
     products = [product.species for product in network.products]
     isomers = [isomer.species[0] for isomer in network.isomers]
-    
+
     for i, species in enumerate(isomers):
         densityOfStatesData.append({
             'label': species.label,
@@ -603,14 +603,14 @@ def networkPlotMicro(request, networkKey):
             'Edata': list(Elist),
             'rhodata': list(densStates[n+Nisom,:]),
         })
-    
+
     microKineticsData = []
     for reaction in network.pathReactions:
-        
+
         reactants_render = ' + '.join([reactant.label for reactant in reaction.reactants])
         arrow = '='
         products_render = ' + '.join([product.label for product in reaction.products])
-        
+
         if reaction.isIsomerization():
             if reaction.reactants[0] in isomers and reaction.products[0] in isomers:
                 reac = isomers.index(reaction.reactants[0])
@@ -649,7 +649,7 @@ def networkPlotMicro(request, networkKey):
                 prod = reactants.index(reaction.products)
                 kflist = Gnj[prod,reac,:]
                 krlist = []
-            
+
         if len(kflist) > 0:
             microKineticsData.append({
                 'label': '{0} {1} {2}'.format(reactants_render, arrow, products_render),
@@ -662,14 +662,14 @@ def networkPlotMicro(request, networkKey):
                 'Edata': list(Elist),
                 'kdata': list(krlist),
             })
-    
+
     return render_to_response(
-        'networkPlotMicro.html', 
+        'networkPlotMicro.html',
         {
-            'network': networkModel, 
-            'networkKey': networkKey, 
+            'network': networkModel,
+            'networkKey': networkKey,
             'densityOfStatesData': densityOfStatesData,
             'microKineticsData': microKineticsData,
-        }, 
+        },
         context_instance=RequestContext(request),
     )

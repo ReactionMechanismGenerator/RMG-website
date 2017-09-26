@@ -70,7 +70,7 @@ def convertChemkin(request):
     chemkin.setReqObj(request)
     path = ''
     chemkin.deleteDir()
-    
+
     if request.method == 'POST':
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         if form.is_valid():
@@ -78,6 +78,7 @@ def convertChemkin(request):
             timestr = str(chemkin.getTime())
             timestr = timestr.replace(':','.')[:len(timestr)-7]
             userid = chemkin.getUsername()
+            form.cleaned_data['name'] = userid
             path = 'media/'+userid+'/rmg/tools/chemkin/'+timestr+'/output.html'
             # Generate the output HTML file
             chemkin.createOutput()
@@ -88,7 +89,7 @@ def convertChemkin(request):
     # Otherwise create the form
     else:
         form = UploadChemkinForm(instance=chemkin)
-        
+
     return render_to_response('chemkinUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
 def convertAdjlists(request):
@@ -99,7 +100,7 @@ def convertAdjlists(request):
     conversion.setReqObj(request)
     path = ''
     conversion.deleteDir()
-    
+
     if request.method == 'POST':
         form = UploadDictionaryForm(request.POST, request.FILES, instance=conversion)
         if form.is_valid():
@@ -116,7 +117,7 @@ def convertAdjlists(request):
     # Otherwise create the form
     else:
         form = UploadDictionaryForm(instance=conversion)
-        
+
     return render_to_response('dictionaryUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
 
 def compareModels(request):
@@ -151,14 +152,14 @@ def compareModels(request):
 
 def mergeModels(request):
     """
-    Merge 2 RMG models with their chemkin and species dictionaries.  
+    Merge 2 RMG models with their chemkin and species dictionaries.
     Produces a merged chemkin file and species dictionary.
     """
     model = Diff()
     model.setReqObj(request)
     path = ''
     model.deleteDir()
-    
+
     if request.method == 'POST':
         form = ModelCompareForm(request.POST, request.FILES, instance = model)
         if form.is_valid():
@@ -218,7 +219,7 @@ def runPopulateReactions(request):
     outputPath = ''
     chemkinPath = ''
     populateReactions.deleteDir()
-    
+
     if request.method == 'POST':
         form = PopulateReactionsForm(request.POST, request.FILES, instance=populateReactions)
         if form.is_valid():
@@ -237,25 +238,25 @@ def runPopulateReactions(request):
     # Otherwise create the form
     else:
         form = PopulateReactionsForm(instance=populateReactions)
-        
+
     return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
 
 
 
 def input(request):
-    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm, 
+    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm,
                                                  BaseInlineFormSet, extra=1, can_delete=True)
-    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm, 
+    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm,
                                                    BaseInlineFormSet, extra=1, can_delete=True)
-    ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm, 
+    ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm,
                                                   BaseInlineFormSet, extra = 1, can_delete=True)
-    ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm, 
+    ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm,
                                            BaseInlineFormSet, extra = 1, can_delete=True)
 
     Input.objects.all().delete()
     input = Input()
     input.deleteDir()
-    
+
     uploadform = UploadInputForm(instance=input)
     form = InputForm(instance=input)
     thermolibformset = ThermoLibraryFormset(instance=input)
@@ -263,34 +264,34 @@ def input(request):
     reactorspecformset = ReactorSpeciesFormset(instance=input)
     reactorformset = ReactorFormset(instance=input)
     upload_error = ''
-    input_error = ''    
-    
+    input_error = ''
+
     if request.method == 'POST':
         input.createDir()
-        
+
         # Load an input file into the form by uploading it
         if "upload" in request.POST:
             uploadform = UploadInputForm(request.POST, request.FILES, instance=input)
             if uploadform.is_valid():
                 uploadform.save()
                 initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial = input.loadForm(input.loadpath)
-                
+
                 # Make the formsets the lengths of the initial data
                 if initial_thermo_libraries:
-                    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm, BaseInlineFormSet, 
+                    ThermoLibraryFormset = inlineformset_factory(Input, ThermoLibrary, ThermoLibraryForm, BaseInlineFormSet,
                                                                  extra=len(initial_thermo_libraries), can_delete=True)
                 if initial_reaction_libraries:
-                    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm, BaseInlineFormSet, 
+                    ReactionLibraryFormset = inlineformset_factory(Input, ReactionLibrary, ReactionLibraryForm, BaseInlineFormSet,
                                                                extra=len(initial_reaction_libraries), can_delete=True)
-                ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm, BaseInlineFormSet, 
+                ReactorSpeciesFormset = inlineformset_factory(Input, ReactorSpecies, ReactorSpeciesForm, BaseInlineFormSet,
                                                               extra=len(initial_species), can_delete=True)
-                ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm, BaseInlineFormSet, 
+                ReactorFormset = inlineformset_factory(Input, Reactor, ReactorForm, BaseInlineFormSet,
                                                        extra = len(initial_reactor_systems), can_delete=True)
                 thermolibformset = ThermoLibraryFormset()
                 reactionlibformset = ReactionLibraryFormset()
                 reactorspecformset = ReactorSpeciesFormset()
                 reactorformset = ReactorFormset()
-                
+
                 # Load the initial data into the forms
                 form = InputForm(initial = initial)
                 for subform, data in zip(thermolibformset.forms, initial_thermo_libraries):
@@ -301,18 +302,18 @@ def input(request):
                     subform.initial = data
                 for subform, data in zip(reactorformset.forms, initial_reactor_systems):
                     subform.initial = data
-                
+
             else:
                 upload_error = 'Your input file was invalid.  Please try again.'
-                
-        if "submit" in request.POST:      
+
+        if "submit" in request.POST:
             uploadform = UploadInputForm(request.POST, instance=input)
             form = InputForm(request.POST, instance = input)
             thermolibformset = ThermoLibraryFormset(request.POST, instance=input)
             reactionlibformset = ReactionLibraryFormset(request.POST, instance=input)
             reactorspecformset = ReactorSpeciesFormset(request.POST, instance=input)
             reactorformset = ReactorFormset(request.POST, instance=input)
-                
+
             if (form.is_valid() and thermolibformset.is_valid() and reactionlibformset.is_valid()
                 and reactorspecformset.is_valid() and reactorformset.is_valid()):
                 form.save()
@@ -321,49 +322,49 @@ def input(request):
                 reactorspecformset.save()
                 reactorformset.save()
                 posted = Input.objects.all()[0]
-                input.saveForm(posted, form)            
-                path = 'media/rmg/tools/input/input.py'            
+                input.saveForm(posted, form)
+                path = 'media/rmg/tools/input/input.py'
                 return render_to_response('inputResult.html', {'path': path})
-            
+
             else:
                 # Will need more useful error messages later.
                 input_error = 'Your form was invalid.  Please edit the form and try again.'
-       
+
     return render_to_response('input.html', {'uploadform': uploadform, 'form': form, 'thermolibformset':thermolibformset,
                                              'reactionlibformset':reactionlibformset, 'reactorspecformset':reactorspecformset,
-                                             'reactorformset':reactorformset, 'upload_error': upload_error, 
+                                             'reactorformset':reactorformset, 'upload_error': upload_error,
                                              'input_error': input_error}, context_instance=RequestContext(request))
-    
-    
-    
+
+
+
 def plotKinetics(request):
     """
     Allows user to upload chemkin files to generate a plot of reaction kinetics.
     """
     from rmgpy.quantity import Quantity
     from rmgweb.database.forms import RateEvaluationForm
-            
-    
+
+
     if request.method == 'POST':
-        chemkin = Chemkin()           
-        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)   
+        chemkin = Chemkin()
+        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         chemkin.setReqObj(request)
         rateForm = RateEvaluationForm(request.POST)
         eval = []
-        
-        
+
+
         if rateForm.is_valid():
             temperature = Quantity(rateForm.cleaned_data['temperature'], str(rateForm.cleaned_data['temperature_units'])).value_si
             pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
-            kineticsDataList = chemkin.getKinetics() 
-                
-        if form.is_valid():            
+            kineticsDataList = chemkin.getKinetics()
+
+        if form.is_valid():
             form.save()
             kineticsDataList = chemkin.getKinetics()
-        
-                
-            
+
+
+
         return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
                                                 'plotWidth': 500,
                                                 'plotHeight': 400 + 15 * len(kineticsDataList),
@@ -373,13 +374,13 @@ def plotKinetics(request):
 
     # Otherwise create the form
     else:
-        
-    
+
+
         chemkin = Chemkin()
         chemkin.setReqObj(request)
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
-        
+
     return render_to_response('plotKinetics.html', {'form': form}, context_instance=RequestContext(request))
 
 
@@ -408,13 +409,13 @@ def javaKineticsLibrary(request):
 
     # Otherwise create the form
     else:
-        
-    
+
+
         chemkin = Chemkin()
         chemkin.setReqObj(request)
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
-        
+
     return render_to_response('javaKineticsLibrary.html', {'form': form}, context_instance=RequestContext(request))
 
 
@@ -432,8 +433,8 @@ def evaluateNASA(request):
         initial = request.POST.copy()
 
         if posted.is_valid():
-                NASA = posted.cleaned_data['NASA']     
-                if NASA != '':           
+                NASA = posted.cleaned_data['NASA']
+                if NASA != '':
                     species, thermo, formula = readThermoEntry(str(NASA))
                     try:
                         thermoData = thermo.toThermoData()
@@ -441,7 +442,7 @@ def evaluateNASA(request):
                         # if we cannot convert the thermo to thermo data, we will not be able to display the
                         # H298, S298, and Cp values, but that's ok.
                         pass
-        
+
         form = NASAForm(initial, error_class=DivErrorList)
-    
+
     return render_to_response('NASA.html', {'form': form, 'thermo':thermo, 'thermoData':thermoData}, context_instance=RequestContext(request))

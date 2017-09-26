@@ -53,21 +53,21 @@ urlpatterns = [
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-    
+
     # Restart the django processes in the webserver
     url(r'^restart$', rmgweb.main.views.restartWSGI),
     # Show debug info
     url(r'^debug$', rmgweb.main.views.debug),
-    
+
     # The RMG website homepage
     url(r'^$', rmgweb.main.views.index),
-    
+
     # The privacy policy
     url(r'^privacy$', rmgweb.main.views.privacy),
-    
+
     # Version information
     url(r'^version$', rmgweb.main.views.version),
-    
+
     # Additional resources page
     url(r'^resources$', rmgweb.main.views.resources),
 
@@ -75,10 +75,11 @@ urlpatterns = [
     url(r'^login', rmgweb.main.views.login),
     url(r'^logout$', rmgweb.main.views.logout),
     url(r'^profile$', rmgweb.main.views.editProfile),
+    url(r'^files$', rmgweb.main.views.fileArchive),
     url(r'^signup', rmgweb.main.views.signup),
     url(r'^oauth/', include('social_django.urls', namespace='social')),
     url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile),
-
+    url(r'^files/(?P<pkey>[^/]+)/delete$', rmgweb.main.views.deleteObj),
     # Database
     url(r'^database/', include('rmgweb.database.urls')),
 
@@ -88,7 +89,7 @@ urlpatterns = [
     # Molecule drawing
     url(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule),
     url(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup),
-    
+
     url(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList),
     url(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver),
     url(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas),
@@ -99,15 +100,15 @@ urlpatterns = [
 
     # RMG-Py Stuff
     url(r'^tools/', include('rmgweb.rmg.urls')),
-    
+
     # RMG Input Form
     url(r'^input', rmgweb.rmg.views.input),
-    
+
     # Documentation auto-rebuild
     url(r'^rebuild$', rmgweb.main.views.rebuild),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
-    
+
 ]
 
 # When developing in Django we generally don't have a web server available to

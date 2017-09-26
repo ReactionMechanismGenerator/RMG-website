@@ -56,7 +56,7 @@ class ModelCompareForm(forms.ModelForm):
     class Meta:
         model = Diff
         fields = '__all__'
-        
+
 class UploadDictionaryForm(forms.ModelForm):
     """
     A Django form for uploading a RMG dictionary file.
@@ -72,10 +72,10 @@ class FluxDiagramForm(forms.ModelForm):
     class Meta:
         model = FluxDiagram
         fields = '__all__'
-        
+
 class PopulateReactionsForm(forms.ModelForm):
     """
-    A Django form for Populate Reactions when an input file is uploaded.  
+    A Django form for Populate Reactions when an input file is uploaded.
     """
     class Meta:
         model = PopulateReactions
@@ -89,8 +89,8 @@ class UploadInputForm(forms.ModelForm):
     class Meta:
         model = Input
         fields = ('input_upload',)
-        
-        
+
+
 class InputForm(forms.ModelForm):
     """
     Form for editing the conditions to be written in an input.py file for RMG-Py.
@@ -176,7 +176,7 @@ class ReactorForm(forms.ModelForm):
             'terminationtime': forms.TextInput(attrs={'size':'5'}),
             'conversion': forms.TextInput(attrs={'size':'5'}),
         }
-        
+
 class NASAForm(forms.Form):
     """
     Form for entering a CHEMKIN format NASA polynomial
@@ -198,4 +198,3 @@ class NASAForm(forms.Form):
                 traceback.print_exc(e)
                 raise forms.ValidationError('Invalid NASA Polynomial.')
             return NASA
-    

@@ -143,7 +143,7 @@ def signup(request):
         userForm = UserSignupForm(error_class=DivErrorList)
         profileForm = UserProfileSignupForm(error_class=DivErrorList)
         passwordForm = PasswordCreateForm(error_class=DivErrorList)
-        
+
     return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
 
 def viewProfile(request, username):
@@ -240,15 +240,15 @@ def deleteObj(request, pkey):
 def getAdjacencyList(request, identifier):
     """
     Returns an adjacency list of the species corresponding to `identifier`.
-    
+
     `identifier` should be something recognized by NCI resolver, eg.
     SMILES, InChI, CACTVS, chemical name, etc.
-    
+
     The NCI resolver has some bugs regarding reading SMILES of radicals.
     E.g. it thinks CC[CH] is CCC, so we first try to use the identifier
     directly as a SMILES string, and only pass it through the resolver
-    if that does not work. 
-    
+    if that does not work.
+
     For specific problematic cases, the NCI resolver is bypassed and the SMILES
     is returned from a dictionary of values. For O2, the resolver returns the singlet
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
@@ -274,7 +274,7 @@ def getAdjacencyList(request, identifier):
         if key in known_names:
             smiles = known_names[key]
         else:
-            # try converting it to a SMILES using the NCI chemical resolver 
+            # try converting it to a SMILES using the NCI chemical resolver
             url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
             try:
                 f = urllib2.urlopen(url, timeout=5)
@@ -289,7 +289,7 @@ def getAdjacencyList(request, identifier):
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
         except ValueError, e:
             return HttpResponse(str(e), status=500)
-    
+
     adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, content_type="text/plain")
 
@@ -311,17 +311,17 @@ def getNISTcas(request, inchi):
     else:
         return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
     return HttpResponse(number, content_type="text/plain")
-    
+
 def cactusResolver(request, query):
     """
     Forwards the query to the cactus.nci.nih.gov/chemical/structure resolver.
-    
-    The reason we have to forward the request from our own server is so that we can 
+
+    The reason we have to forward the request from our own server is so that we can
     use it via ajax, avoiding cross-domain scripting security constraints.
     """
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
-   
+
     url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
     try:
         f = urllib2.urlopen(url, timeout=5)
@@ -329,7 +329,7 @@ def cactusResolver(request, query):
         return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
-    
+
 def drawMolecule(request, adjlist):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.

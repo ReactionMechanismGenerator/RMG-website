@@ -49,10 +49,10 @@ class uploadTo(object):
     """
     Factory class for path generation.
     """
-    
+
     def __init__(self, subpath=''):
         self.subpath = subpath
-    
+
     def __call__(self, instance, filename):
         timestr = str(instance.time)
         timestr = timestr.replace(':','.')[:len(timestr)-7]
@@ -73,14 +73,15 @@ class Chemkin(models.Model):
 
     time = models.DateTimeField(auto_now_add=True)
     reqObj = None
-    name = 'no_account'
+    name = models.CharField(max_length=20, default='no_account')
+
+    userid = models.ForeignKey(User, default=1, blank=True, null=True)
     ChemkinFile = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
     DictionaryFile = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     Foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
-    
+
     def setReqObj(self, request):
         self.reqObj = request
-
         if self.reqObj.user.is_authenticated():
             self.name = str(self.reqObj.user.username)
 
@@ -116,7 +117,7 @@ class Chemkin(models.Model):
             shutil.rmtree(self.path)
         except OSError:
             pass
-        
+
     def getKinetics(self):
         """
         Extracts the kinetic data from the chemkin file for plotting purposes.
@@ -142,8 +143,8 @@ class Chemkin(models.Model):
             speciesList, reactionList = loadChemkinFile(chemkinPath, dictionaryPath, readComments=readComments)
         else:
             speciesList, reactionList = loadChemkinFile(chemkinPath, readComments=readComments)
-            
-        for reaction in reactionList:            
+
+        for reaction in reactionList:
             # If the kinetics are ArrheniusEP, replace them with Arrhenius
             if isinstance(reaction.kinetics, ArrheniusEP):
                 reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
@@ -158,30 +159,30 @@ class Chemkin(models.Model):
                 arrow = '&hArr;' if reaction.reversible else '&rarr;'
                 products = ' + '.join([product.label for product in reaction.products])
                 href = ''
-                
+
             source = str(reaction).replace('<=>','=')
-            entry = Entry()   
+            entry = Entry()
             entry.result = reactionList.index(reaction)+1
-            forwardKinetics = reaction.kinetics     
+            forwardKinetics = reaction.kinetics
             forward = True
             chemkin = reaction.toChemkin(speciesList)
-            
+
             reverseKinetics = reaction.generateReverseRateCoefficient()
             reverseKinetics.comment = 'Fitted reverse reaction. ' + reaction.kinetics.comment
-            
+
             rev_reaction = Reaction(reactants = reaction.products, products = reaction.reactants, kinetics = reverseKinetics)
             chemkin_rev = rev_reaction.toChemkin(speciesList)
-            
+
             kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, forward, chemkin, reverseKinetics, chemkin_rev])
 
         return kineticsDataList
-    
+
     def createJavaKineticsLibrary(self):
         """
         Generates java reaction library files from your chemkin file.
         """
         from rmgpy.chemkin import loadChemkinFile, saveJavaKineticsLibrary
-        
+
         timestr = str(self.time)
         timestr = timestr.replace(':','.')[:len(timestr)-7]
         self.folder = os.path.join(self.name, 'rmg', 'tools', 'chemkin', timestr)
@@ -214,10 +215,10 @@ class Diff(models.Model):
     name = 'no_account'
 
     ChemkinFile1 = models.FileField(upload_to=uploadTo('chem1.inp'), verbose_name='Model 1: Chemkin File')
-    DictionaryFile1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'),verbose_name='Model 1: RMG Dictionary')    
+    DictionaryFile1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'),verbose_name='Model 1: RMG Dictionary')
     Foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
     ChemkinFile2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File')
-    DictionaryFile2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'),verbose_name='Model 2: RMG Dictionary')    
+    DictionaryFile2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'),verbose_name='Model 2: RMG Dictionary')
     Foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def setReqObj(self, request):
@@ -281,19 +282,19 @@ class Diff(models.Model):
             'wd': self.path,
             'transport': False,
         }
-        
+
         logfile = os.path.join(self.path,'merging_log.txt')
-        
+
         # Save stdout to logfile which the user can download
         with open(logfile, 'w') as f:
             stdout_orig = sys.stdout
             sys.stdout = f
-            
+
             merge_models.execute(
                         inputModelFiles,
                         **kwargs
                         )
-            
+
             sys.stdout = stdout_orig
 
     def deleteDir(self):
@@ -361,7 +362,7 @@ class AdjlistConversion(models.Model):
                         index = line.index('//')
                         line = line[0:index]
                     adjlist += line
-                
+
         with open(os.path.join(self.path,'RMG_Dictionary.txt'), 'w') as f:
             for spec in speciesList:
                 try:
@@ -488,7 +489,7 @@ class PopulateReactions(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        
+
         import subprocess
         import rmgpy
 
@@ -504,7 +505,7 @@ class PopulateReactions(models.Model):
             '-q',
         )
         subprocess.check_call(command, cwd=self.path)
-        
+
 
     def createDir(self):
         """
@@ -526,9 +527,9 @@ class PopulateReactions(models.Model):
             shutil.rmtree(self.path)
         except OSError:
             pass
-        
-        
-        
+
+
+
 ################################################################################
 # INPUT MODEL
 ################################################################################
@@ -536,9 +537,9 @@ class PopulateReactions(models.Model):
 from rmgpy.cantherm.pdep import PressureDependenceJob
 from rmgpy.solver.base import TerminationTime, TerminationConversion
 from rmgpy.solver.simple import SimpleReactor
-from rmgpy.species import Species        
+from rmgpy.species import Species
 from rmgpy.molecule import Molecule
-from rmgpy.rmg.model import CoreEdgeReactionModel    
+from rmgpy.rmg.model import CoreEdgeReactionModel
 from rmgpy.rmg.input import readInputFile
 import quantities
 
@@ -551,7 +552,7 @@ class Input(models.Model):
     """
     Model for RMG Input Conditions
     """
-        
+
     def __init__(self, *args, **kwargs):
         super(Input, self).__init__(*args, **kwargs)
         self.rmg = RMG()
@@ -561,7 +562,7 @@ class Input(models.Model):
         self.savepath = os.path.join(self.path, 'input.py')
 
     input_upload = models.FileField(upload_to=uploadTo('input_upload.py'), verbose_name='Input File', blank = True)
-    
+
     # Pressure Dependence
     p_methods=(('off','off',),('modified strong collision','Modified Strong Collision',),('reservoir state','Reservoir State',))
     pdep = models.CharField(max_length = 50, default = 'off', choices = p_methods)
@@ -600,7 +601,7 @@ class Input(models.Model):
     simulator_rtol = models.FloatField(default = 1e-8)
     simulator_sens_atol = models.FloatField(default = 1e-6)
     simulator_sens_rtol = models.FloatField(default = 1e-4)
-    
+
     # Quantum Calculations
     on_off = (('off','off',),('on','on',))
     quantumCalc = models.CharField(max_length = 50, default = 'off', choices = on_off)
@@ -612,7 +613,7 @@ class Input(models.Model):
     scratchDirectory = models.CharField(max_length = 100, default = 'QMscratch', blank = True)
     onlyCyclics = models.BooleanField(default=True)
     maxRadicalNumber = models.PositiveSmallIntegerField(blank = True, default=0)
-    
+
     # Generated Species Constraints
     speciesConstraints = models.CharField(max_length = 50, default = 'off', choices = on_off)
     allowed_inputSpecies = models.BooleanField(default = False)
@@ -626,7 +627,7 @@ class Input(models.Model):
     maximumHeavyAtoms = models.PositiveSmallIntegerField(blank = True, null = True)
     maximumRadicalElectrons = models.PositiveSmallIntegerField(blank = True, null = True)
     allowSingletO2 = models.BooleanField(default = False)
-    
+
     # Additional Options
     saveRestartPeriod=models.FloatField(blank = True, null=True)
     restartunits = (('second','seconds'),('hour','hours'),('day','days'),('week','weeks'))
@@ -657,19 +658,19 @@ class Input(models.Model):
             shutil.rmtree(self.path)
         except OSError:
             pass
-        
+
     def loadForm(self, path):
         """
         Load input.py file onto form initial data.
-        """        
+        """
         readInputFile(path, self.rmg)
-        
+
         # Databases
         initial_thermo_libraries = []
         if self.rmg.thermoLibraries:
             for item in self.rmg.thermoLibraries:
                 initial_thermo_libraries.append({'thermolib': item})
-        
+
         initial_reaction_libraries = []
         if self.rmg.seedMechanisms:
             for item in self.rmg.seedMechanisms:
@@ -677,7 +678,7 @@ class Input(models.Model):
         if self.rmg.reactionLibraries:
             for item, edge in self.rmg.reactionLibraries:
                 initial_reaction_libraries.append({'reactionlib': item, 'seedmech': False, 'edge': edge})
-        
+
         # Reactor systems
         initial_reactor_systems = []
         for system in self.rmg.reactionSystems:
@@ -708,7 +709,7 @@ class Input(models.Model):
                                             'terminationtime': terminationtime, 'time_units': time_units,
                                             'species': species, 'conversion': conversion,
                                             'sensitivity': sensitivity, 'sensitivityThreshold': sensitivityThreshold})
-        
+
         # Species
         initial_species = []
         for item in self.rmg.initialSpecies:
@@ -717,23 +718,23 @@ class Input(models.Model):
             inert = False if item.reactive else True
             spec, isNew = self.rmg.reactionModel.makeNewSpecies(item.molecule[0], label = item.label, reactive = item.reactive)
             molefrac = initialMoleFractions[spec]
-            initial_species.append({'name': name, 'adjlist': adjlist, 
+            initial_species.append({'name': name, 'adjlist': adjlist,
                                     'inert': inert, 'molefrac': molefrac})
-            
+
         # Tolerances
         initial = {}
-        initial['simulator_atol'] = self.rmg.absoluteTolerance 
-        initial['simulator_rtol'] = self.rmg.relativeTolerance 
-        initial['simulator_sens_atol'] = self.rmg.sensitivityAbsoluteTolerance 
-        initial['simulator_sens_rtol'] = self.rmg.sensitivityRelativeTolerance 
-        initial['toleranceKeepInEdge'] = self.rmg.fluxToleranceKeepInEdge 
+        initial['simulator_atol'] = self.rmg.absoluteTolerance
+        initial['simulator_rtol'] = self.rmg.relativeTolerance
+        initial['simulator_sens_atol'] = self.rmg.sensitivityAbsoluteTolerance
+        initial['simulator_sens_rtol'] = self.rmg.sensitivityRelativeTolerance
+        initial['toleranceKeepInEdge'] = self.rmg.fluxToleranceKeepInEdge
         initial['toleranceMoveToCore']= self.rmg.fluxToleranceMoveToCore
         initial['toleranceInterruptSimulation'] = self.rmg.fluxToleranceInterrupt
-        initial['maximumEdgeSpecies'] = self.rmg.maximumEdgeSpecies 
+        initial['maximumEdgeSpecies'] = self.rmg.maximumEdgeSpecies
         initial['minCoreSizeForPrune'] = self.rmg.minCoreSizeForPrune
         initial['minSpeciesExistIterationsForPrune'] = self.rmg.minSpeciesExistIterationsForPrune
         initial['filterReactions'] = self.rmg.filterReactions
-                
+
         # Pressure Dependence
         if self.rmg.pressureDependence:
             # Pressure dependence method
@@ -756,11 +757,11 @@ class Input(models.Model):
             initial['maximumGrainSize'] = self.rmg.pressureDependence.maximumGrainSize.getValue()
             initial['grainsize_units'] = self.rmg.pressureDependence.maximumGrainSize.units
             initial['minimumNumberOfGrains'] = self.rmg.pressureDependence.minimumGrainCount
-            
+
             initial['maximumAtoms'] = self.rmg.pressureDependence.maximumAtoms
         else:
-            initial['pdep'] = 'off'    
-            
+            initial['pdep'] = 'off'
+
         # Species Constraints
         if self.rmg.speciesConstraints:
             initial['speciesConstraints'] = 'on'
@@ -777,7 +778,7 @@ class Input(models.Model):
                     initial[key] = value
         else:
             initial['speciesConstraints'] = 'off'
-        
+
         # Quantum Calculations
         if self.rmg.quantumMechanics:
             initial['quantumCalc'] = 'on'
@@ -795,7 +796,7 @@ class Input(models.Model):
             initial['maxRadicalNumber'] = self.rmg.quantumMechanics.settings.maxRadicalNumber
         else:
             initial['quantumCalc'] = 'off'
-        
+
         # Additional Options
         if self.rmg.saveRestartPeriod:
             initial['saveRestartPeriod'] = self.rmg.saveRestartPeriod.getValue()
@@ -810,16 +811,16 @@ class Input(models.Model):
             initial['saveEdgeSpecies'] = True
         if self.rmg.verboseComments:
             initial['verboseComments'] = True
-            
+
         return initial_thermo_libraries, initial_reaction_libraries, initial_reactor_systems, initial_species, initial
-        
+
     def saveForm(self, posted, form):
         """
         Save form data into input.py file specified by the path.
         """
         # Clean past history
         self.rmg = RMG()
-        
+
         # Databases
         #self.rmg.databaseDirectory = settings['database.directory']
         self.rmg.thermoLibraries  = []
@@ -839,7 +840,7 @@ class Input(models.Model):
         self.rmg.kineticsDepositories = 'default'
         self.rmg.kineticsFamilies = 'default'
         self.rmg.kineticsEstimator = 'rate rules'
-        
+
         # Species
         self.rmg.initialSpecies = []
         speciesDict = {}
@@ -851,12 +852,12 @@ class Input(models.Model):
             self.rmg.initialSpecies.append(spec)
             speciesDict[item.name.encode()] = spec
             initialMoleFractions[spec] = item.molefrac
-            
+
         # Reactor systems
         self.rmg.reactionSystems = []
         for item in posted.reactor_systems.all():
             T = Quantity(item.temperature, item.temperature_units.encode())
-            P = Quantity(item.pressure, item.pressure_units.encode())            
+            P = Quantity(item.pressure, item.pressure_units.encode())
             termination = []
             if item.conversion:
                 termination.append(TerminationConversion(speciesDict[item.species.encode()], item.conversion))
@@ -869,7 +870,7 @@ class Input(models.Model):
                     sensitiveSpecies.append(speciesDict[spec])
             system = SimpleReactor(T, P, initialMoleFractions, termination, sensitiveSpecies, item.sensitivityThreshold)
             self.rmg.reactionSystems.append(system)
-    
+
         # Simulator tolerances
         self.rmg.absoluteTolerance = form.cleaned_data['simulator_atol']
         self.rmg.relativeTolerance = form.cleaned_data['simulator_rtol']
@@ -882,43 +883,43 @@ class Input(models.Model):
         self.rmg.minCoreSizeForPrune = form.cleaned_data['minCoreSizeForPrune']
         self.rmg.minSpeciesExistIterationsForPrune = form.cleaned_data['minSpeciesExistIterationsForPrune']
         self.rmg.filterReactions = form.cleaned_data['filterReactions']
-        
+
         # Pressure Dependence
         pdep = form.cleaned_data['pdep'].encode()
         if pdep != 'off':
             self.rmg.pressureDependence = PressureDependenceJob(network=None)
             self.rmg.pressureDependence.method = pdep
-            
+
             # Process interpolation model
             if form.cleaned_data['interpolation'].encode() == 'chebyshev':
                 self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(), form.cleaned_data['temp_basis'], form.cleaned_data['p_basis'])
             else:
                 self.rmg.pressureDependence.interpolationModel = (form.cleaned_data['interpolation'].encode(),)
-            
+
             # Temperature and pressure range
             self.rmg.pressureDependence.Tmin = Quantity(form.cleaned_data['temp_low'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tmax = Quantity(form.cleaned_data['temp_high'], form.cleaned_data['temprange_units'].encode())
             self.rmg.pressureDependence.Tcount = form.cleaned_data['temp_interp']
-            self.rmg.pressureDependence.generateTemperatureList() 
+            self.rmg.pressureDependence.generateTemperatureList()
             self.rmg.pressureDependence.Pmin = Quantity(form.cleaned_data['p_low'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pmax = Quantity(form.cleaned_data['p_high'], form.cleaned_data['prange_units'].encode())
             self.rmg.pressureDependence.Pcount = form.cleaned_data['p_interp']
             self.rmg.pressureDependence.generatePressureList()
-            
+
             # Process grain size and count
             self.rmg.pressureDependence.grainSize = Quantity(form.cleaned_data['maximumGrainSize'], form.cleaned_data['grainsize_units'].encode())
             self.rmg.pressureDependence.grainCount = form.cleaned_data['minimumNumberOfGrains']
-            
+
             self.rmg.pressureDependence.maximumAtoms = form.cleaned_data['maximumAtoms']
         # Additional Options
-        self.rmg.units = 'si' 
+        self.rmg.units = 'si'
         self.rmg.saveRestartPeriod = Quantity(form.cleaned_data['saveRestartPeriod'], form.cleaned_data['saveRestartPeriodUnits'].encode()) if form.cleaned_data['saveRestartPeriod'] else None
         self.rmg.generateOutputHTML = form.cleaned_data['generateOutputHTML']
         self.rmg.generatePlots = form.cleaned_data['generatePlots']
         self.rmg.saveSimulationProfiles = form.cleaned_data['saveSimulationProfiles']
         self.rmg.saveEdgeSpecies = form.cleaned_data['saveEdgeSpecies']
         self.rmg.verboseComments = form.cleaned_data['verboseComments']
-        
+
         # Species Constraints
         speciesConstraints = form.cleaned_data['speciesConstraints']
         if speciesConstraints == 'on':
@@ -935,7 +936,7 @@ class Input(models.Model):
             self.rmg.speciesConstraints['maximumHeavyAtoms'] = form.cleaned_data['maximumHeavyAtoms']
             self.rmg.speciesConstraints['maximumRadicalElectrons'] = form.cleaned_data['maximumRadicalElectrons']
             self.rmg.speciesConstraints['allowSingletO2'] = form.cleaned_data['allowSingletO2']
-        
+
         # Quantum Calculations
         quantumCalc = form.cleaned_data['quantumCalc']
         if quantumCalc == 'on':
@@ -947,8 +948,8 @@ class Input(models.Model):
                                                      onlyCyclics = form.cleaned_data['onlyCyclics'],
                                                      maxRadicalNumber = form.cleaned_data['maxRadicalNumber'],
                                                      )
-        
-        # Save the input.py file        
+
+        # Save the input.py file
         self.rmg.saveInput(self.savepath)
 
 ################################################################################
@@ -1000,7 +1001,7 @@ class Reactor(models.Model):
     temperature_units = models.CharField(max_length=50, default = 'K', choices=temp_units)
     pressure= models.FloatField()
     pressure_units = models.CharField(max_length=50, default = 'bar', choices=p_units)
-    # NOTE: Initial Mole Fractions cannot be set individually for each reactor system 
+    # NOTE: Initial Mole Fractions cannot be set individually for each reactor system
     # through the web form right now.
     # Termination Criteria
     # Must always specify a termination time, but need not always specify a conversion
@@ -1011,4 +1012,3 @@ class Reactor(models.Model):
     # Sensitivity
     sensitivity = models.CharField(max_length=200, blank=True, null=True)
     sensitivityThreshold = models.FloatField(default = 0.001)
-    

@@ -1,0 +1,177 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import rmgweb.rmg.models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='AdjlistConversion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('time', models.DateTimeField(auto_now_add=True)),
+                ('DictionaryFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'species_dictionary.txt'), verbose_name=b'RMG Dictionary')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Chemkin',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('time', models.DateTimeField(auto_now_add=True)),
+                ('ChemkinFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'chemkin\\chem.inp'), verbose_name=b'Chemkin File')),
+                ('DictionaryFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'RMG_Dictionary.txt'), null=True, verbose_name=b'RMG Dictionary', blank=True)),
+                ('Foreign', models.BooleanField(verbose_name=b'Not an RMG-generated Chemkin file')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Diff',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('time', models.DateTimeField(auto_now_add=True)),
+                ('ChemkinFile1', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'chem1.inp'), verbose_name=b'Model 1: Chemkin File')),
+                ('DictionaryFile1', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'RMG_Dictionary1.txt'), verbose_name=b'Model 1: RMG Dictionary')),
+                ('Foreign1', models.BooleanField(verbose_name=b'Model 1 not an RMG-generated Chemkin file')),
+                ('ChemkinFile2', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'chem2.inp'), verbose_name=b'Model 2: Chemkin File')),
+                ('DictionaryFile2', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'RMG_Dictionary2.txt'), verbose_name=b'Model 2: RMG Dictionary')),
+                ('Foreign2', models.BooleanField(verbose_name=b'Model 2 not an RMG-generated Chemkin file')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='FluxDiagram',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('time', models.DateTimeField(auto_now_add=True)),
+                ('InputFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'input.py'), verbose_name=b'RMG Input File')),
+                ('ChemkinFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'chem.inp'), verbose_name=b'Chemkin File')),
+                ('DictionaryFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'species_dictionary.txt'), verbose_name=b'RMG Dictionary')),
+                ('ChemkinOutput', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'chemkin_output.out'), null=True, verbose_name=b'Chemkin Output File (Optional)', blank=True)),
+                ('Java', models.BooleanField(verbose_name=b'From RMG-Java')),
+                ('MaxNodes', models.PositiveIntegerField(default=50, verbose_name=b'Maximum Nodes')),
+                ('MaxEdges', models.PositiveIntegerField(default=50, verbose_name=b'Maximum Edges')),
+                ('TimeStep', models.FloatField(default=1.25, verbose_name=b'Multiplicative Time Step Factor')),
+                ('ConcentrationTolerance', models.FloatField(default=1e-06, verbose_name=b'Concentration Tolerance')),
+                ('SpeciesRateTolerance', models.FloatField(default=1e-06, verbose_name=b'Species Rate Tolerance')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Input',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('input_upload', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'input_upload.py'), verbose_name=b'Input File', blank=True)),
+                ('pdep', models.CharField(default=b'off', max_length=50, choices=[(b'off', b'off'), (b'modified strong collision', b'Modified Strong Collision'), (b'reservoir state', b'Reservoir State')])),
+                ('maximumGrainSize', models.FloatField(default=2, null=True, blank=True)),
+                ('grainsize_units', models.CharField(default=b'kcal/mol', max_length=50, choices=[(b'kcal/mol', b'kcal/mol'), (b'kJ/mol', b'kJ/mol')])),
+                ('minimumNumberOfGrains', models.PositiveIntegerField(default=200, null=True, blank=True)),
+                ('maximumAtoms', models.PositiveIntegerField(null=True, blank=True)),
+                ('p_low', models.FloatField(null=True, blank=True)),
+                ('p_high', models.FloatField(null=True, blank=True)),
+                ('prange_units', models.CharField(default=b'bar', max_length=50, choices=[(b'bar', b'bar'), (b'torr', b'torr'), (b'atm', b'atm')])),
+                ('p_interp', models.PositiveIntegerField(default=5, null=True, blank=True)),
+                ('temp_low', models.FloatField(null=True, blank=True)),
+                ('temp_high', models.FloatField(null=True, blank=True)),
+                ('temprange_units', models.CharField(default=b'K', max_length=50, choices=[(b'K', b'K'), (b'C', b'C')])),
+                ('temp_interp', models.PositiveIntegerField(default=8, null=True, blank=True)),
+                ('interpolation', models.CharField(default=b'chebyshev', max_length=50, choices=[(b'chebyshev', b'Chebyshev'), (b'pdeparrhenius', b'Pressure Dependent Arrhenius')])),
+                ('temp_basis', models.PositiveIntegerField(default=6, null=True, blank=True)),
+                ('p_basis', models.PositiveIntegerField(default=4, null=True, blank=True)),
+                ('toleranceMoveToCore', models.FloatField(default=0.1)),
+                ('toleranceKeepInEdge', models.FloatField(default=0.0)),
+                ('toleranceInterruptSimulation', models.FloatField(default=1.0)),
+                ('maximumEdgeSpecies', models.PositiveIntegerField(default=100000)),
+                ('minCoreSizeForPrune', models.PositiveIntegerField(default=50)),
+                ('minSpeciesExistIterationsForPrune', models.PositiveIntegerField(default=2)),
+                ('filterReactions', models.BooleanField(default=False)),
+                ('simulator_atol', models.FloatField(default=1e-16)),
+                ('simulator_rtol', models.FloatField(default=1e-08)),
+                ('simulator_sens_atol', models.FloatField(default=1e-06)),
+                ('simulator_sens_rtol', models.FloatField(default=0.0001)),
+                ('quantumCalc', models.CharField(default=b'off', max_length=50, choices=[(b'off', b'off'), (b'on', b'on')])),
+                ('software', models.CharField(default=b'off', max_length=50, choices=[(b'mopac', b'MOPAC'), (b'gaussian', b'GAUSSIAN')])),
+                ('method', models.CharField(default=b'off', max_length=50, choices=[(b'pm3', b'pm3'), (b'pm6', b'pm6'), (b'pm7', b'pm7 (MOPAC2012 only)')])),
+                ('fileStore', models.CharField(default=b'QMfiles', max_length=100, blank=True)),
+                ('scratchDirectory', models.CharField(default=b'QMscratch', max_length=100, blank=True)),
+                ('onlyCyclics', models.BooleanField(default=True)),
+                ('maxRadicalNumber', models.PositiveSmallIntegerField(default=0, blank=True)),
+                ('speciesConstraints', models.CharField(default=b'off', max_length=50, choices=[(b'off', b'off'), (b'on', b'on')])),
+                ('allowed_inputSpecies', models.BooleanField(default=False)),
+                ('allowed_seedMechanisms', models.BooleanField(default=False)),
+                ('allowed_reactionLibraries', models.BooleanField(default=False)),
+                ('maximumCarbonAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumOxygenAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumNitrogenAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumSiliconAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumSulfurAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumHeavyAtoms', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('maximumRadicalElectrons', models.PositiveSmallIntegerField(null=True, blank=True)),
+                ('allowSingletO2', models.BooleanField(default=False)),
+                ('saveRestartPeriod', models.FloatField(null=True, blank=True)),
+                ('saveRestartPeriodUnits', models.CharField(default=b'hour', max_length=50, choices=[(b'second', b'seconds'), (b'hour', b'hours'), (b'day', b'days'), (b'week', b'weeks')])),
+                ('generateOutputHTML', models.BooleanField(default=False)),
+                ('generatePlots', models.BooleanField(default=False)),
+                ('saveSimulationProfiles', models.BooleanField(default=False)),
+                ('saveEdgeSpecies', models.BooleanField(default=False)),
+                ('verboseComments', models.BooleanField(default=False)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PopulateReactions',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('time', models.DateTimeField(auto_now_add=True)),
+                ('InputFile', models.FileField(upload_to=rmgweb.rmg.models.uploadTo(b'input.txt'), verbose_name=b'Input File')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ReactionLibrary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('reactionlib', models.CharField(blank=True, max_length=200, choices=[(b'1989_Stewart_2CH3_to_C2H5_H', b'1989_Stewart_2CH3_to_C2H5_H'), (b'2001_Tokmakov_H_Toluene_to_CH3_Benzene', b'2001_Tokmakov_H_Toluene_to_CH3_Benzene'), (b'2005_Senosiain_OH_C2H2', b'2005_Senosiain_OH_C2H2'), (b'2006_Joshi_OH_CO', b'2006_Joshi_OH_CO'), (b'C10H11', b'C10H11'), (b'C3', b'C3'), (b'C6H5_C4H4_Mebel', b'C6H5_C4H4_Mebel'), (b'Chernov', b'Chernov'), (b'Dooley\\C1', b'Dooley\\C1'), (b'Dooley\\methylformate', b'Dooley\\methylformate'), (b'Dooley\\methylformate_2', b'Dooley\\methylformate_2'), (b'Dooley\\methylformate_all_ARHEbathgas', b'Dooley\\methylformate_all_ARHEbathgas'), (b'Dooley\\methylformate_all_N2bathgas', b'Dooley\\methylformate_all_N2bathgas'), (b'ERC-FoundationFuelv0.9', b'ERC-FoundationFuelv0.9'), (b'FFCM1(-)', b'FFCM1(-)'), (b'Fulvene_H', b'Fulvene_H'), (b'GRI-HCO', b'GRI-HCO'), (b'GRI-Mech3.0', b'GRI-Mech3.0'), (b'GRI-Mech3.0-N', b'GRI-Mech3.0-N'), (b'Glarborg\\C0', b'Glarborg\\C0'), (b'Glarborg\\C1', b'Glarborg\\C1'), (b'Glarborg\\C2', b'Glarborg\\C2'), (b'Glarborg\\C3', b'Glarborg\\C3'), (b'Glarborg\\highP', b'Glarborg\\highP'), (b'JetSurF0.2', b'JetSurF0.2'), (b'KlippensteinH2O2', b'KlippensteinH2O2'), (b'Mebel_C6H5_C2H2', b'Mebel_C6H5_C2H2'), (b'Mebel_Naphthyl', b'Mebel_Naphthyl'), (b'Methylformate', b'Methylformate'), (b'Narayanaswamy', b'Narayanaswamy'), (b'Nitrogen_Dean_and_Bozzelli', b'Nitrogen_Dean_and_Bozzelli'), (b'Nitrogen_Glarborg_Gimenez_et_al', b'Nitrogen_Glarborg_Gimenez_et_al'), (b'Nitrogen_Glarborg_Lucassen_et_al', b'Nitrogen_Glarborg_Lucassen_et_al'), (b'Nitrogen_Glarborg_Zhang_et_al', b'Nitrogen_Glarborg_Zhang_et_al'), (b'OxygenSingTrip', b'OxygenSingTrip'), (b'Sulfur\\DMDS', b'Sulfur\\DMDS'), (b'Sulfur\\DMS', b'Sulfur\\DMS'), (b'Sulfur\\DTBS', b'Sulfur\\DTBS'), (b'Sulfur\\Hexanethial_nr', b'Sulfur\\Hexanethial_nr'), (b'Sulfur\\Sendt', b'Sulfur\\Sendt'), (b'Sulfur\\TP_Song', b'Sulfur\\TP_Song'), (b'Sulfur\\Thial_Hydrolysis', b'Sulfur\\Thial_Hydrolysis'), (b'TEOS', b'TEOS'), (b'c-C5H5_CH3_Sharma', b'c-C5H5_CH3_Sharma'), (b'combustion_core\\version2', b'combustion_core\\version2'), (b'combustion_core\\version3', b'combustion_core\\version3'), (b'combustion_core\\version4', b'combustion_core\\version4'), (b'combustion_core\\version5', b'combustion_core\\version5'), (b'fascella', b'fascella'), (b'kislovB', b'kislovB'), (b'naphthalene_H', b'naphthalene_H'), (b'vinylCPD_H', b'vinylCPD_H')])),
+                ('edge', models.BooleanField()),
+                ('seedmech', models.BooleanField()),
+                ('input', models.ForeignKey(related_name='reaction_libraries', to='rmg.Input')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Reactor',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('temperature', models.FloatField()),
+                ('temperature_units', models.CharField(default=b'K', max_length=50, choices=[(b'K', b'K'), (b'C', b'C')])),
+                ('pressure', models.FloatField()),
+                ('pressure_units', models.CharField(default=b'bar', max_length=50, choices=[(b'bar', b'bar'), (b'torr', b'torr'), (b'atm', b'atm')])),
+                ('terminationtime', models.FloatField()),
+                ('time_units', models.CharField(default=b's', max_length=50, choices=[(b'ms', b'ms'), (b's', b's'), (b'hr', b'hr')])),
+                ('species', models.CharField(max_length=50, null=True, blank=True)),
+                ('conversion', models.FloatField(null=True, blank=True)),
+                ('sensitivity', models.CharField(max_length=200, null=True, blank=True)),
+                ('sensitivityThreshold', models.FloatField(default=0.001)),
+                ('input', models.ForeignKey(related_name='reactor_systems', to='rmg.Input')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ReactorSpecies',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=200)),
+                ('identifier', models.CharField(max_length=200, blank=True)),
+                ('adjlist', models.TextField()),
+                ('molefrac', models.FloatField()),
+                ('inert', models.BooleanField()),
+                ('input', models.ForeignKey(related_name='reactor_species', to='rmg.Input')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ThermoLibrary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('thermolib', models.CharField(blank=True, max_length=200, choices=[(b'C10H11', b'C10H11'), (b'C3', b'C3'), (b'CBS_QB3_1dHR', b'CBS_QB3_1dHR'), (b'CH', b'CH'), (b'CHN', b'CHN'), (b'CHO', b'CHO'), (b'CHON', b'CHON'), (b'CN', b'CN'), (b'Chernov', b'Chernov'), (b'DFT_QCI_thermo', b'DFT_QCI_thermo'), (b'FFCM1(-)', b'FFCM1(-)'), (b'Fulvene_H', b'Fulvene_H'), (b'GRI-Mech3.0', b'GRI-Mech3.0'), (b'GRI-Mech3.0-N', b'GRI-Mech3.0-N'), (b'JetSurF0.2', b'JetSurF0.2'), (b'KlippensteinH2O2', b'KlippensteinH2O2'), (b'NISTThermoLibrary', b'NISTThermoLibrary'), (b'Narayanaswamy', b'Narayanaswamy'), (b'NitrogenCurran', b'NitrogenCurran'), (b'SulfurLibrary', b'SulfurLibrary'), (b'USC-Mech-ii', b'USC-Mech-ii'), (b'bio_oil', b'bio_oil'), (b'naphthalene_H', b'naphthalene_H'), (b'primaryThermoLibrary', b'primaryThermoLibrary'), (b'thermo_DFT_CCSDTF12_BAC', b'thermo_DFT_CCSDTF12_BAC'), (b'vinylCPD_H', b'vinylCPD_H')])),
+                ('input', models.ForeignKey(related_name='thermo_libraries', to='rmg.Input')),
+            ],
+        ),
+    ]
