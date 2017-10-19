@@ -330,7 +330,7 @@ def generateSpeciesThermo(species, database):
     Generate the thermodynamics data for a given :class:`Species` object
     `species` using the provided `database`.
     """
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     species.thermo = database.thermo.getThermoData(species)
         
 ################################################################################
@@ -575,7 +575,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         Given a species_dict list and the species adjacency list, identifies
         whether species is found in the list and returns its name if found.
         """
-        resonance_isomers = molecule.generateResonanceIsomers()
+        resonance_isomers = molecule.generate_resonance_structures()
         for name, adjlist in species_dict:
             listmolecule = Molecule().fromAdjacencyList(adjlist, saturateH=True)
             for isomer in resonance_isomers:

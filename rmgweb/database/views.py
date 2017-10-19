@@ -254,7 +254,7 @@ def transportData(request, adjlist):
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     
     # Get the transport data for the molecule
     transportDataList = []
@@ -397,7 +397,7 @@ def solvationData(request, solute_adjlist, solvent=''):
     #molecule = Molecule().fromAdjacencyList(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule = [molecule])
-    solute.generateResonanceIsomers()
+    solute.generate_resonance_structures()
     
     # obtain solute data.  
     soluteDataList = db.getAllSoluteData(solute)    # length either 1 or 2 entries
@@ -538,7 +538,7 @@ def statmechData(request, adjlist):
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule = [molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     # Get the statmech data for the molecule
     
     symmetryNumber = species.getSymmetryNumber()
@@ -660,7 +660,7 @@ def thermoEntry(request, section, subsection, index):
     nasa_string = None
     if isinstance(entry.item, Molecule):
         species = Species(molecule=[entry.item])
-        species.generateResonanceIsomers()
+        species.generate_resonance_structures()
         findCp0andCpInf(species, thermo)
         nasa_string = ''
         try:
@@ -693,7 +693,7 @@ def thermoData(request, adjlist):
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     
     # Get the thermo data for the molecule
     thermoDataList = []
