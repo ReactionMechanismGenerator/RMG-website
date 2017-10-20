@@ -156,7 +156,7 @@ class FluxDiagramTest(TestCase):
         Test basic functionality of /tools/flux/
         """
         
-        inputFile = os.path.join(rmgpy.getPath(),'tools','data','flux','input.py')
+        inputFile = os.path.join(rmgpy.getPath(),'tools','data','flux','input_simple.py')
         chemFile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','chem.inp')
         dictFile = os.path.join(rmgpy.getPath(),'tools','data','flux','chemkin','species_dictionary.txt')
         
