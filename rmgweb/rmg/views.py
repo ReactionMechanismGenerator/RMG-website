@@ -196,7 +196,7 @@ def generateFlux(request):
             settings['concentrationTolerance'] = form.cleaned_data['ConcentrationTolerance']
             settings['speciesRateTolerance'] = form.cleaned_data['SpeciesRateTolerance']
        
-            createFluxDiagram(flux.path, input, chemkin, dict, java, settings, chemkinOutput)
+            createFluxDiagram(input, chemkin, dict, savePath=flux.path, java=java, settings=settings, chemkinOutput=chemkinOutput)
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
             subdirs.remove('species')
