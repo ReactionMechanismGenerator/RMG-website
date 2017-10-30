@@ -348,19 +348,12 @@ def generateReactions(database, reactants, products=None, only_families=None):
     """
     from rmgpy.rmg.model import getFamilyLibraryObject
     # get RMG-py reactions
-    reactionList = []
-    if only_families is None:
-        # Not restricted to certain families, so also check libraries.
-        reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, only_families=only_families))
+    reactionList = database.kinetics.generate_reactions(reactants, products, only_families=only_families)
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
-        if only_families is None:
-            # Not restricted to certain families, so also check libraries.
-            reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
-        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, only_families=only_families))
+        reactionList.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families))
     
     # get RMG-py kinetics
     reactionList0 = reactionList; reactionList = []
