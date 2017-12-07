@@ -25,9 +25,11 @@ multiplicity 2
 2 H u0 p0 c0 {1,S}
 """
 
-        response = self.client.post('/database/kinetics/search/', {'reactant1': reactant1, 'reactant2': reactant2})
+        response = self.client.post('/database/kinetics/search/', {'reactant1': reactant1,
+                                                                   'reactant2': reactant2,
+                                                                   'resonance': False})
 
-        base_url = 'http://testserver/database/kinetics/results/reactant1={0}__reactant2={1}'
+        base_url = 'http://testserver/database/kinetics/results/r1={0}__r2={1}__res=False'
         expected_url = iri_to_uri(base_url.format(reactant1, reactant2))
 
         self.assertRedirects(response, expected_url)
@@ -43,12 +45,12 @@ multiplicity 2
 
         reaction = Reaction(reactants=[reactant1, reactant2], products=[product1])
 
-        url = getReactionUrl(reaction)
+        url = getReactionUrl(reaction, resonance=False)
 
-        base_url = '/database/kinetics/reaction/reactant1={0}__reactant2={1}__product1={2}'
+        base_url = '/database/kinetics/reaction/r1={0}__r2={1}__p1={2}__res=False'
         expected_url = iri_to_uri(base_url.format(reactant1.toAdjacencyList(),
-                                                    reactant2.toAdjacencyList(),
-                                                    product1.toAdjacencyList()))
+                                                  reactant2.toAdjacencyList(),
+                                                  product1.toAdjacencyList()))
 
         self.assertEqual(url, expected_url)
 
