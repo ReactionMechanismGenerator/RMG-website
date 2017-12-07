@@ -27,7 +27,7 @@ function resolve(identifier_id){
                      spField.val(structure);
                      spField.change();
                   })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
 };
 
 // convert an adjacency list into an image url

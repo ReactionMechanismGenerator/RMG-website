@@ -58,7 +58,7 @@ jQuery(document).ready(function() {
             var url = '/nistcas/'+escape(value);
             var jqxhr =  $.get(url,function(resolved_name) {
                 field.val(resolved_name.split('\n').sort(sortCAS)[0]);
-            }).error( function() { /* no CAS number assigned (or some other problem) so use chemical formula */
+            }).on('error', function() { /* no CAS number assigned (or some other problem) so use chemical formula */
                 var formula = value.split('/')[1]; /* formula is first layer of InChI */
                 field.val(formula);
             })

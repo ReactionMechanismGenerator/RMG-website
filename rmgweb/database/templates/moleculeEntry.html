@@ -18,7 +18,7 @@ function resolve(){
    var jqxhr = $.get(url,function(structure) {
                      spField.val(structure);
                   })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
 };
 
 // prevent "enter" keypress in the identifier field from submitting the form,
@@ -37,7 +37,7 @@ $(document).ready(function() {
 // Update list of names
 var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names'
 var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
-               .error(function(j,t,e) { $('#species_names').html(t+'\n'+e) })
+               .on('error', function(j,t,e) { $('#species_names').html(t+'\n'+e) })
 {% endif %}
 }) // end of document.ready
 </script>

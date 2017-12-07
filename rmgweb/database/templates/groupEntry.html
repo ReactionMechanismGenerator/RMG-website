@@ -18,7 +18,7 @@ function resolve(){
    var jqxhr = $.get(url,function(structure) {
                      spField.val(structure);
                   })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
 };
 
 // prevent "enter" keypress in the identifier field from submitting the form,
