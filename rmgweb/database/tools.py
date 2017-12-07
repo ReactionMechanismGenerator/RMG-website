@@ -335,7 +335,7 @@ def generateSpeciesThermo(species, database):
         
 ################################################################################
 
-def generateReactions(database, reactants, products=None, only_families=None):
+def generateReactions(database, reactants, products=None, only_families=None, resonance=True):
     """
     Generate the reactions (and associated kinetics) for a given set of
     `reactants` and an optional set of `products`. A list of reactions is
@@ -348,12 +348,12 @@ def generateReactions(database, reactants, products=None, only_families=None):
     """
     from rmgpy.rmg.model import getFamilyLibraryObject
     # get RMG-py reactions
-    reactionList = database.kinetics.generate_reactions(reactants, products, only_families=only_families)
+    reactionList = database.kinetics.generate_reactions(reactants, products, only_families=only_families, resonance=resonance)
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
-        reactionList.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families))
+        reactionList.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families, resonance=resonance))
     
     # get RMG-py kinetics
     reactionList0 = reactionList; reactionList = []

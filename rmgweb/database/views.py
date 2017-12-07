@@ -1311,7 +1311,7 @@ def kineticsUntrained(request, family):
         entries.append(entry)
     return render_to_response('kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False}, context_instance=RequestContext(request))
 
-def getReactionUrl(reaction, family=None, estimator=None):
+def getReactionUrl(reaction, family=None, estimator=None, resonance=True):
     """
     Get the URL (for kinetics data) of a reaction.
     
@@ -1328,6 +1328,9 @@ def getReactionUrl(reaction, family=None, estimator=None):
     for index, product in enumerate(reaction.products):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
         kwargs['product{0:d}'.format(index+1)] = moleculeToAdjlist(mol)
+
+    kwargs['resonance'] = resonance
+
     if family:
         if estimator:
             kwargs['family'] = family
@@ -1911,7 +1914,7 @@ def kineticsEntry(request, section, subsection, index):
                                   context_instance=RequestContext(request))
 
 
-def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
+def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3='', resonance=True):
     """
     View a kinetics group estimate as an entry.
     """
@@ -1944,7 +1947,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
         productList.append(moleculeFromURL(product3))    
     
     # Search for the corresponding reaction(s)
-    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family])
+    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family], resonance=resonance)
     
     kineticsDataList = []
     
@@ -2033,7 +2036,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     referenceType = ''
     entry.index=-1
 
-    reactionUrl = getReactionUrl(reaction)
+    reactionUrl = getReactionUrl(reaction, resonance=resonance)
 
     return render_to_response('kineticsEntry.html', {'section': 'families',
                                                     'subsection': family,
@@ -2088,13 +2091,15 @@ def kineticsSearch(request):
             if product2 != '':
                 kwargs['product2'] = product2
 
+            kwargs['resonance'] = form.cleaned_data['resonance']
+
             return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
     else:
         form = KineticsSearchForm()
 
     return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
 
-def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
+def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
     A view used to present a list of unique reactions that result from a
     valid kinetics search.
@@ -2123,7 +2128,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         productList = None
     
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
+    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList, resonance=resonance)
     reactionList.extend(rmgJavaReactionList)
         
     # Remove duplicates from the list and count the number of results
@@ -2143,7 +2148,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-        reactionUrl = getReactionUrl(reaction)
+        reactionUrl = getReactionUrl(reaction, resonance=resonance)
         
         forward = reactionHasReactants(reaction, reactantList)
         if forward:
@@ -2153,7 +2158,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         
     return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
 
-def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
+def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
     A view used to present a list of reactions and the associated kinetics
     for each.
@@ -2182,12 +2187,12 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             productList.append(moleculeFromURL(product3))
             
         reverseReaction = Reaction(reactants = productList, products = reactantList)
-        reverseReactionURL = getReactionUrl(reverseReaction)
+        reverseReactionURL = getReactionUrl(reverseReaction, resonance=resonance)
     else:
         productList = None
 
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
+    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList, resonance=resonance)
     reactionList.extend(rmgJavaReactionList)
     
     kineticsDataList = []
@@ -2212,7 +2217,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if isinstance(reaction, TemplateReaction):
             source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
             
-            href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator)
+            href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator, resonance=resonance)
             entry = Entry(data=reaction.kinetics)
             family = reaction.family
         elif reaction in rmgJavaReactionList:
@@ -2252,7 +2257,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     # Need to get group-additive reaction from generateReaction with only_families
     # +--> otherwise, adjacency list doesn't store reaction template properly
     if family:
-        additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family)
+        additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family, resonance=resonance)
         additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
         reaction = additiveList[0]
         new_entry = StringIO.StringIO(u'')

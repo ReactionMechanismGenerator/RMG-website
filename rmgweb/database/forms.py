@@ -88,6 +88,7 @@ class KineticsSearchForm(forms.Form):
     product1 = forms.CharField(label="Product #1", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
     product2_identifier = forms.CharField(label="Product #2 Identifier", widget=forms.TextInput(attrs={'onchange':'resolve("product2");','class':'identifier'}), required=False)
     product2 = forms.CharField(label="Product #2", widget=forms.widgets.Textarea(attrs={'rows': 6, 'cols': 30}), required=False)
+    resonance = forms.BooleanField(label="Generate Resonance Structures", widget=forms.CheckboxInput(), initial=True, required=False)
 
     def clean_reactant1(self):
         """
