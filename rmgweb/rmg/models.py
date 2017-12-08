@@ -38,7 +38,7 @@ from django.utils.deconstruct import deconstructible
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
-from rmgweb.database.tools import database, loadDatabase
+from rmgweb.database.tools import database
 
 import rmgweb.settings as settings
 
@@ -838,8 +838,8 @@ class Input(models.Model):
 ################################################################################
 # DATABASE MODELS
 ################################################################################
-loadDatabase('thermo','libraries')
-loadDatabase('kinetics','libraries')
+database.load('thermo', 'libraries')
+database.load('kinetics', 'libraries')
 ThermoLibraries = [(label, label) for label, library in database.thermo.libraries.iteritems()]
 ThermoLibraries.sort()
 KineticsLibraries = [(label, label) for label, library in database.kinetics.libraries.iteritems()]
