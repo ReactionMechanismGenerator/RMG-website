@@ -110,7 +110,7 @@ def render_thermo_math(thermo, user=None):
     
     elif isinstance(thermo, Wilhoit):
         # The thermo is in Wilhoit format
-        result += '<div class="math">\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\begin{split}'
         result += r'C_\mathrm{p}(T) &= C_\mathrm{p}(0) + \left[ C_\mathrm{p}(\infty) -'
         result += r'    C_\mathrm{p}(0) \right] y^2 \left[ 1 + (y - 1) \sum_{i=0}^3 a_i y^i \right] \\'
@@ -118,7 +118,7 @@ def render_thermo_math(thermo, user=None):
         result += r'S^\circ(T) &= S_0 + \int_0^\infty \frac{C_\mathrm{p}(T)}{T} \ dT\\'
         result += r'y &\equiv \frac{T}{T + B}'
         result += r'\end{split}'
-        result += '</div>\n'
+        result += '</script>\n'
 
         result += '<table class="thermoEntryData">\n'
         result += '<tr>'
@@ -170,15 +170,15 @@ def render_thermo_math(thermo, user=None):
     
     elif isinstance(thermo, NASA):
         # The thermo is in NASA format
-        result += '<div class="math">\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{C_\mathrm{p}^\circ(T)}{R} = a_{-2} T^{-2} + a_{-1} T^{-1} + a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4'
-        result += '</div>\n'
-        result += '<div class="math">\n'
+        result += '</script>\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{H^\circ(T)}{RT} = -a_{-2} T^{-2} + a_{-1} \frac{\ln T}{T} + a_0 + \frac{1}{2} a_1 T + \frac{1}{3} a_2 T^2 + \frac{1}{4} a_3 T^3 + \frac{1}{5} a_4 T^4 + \frac{a_5}{T}'
-        result += '</div>\n'
-        result += '<div class="math">\n'
+        result += '</script>\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{S^\circ(T)}{R} = -\frac{1}{2} a_{-2} T^{-2} - a_{-1} T^{-1} + a_0 \ln T + a_1 T + \frac{1}{2} a_2 T^2 + \frac{1}{3} a_3 T^3 + \frac{1}{4} a_4 T^4 + a_6'
-        result += '</div>\n'
+        result += '</script>\n'
 
         result += '<table class="thermoEntryData">\n'
         result += '<tr>'
