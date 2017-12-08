@@ -89,7 +89,7 @@ var treeChildren = new Array();
 function toggleVisible(index) {
     $("#children_" + index).toggle();
     if ($("#children_" + index).is(":visible")) {
-        $("#button_" + index).attr("src", "{{% static 'img/tree-collapse.png' %}");
+        $("#button_" + index).attr("src", "{% static 'img/tree-collapse.png' %}");
     }
     else {
         $("#button_" + index).attr("src", "{% static 'img/tree-expand.png' %}");
