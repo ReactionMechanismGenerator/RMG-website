@@ -151,7 +151,7 @@ jQuery(document).ready(function() {
     Emin = Elist[0]/1000.;
     Emax = Elist[Elist.length-1]/1000.;
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         plotDensityOfStates('plotrho', rhoseries, Emin, Emax);
         plotMicroKinetics('plotk', kseries, Emin, Emax);
     });

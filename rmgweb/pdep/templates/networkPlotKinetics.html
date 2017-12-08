@@ -34,7 +34,7 @@ jQuery(document).ready(function() {
     k_series2.push(['{{ products }}', kseries2[0][1]]);
     {% endfor %}
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         plotKinetics('plotk', k_series);
         plotKineticsVsP('plotkvsP', k_series2);
     });

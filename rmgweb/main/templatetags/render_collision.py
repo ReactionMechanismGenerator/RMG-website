@@ -53,7 +53,7 @@ import rmgpy.constants as constants
 def render_collision_math(species, user=None):
     """
     Return a math representation of the given `species` collider parameters
-    using jsMath. If a `user` is specified, the user's preferred units will be
+    using MathJax. If a `user` is specified, the user's preferred units will be
     used; otherwise default units will be used.
     """
     

@@ -46,7 +46,7 @@ jQuery(document).ready(function() {
     {{ thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         plotHeatCapacity('plotCp', Cpseries);
         plotEnthalpy('plotH', Hseries);
         plotEntropy('plotS', Sseries);

@@ -52,7 +52,7 @@ from rmgpy.data.statmech import *
 @register.filter
 def render_statmech_math(statmech, user=None):
     """
-    Return a math representation of the given `transport` using jsMath. If a 
+    Return a math representation of the given `transport` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """

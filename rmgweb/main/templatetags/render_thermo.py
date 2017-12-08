@@ -52,7 +52,7 @@ from rmgpy.thermo import *
 @register.filter
 def render_thermo_math(thermo, user=None):
     """
-    Return a math representation of the given `thermo` using jsMath. If a 
+    Return a math representation of the given `thermo` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """

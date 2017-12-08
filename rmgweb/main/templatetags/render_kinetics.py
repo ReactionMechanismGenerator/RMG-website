@@ -184,7 +184,7 @@ def getRateCoefficientUnits(kinetics, user=None):
 @register.filter
 def render_kinetics_math(kinetics, user=None):
     """
-    Return a math representation of the given `kinetics` using jsMath. If a 
+    Return a math representation of the given `kinetics` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """

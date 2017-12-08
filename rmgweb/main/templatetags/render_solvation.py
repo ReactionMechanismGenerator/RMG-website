@@ -51,7 +51,7 @@ from rmgpy.data.solvation import *
 @register.filter
 def render_solvation_math(solvation, user=None):
     """
-    Return a math representation of the given `solvation` using jsMath. If a 
+    Return a math representation of the given `solvation` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """

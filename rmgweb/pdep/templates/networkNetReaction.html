@@ -32,7 +32,7 @@ jQuery(document).ready(function() {
     {% include "kineticsModel.js" %}
     {% endif %}
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         {% if kinetics %}
         plotKinetics('plotk', kseries);
         plotKineticsVsP('plotkvsP', kseries2);

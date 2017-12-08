@@ -25,8 +25,8 @@ jQuery(document).ready(function() {
     {% endif %}
     {% endfor %}
 
-    jsMath.Synchronize(function() {
-        // Do these things once the jsMath has finished rendering.
+    MathJax.Hub.Queue(function() {
+        // Do these things once MathJax has finished rendering.
         kchart = plotKinetics('plotk', kineticsModelList);
         if (kineticsModelList.length > 1) {
             calculateAverage();

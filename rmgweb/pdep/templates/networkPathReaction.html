@@ -110,7 +110,7 @@ jQuery(document).ready(function() {
     };
 
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         {% if kinetics %}
         plotKinetics('plotk', kseries);
         {% endif %}

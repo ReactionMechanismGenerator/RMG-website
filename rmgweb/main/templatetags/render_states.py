@@ -53,7 +53,7 @@ import math
 @register.filter
 def render_states_math(states, user=None):
     """
-    Return a math representation of the given `states` using jsMath. If a 
+    Return a math representation of the given `states` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """
