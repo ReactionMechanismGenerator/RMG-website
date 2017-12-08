@@ -755,9 +755,9 @@ def getKineticsTreeHTML(database, section, subsection, entries):
         html += '<li class="kineticsEntry">\n'
         html += '<div class="kineticsLabel">'
         if len(entry.children) > 0:
-            html += '<img id="button_{0}" class="treeButton" src="/media/tree-collapse.png"/>'.format(entry.index)
+            html += '<img id="button_{0}" class="treeButton" src="{1}"/>'.format(entry.index, static('img/tree-collapse.png'))
         else:
-            html += '<img class="treeButton" src="/media/tree-blank.png"/>'
+            html += '<img class="treeButton" src="{0}"/>'.format(static('img/tree-blank.png'))
         html += '<a href="{0}">{1}. {2}</a>\n'.format(url, entry.index, entry.label)
         html += '<div class="kineticsData">\n'
         if entry.data is not None:
@@ -1264,17 +1264,17 @@ def kinetics(request, section='', subsection=''):
                     # the averaging step, and we don't want to show all of the averaged nodes
                     # in the web view.  We only want to show nodes with direct values or 
                     # training rates that became rate rules.
-                    pass
+                    continue
                 else:
                     entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
                     entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                     entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
-                    entries.append(entry)
             else:
                 entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
                 entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
-                entries.append(entry)
+
+            entries.append(entry)
             
         return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'databaseDesc':database.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
 
