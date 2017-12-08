@@ -124,19 +124,19 @@ def render_states_math(states, user=None):
                 fourierA = ', '.join(['{0:g}'.format(a_k) for a_k in mode.fourier.value_si[0,:]])  
                 fourierB = ', '.join(['{0:g}'.format(b_k) for b_k in mode.fourier.value_si[1,:]])
                 result += '<tr>'
-                result += r'    <td colspan="2"><span class="math">V(\phi) = A + \sum_k \left( a_k \cos k \phi + b_k \sin k \phi \right)</span></td>'
+                result += r'    <td colspan="2"><script type="math/tex">V(\phi) = A + \sum_k \left( a_k \cos k \phi + b_k \sin k \phi \right)</script></td>'
                 result += '</tr>\n'
                 result += '<tr>'
-                result += r'    <td class="label"><span class="math">a_k</span></td>'
+                result += r'    <td class="label"><script type="math/tex">a_k</script></td>'
                 result += r'    <td>{0}</td>'.format(fourierA)
                 result += '</tr>\n'
                 result += '<tr>'
-                result += r'    <td class="label"><span class="math">b_k</span></td>'
+                result += r'    <td class="label"><script type="math/tex">b_k</script></td>'
                 result += r'    <td>{0}</td>'.format(fourierB)
                 result += '</tr>\n'
             else:
                 result += '<tr>'
-                result += r'    <td colspan="2"><span class="math">V(\phi) = \frac{1}{2} V_0 \left[1 - \cos \left( \sigma \phi \right) \right]</span></td>'
+                result += r'    <td colspan="2"><script type="math/tex">V(\phi) = \frac{1}{2} V_0 \left[1 - \cos \left( \sigma \phi \right) \right]</script></td>'
                 result += '</tr>\n'
                 result += '<tr>'
                 result += r'    <td class="label">Barrier height ({0!s}):</td>'.format(Eunits)

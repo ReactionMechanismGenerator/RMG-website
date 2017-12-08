@@ -232,7 +232,7 @@ def render_kinetics_math(kinetics, user=None):
         result += r'<table class="KineticsData">'
         result += r'<tr><th>Temperature</th><th>Rate coefficient</th></tr>'
         for T, k in zip(kinetics.Tdata.value_si, kinetics.kdata.value_si):
-            result += r'<tr><td><span class="math">{0:g} \ \mathrm{{ {1!s} }}</span></td><td><span class="math">{2!s} \ \mathrm{{ {3!s} }}</span></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
+            result += r'<tr><td><script type="math/tex">{0:g} \ \mathrm{{ {1!s} }}</script></td><td><script type="math/tex">{2!s} \ \mathrm{{ {3!s} }}</script></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
         result += r'</table>'
         # fit to an arrhenius
         arr = kinetics.toArrhenius()
