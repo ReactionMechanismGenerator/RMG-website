@@ -363,8 +363,8 @@ def generateReactions(database, reactants, products=None, only_families=None, re
     `reactants` and an optional set of `products`. A list of reactions is
     returned, with a reaction for each matching kinetics entry in any part of
     the database. This means that the same reaction may appear multiple times
-    with different kinetics in the output. If the RMG-Java server is running,
-    this function will also query it for reactions and kinetics.
+    with different kinetics in the output.
+
     If `only_families` is a list of strings, only those labeled families are 
     used: no libraries and no RMG-Java kinetics are returned.
     """
@@ -434,19 +434,12 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                     )                    
                     
                 reactionList.append(rxn)
-    
-    # get RMG-java reactions
-    if only_families is None:
-        # Not restricted to certain families, so also check RMG-Java.
-        rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
-    else:
-        rmgJavaReactionList = []
-    
-    for rxn in itertools.chain(reactionList, rmgJavaReactionList):
+
+    for rxn in reactionList:
         rxn.reactants = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.reactants]
         rxn.products = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.products]
 
-    return reactionList, rmgJavaReactionList
+    return reactionList
     
 ################################################################################
 

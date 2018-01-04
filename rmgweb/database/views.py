@@ -1937,7 +1937,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
         productList.append(moleculeFromURL(product3))    
     
     # Search for the corresponding reaction(s)
-    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family], resonance=resonance)
+    reactionList = generateReactions(database, reactantList, productList, only_families=[family], resonance=resonance)
     
     kineticsDataList = []
     
@@ -2117,9 +2117,8 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         productList = None
     
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList, resonance=resonance)
-    reactionList.extend(rmgJavaReactionList)
-        
+    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+
     # Remove duplicates from the list and count the number of results
     uniqueReactionList = []
     uniqueReactionCount = []
@@ -2179,9 +2178,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         productList = None
 
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList, resonance=resonance)
-    reactionList.extend(rmgJavaReactionList)
-    
+    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+
     kineticsDataList = []
     family = ''
     
@@ -2207,10 +2205,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator, resonance=resonance)
             entry = Entry(data=reaction.kinetics)
             family = reaction.family
-        elif reaction in rmgJavaReactionList:
-            source = 'RMG-Java'
-            href = ''
-            entry = reaction.entry
         elif isinstance(reaction, DepositoryReaction):
             if 'untrained' in reaction.depository.name:
                 continue
@@ -2244,7 +2238,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     # Need to get group-additive reaction from generateReaction with only_families
     # +--> otherwise, adjacency list doesn't store reaction template properly
     if family:
-        additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family, resonance=resonance)
+        additiveList = generateReactions(database, reactantList, productList, only_families=family, resonance=resonance)
         additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
         reaction = additiveList[0]
         new_entry = StringIO.StringIO(u'')
