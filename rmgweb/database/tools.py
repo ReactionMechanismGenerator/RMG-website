@@ -435,10 +435,6 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                     
                 reactionList.append(rxn)
 
-    for rxn in reactionList:
-        rxn.reactants = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.reactants]
-        rxn.products = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.products]
-
     return reactionList
     
 ################################################################################
