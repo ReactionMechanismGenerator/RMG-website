@@ -1970,51 +1970,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
     
     source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
-    
-    if reaction.kinetics:
-        entry = Entry(
-                      item=reaction,
-                      data=reaction.kinetics,
-                      longDesc=reaction.kinetics.comment,
-                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                      )
-    else:
-        entry = Entry(
-                      item=reaction,
-                      data=reaction.kinetics,
-                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                      )
-                  
-    # Get the entry as an entry_string, to populate the New Entry form
-    if reaction.kinetics is None:
-        pass
-    elif isinstance(reaction.kinetics, Arrhenius):
-        entry.data = reaction.kinetics
-    elif isinstance(reaction.kinetics, KineticsData):
-        entry.data = reaction.kinetics.toArrhenius()
-    else:
-        raise Exception('Unexpected group kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
-    
-    entry_buffer = StringIO.StringIO(u'')
-    try:
-        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)            
-    except Exception, e:
-        entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
-        entry_buffer.write(str(e))
-        pass
-    entry_string = entry_buffer.getvalue()
-    entry_buffer.close()
-    # replace the kinetics with the original ones
-    entry.data = reaction.kinetics
-    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
-    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
-    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
-    
-    forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
-    
-    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
-    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-    
+
     if estimator == 'group_additivity':
         reference = rmgpy.data.reference.Reference(
                     url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
@@ -2024,14 +1980,12 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                     url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/rules'})),
                     )
     referenceType = ''
-    entry.index=-1
 
     reactionUrl = getReactionUrl(reaction, resonance=resonance)
 
     return render_to_response('kineticsEntry.html', {'section': 'families',
                                                     'subsection': family,
                                                     'databaseName': family,
-                                                    'entry': entry,
                                                     'reactants': reactants,
                                                     'arrow': arrow,
                                                     'products': products,
@@ -2039,8 +1993,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                                                     'referenceType': referenceType,
                                                     'kinetics': reaction.kinetics,
                                                     'reactionUrl': reactionUrl,
-                                                    'reaction': reaction,
-                                                    'new_entry_form': new_entry_form},
+                                                    'reaction': reaction},
                               context_instance=RequestContext(request))
     
 
