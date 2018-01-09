@@ -420,6 +420,7 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                         reversible = reaction.reversible,
                         family = reaction.family,
                         estimator = source,
+                        template = reaction.template,
                     )
                 else:
                     rxn = DepositoryReaction(

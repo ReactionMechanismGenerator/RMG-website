@@ -1879,7 +1879,6 @@ def kineticsEntry(request, section, subsection, index):
                                                          'structure': structure,
                                                          'reference': reference,
                                                          'referenceType': referenceType,
-                                                         'kinetics': entry.data,
                                                          },
                                   context_instance=RequestContext(request))
     else:
@@ -1901,7 +1900,6 @@ def kineticsEntry(request, section, subsection, index):
                                                         'products': products,
                                                         'reference': reference,
                                                         'referenceType': referenceType,
-                                                        'kinetics': entry.data,
                                                         'reactionUrl': reactionUrl },
                                   context_instance=RequestContext(request))
 
@@ -1941,59 +1939,102 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     
     kineticsDataList = []
     
-    # discard all the rates from depositories and rules
-    reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
-    
-    # retain only the rates from the selected estimation method
-    reactionList = [reaction for reaction in reactionList if reaction.estimator == estimator.replace('_',' ')]
-    
-    # if there are still two, only keep the forward direction
-    if len(reactionList)==2:
-        reactionList = [reaction for reaction in reactionList if reactionHasReactants(reaction, reactantList)]
-    
-    assert len(reactionList)==1, "Was expecting one group estimate rate, not {0}".format(len(reactionList))
-    reaction = reactionList[0]
-    
+    # Only keep template reactions frm the selected estimation method in the forward direction
+    reactionList = [reaction for reaction in reactionList if (isinstance(reaction, TemplateReaction) and
+                                                              reaction.estimator == estimator.replace('_', ' ') and
+                                                              reactionHasReactants(reaction, reactantList))]
+
+    # Select the first reaction for initial processing
+    reaction0 = reactionList[0]
+
     # Generate the thermo data for the species involved
-    for reactant in reaction.reactants:
+    for reactant in reaction0.reactants:
         generateSpeciesThermo(reactant, database)
-    for product in reaction.products:
+    for product in reaction0.products:
         generateSpeciesThermo(product, database)
-    
-    # If the kinetics are ArrheniusEP, replace them with Arrhenius
-    if isinstance(reaction.kinetics, ArrheniusEP):
-        reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
-    
-    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
-    arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-    assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
-    
-    source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
 
-    if estimator == 'group_additivity':
-        reference = rmgpy.data.reference.Reference(
-                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
-                    )
+    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction0.reactants])
+    arrow = '&hArr;' if reaction0.reversible else '&rarr;'
+    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction0.products])
+
+    source = '%s (RMG-Py %s)' % (reaction0.family, reaction0.estimator)
+
+    entry = None
+    entry_list = []
+    if len(reactionList) == 1:
+        if isinstance(reaction0.kinetics, ArrheniusEP):
+            reaction0.kinetics = reaction0.kinetics.toArrhenius(reaction0.getEnthalpyOfReaction(298))
+
+        entry = Entry(
+            data = reaction0.kinetics,
+            shortDesc="Estimated by RMG-Py %s" % (reaction0.estimator),
+            longDesc=reaction0.kinetics.comment,
+        )
+
+        if estimator == 'group_additivity':
+            reference = rmgpy.data.reference.Reference(
+                url=request.build_absolute_uri(
+                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+            )
+        else:
+            reference = rmgpy.data.reference.Reference(
+                url=request.build_absolute_uri(
+                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+            )
+        referenceType = ''
     else:
-        reference = rmgpy.data.reference.Reference(
-                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/rules'})),
-                    )
-    referenceType = ''
+        for i, reaction in enumerate(reactionList):
+            assert reaction.isIsomorphic(reaction0, eitherDirection=False), "Multiple group estimates must be isomorphic."
+            # Replace reactants and products with the same object instances as reaction0
+            reaction.reactants = reaction0.reactants
+            reaction.products = reaction0.products
 
-    reactionUrl = getReactionUrl(reaction, resonance=resonance)
+            # If the kinetics are ArrheniusEP, replace them with Arrhenius
+            if isinstance(reaction.kinetics, ArrheniusEP):
+                reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+
+            entry0 = Entry(
+                data = reaction.kinetics,
+                shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
+                longDesc=reaction.kinetics.comment,
+            )
+            entry0.result = i + 1
+
+            if estimator == 'group_additivity':
+                reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(
+                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+                )
+            else:
+                reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(
+                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+                )
+            referenceType = ''
+
+            entry_list.append((entry0, reaction.template, reference))
+
+
+    reactionUrl = getReactionUrl(reaction0, resonance=resonance)
+
+    assert not (entry and entry_list), 'Either `entry` or `entry_list` should have a value, not both.'
 
     return render_to_response('kineticsEntry.html', {'section': 'families',
-                                                    'subsection': family,
-                                                    'databaseName': family,
-                                                    'reactants': reactants,
-                                                    'arrow': arrow,
-                                                    'products': products,
-                                                    'reference': reference,
-                                                    'referenceType': referenceType,
-                                                    'kinetics': reaction.kinetics,
-                                                    'reactionUrl': reactionUrl,
-                                                    'reaction': reaction},
+                                                     'subsection': family,
+                                                     'databaseName': family,
+                                                     'reactants': reactants,
+                                                     'arrow': arrow,
+                                                     'products': products,
+                                                     'reference': reference,
+                                                     'referenceType': referenceType,
+                                                     'entry': entry,
+                                                     'entry_list': entry_list,
+                                                     'forward': True,
+                                                     'reactionUrl': reactionUrl,
+                                                     'reaction': reaction0,
+                                                     'plotWidth': 500,
+                                                     'plotHeight': 400 + 15 * len(entry_list),
+                                                     },
                               context_instance=RequestContext(request))
     
 

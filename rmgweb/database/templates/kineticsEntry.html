@@ -49,19 +49,40 @@ table.kineticsEntryData td.reference p {
 <script src="{% static 'js/highcharts.theme.js' %}" type="text/javascript"></script>
 
 <script type="text/javascript">
-jQuery(document).ready(function() {
+{% include "kineticsPlot.js" %}
+jQuery(document).ready(
+    function() {
+        {% if entry %}
+            var kseries = [];
 
-    var kseries = new Array();
-    
-    {{ kinetics|get_rate_coefficients:user }}
-    {% include "kineticsModel.js" %}
-    {% include "kineticsPlot.js" %}
+            {{ entry.data|get_rate_coefficients:user }}
+            {% include "kineticsModel.js" %}
 
-    MathJax.Hub.Queue(function() {
-        plotKinetics('plotk', kseries);
-    });
+            MathJax.Hub.Queue(
+                function() {
+                    plotKinetics('plotk', kseries, false);
+                }
+            );
+        {% elif entry_list %}
+            var kineticsModelList = [];
 
-});
+            {% for entry, source, reference in entry_list %}
+                var kseries = [];
+                {{ entry.data|get_rate_coefficients:user }}
+                {% if entry.data %}
+                {% include "kineticsModel.js" %}
+                kineticsModelList.push(kseries[kseries.length-1]);
+                {% endif %}
+            {% endfor %}
+
+            MathJax.Hub.Queue(
+                function() {
+                    plotKinetics('plotk', kineticsModelList, false);
+                }
+            );
+        {% endif %}
+    }
+);
 </script>
 {% endblock %}
 
@@ -108,9 +129,9 @@ jQuery(document).ready(function() {
     <tr>
         <td class="reactants">{{ reactants|safe }}</td>
         <td class="reactionArrow">{{ arrow|safe }}</td>
-        <td class="reactants">{{ products|safe }}</td>
+        <td class="products">{{ products|safe }}</td>
     </tr>
-    {% if reaction.degeneracy %}
+    {% if entry and reaction.degeneracy %}
     <tr><td>Degeneracy = {{reaction.degeneracy}}</td></tr>
     {% endif %}
 </table>
@@ -120,16 +141,34 @@ jQuery(document).ready(function() {
 {% endif %}
 <br/>
 
-<h2>Kinetic Data 
-</h2>
-{{ kinetics|render_kinetics_math:user }}
+<h2>Kinetic Data</h2>
 
-{% if kinetics %}
-<div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
+{% if entry %}
+    {{ entry.data|render_kinetics_math:user }}
+
+    <h2>Reference</h2>
+    {% include "reference.html" %}
+
+    <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
+
+{% elif entry_list %}
+    <p>
+    Multiple reaction template matches were identified for this reaction.
+    This is typically as result of multiple transition states leading to the same product or multiple resonance structures.
+    </p>
+
+    {% for entry, source, reference in entry_list %}
+
+    <h3>Template #{{ entry.result }}: {{ source }}</h3>
+    {{ entry.data|render_kinetics_math:user }}
+
+    {% include "reference.html" %}
+
+    {% endfor %}
+
+    <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+
 {% endif %}
-
-<h2>Reference</h2>
-{% include "reference.html" %}
 
 
 {% if entry and entry.index and entry.index != -1 %}
