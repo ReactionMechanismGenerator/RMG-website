@@ -463,18 +463,18 @@ def reactionHasReactants(reaction, reactants):
     Return ``True`` if the given `reaction` has all of the specified
     `reactants` (and no others), or ``False if not.
     """
-    if len(reactants) == len(reaction.products) == 1:
-        if reaction.products[0].isIsomorphic(reactants[0]): 
-            return False
-    elif len(reactants) == len(reaction.products) == 2:
-        if reaction.products[0].isIsomorphic(reactants[0]) and reaction.products[1].isIsomorphic(reactants[1]):
-            return False
-        elif reaction.products[0].isIsomorphic(reactants[1]) and reaction.products[1].isIsomorphic(reactants[0]):
-            return False
-    elif len(reactants) == 1 and len(reaction.products) == 2:
-        if reaction.products[0].isIsomorphic(reactants[0]) and reaction.products[1].isIsomorphic(reactants[0]):
-            return False
-    return True
+    if len(reactants) == len(reaction.reactants) == 1:
+        if reaction.reactants[0].isIsomorphic(reactants[0]):
+            return True
+    elif len(reactants) == len(reaction.reactants) == 2:
+        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[1]):
+            return True
+        elif reaction.reactants[0].isIsomorphic(reactants[1]) and reaction.reactants[1].isIsomorphic(reactants[0]):
+            return True
+    elif len(reactants) == 1 and len(reaction.reactants) == 2:
+        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[0]):
+            return True
+    return False
 
 def getRMGJavaKineticsFromReaction(reaction):
     """
