@@ -2176,7 +2176,20 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
 
     kineticsDataList = []
     family = ''
-    
+
+    # Determine number of template matches
+    num_template_rxns_forward = 0
+    num_template_rxns_reverse = 0
+    for reaction in reactionList:
+        if isinstance(reaction, TemplateReaction) and reaction.estimator == 'rate rules':
+            if reactionHasReactants(reaction, reactantList):
+                num_template_rxns_forward += 1
+            else:
+                num_template_rxns_reverse += 1
+
+    count_template_rxns_forward = 0
+    count_template_rxns_reverse = 0
+
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
         # Generate the thermo data for the species involved
@@ -2189,12 +2202,24 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if isinstance(reaction.kinetics, ArrheniusEP):
             reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
-        #reactants = [getStructureInfo(reactant) for reactant in reaction.reactants]
+        is_forward = reactionHasReactants(reaction, reactantList)
+
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
-            source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
+            counter = ''
+            if reaction.estimator == 'rate rules':
+                if is_forward:
+                    count_template_rxns_forward += 1
+                    if num_template_rxns_forward > 1:
+                        counter = ', forward template {0} of {1}'.format(count_template_rxns_forward, num_template_rxns_forward)
+                else:
+                    count_template_rxns_reverse += 1
+                    if num_template_rxns_reverse > 1:
+                        counter = ', reverse template {0} of {1}'.format(count_template_rxns_reverse, num_template_rxns_reverse)
+
+            source = '{0} (RMG-Py {1}{2})'.format(reaction.family, reaction.estimator, counter)
             
             href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator, resonance=resonance)
             entry = Entry(data=reaction.kinetics)
@@ -2212,7 +2237,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         
         forwardKinetics = reaction.kinetics
         
-        is_forward = reactionHasReactants(reaction, reactantList)
         entry.result = len(kineticsDataList) + 1
 
         if is_forward:
