@@ -370,24 +370,37 @@ def generateReactions(database, reactants, products=None, only_families=None, re
     """
     from rmgpy.rmg.model import getFamilyLibraryObject
     # get RMG-py reactions
-    reactionList = database.kinetics.generate_reactions(reactants, products, only_families=only_families, resonance=resonance)
+    reaction_list = database.kinetics.generate_reactions(reactants, products, only_families=only_families, resonance=resonance)
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
-        reactionList.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families, resonance=resonance))
+        reaction_list.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families, resonance=resonance))
     
     # get RMG-py kinetics
-    reactionList0 = reactionList; reactionList = []
-    for reaction in reactionList0:
+    reaction_data_list = []
+    template_reactions = []
+    for reaction in reaction_list:
         # If the reaction already has kinetics (e.g. from a library),
         # assume the kinetics are satisfactory
         if reaction.kinetics is not None:
-            reactionList.append(reaction)
+            reaction_data_list.append(reaction)
         else:
             # Set the reaction kinetics
             # Only reactions from families should be missing kinetics
             assert isinstance(reaction, TemplateReaction)
+
+            # Determine if we've already processed an isomorphic reaction with a different template
+            duplicate = False
+            for t_rxn in template_reactions:
+                if reaction.isIsomorphic(t_rxn):
+                    assert set(reaction.template) != set(t_rxn.template), 'There should not be duplicate reactions with identical templates.'
+                    duplicate = True
+                    break
+            else:
+                # We haven't encountered this reaction yet, so add it to the list
+                template_reactions.append(reaction)
+
             # Get all of the kinetics for the reaction
             family = getFamilyLibraryObject(reaction.family)
             kineticsList = family.getKinetics(reaction, templateLabels=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
@@ -404,6 +417,11 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                 delattr(reaction,'reverse')
             # Make a new reaction object for each kinetics result
             for kinetics, source, entry, isForward in kineticsList:
+                if duplicate and source != 'rate rules':
+                    # We've already processed this reaction with a different template,
+                    # so we only need the new rate rule estimates
+                    continue
+
                 if isForward:
                     reactant_species = reaction.reactants[:]
                     product_species = reaction.products[:]
@@ -434,9 +452,9 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                         entry = entry,
                     )                    
                     
-                reactionList.append(rxn)
+                reaction_data_list.append(rxn)
 
-    return reactionList
+    return reaction_data_list
     
 ################################################################################
 
