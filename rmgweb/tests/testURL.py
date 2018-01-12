@@ -29,7 +29,7 @@ multiplicity 2
                                                                    'reactant2': reactant2,
                                                                    'resonance': False})
 
-        base_url = 'http://testserver/database/kinetics/results/r1={0}__r2={1}__res=False'
+        base_url = 'http://testserver/database/kinetics/results/reactant1={0}__reactant2={1}__res=False'
         expected_url = iri_to_uri(base_url.format(reactant1, reactant2))
 
         self.assertRedirects(response, expected_url)
@@ -47,7 +47,7 @@ multiplicity 2
 
         url = getReactionUrl(reaction, resonance=False)
 
-        base_url = '/database/kinetics/reaction/r1={0}__r2={1}__p1={2}__res=False'
+        base_url = '/database/kinetics/reaction/reactant1={0}__reactant2={1}__product1={2}__res=False'
         expected_url = iri_to_uri(base_url.format(reactant1.toAdjacencyList(),
                                                   reactant2.toAdjacencyList(),
                                                   product1.toAdjacencyList()))
