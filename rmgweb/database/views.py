@@ -30,6 +30,7 @@
 
 import StringIO  # cStringIO is faster, but can't do Unicode
 import cookielib
+import json
 import math
 import os
 import re
@@ -60,11 +61,13 @@ from rmgpy.data.reference import Article, Book
 from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, \
                            PDepArrhenius, MultiArrhenius, MultiPDepArrhenius, \
                            Chebyshev, Troe, Lindemann, ThirdBody
-from rmgpy.molecule import Group, Molecule
+from rmgpy.molecule import Group, Molecule, Atom, Bond
+from rmgpy.molecule.adjlist import Saturator
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
 from rmgpy.thermo import ThermoData, Wilhoit, NASA
 from rmgpy.quantity import Quantity
+from rmgpy.exceptions import AtomTypeError
 
 import rmgweb.settings
 from rmgweb.database.forms import DivErrorList, EniSearchForm, KineticsEntryEditForm, \
@@ -2474,3 +2477,43 @@ def groupEntry(request,adjlist):
     structure = getStructureInfo(group)
     
     return render_to_response('groupEntry.html',{'structure':structure,'group':group}, context_instance=RequestContext(request))
+
+def json_to_adjlist(request):
+    """
+    Interprets ChemDoodle JSON and returns an RMG adjacency list.
+    """
+    adjlist = ''
+    if request.is_ajax() and request.method == 'POST':
+        cd_json_str = request.POST.get('data')
+        cd_json = json.loads(cd_json_str)
+
+        try:
+            atoms = []
+            # Parse atoms in json dictionary
+            for a in cd_json['a']:
+                atoms.append(Atom(
+                    element=str(a['l']) if 'l' in a else 'C',
+                    charge=a['c'] if 'c' in a else 0,
+                    radicalElectrons=a['r'] if 'r' in a else 0,
+                    lonePairs=a['p'] if 'p' in a else 0,
+                ))
+            # Initialize molecule with atoms
+            mol = Molecule(atoms=atoms)
+            # Parse bonds in json dictionary
+            for b in cd_json['b']:
+                mol.addBond(Bond(
+                    atom1=atoms[b['b']],
+                    atom2=atoms[b['e']],
+                    order=b['o'] if 'o' in b else 1,
+                ))
+            # Hydrogens are implicit, so we need to add hydrogens
+            Saturator.saturate(mol.atoms)
+            mol.update()
+            # Generate adjacency list
+            adjlist = mol.toAdjacencyList()
+        except AtomTypeError:
+            adjlist = 'Invalid Molecule'
+        except:
+            adjlist = 'Unable to convert molecule drawing to adjacency list.'
+
+    return HttpResponse(adjlist)

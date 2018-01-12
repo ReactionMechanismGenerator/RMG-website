@@ -98,7 +98,10 @@ urlpatterns = [
 
     # Eni detergent-dirt binding strength
     url(r'^eni', views.EniSearch),
-    
+
+    # AJAX request url
+    url(r'^ajax_adjlist_request', views.json_to_adjlist),
+
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
 ]
 
