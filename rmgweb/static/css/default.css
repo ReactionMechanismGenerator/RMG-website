@@ -203,8 +203,19 @@ html, body {
 #header {
     display: flex;
     justify-content: flex-end;
+    background-color: #404040;
     width: 100%;
     padding: 10px 0;
+}
+
+#announcement {
+    flex: 1 1 auto;
+    font-size: 120%;
+    color: #F04040;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    padding: 0px 10px;
 }
 
 #footer {
@@ -275,6 +286,12 @@ html, body {
 
 #sidebar-extra a {
     color: #FFFFFF;
+}
+
+#sidebar-footer {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 10px 0px;
 }
 
 /* Header button styles */

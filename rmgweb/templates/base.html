@@ -121,18 +121,22 @@
         <div id="sidebar-extra">
         {% block sidebar_items %}{% endblock %}
         </div>
-    </div>
 
-    <div id="mainbar">
-        <div id="header">
+        <div id="sidebar-footer">
             {# Facebook like button #}
             <iframe src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Frmg.mit&width=50&layout=button&action=like&size=small&show_faces=false&share=false&height=65&appId"
-                    width="50" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
+                    width="51" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
             {# End of Facebook like button #}
             {# Google +1 button #}
             <script src="https://apis.google.com/js/platform.js" async defer></script>
             <div class="g-plusone" data-size="medium" data-annotation="none" data-href="rmg.mit.edu"></div>
             {# End of Google +1 button #}
+        </div>
+    </div>
+
+    <div id="mainbar">
+        <div id="header">
+            <div id="announcement"></div>
             <div class="user-toolbar">
                 {% if user.is_authenticated %}
                 <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
