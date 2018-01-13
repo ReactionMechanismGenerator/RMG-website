@@ -201,9 +201,10 @@ html, body {
 /* Header and footer */
 
 #header {
-    font-size: 80%;
-    text-align: right;
-    padding: 10px 10px;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 10px 0;
 }
 
 #footer {
@@ -276,23 +277,31 @@ html, body {
     color: #FFFFFF;
 }
 
-/* Button styles */
-form.buttonOnly {
-    height: 20px;
-    display: inline-block;
-    vertical-align: top;
-}
-.userButton {
-    background-color: #F04040;
-    color: #FFFFFF;
-    height: 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+/* Header button styles */
+
+#header div.user-toolbar {
+    height: 30px;
+    line-height: 30px;
+    padding: 0px 10px;
 }
 
-.userButton:hover {
+#header a.user-button {
+    display: inline-block;
+    background-color: #F04040;
+    color: #FFFFFF;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    padding: 0px 10px;
+}
+
+#header a.user-button:hover {
     background-color: #F06060;
+}
+
+#header a.user-button:active {
+    background-color: #F02020;
 }
 
 /* Database styles */

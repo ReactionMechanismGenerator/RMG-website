@@ -133,21 +133,15 @@
             <script src="https://apis.google.com/js/platform.js" async defer></script>
             <div class="g-plusone" data-size="medium" data-annotation="none" data-href="rmg.mit.edu"></div>
             {# End of Google +1 button #}
-            {% if user.is_authenticated %}
-            <form class="buttonOnly" action="{% url 'main.views.viewProfile' user.username %}" method="get">
-                <button class="userButton">{{ user.username }}</button>
-            </form>
-            <form class="buttonOnly" action="{% url 'main.views.editProfile' %}" method="get">
-                <button class="userButton">Edit Profile</button>
-            </form>
-            <form class="buttonOnly" action="{% url 'main.views.logout' %}?next={{ request.path }}" method="get">
-                <button class="userButton">Log Out</button>
-            </form>
-            {% else %}
-            <form class="buttonOnly" action="{% url 'main.views.login' %}?next={{ request.path }}" method="get">
-                <button class="userButton">Log In</button>
-            </form>
-            {% endif %}
+            <div class="user-toolbar">
+                {% if user.is_authenticated %}
+                <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
+                <a class="user-button" href="{% url 'main.views.editProfile' %}">Edit Profile</a>
+                <a class="user-button" href="{% url 'main.views.logout' %}?next={{ request.path }}">Log Out</a>
+                {% else %}
+                <a class="user-button" href="{% url 'main.views.login' %}?next={{ request.path }}">Log In</a>
+                {% endif %}
+            </div>
         </div>
 
         <div id="main">
