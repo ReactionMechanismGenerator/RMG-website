@@ -267,7 +267,10 @@ table.data td.value {
 }
 
 table.thermoData, table.kineticsData {
-    width: 100%;
+    display: block;
+    overflow-x: auto;
+    width: fit-content;
+    max-width: 100%;
 }
 
 table.thermoData tr td , table.kineticsData tr td {
@@ -320,6 +323,11 @@ table.reference td p {
 
 table.KineticsData {
     margin: auto;
+}
+
+img.family {
+    max-height: 50%;
+    max-width: 500px;
 }
 
 #entry_form label {

@@ -12,14 +12,6 @@ RMG Kinetics Database
 {% endblock %}
 
 {% block extrahead %}
-<style>
-span.scaling_img{
-    display: inline-block;
-}
-img.family {
-    width: 50%;
-}​
-</style>
 {% endblock %}
 
 {% block navbar_items %}
@@ -88,9 +80,7 @@ RMG Kinetics Database
         	</ul>
         </td>
         <td>   
-        <span class="scaling_img">
-            <img class="family" src="{% get_static_prefix %}img/families/{{family.name}}.png"/>
-		</span>
+        <img class="family" src="{% get_static_prefix %}img/families/{{family.name}}.png"/>
         </td>
 
     </tr>
