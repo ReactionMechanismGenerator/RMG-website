@@ -36,8 +36,8 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
 {% endblock %}
 
 {% block sidebar_items %}

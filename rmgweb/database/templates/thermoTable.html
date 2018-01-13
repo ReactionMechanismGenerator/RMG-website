@@ -13,10 +13,10 @@ RMG Thermodynamics Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
-&raquo; <a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a>
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
+<li><a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}

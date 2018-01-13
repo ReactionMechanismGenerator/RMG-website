@@ -44,7 +44,7 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.moleculeSearch' %}">Molecule Search</a>
+<li><a href="{% url 'database.views.moleculeSearch' %}">Molecule Search</a></li>
 {% endblock %}
 
 {% block page_title %}Molecule Information{% endblock %}

@@ -18,10 +18,6 @@ a, #logo {
     color: #F04040;
 }
 
-#navbar {
-    border-bottom: 1px solid #404040;
-}
-
 /* Hyperlinks */
 
 a {
@@ -106,6 +102,100 @@ html, body {
 
 #main {
     padding-bottom: 80px;
+}
+
+/* Breadcrumb */
+#breadcrumb {
+    list-style: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+#breadcrumb li {
+    float: left;
+}
+
+#breadcrumb li a {
+    color: #FFFFFF;
+    display: block;
+    background: #F04040;
+    text-decoration: none;
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px 0 5px;
+    text-align: center;
+    margin-right: 23px;
+}
+
+#breadcrumb li:first-child a {
+    padding-left: 15px;
+    border-radius: 4px 0 0 4px;
+}
+
+#breadcrumb li:first-child a:before {
+    border: none;
+}
+
+#breadcrumb li:last-child a {
+    padding-right: 15px;
+    border-radius: 0 4px 4px 0;
+}
+
+#breadcrumb li:last-child a:after {
+    border: none;
+}
+
+#breadcrumb li:only-child a {
+    border-radius: 4px;
+}
+
+#breadcrumb li a:before, #breadcrumb li a:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    border: 0 solid #F04040;
+    border-width: 15px 10px;
+    width: 0;
+    height: 0;
+}
+
+#breadcrumb li a:before {
+    left: -20px;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:after {
+    left: 100%;
+    border-color: transparent;
+    border-left-color: #F04040;
+}
+
+#breadcrumb li a:hover {
+    background-color: #F06060;
+}
+
+#breadcrumb li a:hover:before {
+    border-color: #F06060;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:hover:after {
+    border-left-color: #F06060;
+}
+
+#breadcrumb li a:active {
+    background-color: #F02020;
+}
+
+#breadcrumb li a:active:before {
+    border-color: #F02020;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:active:after {
+    border-left-color: #F02020;
 }
 
 /* Header and footer */

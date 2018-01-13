@@ -65,11 +65,11 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.thermo' %}">Thermodynamics</a>
-&raquo; <a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a>
-{% if entry.index and entry.index != -1 %} &raquo; <a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
+<li><a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+{% if entry.index and entry.index != -1 %}<li><a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}

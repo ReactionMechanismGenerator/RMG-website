@@ -58,8 +58,8 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'rmg.views.index' %}">RMG Tools</a> &raquo;
-<a href="{% url 'rmg.views.evaluateNASA' %}">Evaluate NASA Polynomial</a>
+<li><a href="{% url 'rmg.views.index' %}">RMG Tools</a></li>
+<li><a href="{% url 'rmg.views.evaluateNASA' %}">Evaluate NASA Polynomial</a></li>
 {% endblock %}
 
 {% block page_title %}Evaluate NASA Polynomial{% endblock %}

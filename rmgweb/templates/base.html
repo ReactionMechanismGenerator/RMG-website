@@ -152,8 +152,10 @@
 
         <div id="main">
             <div id="navbar">
-                <a href="{% url 'main.views.index' %}">RMG</a> &raquo;
-                {% block navbar_items %}{% endblock %}
+                <ul id="breadcrumb">
+                    <li><a href="{% url 'main.views.index' %}">Home</a></li>
+                    {% block navbar_items %}{% endblock %}
+                </ul>
             </div>
 
             <div id="contents">

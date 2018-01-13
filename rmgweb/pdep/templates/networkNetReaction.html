@@ -7,9 +7,9 @@
 {% block title %}Net Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
-<a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a> &raquo;
-<a href="{% url 'pdep.views.networkNetReaction' reaction=index networkKey=networkKey%}">Net Reaction #{{ index }}</a>
+<li><a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a></li>
+<li><a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a></li>
+<li><a href="{% url 'pdep.views.networkNetReaction' reaction=index networkKey=networkKey%}">Net Reaction #{{ index }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}

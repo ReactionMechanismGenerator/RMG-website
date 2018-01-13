@@ -59,9 +59,9 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.kinetics' %}">Kinetics</a>
-&raquo; <a href="{% url 'database.views.kineticsSearch' %}">Search</a>
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database.views.kineticsSearch' %}">Search</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
