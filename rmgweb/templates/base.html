@@ -10,6 +10,7 @@
     <meta name = "viewport" content = "width = device-width, initial-scale = 0.6"><!-- For responsive mobile view -->
 
     <title>{% block title %}RMG{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700" rel="stylesheet">
     <link href="{% static 'css/default.css' %}" rel="stylesheet" type="text/css"/>
 
     <!-- Google Analytics Tracker -->
@@ -36,65 +37,90 @@
 
     <div id="sidebar">
         <div id="logo">
-        {% block sidebar_logo %}<a href="{% url 'main.views.index' %}"><img src="{% static 'img/rmg-logo-small.png' %}" alt="RMG"/></a>{% endblock %}
+            {% block sidebar_logo %}
+            <a href="{% url 'main.views.index' %}">
+                <img src="{% static 'img/rmg-logo-small.png' %}" alt="RMG" height="100%"/>
+            </a>
+            {% endblock %}
         </div>
-        
-        {% block sidebar_items %}{% endblock %}
-        
-        <p>
-        <a href="http://reactionmechanismgenerator.github.io/RMG-Py"><img src="{% static 'img/documentation-icon.png' %}" class="icon" width="32px"/>
-        <div class="biglink">Documentation</div></a>
-        <div class="linkdesc">Learn more about the RMG software</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'main.views.resources' %}"><img src="{% static 'img/resources-icon.png' %}" class="icon" width="32px"/>
-        <div class="biglink">Resources</div></a>
-        <div class="linkdesc">RMG related publications and presentations</div>
-        </p>
 
-        <p>
-        <a href="{% url 'database.views.index' %}"><img src="{% static 'img/database-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Database</div></a>
-        <div class="linkdesc">Browse the RMG database of chemical and kinetic parameters</div>
-        </p>
-        
-                <p>
-        <a href="{% url 'rmg.views.input' %}"><img src="{% static 'img/input-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Create Input File</div></a>
-        <div class="linkdesc">Online form for making an RMG input file</div>
-        </p>
-                
-        <p>
-        <a href="{% url 'database.views.moleculeSearch' %}"><img src="{% static 'img/moleculedraw-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Molecule Search</div></a>
-        <div class="linkdesc">Draw a molecule from its adjlist and search or estimate its properties</div>
-        </p>
-                    
-        <p>
-        <a href="{% url 'database.views.kineticsSearch' %}"><img src="{% static 'img/kinetics-search-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Kinetics Search</div></a>
-        <div class="linkdesc">Search or estimate kinetics of a chemical reaction</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'database.views.solvationSearch' %}"><img src="{% static 'img/solvation-search-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Solvation Search</div></a>
-        <div class="linkdesc">Search or estimate solvation properties of solvent and a solute</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'pdep.views.index' %}"><img src="{% static 'img/pdep-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Pressure Dependent Networks</div></a>
-        <div class="linkdesc">CanTherm pdep kinetic calculations</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'rmg.views.index' %}"><img src="{% static 'img/tools-icon.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Other RMG Tools</div></a>
-        <div class="linkdesc">Additional tools to supplement RMG </div>
-        </p>
-        
+        <div id="sidebar-content">
+        <a href="http://reactionmechanismgenerator.github.io/RMG-Py">
+            <div class="menuitem">
+                <img src="{% static 'img/documentation-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Documentation</div>
+                <div class="menutext menudesc">Learn more about the RMG software</div>
+            </div>
+        </a>
+
+        <a href="{% url 'main.views.resources' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/resources-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Resources</div>
+                <div class="menutext menudesc">RMG related publications and presentations</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/database-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Database</div>
+                <div class="menutext menudesc">Browse the RMG database of chemical and kinetic parameters</div>
+            </div>
+        </a>
+
+        <a href="{% url 'rmg.views.input' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/input-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Create Input File</div>
+                <div class="menutext menudesc">Online form for making an RMG input file</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.moleculeSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/molecule-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Molecule Search</div>
+                <div class="menutext menudesc">View molecules and adjlists or search properties</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.kineticsSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/kinetics-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Kinetics Search</div>
+                <div class="menutext menudesc">Search kinetics of a chemical reaction</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.solvationSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/solvation-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Solvation Search</div>
+                <div class="menutext menudesc">Search solvation properties of solvent and a solute</div>
+            </div>
+        </a>
+
+        <a href="{% url 'pdep.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/pdep-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Pressure Dependent Networks</div>
+                <div class="menutext menudesc">CanTherm pdep kinetic calculations</div>
+            </div>
+        </a>
+
+        <a href="{% url 'rmg.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/tools-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Other RMG Tools</div>
+                <div class="menutext menudesc">Additional tools to supplement RMG </div>
+            </div>
+        </a>
+        </div>
+
+        <div id="sidebar-extra">
+        {% block sidebar_items %}{% endblock %}
+        </div>
     </div>
 
     <div id="mainbar">
@@ -139,17 +165,19 @@
         </div>
 
         <div id="footer">
-            {% block footer %}
-            Copyright &copy; 2016,
-            <a href="http://web.mit.edu/greengp/people/">W. H. Green</a>,
-            <a href="http://www.northeastern.edu/comocheng/people/">R. H. West</a>,
-            <i>et al.</i>
-            Created using <a href="http://www.djangoproject.com/">Django</a>.
-            Read the <a href="/privacy">Privacy Policy</a>.
-            <br />
-            Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
-            See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
-            {% endblock %}
+            <div id="footer-content">
+                {% block footer %}
+                Copyright &copy; 2016,
+                <a href="http://web.mit.edu/greengp/people/">W. H. Green</a>,
+                <a href="http://www.northeastern.edu/comocheng/people/">R. H. West</a>,
+                <i>et al.</i>
+                Created using <a href="http://www.djangoproject.com/">Django</a>.
+                Read the <a href="/privacy">Privacy Policy</a>.
+                <br />
+                Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
+                See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
+                {% endblock %}
+            </div>
         </div>
         
     </div>

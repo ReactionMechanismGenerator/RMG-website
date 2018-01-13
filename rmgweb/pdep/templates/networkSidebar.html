@@ -1,35 +1,33 @@
 
-
-<h3 class="sidebar">Input</h3>
-<p>
-{% if not network.inputFileExists %}
-<div><a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">Create an input file manually</a></div>
-<div><a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">Upload an input file</a></div>
-{% else %}
-<div><a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">Edit an input file manually</a></div>
-<div><a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">Upload a replacement input file</a></div>
-{% endif %}
-</p>
+<div class="menuitem" style="border-top: 2px solid #FFFFFF;">
+    <div class="menutitle">Input</div>
+    {% if not network.inputFileExists %}
+    <div><a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">Create an input file manually</a></div>
+    <div><a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">Upload an input file</a></div>
+    {% else %}
+    <div><a href="{% url 'pdep.views.networkEditor' networkKey=networkKey%}">Edit an input file manually</a></div>
+    <div><a href="{% url 'pdep.views.networkUpload' networkKey=networkKey%}">Upload a replacement input file</a></div>
+    {% endif %}
+</div>
 
 {% if network.inputFileExists %}
-<h3 class="sidebar">Output</h3>
-<p>
-{% if not network.outputFileExists %}
-<div><a href="{% url 'pdep.views.networkRun' networkKey=networkKey%}">Run Pressure Dependent Networks</a></div>
-{% else %}
-<div><a href="{% url 'pdep.views.networkPlotMicro' networkKey=networkKey%}">Plot k(E) and &rho;(E) values</a></div>
-<!-- <div><a href="{% url 'pdep.views.networkPlotKinetics' networkKey=networkKey%}">Plot k(T,P) values</a></div>  -->
-<div><a href="{% url 'pdep.views.networkRun' networkKey=networkKey%}">Rerun Pressure Dependent Networks</a></div>
-{% endif %}
-</p>
 
-<h3 class="sidebar">Potential Energy Surface</h3>
-<p>
-<div><a href="{% url 'pdep.views.networkDrawPNG' networkKey=networkKey %}">{% if network.surfaceFilePNGExists %}Redraw{% else %}Draw{% endif %} surface as PNG</a></div>
-<div><a href="{% url 'pdep.views.networkDrawPDF' networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} surface as PDF</a></div>
-<div><a href="{% url 'pdep.views.networkDrawSVG' networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} surface as SVG</a></div>
-</p>
+<div class="menuitem">
+    <div class="menutitle">Output</div>
+    {% if not network.outputFileExists %}
+    <div><a href="{% url 'pdep.views.networkRun' networkKey=networkKey%}">Run Pressure Dependent Networks</a></div>
+    {% else %}
+    <div><a href="{% url 'pdep.views.networkPlotMicro' networkKey=networkKey%}">Plot k(E) and &rho;(E) values</a></div>
+    <!-- <div><a href="{% url 'pdep.views.networkPlotKinetics' networkKey=networkKey%}">Plot k(T,P) values</a></div>  -->
+    <div><a href="{% url 'pdep.views.networkRun' networkKey=networkKey%}">Rerun Pressure Dependent Networks</a></div>
+    {% endif %}
+</div>
 
-<h3 class="sidebar">Quick Links</h3>
+<div class="menuitem">
+    <div class="menutitle">Potential Energy Surface</div>
+    <div><a href="{% url 'pdep.views.networkDrawPNG' networkKey=networkKey %}">{% if network.surfaceFilePNGExists %}Redraw{% else %}Draw{% endif %} surface as PNG</a></div>
+    <div><a href="{% url 'pdep.views.networkDrawPDF' networkKey=networkKey %}">{% if network.surfaceFilePDFExists %}Redraw{% else %}Draw{% endif %} surface as PDF</a></div>
+    <div><a href="{% url 'pdep.views.networkDrawSVG' networkKey=networkKey %}">{% if network.surfaceFileSVGExists %}Redraw{% else %}Draw{% endif %} surface as SVG</a></div>
+</div>
 
 {% endif %}
