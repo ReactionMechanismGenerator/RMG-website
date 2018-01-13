@@ -1,4 +1,4 @@
-@import url("/media/default.css");
+/* This file contains additional styles used within the main app */
 
 div.error {
     color: red;
@@ -12,4 +12,22 @@ td.key, td.fieldKey {
 
 td.value img, td.fieldValue img {
     vertical-align: middle;
+}
+
+td.fieldValue input, td.fieldValue textarea {
+    width: 200px;
+}
+
+td.section {
+    color: #F04040;
+    font-size: 125%;
+    font-weight: bold;
+}
+
+table.networks {
+    width: 100%;
+}
+
+table.networks th {
+    text-align: left;
 }
