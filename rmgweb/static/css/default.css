@@ -466,26 +466,37 @@ img.family {
   IPHONE
 \*------------------------------------*/
 @media screen and (max-device-width: 960px) {
-  body{
-    -webkit-text-size-adjust: auto;
-    font-family: Helvetica, Arial, Verdana, sans-serif;
-    padding: 5px;
-  }
-  #main {
-    clear: left;
-  }
-  #mainbar {
-    margin: 0px;
-  }
-  #sidebar {
-    float: none;
-    width: 100%;
-    padding-top: 5px;
-  }
-  #document{
-    width: 100%
-  }
-  #sidebar .menudesc {
-    display: none;
-  }
+    body{
+        -webkit-text-size-adjust: auto;
+        font-family: Helvetica, Arial, Verdana, sans-serif;
+        padding: 5px;
+    }
+    #main {
+        clear: left;
+    }
+    #mainbar {
+        margin: 0px;
+        min-height: auto;
+    }
+    #sidebar {
+        float: none;
+        position: relative;
+        height: auto;
+        width: 100%;
+        padding-top: 5px;
+    }
+    #sidebar .icon {
+        width: 20px;
+        padding: 2px 15px;
+    }
+    #sidebar div.menuitem {
+        height: 20px;
+        padding: 2px;
+    }
+    #document{
+        width: 100%
+    }
+    #sidebar .menudesc {
+        display: none;
+    }
 } /* End of iPhone-specific bit */
