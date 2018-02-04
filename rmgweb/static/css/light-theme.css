@@ -1,0 +1,19 @@
+#header {
+    background-color: #E0E0E0;
+}
+
+#sidebar {
+    background-color: #E0E0E0;
+}
+
+#sidebar div.menudesc {
+    color: #404040;
+}
+
+#sidebar-content div.menuitem:hover {
+    background-color: #C0C0C0;
+}
+
+#sidebar div.menudesc {
+    font-weight: 400;
+}

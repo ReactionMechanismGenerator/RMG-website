@@ -12,6 +12,7 @@
     <title>{% block title %}RMG{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700" rel="stylesheet">
     <link href="{% static 'css/default.css' %}" rel="stylesheet" type="text/css"/>
+    <link id="css-theme" href="{% static 'css/light-theme.css' %}" rel="stylesheet" type="text/css"/>
 
     <!-- Google Analytics Tracker -->
     <script type="text/javascript">
@@ -29,6 +30,28 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS_HTML" integrity="sha256-fCth3p2B4cZMzlr7OFizmo5RkdJAHJ4vOHpE7FaNcR8=" crossorigin="anonymous"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <script>
+        // Check for cookie
+        if (document.cookie.indexOf("rmg-theme=light") < 0) {
+            document.getElementById('css-theme').disabled = true;
+        };
+
+        toggleCSS = function() {
+            var themeElement = document.getElementById('css-theme');
+            if (themeElement.disabled) {
+                themeElement.disabled = false;
+                var expiry = new Date();
+                // Create cookie expiring in one year
+                expiry.setTime(expiry.getTime() + (365*24*60*60*1000));
+                document.cookie = "rmg-theme=light;path='/';expires=" + expiry.toUTCString();
+            } else {
+                themeElement.disabled = true;
+                // Remove cookie
+                document.cookie = "rmg-theme=;path='/';expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        };
+    </script>
 
     {% block extrahead %}{% endblock %}
 </head>
@@ -142,6 +165,7 @@
         <div id="header">
             <div id="announcement"></div>
             <div class="user-toolbar">
+                <a class="user-button" onclick="toggleCSS()" href="#">Change Theme</a>
                 {% if user.is_authenticated %}
                 <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
                 <a class="user-button" href="{% url 'main.views.editProfile' %}">Edit Profile</a>
