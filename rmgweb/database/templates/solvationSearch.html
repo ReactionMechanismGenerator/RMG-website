@@ -19,7 +19,7 @@ function resolve(){
                      spField.val(structure);
                      spField.change();
                   })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
 };
 // convert an adjancency list into an image url
 function adjlist2img(s) {
@@ -57,7 +57,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.solvationSearch' %}">Solvation Search</a>
+<li><a href="{% url 'database.views.solvationSearch' %}">Solvation Search</a></li>
 {% endblock %}
 
 {% block page_title %}Solvation Search{% endblock %}

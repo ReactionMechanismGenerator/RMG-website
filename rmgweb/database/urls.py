@@ -28,8 +28,11 @@
 #
 ################################################################################
 
+import itertools
 from django.conf.urls import url, include
 from rmgweb.database import views
+
+
 urlpatterns = [ 
 
     # Database homepage
@@ -78,32 +81,7 @@ urlpatterns = [
     # Kinetics database
     url(r'^kinetics/$', views.kinetics),
     url(r'^kinetics/search/$', views.kineticsSearch),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)__product3=(?P<product3>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)__product3=(?P<product3>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__reactant3=(?P<reactant3>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/results/reactant1=(?P<reactant1>[\S\s]+)$', views.kineticsResults),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)__product3=(?P<product3>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)__product3=(?P<product3>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__reactant3=(?P<reactant3>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', views.kineticsData),
-    url(r'^kinetics/reaction/reactant1=(?P<reactant1>[\S\s]+)$', views.kineticsData),
-    
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)__product2=(?P<product2>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__product1=(?P<product1>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)__reactant2=(?P<reactant2>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/reactant1=(?P<reactant1>[\S\s]+)$', views.kineticsGroupEstimateEntry),
-    
+
     url(r'^kinetics/families/(?P<family>[^/]+)/(?P<type>\w+)/new$', views.kineticsEntryNew),
     url(r'^kinetics/families/(?P<family>[^/]+)/untrained/$', views.kineticsUntrained),
     
@@ -120,6 +98,57 @@ urlpatterns = [
 
     # Eni detergent-dirt binding strength
     url(r'^eni', views.EniSearch),
-    
+
+    # AJAX request url
+    url(r'^ajax_adjlist_request', views.json_to_adjlist),
+
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
 ]
+
+# Generate url patterns for kinetics search and results pages combinatorially
+url_parts = [
+    r'reactant1=(?P<reactant1>[\S\s]+)',
+    r'__reactant2=(?P<reactant2>[\S\s]+)',
+    r'__reactant3=(?P<reactant3>[\S\s]+)',
+    r'__product1=(?P<product1>[\S\s]+)',
+    r'__product2=(?P<product2>[\S\s]+)',
+    r'__product3=(?P<product3>[\S\s]+)',
+    r'__res=(?P<resonance>[\S\s]+)',
+]
+
+for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
+    url_pattern = r'^kinetics/results/'
+    url_pattern += url_parts[0]
+    if r2: url_pattern += url_parts[1]
+    if r2 and r3: url_pattern += url_parts[2]
+    if p1: url_pattern += url_parts[3]
+    if p2: url_pattern += url_parts[4]
+    if p2 and p3: url_pattern += url_parts[5]
+    if res: url_pattern += url_parts[6]
+    url_pattern += r'$'
+
+    urlpatterns.append(url(url_pattern, views.kineticsResults))
+
+for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
+    url_pattern = r'^kinetics/reaction/'
+    url_pattern += url_parts[0]
+    if r2: url_pattern += url_parts[1]
+    if r2 and r3: url_pattern += url_parts[2]
+    if p1: url_pattern += url_parts[3]
+    if p2: url_pattern += url_parts[4]
+    if p2 and p3: url_pattern += url_parts[5]
+    if res: url_pattern += url_parts[6]
+    url_pattern += r'$'
+
+    urlpatterns.append(url(url_pattern, views.kineticsData))
+
+for r2, p2, res in itertools.product([1, 0], repeat=3):
+    url_pattern = r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/'
+    url_pattern += url_parts[0]
+    if r2: url_pattern += url_parts[1]
+    url_pattern += url_parts[3]
+    if p2: url_pattern += url_parts[4]
+    if res: url_pattern += url_parts[6]
+    url_pattern += r'$'
+
+    urlpatterns.append(url(url_pattern, views.kineticsGroupEstimateEntry))

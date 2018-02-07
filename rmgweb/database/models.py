@@ -31,13 +31,13 @@
 from django.db import models
 #from django import forms
 
-from rmgweb.database.tools import database, loadDatabase
+from rmgweb.database.tools import database
 
 def getSolventList():
     """
     Return list of solvent molecules for initializing solvation search form.
     """
-    loadDatabase('solvation','')
+    database.load('solvation','')
     SolventList = [(entry.label, index) for index,entry in database.solvation.libraries['solvent'].entries.iteritems()]
     return SolventList
 

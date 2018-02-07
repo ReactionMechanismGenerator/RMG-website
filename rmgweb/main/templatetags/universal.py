@@ -50,7 +50,7 @@ def get_ref_tooltip(reference):
     Returns a tooltip-formatted reference string
     """
 
-    from rmgpy.data.reference import *
+    from rmgpy.data.reference import Article, Book, Thesis
 
     output = ''
     if isinstance(reference, Article):

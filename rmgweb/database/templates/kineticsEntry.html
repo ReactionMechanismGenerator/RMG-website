@@ -45,35 +45,56 @@ table.kineticsEntryData td.reference p {
 }
 </style>
 
-<script src="{% static 'js/highcharts.js' %}" type="text/javascript"></script>
+<script src="https://code.highcharts.com/6/highcharts.js"></script>
 <script src="{% static 'js/highcharts.theme.js' %}" type="text/javascript"></script>
 
 <script type="text/javascript">
-jQuery(document).ready(function() {
+{% include "kineticsPlot.js" %}
+jQuery(document).ready(
+    function() {
+        {% if entry %}
+            var kseries = [];
 
-    var kseries = new Array();
-    
-    {{ kinetics|get_rate_coefficients:user }}
-    {% include "kineticsModel.js" %}
-    {% include "kineticsPlot.js" %}
+            {{ entry.data|get_rate_coefficients:user }}
+            {% include "kineticsModel.js" %}
 
-    jsMath.Synchronize(function() {
-        plotKinetics('plotk', kseries);
-    });
+            MathJax.Hub.Queue(
+                function() {
+                    plotKinetics('plotk', kseries, false);
+                }
+            );
+        {% elif entry_list %}
+            var kineticsModelList = [];
 
-});
+            {% for entry, source, reference in entry_list %}
+                var kseries = [];
+                {{ entry.data|get_rate_coefficients:user }}
+                {% if entry.data %}
+                {% include "kineticsModel.js" %}
+                kineticsModelList.push(kseries[kseries.length-1]);
+                {% endif %}
+            {% endfor %}
+
+            MathJax.Hub.Queue(
+                function() {
+                    plotKinetics('plotk', kineticsModelList, false);
+                }
+            );
+        {% endif %}
+    }
+);
 </script>
 {% endblock %}
 
 {% block navbar_items %}
 
 {% if section != '' %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.kinetics' %}">Kinetics</a>
-&raquo; <a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ databaseName }}</a>
-{% if entry.index and entry.index != -1 %}&raquo; <a href="{% url 'database.views.kineticsEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
-{% if reaction %}&raquo; {{ reaction }}{% endif %}
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+{% if entry and entry.index and entry.index != -1 %}<li><a href="{% url 'database.views.kineticsEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
+{% if reaction %}<li><a href="">{{ reaction }}</a></li>{% endif %}
 {% endif %}
 
 
@@ -83,7 +104,7 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block page_title %}
-{% if entry.index and entry.index != -1%}
+{% if entry and entry.index and entry.index != -1%}
 {{ entry.index }}. {{ entry.label }}
 {% else %}
 {{ databaseName }}
@@ -108,9 +129,9 @@ jQuery(document).ready(function() {
     <tr>
         <td class="reactants">{{ reactants|safe }}</td>
         <td class="reactionArrow">{{ arrow|safe }}</td>
-        <td class="reactants">{{ products|safe }}</td>
+        <td class="products">{{ products|safe }}</td>
     </tr>
-    {% if reaction.degeneracy %}
+    {% if entry and reaction.degeneracy %}
     <tr><td>Degeneracy = {{reaction.degeneracy}}</td></tr>
     {% endif %}
 </table>
@@ -120,35 +141,50 @@ jQuery(document).ready(function() {
 {% endif %}
 <br/>
 
-<h2>Kinetic Data 
-</h2>
-{{ kinetics|render_kinetics_math:user }}
+<h2>Kinetic Data</h2>
 
-{% if kinetics %}
-<div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
+{% if entry %}
+    {{ entry.data|render_kinetics_math:user }}
+
+    <h2>Reference</h2>
+    {% include "reference.html" %}
+
+    <div id="plotk" style="width: 500px; height: 300px; margin: auto;"></div>
+
+{% elif entry_list %}
+    <p>
+    Multiple reaction template matches were identified for this reaction.
+    This is typically as result of multiple transition states leading to the same product or multiple resonance structures.
+    </p>
+
+    {% for entry, source, reference in entry_list %}
+
+    <h3>Template #{{ entry.result }}: {{ source }}</h3>
+    {{ entry.data|render_kinetics_math:user }}
+
+    {% include "reference.html" %}
+
+    {% endfor %}
+
+    <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
+
 {% endif %}
 
-<h2>Reference</h2>
-{% include "reference.html" %}
 
+{% if entry and entry.index and entry.index != -1 %}
 
 <h2>Update database</h2>
-{% if new_entry_form %}
-<form method="post" id="entry_form" action="{% url 'database.views.kineticsEntryNew' family=subsection type="training" %}">
-<div style="display: none;">{{ new_entry_form.entry }}</div>
-{% csrf_token %}
-If this reaction is not in the training set for {{ subsection }} and you have a rate for it, then add it here:
-<input type="submit" value="Add new rate to training set" name="Add" />
-</form>
-{% endif %}
-{% if entry.index and entry.index != -1 %}
-If you noticed a mistake or have better data, then edit this entry here: <a href="{% url 'database.views.kineticsEntryEdit' section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
-{% endif %}
+If you noticed a mistake or have better data, then edit this entry here:
+    <a href="{% url 'database.views.kineticsEntryEdit' section=section subsection=subsection index=entry.index %}">
+        <button type="button">Edit entry</button>
+    </a>.
+
 {% if user.is_authenticated %}
 You are logged in as {{ user.get_full_name }}</a> 
 {% else %}
 You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
 {% endif %}
-<br/>
+
+{% endif %}
 
 {% endblock %}

@@ -28,16 +28,14 @@
 #
 ################################################################################
 
+import StringIO  # cStringIO is faster, but can't do Unicode
 import cookielib
-import copy
+import json
+import math
 import os
 import re
 import shutil
-import socket
-import StringIO # cStringIO is faster, but can't do Unicode
 import subprocess
-import sys
-import time
 import urllib
 import urllib2
 
@@ -45,37 +43,37 @@ try:
     from bs4 import BeautifulSoup
 except ImportError:
     from BeautifulSoup import BeautifulSoup
+from django.contrib.auth.decorators import login_required
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
-import rmgweb.settings
-
-# from django.forms.models import BaseInlineFormSet, inlineformset_factory
-# from rmgweb.rmg.models import *
-# from rmgweb.rmg.forms import *
-
-from rmgpy.molecule.molecule import Molecule
-from rmgpy.molecule.group import Group
-from rmgpy.thermo import *
-from rmgpy.kinetics import *
-from rmgpy.transport import *
-from rmgpy.reaction import Reaction
-from rmgpy.quantity import Quantity
 
 import rmgpy
-from rmgpy.data.base import *
-from rmgpy.data.thermo import ThermoDatabase
-from rmgpy.data.kinetics import *
-from rmgpy.data.rmg import RMGDatabase
-from rmgpy.data.solvation import * 
-from rmgpy.data.statmech import *
-from rmgpy.data.transport import *
+from rmgpy.data.base import Entry, LogicAnd, LogicNode, LogicOr
+from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
+                                TemplateReaction, DepositoryReaction, LibraryReaction
+from rmgpy.data.solvation import SoluteData, SolventData
+from rmgpy.data.statmech import GroupFrequencies
+from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
+from rmgpy.data.reference import Article, Book
+from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, \
+                           PDepArrhenius, MultiArrhenius, MultiPDepArrhenius, \
+                           Chebyshev, Troe, Lindemann, ThirdBody
+from rmgpy.molecule import Group, Molecule, Atom, Bond
+from rmgpy.molecule.adjlist import Saturator
+from rmgpy.reaction import Reaction
+from rmgpy.species import Species
+from rmgpy.thermo import ThermoData, Wilhoit, NASA
+from rmgpy.quantity import Quantity
+from rmgpy.exceptions import AtomTypeError
 
-from rmgweb.database.forms import *
-from tools import *
-from rmgweb.main.tools import *
+import rmgweb.settings
+from rmgweb.database.forms import DivErrorList, EniSearchForm, KineticsEntryEditForm, \
+                                  KineticsSearchForm, MoleculeSearchForm, RateEvaluationForm
+from rmgweb.database.tools import database, generateReactions, generateSpeciesThermo, reactionHasReactants
+from rmgweb.main.tools import getStructureInfo, moleculeFromURL, moleculeToAdjlist, groupToInfo
 
 #from rmgweb.main.tools import moleculeToURL, moleculeFromURL
 
@@ -85,7 +83,7 @@ def load(request):
     """
     Load the RMG database and redirect to the database homepage.
     """
-    loadDatabase()
+    database.load()
     return HttpResponseRedirect(reverse(index))
 
 def index(request):
@@ -149,7 +147,7 @@ def transport(request, section='', subsection=''):
     if section not in ['libraries', 'groups', '']:
         raise Http404
     
-    database = loadDatabase('transport', section)
+    database.load('transport', section)
 
     if subsection != '':
 
@@ -158,12 +156,12 @@ def transport(request, section='', subsection=''):
         
         # Determine which subsection we wish to view
         try:
-            database = getTransportDatabase(section, subsection)
+            db = database.get_transport_database(section, subsection)
         except ValueError:
             raise Http404
 
         # Sort entries by index
-        entries0 = database.entries.values()
+        entries0 = db.entries.values()
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
@@ -183,7 +181,7 @@ def transport(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('transportTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render_to_response('transportTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the transport
@@ -200,26 +198,26 @@ def transportEntry(request, section, subsection, index):
     """
     
     # Load the transport database 
-    loadDatabase('transport', section)
+    database.load('transport', section)
 
     # Determine the entry we wish to view
     try:
-        database = getTransportDatabase(section, subsection)
+        db = database.get_transport_database(section, subsection)
     except ValueError:
         raise Http404
     
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in db.entries.values():
             if entry.index == index:
                 break
         else:
             raise Http404
     else:
         if index == 0:
-            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
-            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
         return HttpResponseRedirect(reverse(transportEntry,
                                             kwargs={'section': section,
                                                     'subsection': subsection,
@@ -233,13 +231,13 @@ def transportEntry(request, section, subsection, index):
     # Prepare the transport data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
-        transport = ['Link', database.entries[entry.data].index]
+        transport = ['Link', db.entries[entry.data].index]
     else:
         transport = entry.data
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport}, context_instance=RequestContext(request))
+    return render_to_response('transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport}, context_instance=RequestContext(request))
 
 def transportData(request, adjlist):
     """
@@ -248,13 +246,12 @@ def transportData(request, adjlist):
     """
     
     # Load the transport database if necessary
-    loadDatabase('transport')
-    from tools import database
+    database.load('transport')
 
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     
     # Get the transport data for the molecule
     transportDataList = []
@@ -289,7 +286,7 @@ def solvation(request, section='', subsection=''):
     if section not in ['libraries', 'groups', '']:
         raise Http404
     
-    database = loadDatabase('solvation', section)
+    database.load('solvation', section)
 
     if subsection != '':
 
@@ -298,11 +295,11 @@ def solvation(request, section='', subsection=''):
         
         # Determine which subsection we wish to view
         try:
-            database = getSolvationDatabase(section, subsection)
+            db = database.get_solvation_database(section, subsection)
         except ValueError:
             raise Http404
         # Sort entries by index
-        entries0 = database.entries.values()
+        entries0 = db.entries.values()
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
@@ -322,7 +319,7 @@ def solvation(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('solvationTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render_to_response('solvationTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the solvation
@@ -341,26 +338,26 @@ def solvationEntry(request, section, subsection, index):
     """
     
     # Load the solvation database 
-    loadDatabase('solvation', section)
+    database.load('solvation', section)
 
     # Determine the entry we wish to view
     try:
-        database = getSolvationDatabase(section, subsection)
+        db = database.get_solvation_database(section, subsection)
     except ValueError:
         raise Http404
     
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in db.entries.values():
             if entry.index == index:
                 break
         else:
             raise Http404
     else:
         if index == 0:
-            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
-            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
         return HttpResponseRedirect(reverse(solvationEntry,
                                             kwargs={'section': section,
                                                     'subsection': subsection,
@@ -374,13 +371,13 @@ def solvationEntry(request, section, subsection, index):
     # Prepare the solvation data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
-        solvation = ['Link', database.entries[entry.data].index]
+        solvation = ['Link', db.entries[entry.data].index]
     else:
         solvation = entry.data
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
+    return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
 
 def solvationData(request, solute_adjlist, solvent=''):
     """
@@ -391,13 +388,13 @@ def solvationData(request, solute_adjlist, solvent=''):
     """
     #from rmgpy.data.solvation import getAllSoluteData  
     # Load the solvation database if necessary
-    loadDatabase('solvation')
-    db = getSolvationDatabase('','')
+    database.load('solvation')
+    db = database.get_solvation_database('','')
     
     #molecule = Molecule().fromAdjacencyList(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule = [molecule])
-    solute.generateResonanceIsomers()
+    solute.generate_resonance_structures()
     
     # obtain solute data.  
     soluteDataList = db.getAllSoluteData(solute)    # length either 1 or 2 entries
@@ -439,7 +436,7 @@ def statmech(request, section='', subsection=''):
     if section not in ['depository', 'libraries', 'groups', '']:
         raise Http404
     
-    database = loadDatabase('statmech', section)
+    database.load('statmech', section)
 
     if subsection != '':
 
@@ -448,11 +445,11 @@ def statmech(request, section='', subsection=''):
         
         # Determine which subsection we wish to view
         try:
-            database = getStatmechDatabase(section, subsection)
+            db = database.get_statmech_database(section, subsection)
         except ValueError:
             raise Http404
         # Sort entries by index
-        entries0 = database.entries.values()
+        entries0 = db.entries.values()
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
@@ -465,7 +462,7 @@ def statmech(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('statmechTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render_to_response('statmechTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the statmech
@@ -484,11 +481,11 @@ def statmechEntry(request, section, subsection, index):
     """
     
     # Load the statmech database 
-    loadDatabase('statmech', section)
+    database.load('statmech', section)
 
     # Determine the entry we wish to view
     try:
-        database = getStatmechDatabase(section, subsection)
+        db = database.get_statmech_database(section, subsection)
     except ValueError:
         raise Http404
     
@@ -501,9 +498,9 @@ def statmechEntry(request, section, subsection, index):
             raise Http404
     else:
         if index == 0:
-            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
-            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
         return HttpResponseRedirect(reverse(statmechEntry,
                                             kwargs={'section': section,
                                                     'subsection': subsection,
@@ -517,13 +514,13 @@ def statmechEntry(request, section, subsection, index):
     # Prepare the statmech data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
-        statmech = ['Link', database.entries[entry.data].index]
+        statmech = ['Link', db.entries[entry.data].index]
     else:
         statmech = entry.data
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('statmechEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'statmech': statmech}, context_instance=RequestContext(request))
+    return render_to_response('statmechEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'statmech': statmech}, context_instance=RequestContext(request))
 
 def statmechData(request, adjlist):
     """
@@ -532,13 +529,12 @@ def statmechData(request, adjlist):
     """
     
     # Load the statmech database if necessary
-    loadDatabase('statmech')
-    from tools import database
+    database.load('statmech')
 
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule = [molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     # Get the statmech data for the molecule
     
     symmetryNumber = species.getSymmetryNumber()
@@ -563,7 +559,7 @@ def thermo(request, section='', subsection=''):
         raise Http404
 
     # Load the thermo database if necessary
-    database = loadDatabase('thermo', section)
+    database.load('thermo', section)
 
     if subsection != '':
 
@@ -572,12 +568,12 @@ def thermo(request, section='', subsection=''):
         
         # Determine which subsection we wish to view
         try:
-            database = getThermoDatabase(section, subsection)
+            db = database.get_thermo_database(section, subsection)
         except ValueError:
             raise Http404
 
         # Sort entries by index
-        entries0 = database.entries.values()
+        entries0 = db.entries.values()
         entries0.sort(key=lambda entry: entry.index)
 
         entries = []
@@ -599,7 +595,7 @@ def thermo(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render_to_response('thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the thermo
@@ -620,11 +616,11 @@ def thermoEntry(request, section, subsection, index):
     from rmgpy.data.thermo import findCp0andCpInf
 
     # Load the thermo database if necessary
-    loadDatabase('thermo', section)
+    database.load('thermo', section)
 
     # Determine the entry we wish to view
     try:
-        database = getThermoDatabase(section, subsection)
+        db = database.get_thermo_database(section, subsection)
     except ValueError:
         raise Http404
     index = int(index)
@@ -636,9 +632,9 @@ def thermoEntry(request, section, subsection, index):
             raise Http404
     else:
         if index == 0:
-            index = min(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
-            index = max(entry.index for entry in database.entries.values() if entry.index > 0)
+            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
         return HttpResponseRedirect(reverse(thermoEntry,
                                             kwargs={'section': section,
                                                     'subsection': subsection,
@@ -652,7 +648,7 @@ def thermoEntry(request, section, subsection, index):
     # Prepare the thermo data for passing to the template
     # This includes all string formatting, since we can't do that in the template
     if isinstance(entry.data, str):
-        thermo = ['Link', database.entries[entry.data].index]
+        thermo = ['Link', db.entries[entry.data].index]
     else:
         thermo = entry.data
     
@@ -660,7 +656,7 @@ def thermoEntry(request, section, subsection, index):
     nasa_string = None
     if isinstance(entry.item, Molecule):
         species = Species(molecule=[entry.item])
-        species.generateResonanceIsomers()
+        species.generate_resonance_structures()
         findCp0andCpInf(species, thermo)
         nasa_string = ''
         try:
@@ -675,7 +671,7 @@ def thermoEntry(request, section, subsection, index):
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string}, context_instance=RequestContext(request))
+    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string}, context_instance=RequestContext(request))
 
 
 def thermoData(request, adjlist):
@@ -686,14 +682,13 @@ def thermoData(request, adjlist):
     """
     
     # Load the thermo database if necessary
-    loadDatabase('thermo')
-    from tools import database
+    database.load('thermo')
     from rmgpy.chemkin import writeThermoEntry
 
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
     species = Species(molecule=[molecule])
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     
     # Get the thermo data for the molecule
     thermoDataList = []
@@ -755,9 +750,9 @@ def getKineticsTreeHTML(database, section, subsection, entries):
         html += '<li class="kineticsEntry">\n'
         html += '<div class="kineticsLabel">'
         if len(entry.children) > 0:
-            html += '<img id="button_{0}" class="treeButton" src="/media/tree-collapse.png"/>'.format(entry.index)
+            html += '<img id="button_{0}" class="treeButton" src="{1}"/>'.format(entry.index, static('img/tree-collapse.png'))
         else:
-            html += '<img class="treeButton" src="/media/tree-blank.png"/>'
+            html += '<img class="treeButton" src="{0}"/>'.format(static('img/tree-blank.png'))
         html += '<a href="{0}">{1}. {2}</a>\n'.format(url, entry.index, entry.label)
         html += '<div class="kineticsData">\n'
         if entry.data is not None:
@@ -1198,16 +1193,16 @@ def kinetics(request, section='', subsection=''):
         raise Http404
 
     # Load the kinetics database, if necessary
-    rmgDatabase = loadDatabase('kinetics', section)
+    database.load('kinetics', section)
 
     # Determine which subsection we wish to view
-    database = None
+    db = None
     try:
-        database = getKineticsDatabase(section, subsection)
+        db = database.get_kinetics_database(section, subsection)
     except ValueError:
         pass
 
-    if database is not None:
+    if db is not None:
 
         # A subsection was specified, so render a table of the entries in
         # that part of the database
@@ -1215,14 +1210,14 @@ def kinetics(request, section='', subsection=''):
         isGroupDatabase = False
 
         # Sort entries by index
-        if database.top is not None and len(database.top) > 0:
+        if db.top is not None and len(db.top) > 0:
             # If there is a tree in this database, only consider the entries
             # that are in the tree
-            entries0 = getDatabaseTreeAsList(database, database.top)
-            tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(database, section, subsection, database.top))
+            entries0 = getDatabaseTreeAsList(db, db.top)
+            tree = '<ul class="kineticsTree">\n{0}\n</ul>\n'.format(getKineticsTreeHTML(db, section, subsection, db.top))
         else:
             # If there is not a tree, consider all entries
-            entries0 = database.entries.values()
+            entries0 = db.entries.values()
             if any(isinstance(item, list) for item in entries0):
                 # if the entries are lists
                 entries0 = reduce(lambda x,y: x+y, entries0)
@@ -1253,7 +1248,7 @@ def kinetics(request, section='', subsection=''):
                 'label': entry0.label,
                 'dataFormat': dataFormat,
             }
-            if isinstance(database, KineticsGroups):
+            if isinstance(db, KineticsGroups):
                 isGroupDatabase = True
                 entry['structure'] = getStructureInfo(entry0.item)
                 entry['parent'] = entry0.parent
@@ -1264,37 +1259,37 @@ def kinetics(request, section='', subsection=''):
                     # the averaging step, and we don't want to show all of the averaged nodes
                     # in the web view.  We only want to show nodes with direct values or 
                     # training rates that became rate rules.
-                    pass
+                    continue
                 else:
                     entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
                     entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                     entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
-                    entries.append(entry)
             else:
                 entry['reactants'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.reactants])
                 entry['products'] = ' + '.join([getStructureInfo(reactant) for reactant in entry0.item.products])
                 entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
-                entries.append(entry)
+
+            entries.append(entry)
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': database.name, 'databaseDesc':database.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
+        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'databaseDesc':db.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
 
     else:
         # No subsection was specified, so render an outline of the kinetics
         # database components
-        kineticsLibraries = [(label, library) for label, library in rmgDatabase.kinetics.libraries.iteritems() if subsection in label]
+        kineticsLibraries = [(label, library) for label, library in database.kinetics.libraries.iteritems() if subsection in label]
         kineticsLibraries.sort()
-        for family in rmgDatabase.kinetics.families.itervalues():
+        for family in database.kinetics.families.itervalues():
             for i in range(0,len(family.depositories)):
                 if 'untrained' in family.depositories[i].name:
                     family.depositories.pop(i)
             family.depositories.append(getUntrainedReactions(family))
-        kineticsFamilies = [(label, family) for label, family in rmgDatabase.kinetics.families.iteritems() if subsection in label]
+        kineticsFamilies = [(label, family) for label, family in database.kinetics.families.iteritems() if subsection in label]
         kineticsFamilies.sort()
         return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
 
 def kineticsUntrained(request, family):
-    rmgDatabase = loadDatabase('kinetics', 'families')
-    entries0 = getUntrainedReactions(rmgDatabase.kinetics.families[family]).entries.values()
+    database.load('kinetics', 'families')
+    entries0 = getUntrainedReactions(database.kinetics.families[family]).entries.values()
     entries0.sort(key=lambda entry: (entry.index, entry.label))
     
     entries = []
@@ -1311,7 +1306,7 @@ def kineticsUntrained(request, family):
         entries.append(entry)
     return render_to_response('kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False}, context_instance=RequestContext(request))
 
-def getReactionUrl(reaction, family=None, estimator=None):
+def getReactionUrl(reaction, family=None, estimator=None, resonance=True):
     """
     Get the URL (for kinetics data) of a reaction.
     
@@ -1328,6 +1323,9 @@ def getReactionUrl(reaction, family=None, estimator=None):
     for index, product in enumerate(reaction.products):
         mol = product if isinstance(product,Molecule) else product.molecule[0]
         kwargs['product{0:d}'.format(index+1)] = moleculeToAdjlist(mol)
+
+    kwargs['resonance'] = resonance
+
     if family:
         if estimator:
             kwargs['family'] = family
@@ -1347,15 +1345,15 @@ def kineticsEntryNew(request, family, type):
     """
     from forms import KineticsEntryEditForm
     # Load the kinetics database, if necessary
-    loadDatabase('kinetics', 'families')
+    database.load('kinetics', 'families')
 
     subsection = '{0}/{1}'.format(family, type)
     try:
-        database = getKineticsDatabase('families', subsection)
+        db = database.get_kinetics_database('families', subsection)
     except ValueError:
         raise Http404
     
-    entries = database.entries.values()
+    entries = db.entries.values()
     if any(isinstance(item, list) for item in entries):
         # if the entries are lists
         entries = reduce(lambda x,y: x+y, entries)
@@ -1366,7 +1364,7 @@ def kineticsEntryNew(request, family, type):
             new_entry = form.cleaned_data['entry']
 
             # Set new entry index
-            indices = [entry.index for entry in database.entries.values()]
+            indices = [entry.index for entry in db.entries.values()]
             new_entry.index = max(indices or [0]) + 1
 
             # Confirm entry does not already exist in depository
@@ -1435,9 +1433,9 @@ def kineticsEntryNew(request, family, type):
                 return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
-                database.entries[index] = new_entry
+                db.entries[index] = new_entry
                 path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families', family, '{0}.py'.format(type))
-                database.save(path)
+                db.save(path)
                 commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
                 commit_message = 'New Entry: {family}/{type}/{index}\n\n{msg}'.format(family=family,
                                                                                       type=type,
@@ -1479,15 +1477,15 @@ def kineticsEntryEdit(request, section, subsection, index):
     """
     from forms import KineticsEntryEditForm
     # Load the kinetics database, if necessary
-    loadDatabase('kinetics', section)
+    database.load('kinetics', section)
 
     # Determine the entry we wish to view
     try:
-        database = getKineticsDatabase(section, subsection)
+        db = database.get_kinetics_database(section, subsection)
     except ValueError:
         raise Http404
     
-    entries = database.entries.values()
+    entries = db.entries.values()
     if any(isinstance(item, list) for item in entries):
         # if the entries are lists
         entries = reduce(lambda x,y: x+y, entries)
@@ -1523,7 +1521,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                 # Render it as if it were saved.
                 return render_to_response('kineticsEntry.html', {'section': section,
                                                          'subsection': subsection,
-                                                         'databaseName': database.name,
+                                                         'databaseName': db.name,
                                                          'entry': new_entry,
                                                          'reference': entry.reference,
                                                          'kinetics': entry.data,
@@ -1531,9 +1529,9 @@ def kineticsEntryEdit(request, section, subsection, index):
                               context_instance=RequestContext(request))
             if True:
                 # save it
-                database.entries[index] = new_entry
+                db.entries[index] = new_entry
                 path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py' )
-                database.save(path)
+                db.save(path)
                 commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
                 commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
                 commit_result = subprocess.check_output(['git', 'commit',
@@ -1586,7 +1584,7 @@ def kineticsEntryEdit(request, section, subsection, index):
     
     return render_to_response('kineticsEntryEdit.html', {'section': section,
                                                         'subsection': subsection,
-                                                        'databaseName': database.name,
+                                                        'databaseName': db.name,
                                                         'entry': entry,
                                                         'form': form,
                                                         },
@@ -1599,17 +1597,17 @@ def thermoEntryNew(request, section, subsection, adjlist):
     """
     from forms import ThermoEntryEditForm
     # Load the thermo database, if necessary
-    loadDatabase('thermo')
+    database.load('thermo')
     
     adjlist = str(urllib.unquote(adjlist))
     molecule = Molecule().fromAdjacencyList(adjlist)
 
     try:
-        database = getThermoDatabase(section, subsection)
+        db = database.get_thermo_database(section, subsection)
     except ValueError:
         raise Http404
     
-    entries = database.entries.values()
+    entries = db.entries.values()
     if any(isinstance(item, list) for item in entries):
         # if the entries are lists
         entries = reduce(lambda x,y: x+y, entries)
@@ -1620,7 +1618,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             new_entry = form.cleaned_data['entry']
 
             # Set new entry index
-            indices = [entry.index for entry in database.entries.values()]
+            indices = [entry.index for entry in db.entries.values()]
             new_entry.index = max(indices or [0]) + 1
 
             # Do not need to confirm entry already exists- should allow the user to store multiple 
@@ -1651,9 +1649,9 @@ def thermoEntryNew(request, section, subsection, adjlist):
                 return HttpResponse(entry_string, content_type="text/plain")
             if True:
                 # save it
-                database.entries[index] = new_entry
+                db.entries[index] = new_entry
                 path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
-                database.save(path)
+                db.save(path)
                 commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
                 commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
                                                                                       subsection=subsection,
@@ -1699,7 +1697,7 @@ longDesc =
 
     return render_to_response('thermoEntryEdit.html', {'section': section,
                                                         'subsection': subsection,
-                                                        'databaseName': database.name,
+                                                        'databaseName': db.name,
                                                         'entry': entry,
                                                         'form': form,
                                                         },
@@ -1713,15 +1711,15 @@ def thermoEntryEdit(request, section, subsection, index):
     """
     from forms import ThermoEntryEditForm
     # Load the kinetics database, if necessary
-    loadDatabase('thermo', section)
+    database.load('thermo', section)
 
     # Determine the entry we wish to view
     try:
-        database = getThermoDatabase(section, subsection)
+        db = database.get_thermo_database(section, subsection)
     except ValueError:
         raise Http404
     
-    entries = database.entries.values()
+    entries = db.entries.values()
     if any(isinstance(item, list) for item in entries):
         # if the entries are lists
         entries = reduce(lambda x,y: x+y, entries)
@@ -1757,7 +1755,7 @@ def thermoEntryEdit(request, section, subsection, index):
                 # Render it as if it were saved.
                 return render_to_response('thermoEntry.html', {'section': section,
                                                          'subsection': subsection,
-                                                         'databaseName': database.name,
+                                                         'databaseName': db.name,
                                                          'entry': new_entry,
                                                          'reference': entry.reference,
                                                          'kinetics': entry.data,
@@ -1765,9 +1763,9 @@ def thermoEntryEdit(request, section, subsection, index):
                               context_instance=RequestContext(request))
             if True:
                 # save it
-                database.entries[index] = new_entry
+                db.entries[index] = new_entry
                 path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py' )
-                database.save(path)
+                db.save(path)
                 commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
                 commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section,subsection,index, form.cleaned_data['change'], commit_author)
                 commit_result = subprocess.check_output(['git', 'commit',
@@ -1820,7 +1818,7 @@ def thermoEntryEdit(request, section, subsection, index):
     
     return render_to_response('thermoEntryEdit.html', {'section': section,
                                                         'subsection': subsection,
-                                                        'databaseName': database.name,
+                                                        'databaseName': db.name,
                                                         'entry': entry,
                                                         'form': form,
                                                         },
@@ -1833,15 +1831,15 @@ def kineticsEntry(request, section, subsection, index):
     """
 
     # Load the kinetics database, if necessary
-    loadDatabase('kinetics', section)
+    database.load('kinetics', section)
 
     # Determine the entry we wish to view
     try:
-        database = getKineticsDatabase(section, subsection)
+        db = database.get_kinetics_database(section, subsection)
     except ValueError:
         raise Http404
     
-    entries = database.entries.values()
+    entries = db.entries.values()
     if any(isinstance(item, list) for item in entries):
         # if the entries are lists
         entries = reduce(lambda x,y: x+y, entries)
@@ -1869,22 +1867,21 @@ def kineticsEntry(request, section, subsection, index):
     referenceType = ''
 
     numReactants = 0; degeneracy = 1
-    if isinstance(database, KineticsGroups):
-        numReactants = database.numReactants
+    if isinstance(db, KineticsGroups):
+        numReactants = db.numReactants
     else:
         numReactants = len(entry.item.reactants)
         degeneracy = entry.item.degeneracy
     
-    if isinstance(database, KineticsGroups):
+    if isinstance(db, KineticsGroups):
         structure = getStructureInfo(entry.item)
         return render_to_response('kineticsEntry.html', {'section': section,
                                                          'subsection': subsection,
-                                                         'databaseName': database.name,
+                                                         'databaseName': db.name,
                                                          'entry': entry,
                                                          'structure': structure,
                                                          'reference': reference,
                                                          'referenceType': referenceType,
-                                                         'kinetics': entry.data,
                                                          },
                                   context_instance=RequestContext(request))
     else:
@@ -1899,33 +1896,30 @@ def kineticsEntry(request, section, subsection, index):
         
         return render_to_response('kineticsEntry.html', {'section': section,
                                                         'subsection': subsection,
-                                                        'databaseName': database.name,
+                                                        'databaseName': db.name,
                                                         'entry': entry,
                                                         'reactants': reactants,
                                                         'arrow': arrow,
                                                         'products': products,
                                                         'reference': reference,
                                                         'referenceType': referenceType,
-                                                        'kinetics': entry.data,
                                                         'reactionUrl': reactionUrl },
                                   context_instance=RequestContext(request))
 
 
-def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3=''):
+def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3='', resonance=True):
     """
     View a kinetics group estimate as an entry.
     """
     # Load the kinetics database if necessary
-    loadDatabase('kinetics','families')
+    database.load('kinetics','families')
     # Also load the thermo database so we can generate reverse kinetics if necessary
-    loadDatabase('thermo')
+    database.load('thermo')
     
     # we need 'database' to reference the top level object that we pass to generateReactions
-    from tools import database
-    from forms import KineticsEntryEditForm
     # check the family exists
     try:
-        getKineticsDatabase('families', family+'/groups')
+        database.get_kinetics_database('families', family+'/groups')
     except ValueError:
         raise Http404
 
@@ -1944,110 +1938,106 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
         productList.append(moleculeFromURL(product3))    
     
     # Search for the corresponding reaction(s)
-    reactionList, empty_list = generateReactions(database, reactantList, productList, only_families=[family])
+    reactionList = generateReactions(database, reactantList, productList, only_families=[family], resonance=resonance)
     
     kineticsDataList = []
     
-    # discard all the rates from depositories and rules
-    reactionList = [reaction for reaction in reactionList if isinstance(reaction, TemplateReaction)]
-    
-    # retain only the rates from the selected estimation method
-    reactionList = [reaction for reaction in reactionList if reaction.estimator == estimator.replace('_',' ')]
-    
-    # if there are still two, only keep the forward direction
-    if len(reactionList)==2:
-        reactionList = [reaction for reaction in reactionList if reactionHasReactants(reaction, reactantList)]
-    
-    assert len(reactionList)==1, "Was expecting one group estimate rate, not {0}".format(len(reactionList))
-    reaction = reactionList[0]
-    
-    # Generate the thermo data for the species involved
-    for reactant in reaction.reactants:
-        generateSpeciesThermo(reactant, database)
-    for product in reaction.products:
-        generateSpeciesThermo(product, database)
-    
-    # If the kinetics are ArrheniusEP, replace them with Arrhenius
-    if isinstance(reaction.kinetics, ArrheniusEP):
-        reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
-    
-    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
-    arrow = '&hArr;' if reaction.reversible else '&rarr;'
-    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-    assert isinstance(reaction, TemplateReaction), "Expected group estimated kinetics to be a TemplateReaction"
-    
-    source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
-    
-    if reaction.kinetics:
-        entry = Entry(
-                      item=reaction,
-                      data=reaction.kinetics,
-                      longDesc=reaction.kinetics.comment,
-                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                      )
-    else:
-        entry = Entry(
-                      item=reaction,
-                      data=reaction.kinetics,
-                      shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                      )
-                  
-    # Get the entry as an entry_string, to populate the New Entry form
-    if reaction.kinetics is None:
-        pass
-    elif isinstance(reaction.kinetics, Arrhenius):
-        entry.data = reaction.kinetics
-    elif isinstance(reaction.kinetics, KineticsData):
-        entry.data = reaction.kinetics.toArrhenius()
-    else:
-        raise Exception('Unexpected group kinetics type encountered: {0}'.format(reaction.kinetics.__class__.__name__))
-    
-    entry_buffer = StringIO.StringIO(u'')
-    try:
-        rmgpy.data.kinetics.saveEntry(entry_buffer, entry)            
-    except Exception, e:
-        entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
-        entry_buffer.write(str(e))
-        pass
-    entry_string = entry_buffer.getvalue()
-    entry_buffer.close()
-    # replace the kinetics with the original ones
-    entry.data = reaction.kinetics
-    entry_string = re.sub('^entry\(\n','',entry_string) # remove leading entry(
-    entry_string = re.sub('\s*index = -?\d+,\n','',entry_string) # remove the 'index = 23,' (or -1)line
-    new_entry_form = KineticsEntryEditForm(initial={'entry':entry_string })
-    
-    forward = reactionHasReactants(reaction, reactantList) # boolean: true if template reaction in forward direction
-    
-    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
-    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-    
-    if estimator == 'group_additivity':
-        reference = rmgpy.data.reference.Reference(
-                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/groups'})),
-                    )
-    else:
-        reference = rmgpy.data.reference.Reference(
-                    url=request.build_absolute_uri(reverse(kinetics,kwargs={'section':'families','subsection':family+'/rules'})),
-                    )
-    referenceType = ''
-    entry.index=-1
+    # Only keep template reactions frm the selected estimation method in the forward direction
+    reactionList = [reaction for reaction in reactionList if (isinstance(reaction, TemplateReaction) and
+                                                              reaction.estimator == estimator.replace('_', ' ') and
+                                                              reactionHasReactants(reaction, reactantList))]
 
-    reactionUrl = getReactionUrl(reaction)
+    # Select the first reaction for initial processing
+    reaction0 = reactionList[0]
+
+    # Generate the thermo data for the species involved
+    for reactant in reaction0.reactants:
+        generateSpeciesThermo(reactant, database)
+    for product in reaction0.products:
+        generateSpeciesThermo(product, database)
+
+    reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction0.reactants])
+    arrow = '&hArr;' if reaction0.reversible else '&rarr;'
+    products = ' + '.join([getStructureInfo(reactant) for reactant in reaction0.products])
+
+    source = '%s (RMG-Py %s)' % (reaction0.family, reaction0.estimator)
+
+    entry = None
+    entry_list = []
+    if len(reactionList) == 1:
+        if isinstance(reaction0.kinetics, ArrheniusEP):
+            reaction0.kinetics = reaction0.kinetics.toArrhenius(reaction0.getEnthalpyOfReaction(298))
+
+        entry = Entry(
+            data = reaction0.kinetics,
+            shortDesc="Estimated by RMG-Py %s" % (reaction0.estimator),
+            longDesc=reaction0.kinetics.comment,
+        )
+
+        if estimator == 'group_additivity':
+            reference = rmgpy.data.reference.Reference(
+                url=request.build_absolute_uri(
+                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+            )
+        else:
+            reference = rmgpy.data.reference.Reference(
+                url=request.build_absolute_uri(
+                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+            )
+        referenceType = ''
+    else:
+        for i, reaction in enumerate(reactionList):
+            assert reaction.isIsomorphic(reaction0, eitherDirection=False), "Multiple group estimates must be isomorphic."
+            # Replace reactants and products with the same object instances as reaction0
+            reaction.reactants = reaction0.reactants
+            reaction.products = reaction0.products
+
+            # If the kinetics are ArrheniusEP, replace them with Arrhenius
+            if isinstance(reaction.kinetics, ArrheniusEP):
+                reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+
+            entry0 = Entry(
+                data = reaction.kinetics,
+                shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
+                longDesc=reaction.kinetics.comment,
+            )
+            entry0.result = i + 1
+
+            if estimator == 'group_additivity':
+                reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(
+                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+                )
+            else:
+                reference = rmgpy.data.reference.Reference(
+                    url=request.build_absolute_uri(
+                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+                )
+            referenceType = ''
+
+            entry_list.append((entry0, reaction.template, reference))
+
+
+    reactionUrl = getReactionUrl(reaction0, resonance=resonance)
+
+    assert not (entry and entry_list), 'Either `entry` or `entry_list` should have a value, not both.'
 
     return render_to_response('kineticsEntry.html', {'section': 'families',
-                                                    'subsection': family,
-                                                    'databaseName': family,
-                                                    'entry': entry,
-                                                    'reactants': reactants,
-                                                    'arrow': arrow,
-                                                    'products': products,
-                                                    'reference': reference,
-                                                    'referenceType': referenceType,
-                                                    'kinetics': reaction.kinetics,
-                                                    'reactionUrl': reactionUrl,
-                                                    'reaction': reaction,
-                                                    'new_entry_form': new_entry_form},
+                                                     'subsection': family,
+                                                     'databaseName': family,
+                                                     'reactants': reactants,
+                                                     'arrow': arrow,
+                                                     'products': products,
+                                                     'reference': reference,
+                                                     'referenceType': referenceType,
+                                                     'entry': entry,
+                                                     'entry_list': entry_list,
+                                                     'forward': True,
+                                                     'reactionUrl': reactionUrl,
+                                                     'reaction': reaction0,
+                                                     'plotWidth': 500,
+                                                     'plotHeight': 400 + 15 * len(entry_list),
+                                                     },
                               context_instance=RequestContext(request))
     
 
@@ -2067,7 +2057,7 @@ def kineticsSearch(request):
     """
 
     # Load the kinetics database if necessary
-    loadDatabase('kinetics')
+    database.load('kinetics')
 
     if request.method == 'POST':
         form = KineticsSearchForm(request.POST, error_class=DivErrorList)
@@ -2088,22 +2078,23 @@ def kineticsSearch(request):
             if product2 != '':
                 kwargs['product2'] = product2
 
+            kwargs['resonance'] = form.cleaned_data['resonance']
+
             return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
     else:
         form = KineticsSearchForm()
 
     return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
 
-def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
+def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
     A view used to present a list of unique reactions that result from a
     valid kinetics search.
     """
     
     # Load the kinetics database if necessary
-    loadDatabase('kinetics')
-    from tools import database # the global one with both thermo and kinetics
-    
+    database.load('kinetics')
+
     reactantList = []
     reactantList.append(moleculeFromURL(reactant1))
     if reactant2 != '':
@@ -2123,9 +2114,8 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         productList = None
     
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
-    reactionList.extend(rmgJavaReactionList)
-        
+    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+
     # Remove duplicates from the list and count the number of results
     uniqueReactionList = []
     uniqueReactionCount = []
@@ -2143,7 +2133,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-        reactionUrl = getReactionUrl(reaction)
+        reactionUrl = getReactionUrl(reaction, resonance=resonance)
         
         forward = reactionHasReactants(reaction, reactantList)
         if forward:
@@ -2153,17 +2143,15 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         
     return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
 
-def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3=''):
+def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
     A view used to present a list of reactions and the associated kinetics
     for each.
     """
-    from forms import RateEvaluationForm, KineticsEntryEditForm
     # Load the kinetics database if necessary
-    loadDatabase('kinetics')
+    database.load('kinetics')
     # Also load the thermo database so we can generate reverse kinetics if necessary
-    loadDatabase('thermo')
-    from tools import database # the global one with both thermo and kinetics
+    database.load('thermo')
 
     reactantList = []
     reactantList.append(moleculeFromURL(reactant1))
@@ -2182,17 +2170,29 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             productList.append(moleculeFromURL(product3))
             
         reverseReaction = Reaction(reactants = productList, products = reactantList)
-        reverseReactionURL = getReactionUrl(reverseReaction)
+        reverseReactionURL = getReactionUrl(reverseReaction, resonance=resonance)
     else:
         productList = None
 
     # Search for the corresponding reaction(s)
-    reactionList, rmgJavaReactionList = generateReactions(database, reactantList, productList)
-    reactionList.extend(rmgJavaReactionList)
-    
+    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+
     kineticsDataList = []
     family = ''
-    
+
+    # Determine number of template matches
+    num_template_rxns_forward = 0
+    num_template_rxns_reverse = 0
+    for reaction in reactionList:
+        if isinstance(reaction, TemplateReaction) and reaction.estimator == 'rate rules':
+            if reactionHasReactants(reaction, reactantList):
+                num_template_rxns_forward += 1
+            else:
+                num_template_rxns_reverse += 1
+
+    count_template_rxns_forward = 0
+    count_template_rxns_reverse = 0
+
     # Go through database and group additivity kinetics entries
     for reaction in reactionList:
         # Generate the thermo data for the species involved
@@ -2205,20 +2205,28 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if isinstance(reaction.kinetics, ArrheniusEP):
             reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
 
-        #reactants = [getStructureInfo(reactant) for reactant in reaction.reactants]
+        is_forward = reactionHasReactants(reaction, reactantList)
+
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         if isinstance(reaction, TemplateReaction):
-            source = '%s (RMG-Py %s)' % (reaction.family, reaction.estimator)
+            counter = ''
+            if reaction.estimator == 'rate rules':
+                if is_forward:
+                    count_template_rxns_forward += 1
+                    if num_template_rxns_forward > 1:
+                        counter = ', forward template {0} of {1}'.format(count_template_rxns_forward, num_template_rxns_forward)
+                else:
+                    count_template_rxns_reverse += 1
+                    if num_template_rxns_reverse > 1:
+                        counter = ', reverse template {0} of {1}'.format(count_template_rxns_reverse, num_template_rxns_reverse)
+
+            source = '{0} (RMG-Py {1}{2})'.format(reaction.family, reaction.estimator, counter)
             
-            href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator)
+            href = getReactionUrl(reaction, family=reaction.family, estimator=reaction.estimator, resonance=resonance)
             entry = Entry(data=reaction.kinetics)
             family = reaction.family
-        elif reaction in rmgJavaReactionList:
-            source = 'RMG-Java'
-            href = ''
-            entry = reaction.entry
         elif isinstance(reaction, DepositoryReaction):
             if 'untrained' in reaction.depository.name:
                 continue
@@ -2232,7 +2240,6 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         
         forwardKinetics = reaction.kinetics
         
-        is_forward = reactionHasReactants(reaction, reactantList)
         entry.result = len(kineticsDataList) + 1
 
         if is_forward:
@@ -2252,7 +2259,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     # Need to get group-additive reaction from generateReaction with only_families
     # +--> otherwise, adjacency list doesn't store reaction template properly
     if family:
-        additiveList, empty_list = generateReactions(database, reactantList, productList, only_families=family)
+        additiveList = generateReactions(database, reactantList, productList, only_families=family, resonance=resonance)
         additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
         reaction = additiveList[0]
         new_entry = StringIO.StringIO(u'')
@@ -2470,3 +2477,43 @@ def groupEntry(request,adjlist):
     structure = getStructureInfo(group)
     
     return render_to_response('groupEntry.html',{'structure':structure,'group':group}, context_instance=RequestContext(request))
+
+def json_to_adjlist(request):
+    """
+    Interprets ChemDoodle JSON and returns an RMG adjacency list.
+    """
+    adjlist = ''
+    if request.is_ajax() and request.method == 'POST':
+        cd_json_str = request.POST.get('data')
+        cd_json = json.loads(cd_json_str)
+
+        try:
+            atoms = []
+            # Parse atoms in json dictionary
+            for a in cd_json['a']:
+                atoms.append(Atom(
+                    element=str(a['l']) if 'l' in a else 'C',
+                    charge=a['c'] if 'c' in a else 0,
+                    radicalElectrons=a['r'] if 'r' in a else 0,
+                    lonePairs=a['p'] if 'p' in a else 0,
+                ))
+            # Initialize molecule with atoms
+            mol = Molecule(atoms=atoms)
+            # Parse bonds in json dictionary
+            for b in cd_json['b']:
+                mol.addBond(Bond(
+                    atom1=atoms[b['b']],
+                    atom2=atoms[b['e']],
+                    order=b['o'] if 'o' in b else 1,
+                ))
+            # Hydrogens are implicit, so we need to add hydrogens
+            Saturator.saturate(mol.atoms)
+            mol.update()
+            # Generate adjacency list
+            adjlist = mol.toAdjacencyList()
+        except AtomTypeError:
+            adjlist = 'Invalid Molecule'
+        except:
+            adjlist = 'Unable to convert molecule drawing to adjacency list.'
+
+    return HttpResponse(adjlist)

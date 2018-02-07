@@ -44,11 +44,11 @@ table.statmechEntryData td.reference p {
 {% endblock extrahead%}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.statmech' %}">Statmech</a>
-&raquo; <a href="{% url 'database.views.statmech' section=section %}">{{ section|title }}</a>
-&raquo; <a href="{% url 'database.views.statmech' section=section subsection=subsection %}">{{ subsection }}</a>
-{% if entry.index and entry.index != -1 %} &raquo; <a href="{% url 'database.views.statmechEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a>{% endif %}
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.statmech' %}">Statmech</a></li>
+<li><a href="{% url 'database.views.statmech' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database.views.statmech' section=section subsection=subsection %}">{{ subsection }}</a></li>
+{% if entry.index and entry.index != -1 %}<li><a href="{% url 'database.views.statmechEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}

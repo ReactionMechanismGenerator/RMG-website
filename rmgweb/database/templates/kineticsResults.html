@@ -9,10 +9,10 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.kinetics' %}">Kinetics</a>
-&raquo; <a href="{% url 'database.views.kineticsSearch' %}">Search</a>
-&raquo; <a href="">Results</a>
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database.views.kineticsSearch' %}">Search</a></li>
+<li><a href="">Results</a></li>
 {% endblock %}
 
 {% block sidebar_items %}

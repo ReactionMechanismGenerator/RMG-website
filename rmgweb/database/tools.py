@@ -58,270 +58,292 @@ from rmgpy.data.rmg import SolvationDatabase
 from rmgpy.data.rmg import RMGDatabase
 from rmgpy.data.rmg import StatmechDatabase
 
-################################################################################
 
-database = None
+class RMGWebDatabase(object):
+    """Wrapper class for RMGDatabase that provides loading functionality."""
 
-################################################################################
+    def __init__(self):
+        self.database = RMGDatabase()
+        self.database.kinetics = KineticsDatabase()
+        self.database.thermo = ThermoDatabase()
+        self.database.transport = TransportDatabase()
+        self.database.statmech = StatmechDatabase()
+        self.database.solvation = SolvationDatabase()
+        self.database.loadForbiddenStructures(os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py'))
+        self.timestamps = {}
 
-_timestamps = {}
-# Some functions to determine if the database files have changed on disk since
-# they were last loaded. 
-def resetTimestamp(path):
-    """
-    Reset the files timestamp in the stored dictionary of timestamps.
-    """
-    mtime = os.stat(path).st_mtime
-    _timestamps[path] = mtime
+    @property
+    def kinetics(self):
+        """Get the kinetics database."""
+        return self.database.kinetics
 
-def resetDirTimestamps(dirpath):
-    """
-    Walk the directory tree from dirpath, calling resetTimestamp(file) on each file.
-    """
-    print "Resetting 'last loaded' timestamps for {0} in process {1}".format(dirpath, os.getpid())
-    for root, dirs, files in os.walk(dirpath):
-        for name in files:
-            resetTimestamp(os.path.join(root,name))
+    @property
+    def thermo(self):
+        """Get the thermo database."""
+        return self.database.thermo
 
-def isFileModified(path):
-    """
-    Return True if the file at `path` has been modified since `resetTimestamp(path)` was last called.
-    """
-    try:
+    @property
+    def transport(self):
+        """Get the transport database."""
+        return self.database.transport
+
+    @property
+    def statmech(self):
+        """Get the statmech database."""
+        return self.database.statmech
+
+    @property
+    def solvation(self):
+        """Get the solvation database."""
+        return self.database.solvation
+
+    def reset_timestamp(self, path):
+        """
+        Reset the files timestamp in the dictionary of timestamps.
+        """
+        mtime = os.stat(path).st_mtime
+        self.timestamps[path] = mtime
+
+    def reset_dir_timestamps(self, dirpath):
+        """
+        Walk the directory tree from dirpath, calling reset_timestamp(file) on each file.
+        """
+        print "Resetting 'last loaded' timestamps for {0} in process {1}".format(dirpath, os.getpid())
+        for root, dirs, files in os.walk(dirpath):
+            for name in files:
+                self.reset_timestamp(os.path.join(root, name))
+
+    def is_file_modified(self, path):
+        """
+        Return True if the file at `path` has been modified since `reset_timestamp(path)` was last called.
+        """
         # If path doesn't denote a file and were previously
         # tracking it, then it has been removed or the file type
         # has changed, so return True.
         if not os.path.isfile(path):
-            return path in _timestamps
-        
+            return path in self.timestamps
+
         # If path wasn't being tracked then it's new, so return True
-        mtime = os.stat(path).st_mtime
-        if path not in _timestamps:
+        elif path not in self.timestamps:
             return True
-        
+
         # Force restart when modification time has changed, even
         # if time now older, as that could indicate older file
         # has been restored.
-        if mtime != _timestamps[path]:
+        elif os.stat(path).st_mtime != self.timestamps[path]:
             return True
-    except:
-        # for debugging, raise the exception
-        # If any exception occured, likely that file has been
-        # been removed just before stat(), so force a restart.
-        raise
-        return True
-    # passed all tests
-    return False
 
-def isDirModified(dirpath):
-    """
-    Returns True if anything in the directory at dirpath has been modified since resetDirTimestamps(dirpath).
-    """
-    to_check = set([path for path in _timestamps if path.startswith(dirpath)])
-    for root, dirs, files in os.walk(dirpath):
-        for name in files:
-            path = os.path.join(root,name)
-            if isFileModified(path):
-                return True
-            to_check.remove(path)
-    # If there's anything left in to_check, it's probably now gone and this will return True:
-    for path in to_check:
-        if isFileModified(path):
-            return True
-    # Passed all tests.
-    return False
-
-################################################################################
-
-def loadDatabase(component='', section=''):
-    """
-    Load the requested `component` of the RMG database if modified since last loaded.
-    """
-    global database
-    if not database:
-        database = RMGDatabase()
-        database.solvation = SolvationDatabase()
-        database.thermo = ThermoDatabase()
-        database.kinetics = KineticsDatabase()
-        database.transport = TransportDatabase()
-        database.statmech = StatmechDatabase()
-        database.loadForbiddenStructures(os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py'))
-
-    if component == 'initialize':
-        return database
-    if component in ['thermo', '']:
-        if section in ['depository', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'depository')
-            if isDirModified(dirpath):
-                database.thermo.loadDepository(dirpath)
-                resetDirTimestamps(dirpath)
-        if section in ['libraries', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'libraries')
-            if isDirModified(dirpath):
-                database.thermo.loadLibraries(dirpath)
-                # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
-                # we use our favorite values first.
-                preferred_order = ['primaryThermoLibrary','DFT_QCI_thermo','GRI-Mech3.0','CBS_QB3_1dHR','KlippensteinH2O2']
-                new_order = [i for i in preferred_order if i in database.thermo.libraryOrder]
-                for i in database.thermo.libraryOrder:
-                    if i not in new_order: new_order.append(i) 
-                database.thermo.libraryOrder = new_order
-                resetDirTimestamps(dirpath)
-        if section in ['groups', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'groups')
-            if isDirModified(dirpath):
-                database.thermo.loadGroups(dirpath)
-                resetDirTimestamps(dirpath)  
-                              
-    if component in ['transport', '']:
-        if section in ['libraries', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'libraries')
-            if isDirModified(dirpath):
-                database.transport.loadLibraries(dirpath)
-                resetDirTimestamps(dirpath)
-        if section in ['groups', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'groups')
-            if isDirModified(dirpath):
-                database.transport.loadGroups(dirpath)
-                resetDirTimestamps(dirpath)
-                
-    if component in ['solvation', '']:
-        dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'solvation')
-        if isDirModified(dirpath):
-            database.solvation.load(dirpath)
-            resetDirTimestamps(dirpath)
-                
-    if component in ['kinetics', '']:
-        if section in ['libraries', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'libraries')
-            if isDirModified(dirpath):
-                database.kinetics.loadLibraries(dirpath)
-                resetDirTimestamps(dirpath)
-        if section in ['families', '']:
-            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families')
-            if isDirModified(dirpath):
-                database.kinetics.loadFamilies(dirpath, families = 'all', depositories = 'all')
-                resetDirTimestamps(dirpath)
-                
-                # Make sure to load the entire thermo database prior to adding training values to the rules
-                loadDatabase('thermo','')
-                for family in database.kinetics.families.values():
-                    oldentries = len(family.rules.entries)
-                    family.addKineticsRulesFromTrainingSet(thermoDatabase=database.thermo)
-                    newentries = len(family.rules.entries)
-                    if newentries != oldentries:
-                        print '{0} new entries added to {1} family after adding rules from training set.'.format(newentries-oldentries, family.label)
-                    # Filling in rate rules in kinetics families by averaging...
-                    family.fillKineticsRulesByAveragingUp()
-                    
-    if component in ['statmech', '']:
-        dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'statmech')
-        if isDirModified(dirpath):
-            database.statmech.load(dirpath)
-            resetDirTimestamps(dirpath)
-
-    return database
-
-def getTransportDatabase(section, subsection):
-    """
-    Return the component of the transport database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-
-    try:
-        if section == 'libraries': db = database.transport.libraries[subsection]
-        elif section == 'groups': db = database.transport.groups[subsection]
-        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError: 
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    
-    return db
-
-def getSolvationDatabase(section, subsection):
-    """
-    Return the component of the solvation database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-
-    try:
-        if section == '':
-            db = database.solvation  #return general SolvationDatabase
-        elif section == 'libraries': db = database.solvation.libraries[subsection]
-        elif section == 'groups': db = database.solvation.groups[subsection]
-        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError: 
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    
-    return db
-
-def getStatmechDatabase(section, subsection):
-    """
-    Return the component of the statmech database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-
-    try:
-        if section == 'depository': db = database.statmech.depository[subsection]
-        elif section == 'libraries':  db = database.statmech.libraries[subsection]
-        elif section == 'groups': db = database.statmech.groups[subsection]
-        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError: 
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    
-    return db
-
-def getThermoDatabase(section, subsection):
-    """
-    Return the component of the thermodynamics database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-
-    try:
-        if section == 'depository': db = database.thermo.depository[subsection]
-        elif section == 'libraries': db = database.thermo.libraries[subsection]
-        elif section == 'groups': db = database.thermo.groups[subsection]
-        else: raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except KeyError:
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    
-    return db
-
-def getKineticsDatabase(section, subsection):
-    """
-    Return the component of the kinetics database corresponding to the
-    given `section` and `subsection`. If either of these is invalid, a
-    :class:`ValueError` is raised.
-    """
-    global database
-    
-    db = None
-    try:
-        if section == 'libraries':
-            db = database.kinetics.libraries[subsection]
-        elif section == 'families':
-            subsection = subsection.split('/')
-            if subsection[0] != '' and len(subsection) == 2:
-                family = database.kinetics.families[subsection[0]]
-                if subsection[1] == 'groups':
-                    db = family.groups
-                elif subsection[1] == 'rules':
-                    db = family.rules
-                else:
-                    label = '{0}/{1}'.format(family.label, subsection[1])
-                    db = (d for d in family.depositories if d.label==label).next()
+        # All the checks have been passed, so the file was not modified
         else:
-            raise ValueError('Invalid value "%s" for section parameter.' % section)
-    except (KeyError, StopIteration):
-        raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
-    return db
+            return False
+
+    def is_dir_modified(self, dirpath):
+        """
+        Returns True if anything in the directory at dirpath has been modified since reset_dir_timestamps(dirpath).
+        """
+        to_check = set([path for path in self.timestamps if path.startswith(dirpath)])
+        for root, dirs, files in os.walk(dirpath):
+            for name in files:
+                path = os.path.join(root, name)
+                if self.is_file_modified(path):
+                    return True
+                to_check.remove(path)
+        # If there's anything left in to_check, it's probably now gone and this will return True:
+        for path in to_check:
+            if self.is_file_modified(path):
+                return True
+        # Passed all tests.
+        return False
+
+    ################################################################################
+
+    def load(self, component='', section=''):
+        """
+        Load the requested `component` of the RMG database if modified since last loaded.
+        """
+        if component in ['thermo', '']:
+            if section in ['depository', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'depository')
+                if self.is_dir_modified(dirpath):
+                    self.database.thermo.loadDepository(dirpath)
+                    self.reset_dir_timestamps(dirpath)
+            if section in ['libraries', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'libraries')
+                if self.is_dir_modified(dirpath):
+                    self.database.thermo.loadLibraries(dirpath)
+                    # put them in our preferred order, so that when we look up thermo in order to estimate kinetics,
+                    # we use our favorite values first.
+                    preferred_order = [
+                        'primaryThermoLibrary',
+                        'DFT_QCI_thermo',
+                        'GRI-Mech3.0',
+                        'CBS_QB3_1dHR',
+                        'KlippensteinH2O2',
+                    ]
+                    new_order = [i for i in preferred_order if i in self.database.thermo.libraryOrder]
+                    for i in self.database.thermo.libraryOrder:
+                        if i not in new_order:
+                            new_order.append(i)
+                    self.database.thermo.libraryOrder = new_order
+                    self.reset_dir_timestamps(dirpath)
+            if section in ['groups', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', 'groups')
+                if self.is_dir_modified(dirpath):
+                    self.database.thermo.loadGroups(dirpath)
+                    self.reset_dir_timestamps(dirpath)
+
+        if component in ['transport', '']:
+            if section in ['libraries', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'libraries')
+                if self.is_dir_modified(dirpath):
+                    self.database.transport.loadLibraries(dirpath)
+                    self.reset_dir_timestamps(dirpath)
+            if section in ['groups', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'transport', 'groups')
+                if self.is_dir_modified(dirpath):
+                    self.database.transport.loadGroups(dirpath)
+                    self.reset_dir_timestamps(dirpath)
+
+        if component in ['solvation', '']:
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'solvation')
+            if self.is_dir_modified(dirpath):
+                self.database.solvation.load(dirpath)
+                self.reset_dir_timestamps(dirpath)
+
+        if component in ['kinetics', '']:
+            if section in ['libraries', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'libraries')
+                if self.is_dir_modified(dirpath):
+                    self.database.kinetics.loadLibraries(dirpath)
+                    self.reset_dir_timestamps(dirpath)
+            if section in ['families', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', 'families')
+                if self.is_dir_modified(dirpath):
+                    self.database.kinetics.loadFamilies(dirpath, families='all', depositories='all')
+                    self.reset_dir_timestamps(dirpath)
+
+                    # Make sure to load the entire thermo database prior to adding training values to the rules
+                    self.load('thermo', '')
+                    for family in self.database.kinetics.families.values():
+                        oldentries = len(family.rules.entries)
+                        family.addKineticsRulesFromTrainingSet(thermoDatabase=self.database.thermo)
+                        newentries = len(family.rules.entries)
+                        if newentries != oldentries:
+                            print '{0} new entries added to {1} family after adding rules from training set.'.format(
+                                newentries - oldentries, family.label)
+                        # Filling in rate rules in kinetics families by averaging...
+                        family.fillKineticsRulesByAveragingUp()
+
+        if component in ['statmech', '']:
+            dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'statmech')
+            if self.is_dir_modified(dirpath):
+                self.database.statmech.load(dirpath)
+                self.reset_dir_timestamps(dirpath)
+
+    def get_transport_database(self, section, subsection):
+        """
+        Return the component of the transport database corresponding to the
+        given `section` and `subsection`. If either of these is invalid, a
+        :class:`ValueError` is raised.
+        """
+        try:
+            if section == 'libraries':
+                db = self.database.transport.libraries[subsection]
+            elif section == 'groups':
+                db = self.database.transport.groups[subsection]
+            else:
+                raise ValueError('Invalid value "%s" for section parameter.' % section)
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+
+        return db
+
+    def get_solvation_database(self, section, subsection):
+        """
+        Return the component of the solvation database corresponding to the
+        given `section` and `subsection`. If either of these is invalid, a
+        :class:`ValueError` is raised.
+        """
+        try:
+            if section == '':
+                db = self.database.solvation  # return general SolvationDatabase
+            elif section == 'libraries':
+                db = self.database.solvation.libraries[subsection]
+            elif section == 'groups':
+                db = self.database.solvation.groups[subsection]
+            else:
+                raise ValueError('Invalid value "%s" for section parameter.' % section)
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+
+        return db
+
+    def get_statmech_database(self, section, subsection):
+        """
+        Return the component of the statmech database corresponding to the
+        given `section` and `subsection`. If either of these is invalid, a
+        :class:`ValueError` is raised.
+        """
+        try:
+            if section == 'depository':
+                db = self.database.statmech.depository[subsection]
+            elif section == 'libraries':
+                db = self.database.statmech.libraries[subsection]
+            elif section == 'groups':
+                db = self.database.statmech.groups[subsection]
+            else:
+                raise ValueError('Invalid value "%s" for section parameter.' % section)
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+
+        return db
+
+    def get_thermo_database(self, section, subsection):
+        """
+        Return the component of the thermodynamics database corresponding to the
+        given `section` and `subsection`. If either of these is invalid, a
+        :class:`ValueError` is raised.
+        """
+        try:
+            if section == 'depository':
+                db = self.database.thermo.depository[subsection]
+            elif section == 'libraries':
+                db = self.database.thermo.libraries[subsection]
+            elif section == 'groups':
+                db = self.database.thermo.groups[subsection]
+            else:
+                raise ValueError('Invalid value "%s" for section parameter.' % section)
+        except KeyError:
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+
+        return db
+
+    def get_kinetics_database(self, section, subsection):
+        """
+        Return the component of the kinetics database corresponding to the
+        given `section` and `subsection`. If either of these is invalid, a
+        :class:`ValueError` is raised.
+        """
+        db = None
+        try:
+            if section == 'libraries':
+                db = self.database.kinetics.libraries[subsection]
+            elif section == 'families':
+                subsection = subsection.split('/')
+                if subsection[0] != '' and len(subsection) == 2:
+                    family = self.database.kinetics.families[subsection[0]]
+                    if subsection[1] == 'groups':
+                        db = family.groups
+                    elif subsection[1] == 'rules':
+                        db = family.rules
+                    else:
+                        label = '{0}/{1}'.format(family.label, subsection[1])
+                        db = (d for d in family.depositories if d.label == label).next()
+            else:
+                raise ValueError('Invalid value "%s" for section parameter.' % section)
+        except (KeyError, StopIteration):
+            raise ValueError('Invalid value "%s" for subsection parameter.' % subsection)
+        return db
 
 ################################################################################
 
@@ -330,49 +352,55 @@ def generateSpeciesThermo(species, database):
     Generate the thermodynamics data for a given :class:`Species` object
     `species` using the provided `database`.
     """
-    species.generateResonanceIsomers()
+    species.generate_resonance_structures()
     species.thermo = database.thermo.getThermoData(species)
         
 ################################################################################
 
-def generateReactions(database, reactants, products=None, only_families=None):
+def generateReactions(database, reactants, products=None, only_families=None, resonance=True):
     """
     Generate the reactions (and associated kinetics) for a given set of
     `reactants` and an optional set of `products`. A list of reactions is
     returned, with a reaction for each matching kinetics entry in any part of
     the database. This means that the same reaction may appear multiple times
-    with different kinetics in the output. If the RMG-Java server is running,
-    this function will also query it for reactions and kinetics.
+    with different kinetics in the output.
+
     If `only_families` is a list of strings, only those labeled families are 
     used: no libraries and no RMG-Java kinetics are returned.
     """
     from rmgpy.rmg.model import getFamilyLibraryObject
     # get RMG-py reactions
-    reactionList = []
-    if only_families is None:
-        # Not restricted to certain families, so also check libraries.
-        reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants, products))
-    reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants, products, only_families=only_families))
+    reaction_list = database.kinetics.generate_reactions(reactants, products, only_families=only_families, resonance=resonance)
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
         # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
-        if only_families is None:
-            # Not restricted to certain families, so also check libraries.
-            reactionList.extend(database.kinetics.generateReactionsFromLibraries(reactants2, products))
-        reactionList.extend(database.kinetics.generateReactionsFromFamilies(reactants2, products, only_families=only_families))
+        reaction_list.extend(database.kinetics.generate_reactions(reactants2, products, only_families=only_families, resonance=resonance))
     
     # get RMG-py kinetics
-    reactionList0 = reactionList; reactionList = []
-    for reaction in reactionList0:
+    reaction_data_list = []
+    template_reactions = []
+    for reaction in reaction_list:
         # If the reaction already has kinetics (e.g. from a library),
         # assume the kinetics are satisfactory
         if reaction.kinetics is not None:
-            reactionList.append(reaction)
+            reaction_data_list.append(reaction)
         else:
             # Set the reaction kinetics
             # Only reactions from families should be missing kinetics
             assert isinstance(reaction, TemplateReaction)
+
+            # Determine if we've already processed an isomorphic reaction with a different template
+            duplicate = False
+            for t_rxn in template_reactions:
+                if reaction.isIsomorphic(t_rxn):
+                    assert set(reaction.template) != set(t_rxn.template), 'There should not be duplicate reactions with identical templates.'
+                    duplicate = True
+                    break
+            else:
+                # We haven't encountered this reaction yet, so add it to the list
+                template_reactions.append(reaction)
+
             # Get all of the kinetics for the reaction
             family = getFamilyLibraryObject(reaction.family)
             kineticsList = family.getKinetics(reaction, templateLabels=reaction.template, degeneracy=reaction.degeneracy, returnAllKinetics=True)
@@ -389,6 +417,11 @@ def generateReactions(database, reactants, products=None, only_families=None):
                 delattr(reaction,'reverse')
             # Make a new reaction object for each kinetics result
             for kinetics, source, entry, isForward in kineticsList:
+                if duplicate and source != 'rate rules':
+                    # We've already processed this reaction with a different template,
+                    # so we only need the new rate rule estimates
+                    continue
+
                 if isForward:
                     reactant_species = reaction.reactants[:]
                     product_species = reaction.products[:]
@@ -405,6 +438,7 @@ def generateReactions(database, reactants, products=None, only_families=None):
                         reversible = reaction.reversible,
                         family = reaction.family,
                         estimator = source,
+                        template = reaction.template,
                     )
                 else:
                     rxn = DepositoryReaction(
@@ -418,20 +452,9 @@ def generateReactions(database, reactants, products=None, only_families=None):
                         entry = entry,
                     )                    
                     
-                reactionList.append(rxn)
-    
-    # get RMG-java reactions
-    if only_families is None:
-        # Not restricted to certain families, so also check RMG-Java.
-        rmgJavaReactionList = getRMGJavaKinetics(reactants, products)
-    else:
-        rmgJavaReactionList = []
-    
-    for rxn in itertools.chain(reactionList, rmgJavaReactionList):
-        rxn.reactants = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.reactants]
-        rxn.products = [Species(molecule=[mol]) if isinstance(mol,Molecule) else mol for mol in rxn.products]
+                reaction_data_list.append(rxn)
 
-    return reactionList, rmgJavaReactionList
+    return reaction_data_list
     
 ################################################################################
 
@@ -440,18 +463,18 @@ def reactionHasReactants(reaction, reactants):
     Return ``True`` if the given `reaction` has all of the specified
     `reactants` (and no others), or ``False if not.
     """
-    if len(reactants) == len(reaction.products) == 1:
-        if reaction.products[0].isIsomorphic(reactants[0]): 
-            return False
-    elif len(reactants) == len(reaction.products) == 2:
-        if reaction.products[0].isIsomorphic(reactants[0]) and reaction.products[1].isIsomorphic(reactants[1]):
-            return False
-        elif reaction.products[0].isIsomorphic(reactants[1]) and reaction.products[1].isIsomorphic(reactants[0]):
-            return False
-    elif len(reactants) == 1 and len(reaction.products) == 2:
-        if reaction.products[0].isIsomorphic(reactants[0]) and reaction.products[1].isIsomorphic(reactants[0]):
-            return False
-    return True
+    if len(reactants) == len(reaction.reactants) == 1:
+        if reaction.reactants[0].isIsomorphic(reactants[0]):
+            return True
+    elif len(reactants) == len(reaction.reactants) == 2:
+        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[1]):
+            return True
+        elif reaction.reactants[0].isIsomorphic(reactants[1]) and reaction.reactants[1].isIsomorphic(reactants[0]):
+            return True
+    elif len(reactants) == 1 and len(reaction.reactants) == 2:
+        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[0]):
+            return True
+    return False
 
 def getRMGJavaKineticsFromReaction(reaction):
     """
@@ -582,7 +605,7 @@ def getRMGJavaKinetics(reactantList, productList=None):
         Given a species_dict list and the species adjacency list, identifies
         whether species is found in the list and returns its name if found.
         """
-        resonance_isomers = molecule.generateResonanceIsomers()
+        resonance_isomers = molecule.generate_resonance_structures()
         for name, adjlist in species_dict:
             listmolecule = Molecule().fromAdjacencyList(adjlist, saturateH=True)
             for isomer in resonance_isomers:
@@ -796,6 +819,11 @@ def getAbrahamAB(smiles):
     molecule.MatchPlattsBGroups(molecule.smiles)
     
     return molecule.A, molecule.B
-    
 
-database = loadDatabase('initialize','')
+
+################################################################################
+
+# Initialize module level database instance
+database = RMGWebDatabase()
+
+################################################################################

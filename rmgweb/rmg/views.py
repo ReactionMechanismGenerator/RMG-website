@@ -28,33 +28,16 @@
 #
 ################################################################################
 
-import os.path
-import re
+import os
 
+from django.forms.models import BaseInlineFormSet, inlineformset_factory
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import Http404, HttpResponseRedirect
-from django.core.urlresolvers import reverse
-from django.forms.models import BaseInlineFormSet, inlineformset_factory
 
 from rmgweb.rmg.models import *
 from rmgweb.rmg.forms import *
 
-from rmgpy.molecule.molecule import Molecule
-from rmgpy.molecule.group import Group
-from rmgpy.thermo import *
-from rmgpy.kinetics import *
-
-from rmgpy.data.base import Entry
-from rmgpy.data.thermo import ThermoDatabase
-from rmgpy.data.kinetics import *
-from rmgpy.data.rmg import RMGDatabase
-
-from rmgweb.main.tools import *
-from rmgweb.database.views import loadDatabase
-
 ################################################################################
-
 
 def index(request):
     """
@@ -196,7 +179,7 @@ def generateFlux(request):
             settings['concentrationTolerance'] = form.cleaned_data['ConcentrationTolerance']
             settings['speciesRateTolerance'] = form.cleaned_data['SpeciesRateTolerance']
        
-            createFluxDiagram(flux.path, input, chemkin, dict, java, settings, chemkinOutput)
+            createFluxDiagram(input, chemkin, dict, savePath=flux.path, java=java, settings=settings, chemkinOutput=chemkinOutput)
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
             subdirs.remove('species')
@@ -382,8 +365,7 @@ def javaKineticsLibrary(request):
     """
     Allows user to upload chemkin files to generate a plot of reaction kinetics.
     """
-    from rmgpy.quantity import Quantity
-            
+
     eval = False
     
     if request.method == 'POST':

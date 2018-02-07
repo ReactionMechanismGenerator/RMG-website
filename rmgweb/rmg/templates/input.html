@@ -8,8 +8,7 @@
 
 {% block extrahead %}
 
-<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/jquery.formset.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.formset/1.2.2/jquery.formset.js" integrity="sha256-qXy62i6QCXbyVrY23yCZqyk4/H+a3R7T9I6AyV2VZ7A=" crossorigin="anonymous"></script>
 
 <script type="text/javascript" src="{% static 'js/expandingMenu.js' %}"></script>
 
@@ -28,7 +27,7 @@ function resolve(identifier_id){
                      spField.val(structure);
                      spField.change();
                   })
-               .error(function(j,t,e) { spField.val(t+'\n'+e); });
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
 };
 
 // convert an adjacency list into an image url
@@ -135,7 +134,7 @@ table.contents .linkdesc {
     font-style: italic;
 }
 
-img {
+table img {
     padding:10px;
 }
 
@@ -230,7 +229,7 @@ blockquote {
 {% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'rmg.views.input' %}">Create Input File</a>
+<li><a href="{% url 'rmg.views.input' %}">Create Input File</a></li>
 {% endblock %}
 
 {% block page_title %}Create Input File{% endblock %}

@@ -7,9 +7,9 @@
 {% block title %}Net Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a> &raquo;
-<a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a> &raquo;
-<a href="{% url 'pdep.views.networkNetReaction' reaction=index networkKey=networkKey%}">Net Reaction #{{ index }}</a>
+<li><a href="{% url 'pdep.views.index' %}">Pressure Dependent Networks</a></li>
+<li><a href="{% url 'pdep.views.networkIndex' networkKey=networkKey%}">{{ network.title }}</a></li>
+<li><a href="{% url 'pdep.views.networkNetReaction' reaction=index networkKey=networkKey%}">Net Reaction #{{ index }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -19,7 +19,7 @@
 {% block page_title %}Net Reaction #{{ index }} - {{ network.title }}{% endblock %}
 
 {% block extrahead %}
-<script src="{% static 'js/highcharts.js' %}" type="text/javascript"></script>
+<script src="https://code.highcharts.com/6/highcharts.js"></script>
 <script src="{% static 'js/highcharts.theme.js' %}" type="text/javascript"></script>
 
 <script type="text/javascript">
@@ -32,7 +32,7 @@ jQuery(document).ready(function() {
     {% include "kineticsModel.js" %}
     {% endif %}
     
-    jsMath.Synchronize(function() {
+    MathJax.Hub.Queue(function() {
         {% if kinetics %}
         plotKinetics('plotk', kseries);
         plotKineticsVsP('plotkvsP', kseries2);

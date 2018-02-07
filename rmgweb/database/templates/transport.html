@@ -13,10 +13,10 @@ RMG Transport Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<a href="{% url 'database.views.index' %}">Database</a>
-&raquo; <a href="{% url 'database.views.transport' %}">Transport</a>
-{% if section != '' %}&raquo; <a href="{% url 'database.views.transport' section=section %}">{{ section|title }}</a>
-{% if subsection != '' %}&raquo; <a href="{% url 'database.views.transport' section=section subsection=subsection %}">{{ subsection|title }}</a>{% endif %}
+<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database.views.transport' %}">Transport</a></li>
+{% if section != '' %}<li><a href="{% url 'database.views.transport' section=section %}">{{ section|title }}</a></li>
+{% if subsection != '' %}<li><a href="{% url 'database.views.transport' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
 {% endif %}
 {% endblock %}
 

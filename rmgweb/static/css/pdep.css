@@ -1,8 +1,4 @@
-@import url("/media/default.css");
-
-/**
- * This file contains additional styles used within the pdep app only.
- */
+/* This file contains additional styles used within the pdep app */
 
 /* Forms */
 
@@ -12,12 +8,6 @@ form ul {
 
 .errorlist {
     color: #FF0000;
-}
-
-/* Sidebar */
-
-h3.sidebar {
-    font-weight: bold;
 }
 
 /* Network index */

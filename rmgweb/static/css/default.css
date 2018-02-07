@@ -1,30 +1,23 @@
+/* This file contains most of the styles for the base template */
+
 body {
-    font-family: sans-serif;
-    font-size: 10pt;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 11pt;
     margin: 0;
 }
 
 /* Colors */
 
 body, #document {
-    background-color: #F0F0F0;
-}
-
-#main {
     background-color: #FFFFFF;
-    border: 1px solid #993333;
-    border-right: 0px;
 }
 
 h1, h2, h3 {
-      color: #333333;
-}
-a, #logo {
-    color: #993333;
+    color: #333333;
 }
 
-#navbar {
-    border-bottom: 1px solid #993333;
+a, #logo {
+    color: #F04040;
 }
 
 /* Hyperlinks */
@@ -63,105 +56,278 @@ h3 {
 
 /* Document structure */
 
+html, body {
+    height: 100%;
+}
+
 #document {
     width: 100%;
+    height: 100%;
 }
 
 #sidebar {
+    display: flex;
+    flex-direction: column;
     float: left;
-    width: 224px;
-    padding: 4px;
+    width: 250px;
+    height: 100%;
+    position: fixed;
+    background-color: #404040;
+    z-index: 1;
+    top: 0;
+    left: 0;
 }
 
 #logo {
+    flex: 0 0 auto;
     text-align: center;
     font-size: 150%;
     font-weight: bold;
+    height: 75px;
+    padding: 20px;
 }
 
 #mainbar {
-    margin: 0px 0px 0px 232px;
-    padding: 0px;
+    position: relative;
+    background-color: #FFFFFF;
+    margin-left: 250px;
+    min-height: 100%;
 }
 
 #navbar {
-    font-size: 80%;
+    font-size: 100%;
 }
 
 #navbar, #main, #contents {
-    padding: 4px;
+    padding: 5px 10px;
 }
 
-html, body, #document, #mainbar {
-    height: 100%;
-}
 #main {
-    min-height: 90%;
+    padding-bottom: 80px;
+}
+
+/* Breadcrumb */
+#breadcrumb {
+    list-style: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+#breadcrumb li {
+    float: left;
+}
+
+#breadcrumb li a {
+    color: #FFFFFF;
+    display: block;
+    background: #F04040;
+    text-decoration: none;
+    position: relative;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px 0 5px;
+    text-align: center;
+    margin-right: 23px;
+}
+
+#breadcrumb li:first-child a {
+    padding-left: 15px;
+    border-radius: 4px 0 0 4px;
+}
+
+#breadcrumb li:first-child a:before {
+    border: none;
+}
+
+#breadcrumb li:last-child a {
+    padding-right: 15px;
+    border-radius: 0 4px 4px 0;
+}
+
+#breadcrumb li:last-child a:after {
+    border: none;
+}
+
+#breadcrumb li:only-child a {
+    border-radius: 4px;
+}
+
+#breadcrumb li a:before, #breadcrumb li a:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    border: 0 solid #F04040;
+    border-width: 15px 10px;
+    width: 0;
+    height: 0;
+}
+
+#breadcrumb li a:before {
+    left: -20px;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:after {
+    left: 100%;
+    border-color: transparent;
+    border-left-color: #F04040;
+}
+
+#breadcrumb li a:hover {
+    background-color: #F06060;
+}
+
+#breadcrumb li a:hover:before {
+    border-color: #F06060;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:hover:after {
+    border-left-color: #F06060;
+}
+
+#breadcrumb li a:active {
+    background-color: #F02020;
+}
+
+#breadcrumb li a:active:before {
+    border-color: #F02020;
+    border-left-color: transparent;
+}
+
+#breadcrumb li a:active:after {
+    border-left-color: #F02020;
 }
 
 /* Header and footer */
 
-#header, #footer {
-    padding: 4px 8px 4px 8px;
-    font-size: 80%;
+#header {
+    display: flex;
+    justify-content: flex-end;
+    background-color: #404040;
+    width: 100%;
+    padding: 10px 0;
 }
 
-#header, #footer {
-    text-align: right;
+#announcement {
+    flex: 1 1 auto;
+    font-size: 120%;
+    color: #F04040;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    padding: 0px 10px;
 }
 
 #footer {
+    font-size: 80%;
+    display: flex;
+    align-items: flex-end;
+    position: absolute;
+    bottom: 0;
+    height: 60px;
+    width: 100%;
+    padding: 10px 0;
+}
+
+#footer-content {
     text-align: center;
+    width: 100%;
 }
 
 /* Sidebar list */
 
 #sidebar .icon {
     float: left;
+    width: 40px;
+    padding: 5px;
 }
 
-#sidebar .biglink {
-    font-size: 120%;
-    font-weight: bold;
+#sidebar div.menuitem {
+    padding: 5px;
+}
+
+
+#sidebar div.menutext {
     text-align: left;
+    margin-left: 50px;
+    padding: 1px 5px;
+}
+
+#sidebar div.menutitle {
+    color: #F04040;
+    font-size: 125%;
     vertical-align: bottom;
 }
 
-#sidebar .linkdesc {
+#sidebar div.menudesc {
+    color: #FFFFFF;
+    font-weight: 300;
     font-size: 90%;
-    text-align: left;
     vertical-align: top;
-    font-style: italic;
 }
 
-#sidebar img {
-    padding:10px;
+#sidebar-content {
+    flex: 1 1 auto;
+    overflow-y: auto;
 }
 
-/* Button styles */
-form.buttonOnly {
-    height: 20px;
+#sidebar-content a {
+    text-decoration: none;
+}
+
+#sidebar-content div.menuitem:hover {
+    background-color: #606060;
+}
+
+#sidebar-extra {
+    flex: 0 0 auto;
+    overflow-y: auto;
+}
+
+#sidebar-extra a {
+    color: #FFFFFF;
+}
+
+#sidebar-footer {
+    flex: 0 0 auto;
+    text-align: center;
+    padding: 10px 0px;
+}
+
+/* Header button styles */
+
+#header div.user-toolbar {
+    height: 30px;
+    line-height: 30px;
+    padding: 0px 10px;
+}
+
+#header a.user-button {
     display: inline-block;
-    vertical-align: top;
-}
-.userButton {
-    background-color: #993333;
-    color: #EEEEEE;
-    height: 20px;
+    background-color: #F04040;
+    color: #FFFFFF;
+    text-align: center;
+    text-decoration: none;
     border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    border-radius: 4px;
+    padding: 0px 10px;
 }
 
-.userButton:hover {
-    background-color: #AA4444;
+#header a.user-button:hover {
+    background-color: #F06060;
+}
+
+#header a.user-button:active {
+    background-color: #F02020;
 }
 
 /* Database styles */
 
 div.error {
-    color: #993333;
-    border: 2px solid #993333;
+    color: #F04040;
+    border: 2px solid #F04040;
     padding: 0.5em;
     margin: 0.5em;
 }
@@ -219,7 +385,10 @@ table.data td.value {
 }
 
 table.thermoData, table.kineticsData {
-    width: 100%;
+    display: block;
+    overflow-x: auto;
+    width: fit-content;
+    max-width: 100%;
 }
 
 table.thermoData tr td , table.kineticsData tr td {
@@ -274,6 +443,11 @@ table.KineticsData {
     margin: auto;
 }
 
+img.family {
+    max-height: 50%;
+    max-width: 500px;
+}
+
 #entry_form label {
     display: block;
     font-weight: bold;
@@ -291,26 +465,38 @@ table.KineticsData {
 /*------------------------------------*\
   IPHONE
 \*------------------------------------*/
-@media screen and (max-device-width: 960px){
-  body{
-    -webkit-text-size-adjust: auto;
-    font-family:Helvetica, Arial, Verdana, sans-serif;
-    padding:5px;
-  }
-  #main {
-    clear: left;
-  }
-  #mainbar {
-    margin: 0px;
-  }
-  #sidebar {
-    float:none;
-    width:100%
-  }
-  #document{
-    width:100%
-  }
-  #sidebar .linkdesc {
-    display: none;
-  }
+@media screen and (max-device-width: 960px) {
+    body{
+        -webkit-text-size-adjust: auto;
+        font-family: Helvetica, Arial, Verdana, sans-serif;
+        padding: 5px;
+    }
+    #main {
+        clear: left;
+    }
+    #mainbar {
+        margin: 0px;
+        min-height: auto;
+    }
+    #sidebar {
+        float: none;
+        position: relative;
+        height: auto;
+        width: 100%;
+        padding-top: 5px;
+    }
+    #sidebar .icon {
+        width: 20px;
+        padding: 2px 15px;
+    }
+    #sidebar div.menuitem {
+        height: 20px;
+        padding: 2px;
+    }
+    #document{
+        width: 100%
+    }
+    #sidebar .menudesc {
+        display: none;
+    }
 } /* End of iPhone-specific bit */

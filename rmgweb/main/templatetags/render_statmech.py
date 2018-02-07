@@ -52,7 +52,7 @@ from rmgpy.data.statmech import *
 @register.filter
 def render_statmech_math(statmech, user=None):
     """
-    Return a math representation of the given `transport` using jsMath. If a 
+    Return a math representation of the given `transport` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """
@@ -74,9 +74,9 @@ def render_statmech_math(statmech, user=None):
                 result += '<tr>\n'    
                 result += r'    <td class = "key"><span></span>'
                 result += r'    <td class = "key"><span></span>'                
-                result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(row[0], '')
-                result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(row[1], '')
-                result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(row[2], '')
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[0], '')
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[1], '')
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[2], '')
                 result += '</tr>'
             result += '</td>\n'
         
@@ -84,7 +84,7 @@ def render_statmech_math(statmech, user=None):
             result += '<tr>'
             result += r'    <td class = "key"><span>Symmetry</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(statmech.symmetry, '')
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(statmech.symmetry, '')
             result += '</tr>\n'
 
         result += '</table>\n'

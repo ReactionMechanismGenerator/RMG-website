@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-
+<!doctype html>
 
 
 <html lang="en">
@@ -8,25 +7,53 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>{% block title %}RMG{% endblock %}</title>
-    <link href="{% static 'css/default.css' %}" rel="stylesheet" type="text/css"/>
-    <link href="{% static 'css/jsMath-fonts.css' %}" rel="stylesheet" type="text/css"/>
-    <script src="{% static 'js/jquery.js' %}"></script>
-    <script src="{% static 'js/jsMath/easy/load.js' %}"></script>
+    <meta name = "viewport" content = "width = device-width, initial-scale = 0.6"><!-- For responsive mobile view -->
 
-    {# this is for iPhones etc.#}<meta name = "viewport" content = "width = device-width, initial-scale = 0.6">
+    <title>{% block title %}RMG{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700" rel="stylesheet">
+    <link href="{% static 'css/default.css' %}" rel="stylesheet" type="text/css"/>
+    <link id="css-theme" href="{% static 'css/light-theme.css' %}" rel="stylesheet" type="text/css"/>
+
+    <!-- Google Analytics Tracker -->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-24556433-1']);
+      _gaq.push(['_setDomainName', 'rmg.mit.edu']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS_HTML" integrity="sha256-fCth3p2B4cZMzlr7OFizmo5RkdJAHJ4vOHpE7FaNcR8=" crossorigin="anonymous"></script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+    <script>
+        // Check for cookie
+        if (document.cookie.indexOf("rmg-theme=light") < 0) {
+            document.getElementById('css-theme').disabled = true;
+        };
+
+        toggleCSS = function() {
+            var themeElement = document.getElementById('css-theme');
+            if (themeElement.disabled) {
+                themeElement.disabled = false;
+                var expiry = new Date();
+                // Create cookie expiring in one year
+                expiry.setTime(expiry.getTime() + (365*24*60*60*1000));
+                document.cookie = "rmg-theme=light;path='/';expires=" + expiry.toUTCString();
+            } else {
+                themeElement.disabled = true;
+                // Remove cookie
+                document.cookie = "rmg-theme=;path='/';expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+        };
+    </script>
+
     {% block extrahead %}{% endblock %}
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-24556433-1']);
-  _gaq.push(['_setDomainName', 'rmg.mit.edu']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-</script>
 </head>
 
 <body>
@@ -34,105 +61,127 @@
 
     <div id="sidebar">
         <div id="logo">
-        {% block sidebar_logo %}<a href="{% url 'main.views.index' %}"><img src="{% static 'img/rmg-logo-small.png' %}" alt="RMG"/></a>{% endblock %}
+            {% block sidebar_logo %}
+            <a href="{% url 'main.views.index' %}">
+                <img src="{% static 'img/rmg-logo.png' %}" alt="RMG" height="100%"/>
+            </a>
+            {% endblock %}
         </div>
-        
+
+        <div id="sidebar-content">
+        <a href="http://reactionmechanismgenerator.github.io/RMG-Py">
+            <div class="menuitem">
+                <img src="{% static 'img/documentation-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Documentation</div>
+                <div class="menutext menudesc">Learn more about the RMG software</div>
+            </div>
+        </a>
+
+        <a href="{% url 'main.views.resources' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/resources-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Resources</div>
+                <div class="menutext menudesc">RMG related publications and presentations</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/database-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Database</div>
+                <div class="menutext menudesc">Browse the RMG database of chemical and kinetic parameters</div>
+            </div>
+        </a>
+
+        <a href="{% url 'rmg.views.input' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/input-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Create Input File</div>
+                <div class="menutext menudesc">Online form for making an RMG input file</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.moleculeSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/molecule-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Molecule Search</div>
+                <div class="menutext menudesc">View molecules and adjlists or search properties</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.kineticsSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/kinetics-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Kinetics Search</div>
+                <div class="menutext menudesc">Search kinetics of a chemical reaction</div>
+            </div>
+        </a>
+
+        <a href="{% url 'database.views.solvationSearch' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/solvation-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Solvation Search</div>
+                <div class="menutext menudesc">Search solvation properties of solvent and a solute</div>
+            </div>
+        </a>
+
+        <a href="{% url 'pdep.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/pdep-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Pressure Dependent Networks</div>
+                <div class="menutext menudesc">CanTherm pdep kinetic calculations</div>
+            </div>
+        </a>
+
+        <a href="{% url 'rmg.views.index' %}">
+            <div class="menuitem">
+                <img src="{% static 'img/tools-icon.png' %}" class="icon" width="100%"/>
+                <div class="menutext menutitle">Other RMG Tools</div>
+                <div class="menutext menudesc">Additional tools to supplement RMG </div>
+            </div>
+        </a>
+        </div>
+
+        <div id="sidebar-extra">
         {% block sidebar_items %}{% endblock %}
-        
-        <p>
-        <a href="http://reactionmechanismgenerator.github.io/RMG-Py"><img src="{% static 'img/documentation-icon.png' %}" class="icon" width="32px"/>
-        <div class="biglink">Documentation</div></a>
-        <div class="linkdesc">Learn more about the RMG software</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'main.views.resources' %}"><img src="{% static 'img/resources-icon.png' %}" class="icon" width="32px"/>
-        <div class="biglink">Resources</div></a>
-        <div class="linkdesc">RMG related publications and presentations</div>
-        </p>
+        </div>
 
-        <p>
-        <a href="{% url 'database.views.index' %}"><img src="{% static 'img/database-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Database</div></a>
-        <div class="linkdesc">Browse the RMG database of chemical and kinetic parameters</div>
-        </p>
-        
-                <p>
-        <a href="{% url 'rmg.views.input' %}"><img src="{% static 'img/input-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Create Input File</div></a>
-        <div class="linkdesc">Online form for making an RMG input file</div>
-        </p>
-                
-        <p>
-        <a href="{% url 'database.views.moleculeSearch' %}"><img src="{% static 'img/moleculedraw-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Molecule Search</div></a>
-        <div class="linkdesc">Draw a molecule from its adjlist and search or estimate its properties</div>
-        </p>
-                    
-        <p>
-        <a href="{% url 'database.views.kineticsSearch' %}"><img src="{% static 'img/kinetics-search-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Kinetics Search</div></a>
-        <div class="linkdesc">Search or estimate kinetics of a chemical reaction</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'database.views.solvationSearch' %}"><img src="{% static 'img/solvation-search-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Solvation Search</div></a>
-        <div class="linkdesc">Search or estimate solvation properties of solvent and a solute</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'pdep.views.index' %}"><img src="{% static 'img/pdep-logo-small.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Pressure Dependent Networks</div></a>
-        <div class="linkdesc">CanTherm pdep kinetic calculations</div>
-        </p>
-        
-        <p>
-        <a href="{% url 'rmg.views.index' %}"><img src="{% static 'img/tools-icon.png' %}" class="icon" height="32px"/>
-        <div class="biglink">Other RMG Tools</div></a>
-        <div class="linkdesc">Additional tools to supplement RMG </div>
-        </p>
-        
-        <!-- Dummy spans required for jsMath fonts to load properly -->
-        <span style="font-family: jsMath-cmex10;"></span>
-        <span style="font-family: jsMath-cmbx10;"></span>
-        <span style="font-family: jsMath-cmmi10;"></span>
-        <span style="font-family: jsMath-cmr10;"></span>
-        <span style="font-family: jsMath-cmsy10;"></span>
-        <span style="font-family: jsMath-cmti10;"></span>
-    </div>
-
-    <div id="mainbar">
-        <div id="header">
+        <div id="sidebar-footer">
             {# Facebook like button #}
             <iframe src="https://www.facebook.com/plugins/like.php?href=https%3A%2F%2Fwww.facebook.com%2Frmg.mit&width=50&layout=button&action=like&size=small&show_faces=false&share=false&height=65&appId"
-                    width="50" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
+                    width="51" height="20" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowTransparency="true"></iframe>
             {# End of Facebook like button #}
             {# Google +1 button #}
             <script src="https://apis.google.com/js/platform.js" async defer></script>
             <div class="g-plusone" data-size="medium" data-annotation="none" data-href="rmg.mit.edu"></div>
             {# End of Google +1 button #}
-            {% if user.is_authenticated %}
-            <form class="buttonOnly" action="{% url 'main.views.viewProfile' user.username %}" method="get">
-                <button class="userButton">{{ user.username }}</button>
-            </form>
-            <form class="buttonOnly" action="{% url 'main.views.editProfile' %}" method="get">
-                <button class="userButton">Edit Profile</button>
-            </form>
-            <form class="buttonOnly" action="{% url 'main.views.logout' %}?next={{ request.path }}" method="get">
-                <button class="userButton">Log Out</button>
-            </form>
-            {% else %}
-            <form class="buttonOnly" action="{% url 'main.views.login' %}?next={{ request.path }}" method="get">
-                <button class="userButton">Log In</button>
-            </form>
-            {% endif %}
+            {# Github button #}
+            <a class="github-button" href="https://github.com/ReactionMechanismGenerator" aria-label="Follow @ReactionMechanismGenerator on GitHub">GitHub</a>
+            {# End of Github button #}
+        </div>
+    </div>
+
+    <div id="mainbar">
+        <div id="header">
+            <div id="announcement"></div>
+            <div class="user-toolbar">
+                <a class="user-button" onclick="toggleCSS()" href="#">Change Theme</a>
+                {% if user.is_authenticated %}
+                <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
+                <a class="user-button" href="{% url 'main.views.editProfile' %}">Edit Profile</a>
+                <a class="user-button" href="{% url 'main.views.logout' %}?next={{ request.path }}">Log Out</a>
+                {% else %}
+                <a class="user-button" href="{% url 'main.views.login' %}?next={{ request.path }}">Log In</a>
+                {% endif %}
+            </div>
         </div>
 
         <div id="main">
             <div id="navbar">
-                <a href="{% url 'main.views.index' %}">RMG</a> &raquo;
-                {% block navbar_items %}{% endblock %}
+                <ul id="breadcrumb">
+                    <li><a href="{% url 'main.views.index' %}">Home</a></li>
+                    {% block navbar_items %}{% endblock %}
+                </ul>
             </div>
 
             <div id="contents">
@@ -144,17 +193,19 @@
         </div>
 
         <div id="footer">
-            {% block footer %}
-            Copyright &copy; 2016,
-            <a href="http://web.mit.edu/greengp/people/">W. H. Green</a>,
-            <a href="http://www.northeastern.edu/comocheng/people/">R. H. West</a>,
-            <i>et al.</i>
-            Created using <a href="http://www.djangoproject.com/">Django</a>.
-            Read the <a href="/privacy">Privacy Policy</a>.
-            <br />
-            Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
-            See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
-            {% endblock %}
+            <div id="footer-content">
+                {% block footer %}
+                Copyright &copy; {% now "Y" %},
+                <a href="http://web.mit.edu/greengp/people/">W. H. Green</a>,
+                <a href="http://www.northeastern.edu/comocheng/people/">R. H. West</a>,
+                <i>et al.</i>
+                Created using <a href="http://www.djangoproject.com/">Django</a>.
+                Read the <a href="/privacy">Privacy Policy</a>.
+                <br />
+                Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
+                See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
+                {% endblock %}
+            </div>
         </div>
         
     </div>

@@ -184,7 +184,7 @@ def getRateCoefficientUnits(kinetics, user=None):
 @register.filter
 def render_kinetics_math(kinetics, user=None):
     """
-    Return a math representation of the given `kinetics` using jsMath. If a 
+    Return a math representation of the given `kinetics` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """
@@ -212,7 +212,7 @@ def render_kinetics_math(kinetics, user=None):
     
     if isinstance(kinetics, Arrhenius):
         # The kinetics is in Arrhenius format
-        result += r'<div class="math">k(T) = {0!s}</div>'.format(getArrheniusJSMath(
+        result += r'<script type="math/tex; mode=display">k(T) = {0!s}</script>'.format(getArrheniusJSMath(
             kinetics.A.value_si * kfactor, kunits, 
             kinetics.n.value_si, '', 
             kinetics.Ea.value_si * Efactor, Eunits, 
@@ -221,23 +221,23 @@ def render_kinetics_math(kinetics, user=None):
     
     elif isinstance(kinetics, ArrheniusEP):
         # The kinetics is in ArrheniusEP format
-        result += r'<div class="math">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
+        result += r'<script type="math/tex; mode=display">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
         if kinetics.n.value_si != 0:
             result += r' T^{{ {0:.2f} }}'.format(kinetics.n.value_si)
         result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value_si * Efactor, Eunits, kinetics.alpha.value_si)
-        result += ' \ \mathrm{{ {0!s} }}</div>'.format(kunits)
+        result += ' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
     
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
         result += r'<table class="KineticsData">'
         result += r'<tr><th>Temperature</th><th>Rate coefficient</th></tr>'
         for T, k in zip(kinetics.Tdata.value_si, kinetics.kdata.value_si):
-            result += r'<tr><td><span class="math">{0:g} \ \mathrm{{ {1!s} }}</span></td><td><span class="math">{2!s} \ \mathrm{{ {3!s} }}</span></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
+            result += r'<tr><td><script type="math/tex">{0:g} \ \mathrm{{ {1!s} }}</script></td><td><script type="math/tex">{2!s} \ \mathrm{{ {3!s} }}</script></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
         result += r'</table>'
         # fit to an arrhenius
         arr = kinetics.toArrhenius()
         result += "Fitted to an Arrhenius:"
-        result += r'<div class="math">k(T) = {0!s}</div>'.format(getArrheniusJSMath(
+        result += r'<script type="math/tex; mode=display">k(T) = {0!s}</script>'.format(getArrheniusJSMath(
             arr.A.value_si * kfactor, kunits, 
             arr.n.value_si, '', 
             arr.Ea.value_si * Efactor, Eunits, 
@@ -247,7 +247,7 @@ def render_kinetics_math(kinetics, user=None):
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format
         for P, arrh in zip(kinetics.pressures.value_si, kinetics.arrhenius):
-            result += r'<div class="math">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</div>'.format(
+            result += r'<script type="math/tex; mode=display">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</script>'.format(
                 P * Pfactor, Punits, 
                 getArrheniusJSMath(
                     arrh.A.value_si * kfactor, kunits, 
@@ -259,27 +259,27 @@ def render_kinetics_math(kinetics, user=None):
             
     elif isinstance(kinetics, Chebyshev):
         # The kinetics is in Chebyshev format
-        result += r"""<div class="math">
+        result += r"""<script type="math/tex; mode=display">
 \begin{split}
 \log k(T,P) &= \sum_{t=1}^{N_T} \sum_{p=1}^{N_P} C_{tp} \phi_t(\tilde{T}) \phi_p(\tilde{P}) [\mathrm{""" + kinetics.kunits + r""" }] \\
 \tilde{T} &\equiv \frac{2T^{-1} - T_\mathrm{min}^{-1} - T_\mathrm{max}^{-1}}{T_\mathrm{max}^{-1} - T_\mathrm{min}^{-1}} \\
 \tilde{P} &\equiv \frac{2 \log P - \log P_\mathrm{min} - \log P_\mathrm{max}}{\log P_\mathrm{max} - \log P_\mathrm{min}}
-\end{split}</div><br/>
-<div class="math">\mathbf{C} = \begin{bmatrix}
+\end{split}</script><br/>
+<script type="math/tex; mode=display">\mathbf{C} = \begin{bmatrix}
         """
         for t in range(kinetics.degreeT):
             for p in range(kinetics.degreeP):
                 if p > 0: result += ' & '
                 result += '{0:g}'.format(kinetics.coeffs.value_si[t,p])
             result += '\\\\ \n'
-        result += '\end{bmatrix}</div>'
+        result += '\end{bmatrix}</script>'
     
     elif isinstance(kinetics, Troe):
         # The kinetics is in Troe format
         Fcent = r'(1 - \alpha) \exp \left( -T/T_3 \right) + \alpha \exp \left( -T/T_1 \right) + \exp \left( -T_2/T \right)'
         if kinetics.T2 is not None:
             Fcent += r' + \exp \left( -T_2/T \right)'
-        result += r"""<div class="math">
+        result += r"""<script type="math/tex; mode=display">
 \begin{{split}}
 k(T,P) &= k_\infty(T) \left[ \frac{{P_\mathrm{{r}}}}{{1 + P_\mathrm{{r}}}} \right] F \\
 P_\mathrm{{r}} &= \frac{{k_0(T)}}{{k_\infty(T)}} [\mathrm{{M}}] \\
@@ -289,7 +289,7 @@ n &= 0.75 - 1.27 \log F_\mathrm{{cent}} \\
 d &= 0.14 \\
 F_\mathrm{{cent}} &= {0}
 \end{{split}}
-</div><div class="math">\begin{{split}}
+</script><script type="math/tex; mode=display">\begin{{split}}
         """.format(Fcent)
         result += r'k_\infty(T) &= {0!s} \\'.format(getArrheniusJSMath(
             kinetics.arrheniusHigh.A.value_si * kfactor, kunits, 
@@ -308,16 +308,16 @@ F_\mathrm{{cent}} &= {0}
         result += r'T_1 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T1.value_si * Tfactor, Tunits)
         if kinetics.T2 is not None:
             result += r'T_2 &= {0:g} \ \mathrm{{ {1!s} }} \\'.format(kinetics.T2.value_si * Tfactor, Tunits)
-        result += r'\end{split}</div>'
+        result += r'\end{split}</script>'
     
     elif isinstance(kinetics, Lindemann):
         # The kinetics is in Lindemann format
-        result += r"""<div class="math">
+        result += r"""<script type="math/tex; mode=display">
 \begin{{split}}
 k(T,P) &= k_\infty(T) \left[ \frac{{P_\mathrm{{r}}}}{{1 + P_\mathrm{{r}}}} \right] \\
 P_\mathrm{{r}} &= \frac{{k_0(T)}}{{k_\infty(T)}} [\mathrm{{M}}] \\
 \end{{split}}
-</div><div class="math">\begin{{split}}
+</script><script type="math/tex; mode=display">\begin{{split}}
         """.format()
         result += r'k_\infty(T) &= {0!s} \\'.format(getArrheniusJSMath(
             kinetics.arrheniusHigh.A.value_si * kfactor, kunits, 
@@ -331,13 +331,13 @@ P_\mathrm{{r}} &= \frac{{k_0(T)}}{{k_\infty(T)}} [\mathrm{{M}}] \\
             kinetics.arrheniusLow.Ea.value_si * Efactor, Eunits, 
             kinetics.arrheniusLow.T0.value_si * Tfactor, Tunits,
         ))
-        result += r'\end{split}</div>'
+        result += r'\end{split}</script>'
     
     elif isinstance(kinetics, ThirdBody):
         # The kinetics is in ThirdBody format
-        result += r"""<div class="math">
+        result += r"""<script type="math/tex; mode=display">
 k(T,P) = k_0(T) [\mathrm{{M}}]
-</div><div class="math">
+</script><script type="math/tex; mode=display">
         """.format()
         result += r'k_0(T) = {0!s}'.format(getArrheniusJSMath(
             kinetics.arrheniusLow.A.value_si * kfactor * kfactor, kunits_low, 
@@ -345,7 +345,7 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
             kinetics.arrheniusLow.Ea.value_si * Efactor, Eunits, 
             kinetics.arrheniusLow.T0.value_si * Tfactor, Tunits,
         ))
-        result += '</div>'
+        result += '</script>'
         
     elif isinstance(kinetics, (MultiArrhenius,MultiPDepArrhenius)):
         # The kinetics is in MultiArrhenius or MultiPDepArrhenius format
@@ -356,9 +356,9 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
             start += '{0} + '.format(res.split(' = ')[0].replace('<div class="math">k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1))
             result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1) + '<br/>'
         
-        result = r"""<div class="math">
+        result = r"""<script type="math/tex; mode=display">
 k(T,P) = {0!s}
-</div><br/>
+</script><br/>
         """.format(start[:-3]) + result
 
     # Collision efficiencies
@@ -524,8 +524,8 @@ def get_specific_rate(kinetics, eval):
     temperature, pressure = eval
     kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
     rate = kinetics.getRateCoefficient(temperature, pressure)*kfactor
-    result = '<div class="math">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
-    result += '\ \mathrm{{ {0!s} }}</div>'.format(kunits)
+    result = '<script type="math/tex; mode=display">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
+    result += '\ \mathrm{{ {0!s} }}</script>'.format(kunits)
     return mark_safe(result)
 
 ###############################################################################

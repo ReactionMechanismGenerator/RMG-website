@@ -53,7 +53,7 @@ import rmgpy.constants as constants
 def render_collision_math(species, user=None):
     """
     Return a math representation of the given `species` collider parameters
-    using jsMath. If a `user` is specified, the user's preferred units will be
+    using MathJax. If a `user` is specified, the user's preferred units will be
     used; otherwise default units will be used.
     """
     
@@ -66,11 +66,11 @@ def render_collision_math(species, user=None):
     result += '</tr>\n'
     result += '<tr>'
     result += r'        <td class="label">Lennard-Jones sigma:</td>'
-    result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(species.transportData.sigma.value, species.transportData.sigma.units)
+    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transportData.sigma.value, species.transportData.sigma.units)
     result += '</tr>\n'
     result += '<tr>'
     result += r'        <td class="label">Lennard-Jones epsilon:</td>'
-    result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(species.transportData.epsilon.value, species.transportData.epsilon.units)
+    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transportData.epsilon.value, species.transportData.epsilon.units)
     result += '</tr>\n'
     result += '</table>\n'
     

@@ -52,7 +52,7 @@ from rmgpy.thermo import *
 @register.filter
 def render_thermo_math(thermo, user=None):
     """
-    Return a math representation of the given `thermo` using jsMath. If a 
+    Return a math representation of the given `thermo` using MathJax. If a
     `user` is specified, the user's preferred units will be used; otherwise 
     default units will be used.
     """
@@ -88,29 +88,29 @@ def render_thermo_math(thermo, user=None):
         
         if thermo.H298 is not None:
             result += '<tr>'
-            result += r'    <td class="key"><span class="math">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</span></td>'
+            result += r'    <td class="key"><script type="math/tex">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</script></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
             result += '</tr>\n'
         
         if thermo.S298 is not None:
             result += '<tr>'
-            result += r'    <td class="key"><span class="math">S^\circ(298 \ \mathrm{K})</span></td>'
+            result += r'    <td class="key"><script type="math/tex">S^\circ(298 \ \mathrm{K})</script></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.S298.value_si * Sfactor, Sunits)
             result += '</tr>\n'
         if thermo.Tdata is not None and thermo.Cpdata is not None:
             for T, Cp in zip(thermo.Tdata.value_si, thermo.Cpdata.value_si):
                 result += '<tr>'
-                result += r'    <td class="key"><span class="math">C_\mathrm{{p}}^\circ({0:g} \ \mathrm{{ {1!s} }})</span></td>'.format(T * Tfactor, Tunits)
+                result += r'    <td class="key"><script type="math/tex">C_\mathrm{{p}}^\circ({0:g} \ \mathrm{{ {1!s} }})</script></td>'.format(T * Tfactor, Tunits)
                 result += r'    <td class="equals">=</td>'
-                result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(Cp * Cpfactor, Cpunits)
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(Cp * Cpfactor, Cpunits)
                 result += '</tr>\n'
         result += '</table>\n'
     
     elif isinstance(thermo, Wilhoit):
         # The thermo is in Wilhoit format
-        result += '<div class="math">\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\begin{split}'
         result += r'C_\mathrm{p}(T) &= C_\mathrm{p}(0) + \left[ C_\mathrm{p}(\infty) -'
         result += r'    C_\mathrm{p}(0) \right] y^2 \left[ 1 + (y - 1) \sum_{i=0}^3 a_i y^i \right] \\'
@@ -118,67 +118,67 @@ def render_thermo_math(thermo, user=None):
         result += r'S^\circ(T) &= S_0 + \int_0^\infty \frac{C_\mathrm{p}(T)}{T} \ dT\\'
         result += r'y &\equiv \frac{T}{T + B}'
         result += r'\end{split}'
-        result += '</div>\n'
+        result += '</script>\n'
 
         result += '<table class="thermoEntryData">\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">C_\mathrm{p}(0)</span></td>'
+        result += r'    <td class="key"><script type="math/tex">C_\mathrm{p}(0)</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s}  }}</span></td>'.format(thermo.cp0.value_si * Cpfactor, Cpunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s}  }}</script></td>'.format(thermo.cp0.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">C_\mathrm{p}(\infty)</span></td>'
+        result += r'    <td class="key"><script type="math/tex">C_\mathrm{p}(\infty)</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.cpInf.value_si * Cpfactor, Cpunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.cpInf.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_0</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_0</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a0))
+        result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(thermo.a0))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_1</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_1</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a1))
+        result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(thermo.a1))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_2</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_2</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a2))
+        result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(thermo.a2))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_3</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_3</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(thermo.a3))
+        result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(thermo.a3))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">H_0</span></td>'
+        result += r'    <td class="key"><script type="math/tex">H_0</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.H0.value_si * Hfactor, Hunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.H0.value_si * Hfactor, Hunits)
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">S_0</span></td>'
+        result += r'    <td class="key"><script type="math/tex">S_0</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.S0.value_si * Sfactor, Sunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.S0.value_si * Sfactor, Sunits)
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">B</span></td>'
+        result += r'    <td class="key"><script type="math/tex">B</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><span class="math">{0:.2f} \ \mathrm{{ {1!s} }}</span></td>'.format(thermo.B.value_si * Tfactor, Tunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.B.value_si * Tfactor, Tunits)
         result += '</tr>\n'
         result += '</table>\n'
     
     elif isinstance(thermo, NASA):
         # The thermo is in NASA format
-        result += '<div class="math">\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{C_\mathrm{p}^\circ(T)}{R} = a_{-2} T^{-2} + a_{-1} T^{-1} + a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4'
-        result += '</div>\n'
-        result += '<div class="math">\n'
+        result += '</script>\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{H^\circ(T)}{RT} = -a_{-2} T^{-2} + a_{-1} \frac{\ln T}{T} + a_0 + \frac{1}{2} a_1 T + \frac{1}{3} a_2 T^2 + \frac{1}{4} a_3 T^3 + \frac{1}{5} a_4 T^4 + \frac{a_5}{T}'
-        result += '</div>\n'
-        result += '<div class="math">\n'
+        result += '</script>\n'
+        result += '<script type="math/tex; mode=display">\n'
         result += r'\frac{S^\circ(T)}{R} = -\frac{1}{2} a_{-2} T^{-2} - a_{-1} T^{-1} + a_0 \ln T + a_1 T + \frac{1}{2} a_2 T^2 + \frac{1}{3} a_3 T^3 + \frac{1}{4} a_4 T^4 + a_6'
-        result += '</div>\n'
+        result += '</script>\n'
 
         result += '<table class="thermoEntryData">\n'
         result += '<tr>'
@@ -188,58 +188,58 @@ def render_thermo_math(thermo, user=None):
             result += r'    <td class="value">{0:g} to {1:g} {2!s}</td>'.format(polynomial.Tmin.value_si * Tfactor, polynomial.Tmax.value_si * Tfactor, Tunits)
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_{-2}</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_{-2}</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.cm2))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.cm2))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_{-1}</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_{-1}</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.cm1))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.cm1))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_0</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_0</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c0))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c0))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_1</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_1</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c1))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c1))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_2</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_2</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c2))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c2))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_3</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_3</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c3))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c3))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_4</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_4</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c4))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c4))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_5</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_5</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c5))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c5))
         result += '</tr>\n'
         result += '<tr>'
-        result += r'    <td class="key"><span class="math">a_6</span></td>'
+        result += r'    <td class="key"><script type="math/tex">a_6</script></td>'
         result += r'    <td class="equals">=</td>'
         for polynomial in thermo.polynomials:
-            result += r'    <td class="value"><span class="math">{0!s}</span></td>'.format(getLaTeXScientificNotation(polynomial.c6))
+            result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c6))
         result += '</tr>\n'
         result += '</table>\n'
     
