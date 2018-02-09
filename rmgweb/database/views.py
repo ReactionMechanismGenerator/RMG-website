@@ -625,7 +625,7 @@ def thermoEntry(request, section, subsection, index):
         raise Http404
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in db.entries.values():
             if entry.index == index:
                 break
         else:
