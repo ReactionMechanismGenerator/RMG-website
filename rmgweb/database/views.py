@@ -56,6 +56,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, DepositoryReaction, LibraryReaction
 from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
+from rmgpy.data.thermo import findCp0andCpInf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
 from rmgpy.data.reference import Article, Book
 from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, \
@@ -66,6 +67,7 @@ from rmgpy.molecule.adjlist import Saturator
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
 from rmgpy.thermo import ThermoData, Wilhoit, NASA
+from rmgpy.thermo.thermoengine import processThermoData
 from rmgpy.quantity import Quantity
 from rmgpy.exceptions import AtomTypeError
 
@@ -625,7 +627,7 @@ def thermoEntry(request, section, subsection, index):
         raise Http404
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in db.entries.values():
             if entry.index == index:
                 break
         else:
@@ -693,10 +695,11 @@ def thermoData(request, adjlist):
     # Get the thermo data for the molecule
     thermoDataList = []
     for data, library, entry in database.thermo.getAllThermoData(species):
-        if isinstance(data, NASA):
-            nasa = data
-        else:
-            nasa = data.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+        # Make sure we calculate Cp0 and CpInf
+        findCp0andCpInf(species, data)
+        # Round trip conversion via Wilhoit for proper fitting
+        nasa = processThermoData(species, data)
+        # Generate Chemkin style NASA polynomial
         species.thermo = nasa
         nasa_string = writeThermoEntry(species)
         if library is None:
