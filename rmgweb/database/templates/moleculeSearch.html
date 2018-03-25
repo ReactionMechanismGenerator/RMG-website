@@ -43,7 +43,7 @@ $(document).ready(function() {
         }
     });
 
-{% if molecule.toSMILES %}
+{% if molecule.atoms and molecule.toSMILES %}
 // Update list of names
     var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names';
     var jqxhr = $.get(url,function(names) {
