@@ -2307,12 +2307,17 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
 
 def moleculeSearch(request):
     """
-    Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.
+    Creates webpage form to display molecule drawing for a specified
+    adjacency list or other molecule identifier. Also provides interface
+    for initiating thermochemistry or transport search.
     """
     form = MoleculeSearchForm()
     structure_markup = ''
     oldAdjlist = ''
     molecule = Molecule()
+    smiles = ''
+    inchi = ''
+
     if request.method == 'POST':
         posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
         initial = request.POST.copy()
@@ -2320,12 +2325,22 @@ def moleculeSearch(request):
         adjlist = None
 
         if posted.is_valid():
-                adjlist = posted.cleaned_data['species']
-                if adjlist != '':
-                    molecule.fromAdjacencyList(adjlist)
-                    structure_markup = getStructureInfo(molecule)
-                    adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
-        
+            adjlist = posted.cleaned_data['species']
+            if adjlist != '':
+                molecule.fromAdjacencyList(adjlist)
+                structure_markup = getStructureInfo(molecule)
+                adjlist = molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+
+        try:
+            smiles = molecule.toSMILES()
+        except ValueError:
+            pass
+
+        try:
+            inchi = molecule.toInChI()
+        except ValueError:
+            pass
+
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
 
         if adjlist is not None:
@@ -2346,7 +2361,14 @@ def moleculeSearch(request):
             except Exception:
                 pass
     
-    return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
+    return render_to_response('moleculeSearch.html',
+                              {'structure_markup': structure_markup,
+                               'molecule': molecule,
+                               'smiles': smiles,
+                               'inchi': inchi,
+                               'form': form,
+                               'oldAdjlist': oldAdjlist},
+                              context_instance=RequestContext(request))
 
 
 def solvationSearch(request):

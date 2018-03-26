@@ -43,9 +43,9 @@ $(document).ready(function() {
         }
     });
 
-{% if molecule.atoms and molecule.toSMILES %}
+{% if smiles %}
 // Update list of names
-    var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names';
+    var url = '/cactus/{{ smiles|urlencode:"" }}/names';
     var jqxhr = $.get(url,function(names) {
                      $('#species_names').html(names);
                  })
@@ -195,11 +195,19 @@ converted to an adjacency list. In particular, lone pairs must be drawn explicit
 </tr>
 <tr class="result">
 <th>InChI:</th>
-<td>{{ molecule.toInChI }}</td>
+    {% if inchi %}
+        <td>{{ inchi }}</td>
+    {% else %}
+        <td>Unable to generate InChI</td>
+    {% endif %}
 </tr>
 <tr class="result">
 <th>SMILES:</th>
-<td>{{ molecule.toSMILES }}</td>
+    {% if smiles %}
+        <td>{{ smiles }}</td>
+    {% else %}
+        <td>Unable to generate SMILES</td>
+    {% endif %}
 </tr>
 <tr class="result">
 <th valign="top">Adjacency List:</th>
