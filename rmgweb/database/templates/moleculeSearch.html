@@ -190,6 +190,10 @@ converted to an adjacency list. In particular, lone pairs must be drawn explicit
 <td style="padding: 40px;">{{ structure_markup|safe }}</td>
 </tr>
 <tr class ="result">
+    <th>Molecular Formula:</th>
+    <td>{{ molecule.getFormula|renderMF }}</td>
+</tr>
+<tr class ="result">
     <th>Molecular Weight:</th>
     <td>{{ molecule.getMolecularWeight|renderMW }}</td>
 </tr>

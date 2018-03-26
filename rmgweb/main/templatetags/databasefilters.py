@@ -38,6 +38,7 @@ register = template.Library()
 
 from django.utils.safestring import mark_safe
 
+import re
 import numpy
 
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
@@ -54,6 +55,13 @@ def renderMW(MW):
     mass = Quantity(MW,'kg/mol').value
     multfactor = Quantity(1,'g/mol').getConversionFactorFromSI()
     return mark_safe("{0:.2f}".format(mass*multfactor))
+
+@register.filter
+def renderMF(formula):
+    """
+    Renders molecular formula with subscripts.
+    """
+    return mark_safe(re.sub(r'([A-Z])(\d+)', r'\1<sub>\2</sub>', formula))
 
 @register.filter
 def renderAdjlist(adjlist):
