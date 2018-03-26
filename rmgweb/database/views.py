@@ -693,6 +693,7 @@ def thermoData(request, adjlist):
     species.generate_resonance_structures()
     
     # Get the thermo data for the molecule
+    symmetryNumber = None
     thermoDataList = []
     for data, library, entry in database.thermo.getAllThermoData(species):
         # Make sure we calculate Cp0 and CpInf
