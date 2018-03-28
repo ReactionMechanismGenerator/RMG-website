@@ -55,6 +55,12 @@ def index(request):
     return render(request, 'index.html', {'version': __version__})
 
 
+def terms(request):
+    """
+    The RMG terms of use.
+    """
+    return render_to_response('terms.html', context_instance=RequestContext(request))
+
 def privacy(request):
     """
     The RMG privacy policy.
