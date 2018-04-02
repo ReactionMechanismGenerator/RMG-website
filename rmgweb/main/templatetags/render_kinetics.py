@@ -368,16 +368,13 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
     elif isinstance(kinetics, (MultiArrhenius,MultiPDepArrhenius)):
         # The kinetics is in MultiArrhenius or MultiPDepArrhenius format
         result = ''
-        start = ''
+        start = r'<script type="math/tex; mode=display">k(T, P) = '
         for i, k in enumerate(kinetics.arrhenius):
             res = render_kinetics_math(k, user=user)
-            start += '{0} + '.format(res.split(' = ')[0].replace('<div class="math">k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1))
-            result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1) + '<br/>'
+            start += 'k_{{ {0:d} }}(T, P) + '.format(i+1)
+            result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1)) + '<br/>'
         
-        result = r"""<script type="math/tex; mode=display">
-k(T,P) = {0!s}
-</script><br/>
-        """.format(start[:-3]) + result
+        result = start[:-3] + '</script><br/>' + result
 
     # Collision efficiencies
     if hasattr(kinetics, 'efficiencies'):
