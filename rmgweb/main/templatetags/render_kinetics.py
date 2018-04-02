@@ -377,7 +377,7 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
         result = start[:-3] + '</script><br/>' + result
 
     # Collision efficiencies
-    if hasattr(kinetics, 'efficiencies'):
+    if hasattr(kinetics, 'efficiencies') and kinetics.efficiencies:
         result += '<table>\n'
         result += '<tr><th colspan="2">Collision efficiencies</th></tr>'
         for smiles, eff in kinetics.efficiencies.iteritems():
