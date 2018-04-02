@@ -121,7 +121,7 @@ def getRateCoefficientUnits(kinetics, user=None):
     elif isinstance(kinetics, KineticsData):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kdata.units)
     elif isinstance(kinetics, PDepArrhenius):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrhenius[0].A.units)
+        return getRateCoefficientUnits(kinetics.arrhenius[0])
     elif isinstance(kinetics, Chebyshev):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
     elif isinstance(kinetics, Troe):
@@ -247,15 +247,33 @@ def render_kinetics_math(kinetics, user=None):
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format
         for P, arrh in zip(kinetics.pressures.value_si, kinetics.arrhenius):
-            result += r'<script type="math/tex; mode=display">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</script>'.format(
-                P * Pfactor, Punits, 
-                getArrheniusJSMath(
-                    arrh.A.value_si * kfactor, kunits, 
-                    arrh.n.value_si, '', 
-                    arrh.Ea.value_si * Efactor, Eunits, 
-                    arrh.T0.value_si * Tfactor, Tunits,
-                ),
-            )
+            if isinstance(arrh, Arrhenius):
+                result += r'<script type="math/tex; mode=display">k(T, {0} \mathrm{{ {1!s} }}) = {2}</script>'.format(
+                    getLaTeXScientificNotation(P * Pfactor), Punits,
+                    getArrheniusJSMath(
+                        arrh.A.value_si * kfactor, kunits,
+                        arrh.n.value_si, '',
+                        arrh.Ea.value_si * Efactor, Eunits,
+                        arrh.T0.value_si * Tfactor, Tunits,
+                    ),
+                )
+            elif isinstance(arrh, MultiArrhenius):
+                start = (r'<script type="math/tex; mode=display">'
+                         r'k(T, {0} \mathrm{{ {1!s} }}) = '.format(getLaTeXScientificNotation(P * Pfactor), Punits))
+                res = ''
+                for i, k in enumerate(arrh.arrhenius):
+                    start += 'k_{{ {0:d} }}(T, {1} \mathrm{{ {2!s} }}) + '.format(i + 1, getLaTeXScientificNotation(P * Pfactor), Punits)
+                    res += r'<script type="math/tex; mode=display">k_{{ {0:d} }}(T, {1} \mathrm{{ {2!s} }}) = {3}</script>'.format(
+                        i + 1, getLaTeXScientificNotation(P * Pfactor), Punits,
+                        getArrheniusJSMath(
+                            k.A.value_si * kfactor, kunits,
+                            k.n.value_si, '',
+                            k.Ea.value_si * Efactor, Eunits,
+                            k.T0.value_si * Tfactor, Tunits,
+                        ),
+                    )
+                result += start[:-3] + '</script>\n' + res + '<br/>'
+
             
     elif isinstance(kinetics, Chebyshev):
         # The kinetics is in Chebyshev format
