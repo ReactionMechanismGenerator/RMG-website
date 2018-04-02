@@ -121,7 +121,7 @@ def getRateCoefficientUnits(kinetics, user=None):
     elif isinstance(kinetics, KineticsData):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kdata.units)
     elif isinstance(kinetics, PDepArrhenius):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrhenius[0].A.units)
+        return getRateCoefficientUnits(kinetics.arrhenius[0])
     elif isinstance(kinetics, Chebyshev):
         numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
     elif isinstance(kinetics, Troe):
@@ -247,15 +247,33 @@ def render_kinetics_math(kinetics, user=None):
     elif isinstance(kinetics, PDepArrhenius):
         # The kinetics is in PDepArrhenius format
         for P, arrh in zip(kinetics.pressures.value_si, kinetics.arrhenius):
-            result += r'<script type="math/tex; mode=display">k(T, \ {0:.3g} \ \mathrm{{ {1!s} }}) = {2}</script>'.format(
-                P * Pfactor, Punits, 
-                getArrheniusJSMath(
-                    arrh.A.value_si * kfactor, kunits, 
-                    arrh.n.value_si, '', 
-                    arrh.Ea.value_si * Efactor, Eunits, 
-                    arrh.T0.value_si * Tfactor, Tunits,
-                ),
-            )
+            if isinstance(arrh, Arrhenius):
+                result += r'<script type="math/tex; mode=display">k(T, {0} \mathrm{{ {1!s} }}) = {2}</script>'.format(
+                    getLaTeXScientificNotation(P * Pfactor), Punits,
+                    getArrheniusJSMath(
+                        arrh.A.value_si * kfactor, kunits,
+                        arrh.n.value_si, '',
+                        arrh.Ea.value_si * Efactor, Eunits,
+                        arrh.T0.value_si * Tfactor, Tunits,
+                    ),
+                )
+            elif isinstance(arrh, MultiArrhenius):
+                start = (r'<script type="math/tex; mode=display">'
+                         r'k(T, {0} \mathrm{{ {1!s} }}) = '.format(getLaTeXScientificNotation(P * Pfactor), Punits))
+                res = ''
+                for i, k in enumerate(arrh.arrhenius):
+                    start += 'k_{{ {0:d} }}(T, {1} \mathrm{{ {2!s} }}) + '.format(i + 1, getLaTeXScientificNotation(P * Pfactor), Punits)
+                    res += r'<script type="math/tex; mode=display">k_{{ {0:d} }}(T, {1} \mathrm{{ {2!s} }}) = {3}</script>'.format(
+                        i + 1, getLaTeXScientificNotation(P * Pfactor), Punits,
+                        getArrheniusJSMath(
+                            k.A.value_si * kfactor, kunits,
+                            k.n.value_si, '',
+                            k.Ea.value_si * Efactor, Eunits,
+                            k.T0.value_si * Tfactor, Tunits,
+                        ),
+                    )
+                result += start[:-3] + '</script>\n' + res + '<br/>'
+
             
     elif isinstance(kinetics, Chebyshev):
         # The kinetics is in Chebyshev format
@@ -350,19 +368,16 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
     elif isinstance(kinetics, (MultiArrhenius,MultiPDepArrhenius)):
         # The kinetics is in MultiArrhenius or MultiPDepArrhenius format
         result = ''
-        start = ''
+        start = r'<script type="math/tex; mode=display">k(T, P) = '
         for i, k in enumerate(kinetics.arrhenius):
             res = render_kinetics_math(k, user=user)
-            start += '{0} + '.format(res.split(' = ')[0].replace('<div class="math">k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1))
-            result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1), 1) + '<br/>'
+            start += 'k_{{ {0:d} }}(T, P) + '.format(i+1)
+            result += res.replace('k(T', 'k_{{ {0:d} }}(T'.format(i+1)) + '<br/>'
         
-        result = r"""<script type="math/tex; mode=display">
-k(T,P) = {0!s}
-</script><br/>
-        """.format(start[:-3]) + result
+        result = start[:-3] + '</script><br/>' + result
 
     # Collision efficiencies
-    if hasattr(kinetics, 'efficiencies'):
+    if hasattr(kinetics, 'efficiencies') and kinetics.efficiencies:
         result += '<table>\n'
         result += '<tr><th colspan="2">Collision efficiencies</th></tr>'
         for smiles, eff in kinetics.efficiencies.iteritems():
@@ -372,9 +387,9 @@ k(T,P) = {0!s}
     # Temperature and pressure ranges
     result += '<table class="kineticsEntryData">'
     if kinetics.Tmin is not None and kinetics.Tmax is not None:
-        result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Tmin.value * Tfactor, kinetics.Tmax.value * Tfactor, Tunits)
+        result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Tmin.value_si * Tfactor, kinetics.Tmax.value_si * Tfactor, Tunits)
     if kinetics.Pmin is not None and kinetics.Pmax is not None:
-        result += '<tr><td class="key">Pressure range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Pmin.value * Pfactor, kinetics.Pmax.value * Pfactor, Punits)
+        result += '<tr><td class="key">Pressure range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Pmin.value_si * Pfactor, kinetics.Pmax.value_si * Pfactor, Punits)
     result += '</table>'
 
     return mark_safe(result)
