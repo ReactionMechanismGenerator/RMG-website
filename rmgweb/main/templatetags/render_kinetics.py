@@ -372,9 +372,9 @@ k(T,P) = {0!s}
     # Temperature and pressure ranges
     result += '<table class="kineticsEntryData">'
     if kinetics.Tmin is not None and kinetics.Tmax is not None:
-        result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Tmin.value * Tfactor, kinetics.Tmax.value * Tfactor, Tunits)
+        result += '<tr><td class="key">Temperature range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Tmin.value_si * Tfactor, kinetics.Tmax.value_si * Tfactor, Tunits)
     if kinetics.Pmin is not None and kinetics.Pmax is not None:
-        result += '<tr><td class="key">Pressure range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Pmin.value * Pfactor, kinetics.Pmax.value * Pfactor, Punits)
+        result += '<tr><td class="key">Pressure range</td><td class="equals">=</td><td class="value">{0:g} to {1:g} {2!s}</td></tr>'.format(kinetics.Pmin.value_si * Pfactor, kinetics.Pmax.value_si * Pfactor, Punits)
     result += '</table>'
 
     return mark_safe(result)
