@@ -1,32 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-################################################################################
-#
-#	RMG Website - A Django-powered website for Reaction Mechanism Generator
-#
-#	Copyright (c) 2011 Prof. William H. Green (whgreen@mit.edu) and the
-#	RMG Team (rmg_dev@mit.edu)
-#
-#	Permission is hereby granted, free of charge, to any person obtaining a
-#	copy of this software and associated documentation files (the 'Software'),
-#	to deal in the Software without restriction, including without limitation
-#	the rights to use, copy, modify, merge, publish, distribute, sublicense,
-#	and/or sell copies of the Software, and to permit persons to whom the
-#	Software is furnished to do so, subject to the following conditions:
-#
-#	The above copyright notice and this permission notice shall be included in
-#	all copies or substantial portions of the Software.
-#
-#	THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-#	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-#	DEALINGS IN THE SOFTWARE.
-#
-################################################################################
+###############################################################################
+#                                                                             #
+# RMG Website - A Django-powered website for Reaction Mechanism Generator     #
+#                                                                             #
+# Copyright (c) 2011-2018 Prof. William H. Green (whgreen@mit.edu),           #
+# Prof. Richard H. West (r.west@neu.edu) and the RMG Team (rmg_dev@mit.edu)   #
+#                                                                             #
+# Permission is hereby granted, free of charge, to any person obtaining a     #
+# copy of this software and associated documentation files (the 'Software'),  #
+# to deal in the Software without restriction, including without limitation   #
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,    #
+# and/or sell copies of the Software, and to permit persons to whom the       #
+# Software is furnished to do so, subject to the following conditions:        #
+#                                                                             #
+# The above copyright notice and this permission notice shall be included in  #
+# all copies or substantial portions of the Software.                         #
+#                                                                             #
+# THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     #
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         #
+# DEALINGS IN THE SOFTWARE.                                                   #
+#                                                                             #
+###############################################################################
 
 import StringIO  # cStringIO is faster, but can't do Unicode
 import cookielib
@@ -493,7 +493,7 @@ def statmechEntry(request, section, subsection, index):
     
     index = int(index)
     if index != 0 and index != -1:
-        for entry in database.entries.values():
+        for entry in db.entries.values():
             if entry.index == index:
                 break
         else:
@@ -693,6 +693,7 @@ def thermoData(request, adjlist):
     species.generate_resonance_structures()
     
     # Get the thermo data for the molecule
+    symmetryNumber = None
     thermoDataList = []
     for data, library, entry in database.thermo.getAllThermoData(species):
         # Make sure we calculate Cp0 and CpInf
@@ -2307,12 +2308,17 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
 
 def moleculeSearch(request):
     """
-    Creates webpage form to display molecule chemgraph upon entering adjacency list, smiles, or inchi, as well as searches for thermochemistry data.
+    Creates webpage form to display molecule drawing for a specified
+    adjacency list or other molecule identifier. Also provides interface
+    for initiating thermochemistry or transport search.
     """
     form = MoleculeSearchForm()
     structure_markup = ''
     oldAdjlist = ''
     molecule = Molecule()
+    smiles = ''
+    inchi = ''
+
     if request.method == 'POST':
         posted = MoleculeSearchForm(request.POST, error_class=DivErrorList)
         initial = request.POST.copy()
@@ -2320,12 +2326,22 @@ def moleculeSearch(request):
         adjlist = None
 
         if posted.is_valid():
-                adjlist = posted.cleaned_data['species']
-                if adjlist != '':
-                    molecule.fromAdjacencyList(adjlist)
-                    structure_markup = getStructureInfo(molecule)
-                    adjlist=molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
-        
+            adjlist = posted.cleaned_data['species']
+            if adjlist != '':
+                molecule.fromAdjacencyList(adjlist)
+                structure_markup = getStructureInfo(molecule)
+                adjlist = molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+
+        try:
+            smiles = molecule.toSMILES()
+        except ValueError:
+            pass
+
+        try:
+            inchi = molecule.toInChI()
+        except ValueError:
+            pass
+
         form = MoleculeSearchForm(initial, error_class=DivErrorList)
 
         if adjlist is not None:
@@ -2346,7 +2362,14 @@ def moleculeSearch(request):
             except Exception:
                 pass
     
-    return render_to_response('moleculeSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form, 'oldAdjlist': oldAdjlist}, context_instance=RequestContext(request))
+    return render_to_response('moleculeSearch.html',
+                              {'structure_markup': structure_markup,
+                               'molecule': molecule,
+                               'smiles': smiles,
+                               'inchi': inchi,
+                               'form': form,
+                               'oldAdjlist': oldAdjlist},
+                              context_instance=RequestContext(request))
 
 
 def solvationSearch(request):
