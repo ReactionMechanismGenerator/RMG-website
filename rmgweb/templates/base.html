@@ -169,9 +169,9 @@
                 {% if user.is_authenticated %}
                 <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
                 <a class="user-button" href="{% url 'main.views.editProfile' %}">Edit Profile</a>
-                <a class="user-button" href="{% url 'main.views.logout' %}?next={{ request.path }}">Log Out</a>
+                <a class="user-button" href="{% url 'logout' %}?next={{ request.path }}">Log Out</a>
                 {% else %}
-                <a class="user-button" href="{% url 'main.views.login' %}?next={{ request.path }}">Log In</a>
+                <a class="user-button" href="{% url 'login' %}?next={{ request.path }}">Log In</a>
                 {% endif %}
             </div>
         </div>
