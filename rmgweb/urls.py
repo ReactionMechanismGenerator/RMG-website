@@ -33,6 +33,7 @@ from django.conf import settings
 import django
 import django.views.static
 import django.views.defaults
+import django.contrib.auth.views as auth_view
 import os
 
 import rmgweb
@@ -72,12 +73,17 @@ urlpatterns = [
     url(r'^resources$', rmgweb.main.views.resources),
 
     # User account management
-    url(r'^login$', rmgweb.main.views.login),
-    url(r'^logout$', rmgweb.main.views.logout),
+    url(r'^login$', auth_view.login, {'template_name':'login.html', 'redirect_field_name':'/'}, name = 'login'),
+    url(r'^logout$', auth_view.logout, {'template_name':'logout.html', 'redirect_field_name':'/'}, name = 'logout'),
     url(r'^profile$', rmgweb.main.views.editProfile),
     url(r'^signup', rmgweb.main.views.signup),
-    
     url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile),
+
+    # Password reset
+    url(r'^password_reset/$',auth_view.password_reset,{'template_name': 'password_reset_form.html'}, name = 'password_reset'),
+    url(r'^password_reset/done/$',auth_view.password_reset_done, name = 'password_reset_done'),
+    url(r'^password_reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<tAoken>[0-9A-Za-z]{1,13}-[0-9-Za-z]{1,20})/$',auth_view.password_reset_confirm, name = 'password_reset_confirm'),
+    url(r'^password_reset/complete/',auth_view.password_reset_complete, name = 'password_reset_complete'),
 
     # Database
     url(r'^database/', include('rmgweb.database.urls')),

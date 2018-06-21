@@ -102,18 +102,6 @@ def resources(request):
                               {'presentations': presentations},
                               context_instance=RequestContext(request))
 
-def login(request):
-    """
-    Called when the user wishes to log in to his/her account.
-    """
-    return django.contrib.auth.views.login(request, template_name='login.html')
-
-def logout(request):
-    """
-    Called when the user wishes to log out of his/her account.
-    """
-    return django.contrib.auth.views.logout(request, template_name='logout.html')
-
 def signup(request):
     """
     Called when the user wishes to sign up for an account.
