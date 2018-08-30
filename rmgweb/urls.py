@@ -55,29 +55,29 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     
     # Restart the django processes in the webserver
-    url(r'^restart$', rmgweb.main.views.restartWSGI),
+    url(r'^restart$', rmgweb.main.views.restartWSGI, name='restart-wsgi'),
     # Show debug info
-    url(r'^debug$', rmgweb.main.views.debug),
+    url(r'^debug$', rmgweb.main.views.debug, name='debug'),
     
     # The RMG website homepage
-    url(r'^$', rmgweb.main.views.index),
+    url(r'^$', rmgweb.main.views.index, name='index'),
     
     # The privacy policy
-    url(r'^privacy$', rmgweb.main.views.privacy),
+    url(r'^privacy$', rmgweb.main.views.privacy, name='privacy'),
     
     # Version information
-    url(r'^version$', rmgweb.main.views.version),
+    url(r'^version$', rmgweb.main.views.version, name='version'),
     
     # Additional resources page
-    url(r'^resources$', rmgweb.main.views.resources),
+    url(r'^resources$', rmgweb.main.views.resources, name='resources'),
 
     # User account management
-    url(r'^login$', rmgweb.main.views.login),
-    url(r'^logout$', rmgweb.main.views.logout),
-    url(r'^profile$', rmgweb.main.views.editProfile),
-    url(r'^signup', rmgweb.main.views.signup),
+    url(r'^login$', rmgweb.main.views.login, name='login'),
+    url(r'^logout$', rmgweb.main.views.logout, name='logout'),
+    url(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
+    url(r'^signup', rmgweb.main.views.signup, name='signup'),
     
-    url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile),
+    url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile, name='view-profile'),
 
     # Database
     url(r'^database/', include('rmgweb.database.urls')),
@@ -86,25 +86,25 @@ urlpatterns = [
     url(r'^pdep/', include('rmgweb.pdep.urls')),
 
     # Molecule drawing
-    url(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule),
-    url(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup),
+    url(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
+    url(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup, name='draw-group'),
     
-    url(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList),
-    url(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver),
-    url(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas),
+    url(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList, name='get-adjacency-list'),
+    url(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver, name='cactus-resolver'),
+    url(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas, name='get-nist-cas'),
 
     # Molecule and solvation search,  group drawing webpages
-    url(r'^molecule_search$', rmgweb.database.views.moleculeSearch),
-    url(r'^solvation_search', rmgweb.database.views.solvationSearch),
+    url(r'^molecule_search$', rmgweb.database.views.moleculeSearch, name='molecule-search'),
+    url(r'^solvation_search', rmgweb.database.views.solvationSearch, name='solvation-search'),
 
     # RMG-Py Stuff
     url(r'^tools/', include('rmgweb.rmg.urls')),
     
     # RMG Input Form
-    url(r'^input', rmgweb.rmg.views.input),
+    url(r'^input', rmgweb.rmg.views.input, name='input'),
     
     # Documentation auto-rebuild
-    url(r'^rebuild$', rmgweb.main.views.rebuild),
+    url(r'^rebuild$', rmgweb.main.views.rebuild, name='rebuild'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
     

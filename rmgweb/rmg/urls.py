@@ -32,36 +32,38 @@ from django.conf.urls import url, include
 from rmgweb.rmg import views
 import rmgweb.database.views
 
+app_name='rmg'
+
 urlpatterns = [
     # RMG Simulation Homepage
-    url(r'^$', views.index),
+    url(r'^$', views.index, name='index'),
 
-    url(r'^group_draw', rmgweb.database.views.groupDraw),
+    url(r'^group_draw', rmgweb.database.views.groupDraw, name='group-draw'),
 
     # Convert Chemkin File to Output File
-    url(r'^chemkin', views.convertChemkin),
+    url(r'^chemkin', views.convertChemkin, name='convert-chemkin'),
 
     # Compare 2 RMG Models
-    url(r'^compare', views.compareModels),
+    url(r'^compare', views.compareModels, name='compare-models'),
     
     # Compare 2 RMG Models
-    url(r'^adjlist_conversion', views.convertAdjlists),
+    url(r'^adjlist_conversion', views.convertAdjlists, name='convert-adjlists'),
     
     # Merge 2 RMG Models
-    url(r'^merge_models', views.mergeModels),
+    url(r'^merge_models', views.mergeModels, name='merge-models'),
 
     # Generate Flux Diagram
-    url(r'^flux', views.generateFlux),
+    url(r'^flux', views.generateFlux, name='generate-flux'),
     
     # Populate Reactions with an Input File
-    url(r'^populate_reactions', views.runPopulateReactions),
+    url(r'^populate_reactions', views.runPopulateReactions, name='run-populate-reactions'),
     
     # Plot Kinetics
-    url(r'^plot_kinetics', views.plotKinetics),
+    url(r'^plot_kinetics', views.plotKinetics, name='plot-kinetics'),
     
     # Generate RMG-Java Kinetics Library
-    url(r'^java_kinetics_library', views.javaKineticsLibrary),
+    url(r'^java_kinetics_library', views.javaKineticsLibrary, name='java-kinetics-library'),
     
     # Evaluate NASA Polynomial
-    url(r'^evaluate_nasa', views.evaluateNASA),
+    url(r'^evaluate_nasa', views.evaluateNASA, name='evaluate-nasa'),
 ]

@@ -32,75 +32,76 @@ import itertools
 from django.conf.urls import url, include
 from rmgweb.database import views
 
+app_name = 'database'
 
 urlpatterns = [ 
 
     # Database homepage
-    url(r'^$', views.index),
+    url(r'^$', views.index, name='index'),
     
     # Load the whole database into memory
-    url(r'^load/?$', views.load),
+    url(r'^load/?$', views.load, name='load'),
     
     # Export to an RMG-Java database
-    url(r'^export_(?P<type>zip|tar\.gz)/?$', views.export),
+    url(r'^export_(?P<type>zip|tar\.gz)/?$', views.export, name='export'),
 
     # Thermodynamics database
-    url(r'^thermo/$', views.thermo),
-    url(r'^thermo/search/$', views.moleculeSearch),
-    url(r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', views.thermoData),
-    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.thermoEntry),
-    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<adjlist>[\S\s]+)/new$', views.thermoEntryNew),
-    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/edit$', views.thermoEntryEdit),
-    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/$', views.thermo),
-    url(r'^thermo/(?P<section>\w+)/$', views.thermo),
+    url(r'^thermo/$', views.thermo, name='thermo'),
+    url(r'^thermo/search/$', views.moleculeSearch, name='thermo-search'),
+    url(r'^thermo/molecule/(?P<adjlist>[\S\s]+)$', views.thermoData, name='thermo-data'),
+    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.thermoEntry, name='thermo-entry'),
+    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<adjlist>[\S\s]+)/new$', views.thermoEntryNew, name='thermo-entry-new'),
+    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/edit$', views.thermoEntryEdit, name='thermo-entry-edit'),
+    url(r'^thermo/(?P<section>\w+)/(?P<subsection>.+)/$', views.thermo, name='thermo'),
+    url(r'^thermo/(?P<section>\w+)/$', views.thermo, name='thermo'),
     
     # Transport database
-    url(r'^transport/$', views.transport),
-    url(r'^transport/search/$', views.moleculeSearch),
-    url(r'^transport/molecule/(?P<adjlist>[\S\s]+)$', views.transportData),
-    url(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.transportEntry),
-    url(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/$', views.transport),
-    url(r'^transport/(?P<section>\w+)/$', views.transport),    
+    url(r'^transport/$', views.transport, name='transport'),
+    url(r'^transport/search/$', views.moleculeSearch, name='transport-search'),
+    url(r'^transport/molecule/(?P<adjlist>[\S\s]+)$', views.transportData, name='transport-data'),
+    url(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.transportEntry, name='transport-entry'),
+    url(r'^transport/(?P<section>\w+)/(?P<subsection>.+)/$', views.transport, name='transport'),
+    url(r'^transport/(?P<section>\w+)/$', views.transport, name='transport'),
     
     # solvation database
-    url(r'^solvation/$', views.solvation),
-    url(r'^solvation/search/$', views.solvationSearch),    
-    url(r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)$', views.solvationData),    
-    url(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry),
-    url(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation),
-    url(r'^solvation/(?P<section>\w+)/$', views.solvation),   
+    url(r'^solvation/$', views.solvation, name='solvation'),
+    url(r'^solvation/search/$', views.solvationSearch, name='solvation-search'),
+    url(r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)$', views.solvationData, name='solvation-data'),
+    url(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry, name='solvation-entry'),
+    url(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation, name='solvation'),
+    url(r'^solvation/(?P<section>\w+)/$', views.solvation, name='solvation'),
     
     # statmech database
-    url(r'^statmech/$', views.statmech),
-    url(r'^statmech/search/$', views.moleculeSearch),
-    url(r'^statmech/molecule/(?P<adjlist>[\S\s]+)$', views.statmechData),
-    url(r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.statmechEntry),
-    url(r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/$', views.statmech),
-    url(r'^statmech/(?P<section>\w+)/$', views.statmech), 
+    url(r'^statmech/$', views.statmech, name='statmech'),
+    url(r'^statmech/search/$', views.moleculeSearch, name='statmech-search'),
+    url(r'^statmech/molecule/(?P<adjlist>[\S\s]+)$', views.statmechData, name='statmech-data'),
+    url(r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.statmechEntry, name='statmech-entry'),
+    url(r'^statmech/(?P<section>\w+)/(?P<subsection>.+)/$', views.statmech, name='statmech'),
+    url(r'^statmech/(?P<section>\w+)/$', views.statmech, name='statmech'),
     
     # Kinetics database
-    url(r'^kinetics/$', views.kinetics),
-    url(r'^kinetics/search/$', views.kineticsSearch),
+    url(r'^kinetics/$', views.kinetics, name='kinetics'),
+    url(r'^kinetics/search/$', views.kineticsSearch, name='kinetics-search'),
 
-    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<type>\w+)/new$', views.kineticsEntryNew),
-    url(r'^kinetics/families/(?P<family>[^/]+)/untrained/$', views.kineticsUntrained),
+    url(r'^kinetics/families/(?P<family>[^/]+)/(?P<type>\w+)/new$', views.kineticsEntryNew, name='kinetics-entry-new'),
+    url(r'^kinetics/families/(?P<family>[^/]+)/untrained/$', views.kineticsUntrained, name='kinetics-untrained'),
     
-    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/edit$', views.kineticsEntryEdit),
-    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.kineticsEntry),
-    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', views.kinetics),
-    url(r'^kinetics/(?P<section>\w+)/$', views.kinetics),
+    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>\d+)/edit$', views.kineticsEntryEdit, name='kinetics-entry-edit'),
+    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.kineticsEntry, name='kinetics-entry'),
+    url(r'^kinetics/(?P<section>\w+)/(?P<subsection>.+)/$', views.kinetics, name='kinetics'),
+    url(r'^kinetics/(?P<section>\w+)/$', views.kinetics, name='kinetics'),
     
     # Molecule Information Page
-    url(r'^molecule/(?P<adjlist>[\S\s]+)$', views.moleculeEntry),
+    url(r'^molecule/(?P<adjlist>[\S\s]+)$', views.moleculeEntry, name='molecule-entry'),
     
     #Group Information Page
-    url(r'^group/(?P<adjlist>[\S\s]+)$', views.groupEntry),
+    url(r'^group/(?P<adjlist>[\S\s]+)$', views.groupEntry, name='group-entry'),
 
     # Eni detergent-dirt binding strength
-    url(r'^eni', views.EniSearch),
+    url(r'^eni', views.EniSearch, name='eni-search'),
 
     # AJAX request url
-    url(r'^ajax_adjlist_request', views.json_to_adjlist),
+    url(r'^ajax_adjlist_request', views.json_to_adjlist, name='json-to-adjlist'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
 ]
@@ -127,7 +128,7 @@ for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
     if res: url_pattern += url_parts[6]
     url_pattern += r'$'
 
-    urlpatterns.append(url(url_pattern, views.kineticsResults))
+    urlpatterns.append(url(url_pattern, views.kineticsResults, name='kinetics-results'))
 
 for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
     url_pattern = r'^kinetics/reaction/'
@@ -140,7 +141,7 @@ for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
     if res: url_pattern += url_parts[6]
     url_pattern += r'$'
 
-    urlpatterns.append(url(url_pattern, views.kineticsData))
+    urlpatterns.append(url(url_pattern, views.kineticsData, name='kinetics-data'))
 
 for r2, p2, res in itertools.product([1, 0], repeat=3):
     url_pattern = r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/'
@@ -151,4 +152,4 @@ for r2, p2, res in itertools.product([1, 0], repeat=3):
     if res: url_pattern += url_parts[6]
     url_pattern += r'$'
 
-    urlpatterns.append(url(url_pattern, views.kineticsGroupEstimateEntry))
+    urlpatterns.append(url(url_pattern, views.kineticsGroupEstimateEntry, name='kinetics-group'))
