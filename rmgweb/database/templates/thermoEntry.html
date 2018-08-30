@@ -65,11 +65,11 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
-<li><a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a></li>
-<li><a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
-{% if entry.index and entry.index != -1 %}<li><a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:thermo' %}">Thermodynamics</a></li>
+<li><a href="{% url 'database:thermo' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database:thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+{% if entry.index and entry.index != -1 %}<li><a href="{% url 'database:thermo-entry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}
@@ -93,7 +93,7 @@ No structure given.
 <table class="thermoEntryData">
 <tr>
     <td class="key">Link:</td>
-    <td class="value"><a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=thermo.1 %}">{{ entry.data }}</a></td>
+    <td class="value"><a href="{% url 'database:thermo-entry' section=section subsection=subsection index=thermo.1 %}">{{ entry.data }}</a></td>
 </tr>
 </table>
 {% else %}
@@ -121,12 +121,12 @@ CHEMKIN format NASA Polynomial:
 <br/>
 
 {% if entry.index and entry.index != -1 %}
-If you noticed a mistake or have better data, then edit this entry here: <a href="{% url 'database.views.thermoEntryEdit' section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
+If you noticed a mistake or have better data, then edit this entry here: <a href="{% url 'database:thermo-entry-edit' section=section subsection=subsection index=entry.index %}"><button type="button">Edit entry</button></a>.
 {% endif %}
 {% if user.is_authenticated %}
 You are logged in as {{ user.get_full_name }}</a> 
 {% else %}
-You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
+You must <a href="{% url 'login' %}?next={{ request.path }}">log in first.</a>
 {% endif %}
 <br/>
 

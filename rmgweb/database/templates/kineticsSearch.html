@@ -25,7 +25,7 @@ function resolve(fieldName){
 // convert an adjancency list into an image url
 function adjlist2img(s) {
    adjlist = encodeURI(s);
-   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'draw-molecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {
@@ -59,9 +59,9 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-<li><a href="{% url 'database.views.kineticsSearch' %}">Search</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database:kinetics-search' %}">Search</a></li>
 {% endblock %}
 
 {% block sidebar_items %}

@@ -28,7 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 import django.contrib.auth.views
@@ -49,21 +49,19 @@ def index(request):
     The RMG website homepage.
     """
     from rmgpy import __version__
-    return render_to_response('index.html', {'version': __version__}, context_instance=RequestContext(request))
+    return render(request, 'index.html', {'version': __version__})
 
 def privacy(request):
     """
     The RMG privacy policy.
     """
-    return render_to_response('privacy.html',
-                              {'admins': settings.ADMINS},
-                              context_instance=RequestContext(request))
+    return render(request, 'privacy.html', {'admins': settings.ADMINS})
 
 def version(request):
     """
     Version information for RMG-website, RMG-Py, and RMG-database
     """
-    return render_to_response('version.html', context_instance=RequestContext(request))
+    return render(request, 'version.html')
 
 def resources(request):
     """
@@ -98,9 +96,7 @@ def resources(request):
             title = title.replace('+', ' and ')
             presentations.append((title, date, f))
 
-    return render_to_response('resources.html',
-                              {'presentations': presentations},
-                              context_instance=RequestContext(request))
+    return render(request, 'resources.html', {'presentations': presentations})
 
 def login(request):
     """
@@ -142,7 +138,7 @@ def signup(request):
         profileForm = UserProfileSignupForm(error_class=DivErrorList)
         passwordForm = PasswordCreateForm(error_class=DivErrorList)
         
-    return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
+    return render(request, 'signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
 
 def viewProfile(request, username):
     """
@@ -154,7 +150,7 @@ def viewProfile(request, username):
     user0 = User.objects.get(username=username)
     userProfile = user0.userprofile
     networks = Network.objects.filter(user=user0)
-    return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks}, context_instance=RequestContext(request))
+    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks})
 
 @login_required
 def editProfile(request):
@@ -170,13 +166,13 @@ def editProfile(request):
             userForm.save()
             profileForm.save()
             passwordForm.save()
-            return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
+            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username})) # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
         passwordForm = PasswordChangeForm(error_class=DivErrorList)
         
-    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
+    return render(request, 'editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
 
 def getAdjacencyList(request, identifier):
     """

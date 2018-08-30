@@ -33,7 +33,7 @@ function resolve(identifier_id){
 // convert an adjacency list into an image url
 function adjlist2img(s) {
    adjlist = encodeURI(s);
-   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'draw-molecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {
@@ -229,7 +229,7 @@ blockquote {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'rmg.views.input' %}">Create Input File</a></li>
+<li><a href="{% url 'input' %}">Create Input File</a></li>
 {% endblock %}
 
 {% block page_title %}Create Input File{% endblock %}
@@ -273,7 +273,7 @@ If you already have a saved input.py file that you would like to modify, you can
     If no libraries are selected, RMG will estimate all species' thermochemistry through 
     Benson group additivity. We recommend using at least the 'primaryThermoLibrary'.
     
-    <P>You can browse the available libraries here: <a href="{% url 'database.views.thermo' section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
+    <P>You can browse the available libraries here: <a href="{% url 'database:thermo' section='libraries' %}" target="_blank">Thermodynamics Libraries</a>
     <P>
     <table id="thermo_libraries">
         <thead><tr><th scope="col">Library</th></tr></thead>
@@ -303,7 +303,7 @@ If you already have a saved input.py file that you would like to modify, you can
     If you do not wish for these reactions to be automatically included in the core but do want to
     retain it in your mechanism, you may select the "Edge" option instead.
     <P>
-    You can browse the available libraries here: <a href="{% url 'database.views.kinetics' section='libraries' %}" target="_blank">Kinetics Libraries</a>
+    You can browse the available libraries here: <a href="{% url 'database:kinetics' section='libraries' %}" target="_blank">Kinetics Libraries</a>
     <P>
     <table id="reaction_libraries">
         <thead><tr><th scope="col">Library</th>

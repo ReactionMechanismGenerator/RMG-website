@@ -19,7 +19,7 @@ jQuery(document).ready(function() {
     Sseries = new Array();
     Gseries = new Array();
     
-    {% for entry, thermo, source, href in thermoDataList %}
+    {% for entry, thermo, source, href, nasa in thermoDataList %}
     {{ thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
     {% endfor %}
@@ -36,8 +36,8 @@ jQuery(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:thermo' %}">Thermodynamics</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -52,15 +52,15 @@ jQuery(document).ready(function() {
 </p>
 If you have thermodynamic data to contribute to this species, you can add an entry here: 
 {% if molecule.getRadicalCount == 0 %}
-<a href="{% url 'database.views.thermoEntryNew' section='depository' subsection='stable' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
+<a href="{% url 'database:thermo-entry-new' section='depository' subsection='stable' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
 {% else %}
-<a href="{% url 'database.views.thermoEntryNew' section='depository' subsection='radical' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
+<a href="{% url 'database:thermo-entry-new' section='depository' subsection='radical' adjlist=molecule.toAdjacencyList %}"><button type="button">Add new entry</button></a>.
 {% endif %}
 
 {% if user.is_authenticated %}
 You are logged in as {{ user.get_full_name }}</a> 
 {% else %}
-You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
+You must <a href="{% url 'login' %}?next={{ request.path }}">log in first.</a>
 {% endif %}
 <br/><br/>
 

@@ -173,9 +173,9 @@ function insertSquib() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-<li><a href="{% url 'database.views.kineticsSearch' %}">Search</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database:kinetics-search' %}">Search</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -233,7 +233,7 @@ function insertSquib() {
 </div>
 {% if new_entry_form %}
 <div align="right">
-    <form name="SquibForm" onSubmit="insertSquib()" action="{% url 'database.views.kineticsEntryNew' family=subsection type="NIST" %}" method="POST">
+    <form name="SquibForm" onSubmit="insertSquib()" action="{% url 'database:kinetics-entry-new' family=subsection type="NIST" %}" method="POST">
         {% csrf_token %}
         Have NIST data for this reaction? Enter the squib here to import it:
         <input type=text value="" id="id_new_squib">
@@ -268,7 +268,7 @@ Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.i
 <div id="plotk" style="width: {{ plotWidth }}px; height: {{ plotHeight }}px; margin: auto;"></div>
 
 {% if new_entry_form %}
-<form method="post" id="entry_form" onSubmit="calculateAverage()" action="{% url 'database.views.kineticsEntryNew' family=subsection type="training" %}">
+<form method="post" id="entry_form" onSubmit="calculateAverage()" action="{% url 'database:kinetics-entry-new' family=subsection type="training" %}">
 <div style="display: none;">{{ new_entry_form.entry }}</div>
 {% csrf_token %}
 <div align="center">

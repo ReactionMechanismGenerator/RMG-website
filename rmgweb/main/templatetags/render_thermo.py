@@ -246,7 +246,7 @@ def render_thermo_math(thermo, user=None):
     elif isinstance(thermo, list):
         # The thermo is a link
         index = thermo[1]
-        url = reverse('database.views.thermoEntry', {'section': section, 'subsection': subsection, 'index': index})
+        url = reverse('database:thermo-entry', {'section': section, 'subsection': subsection, 'index': index})
         result += '<table class="thermoEntryData">\n'
         result += '<tr>'
         result += r'    <td class="key">Link:</td>'

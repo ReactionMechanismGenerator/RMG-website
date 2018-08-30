@@ -31,7 +31,7 @@
 import os
 
 from django.forms.models import BaseInlineFormSet, inlineformset_factory
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 from rmgweb.rmg.models import *
@@ -43,7 +43,7 @@ def index(request):
     """
     The RMG simulation homepage.
     """
-    return render_to_response('rmg.html', context_instance=RequestContext(request))
+    return render(request, 'rmg.html')
 
 def convertChemkin(request):
     """
@@ -62,14 +62,14 @@ def convertChemkin(request):
             # Generate the output HTML file
             chemkin.createOutput()
             # Go back to the network's main page
-            return render_to_response('chemkinUpload.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+            return render(request, 'chemkinUpload.html', {'form': form, 'path':path})
 
 
     # Otherwise create the form
     else:
         form = UploadChemkinForm(instance=chemkin)
         
-    return render_to_response('chemkinUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render(request, 'chemkinUpload.html', {'form': form,'path':path})
 
 def convertAdjlists(request):
     """
@@ -88,13 +88,13 @@ def convertAdjlists(request):
             # Generate the output HTML file
             conversion.createOutput()
             # Go back to the network's main page
-            return render_to_response('dictionaryUpload.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+            return render(request, 'dictionaryUpload.html', {'form': form, 'path':path})
 
     # Otherwise create the form
     else:
         form = UploadDictionaryForm(instance=conversion)
         
-    return render_to_response('dictionaryUpload.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render(request, 'dictionaryUpload.html', {'form': form,'path':path})
 
 def compareModels(request):
     """
@@ -113,14 +113,14 @@ def compareModels(request):
             path = 'media/rmg/tools/compare/diff.html'
             # Generate the output HTML file
             diff.createOutput()
-            return render_to_response('modelCompare.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+            return render(request, 'modelCompare.html', {'form': form, 'path':path})
 
 
     # Otherwise create the form
     else:
         form = ModelCompareForm(instance=diff)
 
-    return render_to_response('modelCompare.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render(request, 'modelCompare.html', {'form': form,'path':path})
 
 
 def mergeModels(request):
@@ -140,11 +140,11 @@ def mergeModels(request):
             model.merge()
             path = 'media/rmg/tools/compare'
             #[os.path.join(model.path,'chem.inp'), os.path.join(model.path,'species_dictionary.txt'), os.path.join(model.path,'merging_log.txt')]
-            return render_to_response('mergeModels.html', {'form': form, 'path':path}, context_instance=RequestContext(request))
+            return render(request, 'mergeModels.html', {'form': form, 'path':path})
     else:
         form = ModelCompareForm(instance=model)
 
-    return render_to_response('mergeModels.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render(request, 'mergeModels.html', {'form': form,'path':path})
 
 
 
@@ -183,12 +183,12 @@ def generateFlux(request):
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
             subdirs.remove('species')
-            return render_to_response('fluxDiagram.html', {'form': form, 'path':subdirs}, context_instance=RequestContext(request))
+            return render(request, 'fluxDiagram.html', {'form': form, 'path':subdirs})
 
     else:
         form = FluxDiagramForm(instance=flux)
 
-    return render_to_response('fluxDiagram.html', {'form': form,'path':path}, context_instance=RequestContext(request))
+    return render(request, 'fluxDiagram.html', {'form': form,'path':path})
 
 
 def runPopulateReactions(request):
@@ -210,14 +210,14 @@ def runPopulateReactions(request):
             # Generate the output HTML file
             populateReactions.createOutput()
             # Go back to the network's main page
-            return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
+            return render(request, 'populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath})
 
 
     # Otherwise create the form
     else:
         form = PopulateReactionsForm(instance=populateReactions)
         
-    return render_to_response('populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath}, context_instance=RequestContext(request))
+    return render(request, 'populateReactionsUpload.html', {'form': form, 'output': outputPath, 'chemkin': chemkinPath})
 
 
 
@@ -302,16 +302,22 @@ def input(request):
                 posted = Input.objects.all()[0]
                 input.saveForm(posted, form)            
                 path = 'media/rmg/tools/input/input.py'            
-                return render_to_response('inputResult.html', {'path': path})
+                return render(request, 'inputResult.html', {'path': path})
             
             else:
                 # Will need more useful error messages later.
                 input_error = 'Your form was invalid.  Please edit the form and try again.'
        
-    return render_to_response('input.html', {'uploadform': uploadform, 'form': form, 'thermolibformset':thermolibformset,
-                                             'reactionlibformset':reactionlibformset, 'reactorspecformset':reactorspecformset,
-                                             'reactorformset':reactorformset, 'upload_error': upload_error, 
-                                             'input_error': input_error}, context_instance=RequestContext(request))
+    return render(request, 'input.html',
+                  {'uploadform': uploadform,
+                   'form': form,
+                   'thermolibformset':thermolibformset,
+                   'reactionlibformset': reactionlibformset,
+                   'reactorspecformset':reactorspecformset,
+                   'reactorformset': reactorformset,
+                   'upload_error': upload_error,
+                   'input_error': input_error,
+                   })
     
     
     
@@ -343,12 +349,13 @@ def plotKinetics(request):
         
                 
             
-        return render_to_response('plotKineticsData.html', {'kineticsDataList': kineticsDataList,
-                                                'plotWidth': 500,
-                                                'plotHeight': 400 + 15 * len(kineticsDataList),
-                                                'form': rateForm,
-                                                'eval':eval },
-                                         context_instance=RequestContext(request))
+        return render(request, 'plotKineticsData.html',
+                      {'kineticsDataList': kineticsDataList,
+                       'plotWidth': 500,
+                       'plotHeight': 400 + 15 * len(kineticsDataList),
+                       'form': rateForm,
+                       'eval': eval,
+                       })
 
     # Otherwise create the form
     else:
@@ -358,7 +365,7 @@ def plotKinetics(request):
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
         
-    return render_to_response('plotKinetics.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'plotKinetics.html', {'form': form})
 
 
 def javaKineticsLibrary(request):
@@ -379,9 +386,8 @@ def javaKineticsLibrary(request):
         
                 
             
-        return render_to_response('javaKineticsLibrary.html', {'form': form,
-                                                'eval': eval },
-                                         context_instance=RequestContext(request))
+        return render(request, 'javaKineticsLibrary.html',
+                      {'form': form, 'eval': eval})
 
     # Otherwise create the form
     else:
@@ -391,7 +397,7 @@ def javaKineticsLibrary(request):
         chemkin.deleteDir()
         form = UploadChemkinForm(instance=chemkin)
         
-    return render_to_response('javaKineticsLibrary.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'javaKineticsLibrary.html', {'form': form})
 
 
 def evaluateNASA(request):
@@ -420,4 +426,4 @@ def evaluateNASA(request):
         
         form = NASAForm(initial, error_class=DivErrorList)
     
-    return render_to_response('NASA.html', {'form': form, 'thermo':thermo, 'thermoData':thermoData}, context_instance=RequestContext(request))
+    return render(request, 'NASA.html', {'form': form, 'thermo':thermo, 'thermoData':thermoData})

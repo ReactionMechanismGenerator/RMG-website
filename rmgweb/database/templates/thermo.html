@@ -13,10 +13,10 @@ RMG Thermodynamics Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
-{% if section != '' %}<li><a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a></li>{% endif %}
-{% if subsection != '' %}<li><a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:thermo' %}">Thermodynamics</a></li>
+{% if section != '' %}<li><a href="{% url 'database:thermo' section=section %}">{{ section|title }}</a></li>{% endif %}
+{% if subsection != '' %}<li><a href="{% url 'database:thermo' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}
@@ -33,41 +33,41 @@ RMG Thermodynamics Database
 {% block page_body %}
 
 {% if section == '' %}
-<h2>1. <a href="{% url 'database.views.moleculeSearch' %}">Species Thermochemistry Search</a></h2>
+<h2>1. <a href="{% url 'molecule-search' %}">Species Thermochemistry Search</a></h2>
 {% endif %}
 
 {% if section == '' %}
-<h2>2. <a href="{% url 'database.views.thermo' section='depository' %}">Thermodynamics Depository</a></h2>
+<h2>2. <a href="{% url 'database:thermo' section='depository' %}">Thermodynamics Depository</a></h2>
 {% endif %}
 
 {% if section == 'depository' or section == '' %}
 <ul>
 {% for subsection, depository in thermoDepository %}
-<li><a href="{% url 'database.views.thermo' section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
+<li><a href="{% url 'database:thermo' section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}
 
 {% if section == '' %}
-<h2>3. <a href="{% url 'database.views.thermo' section='libraries' %}">Thermodynamics Libraries</a></h2>
+<h2>3. <a href="{% url 'database:thermo' section='libraries' %}">Thermodynamics Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
 <ul>
 {% for subsection, library in thermoLibraries %}
-<li><a href="{% url 'database.views.thermo' section='libraries' subsection=subsection %}">{{ library.label }}</a> ({{ library.entries|length }} entries)</li>
+<li><a href="{% url 'database:thermo' section='libraries' subsection=subsection %}">{{ library.label }}</a> ({{ library.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}
 
 {% if section == '' %}
-<h2>4. <a href="{% url 'database.views.thermo' section='groups' %}">Thermodynamics Groups</a></h2>
+<h2>4. <a href="{% url 'database:thermo' section='groups' %}">Thermodynamics Groups</a></h2>
 {% endif %}
 
 {% if section == 'groups' or section == '' %}
 <ul>
 {% for subsection, groups in thermoGroups %}
-    <li><a href="{% url 'database.views.thermo' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
+    <li><a href="{% url 'database:thermo' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}

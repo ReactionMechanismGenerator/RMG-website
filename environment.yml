@@ -28,7 +28,7 @@ dependencies:
   - symmetry
   - mopac
   - graphviz
-  - django ==1.8.4
+  - django >=1.11
   - beautifulsoup4
   - xlrd
   - docutils

@@ -13,10 +13,10 @@ RMG Solvation Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.solvation' %}">Solvation</a></li>
-<li><a href="{% url 'database.views.solvation' section=section %}">{{ section|title }}</a></li>
-<li><a href="{% url 'database.views.solvation' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:solvation' %}">Solvation</a></li>
+<li><a href="{% url 'database:solvation' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database:solvation' section=section subsection=subsection %}">{{ databaseName }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -35,7 +35,7 @@ RMG Solvation Database
 
 {% for index, label, structure, dataFormat in entries %}
 <tr>
-    <td><a href="{% url 'database.views.solvationEntry' section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
+    <td><a href="{% url 'database:solvation-entry' section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
     <td>{{ structure|safe }}</td>
     <td>{{ dataFormat }}</td>
 </tr>
