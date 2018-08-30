@@ -86,7 +86,7 @@ def load(request):
     Load the RMG database and redirect to the database homepage.
     """
     database.load()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('database:index'))
 
 def index(request):
     """
@@ -220,7 +220,7 @@ def transportEntry(request, section, subsection, index):
             index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
             index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse(transportEntry,
+        return HttpResponseRedirect(reverse('database:transport-entry',
                                             kwargs={'section': section,
                                                     'subsection': subsection,
                                                     'index': index,
@@ -265,7 +265,7 @@ def transportData(request, adjlist):
             entry = Entry(data=data)
         elif library in database.transport.libraries.values():
             source = library.label
-            href = reverse(transportEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+            href = reverse('database:transport-entry', kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         transportDataList.append((
             entry,
             data,
@@ -360,7 +360,7 @@ def solvationEntry(request, section, subsection, index):
             index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
             index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse(solvationEntry,
+        return HttpResponseRedirect(reverse('database:solvation-entry',
                                             kwargs={'section': section,
                                                     'subsection': subsection,
                                                     'index': index,
@@ -503,7 +503,7 @@ def statmechEntry(request, section, subsection, index):
             index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
             index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse(statmechEntry,
+        return HttpResponseRedirect(reverse('database:statmech-entry',
                                             kwargs={'section': section,
                                                     'subsection': subsection,
                                                     'index': index,
@@ -542,7 +542,7 @@ def statmechData(request, adjlist):
     symmetryNumber = species.getSymmetryNumber()
     statmechDataList = []   
     source = 'Solute Descriptors'
-    href = reverse(statmechEntry, kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
+    href = reverse('database:statmech-entry', kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
     statmechDataList.append((1, database.statmech.getSolventData(species.label), source, href))
     
     # Get the structure of the item we are viewing
@@ -637,7 +637,7 @@ def thermoEntry(request, section, subsection, index):
             index = min(entry.index for entry in db.entries.values() if entry.index > 0)
         else:
             index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse(thermoEntry,
+        return HttpResponseRedirect(reverse('database:thermo-entry',
                                             kwargs={'section': section,
                                                     'subsection': subsection,
                                                     'index': index,
@@ -710,10 +710,10 @@ def thermoData(request, adjlist):
             entry = Entry(data=data)
         elif library in database.thermo.depository.values():
             source = 'Depository'
-            href = reverse(thermoEntry, kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
+            href = reverse('database:thermo-entry', kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
         elif library in database.thermo.libraries.values():
             source = library.name
-            href = reverse(thermoEntry, kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
+            href = reverse('database:thermo-entry', kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
         thermoDataList.append((
             entry,
             data,
@@ -750,7 +750,7 @@ def getKineticsTreeHTML(database, section, subsection, entries):
     html = ''
     for entry in entries:
         # Write current node
-        url = reverse(kineticsEntry, kwargs={'section': section, 'subsection': subsection, 'index': entry.index})
+        url = reverse('database:kinetics-entry', kwargs={'section': section, 'subsection': subsection, 'index': entry.index})
         html += '<li class="kineticsEntry">\n'
         html += '<div class="kineticsLabel">'
         if len(entry.children) > 0:
@@ -1334,11 +1334,11 @@ def getReactionUrl(reaction, family=None, estimator=None, resonance=True):
         if estimator:
             kwargs['family'] = family
             kwargs['estimator'] = estimator.replace(' ','_')
-            reactionUrl = reverse(kineticsGroupEstimateEntry, kwargs=kwargs)
+            reactionUrl = reverse('database:kinetics-group', kwargs=kwargs)
         else:
             reactionUrl = ''
     else:
-        reactionUrl = reverse(kineticsData, kwargs=kwargs)
+        reactionUrl = reverse('database:kinetics-data', kwargs=kwargs)
     return reactionUrl
     
 
@@ -1379,7 +1379,7 @@ def kineticsEntryNew(request, family, type):
                                   'subsection': subsection,
                                   'index': entry.index,
                                   }
-                        forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                        forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
                         if type == 'training':
                             message = """
                             This reaction is already in the {0} training set.<br> 
@@ -1426,7 +1426,7 @@ def kineticsEntryNew(request, family, type):
                       'subsection': subsection,
                       'index': new_entry.index,
                       }
-            forward_url = reverse(kineticsEntry, kwargs=kwargs)
+            forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
             
             if False:
                 # Just return the text.
@@ -1544,7 +1544,7 @@ def kineticsEntryEdit(request, section, subsection, index):
                        'subsection': subsection,
                        'index': index,
                       }
-                forward_url = reverse(kineticsEntry, kwargs=kwargs)
+                forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
                 message = """
                 Changes saved succesfully:<br>
                 <pre>{0}</pre><br>
@@ -1638,7 +1638,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
                       'subsection': subsection,
                       'index': new_entry.index,
                       }
-            forward_url = reverse(thermoEntry, kwargs=kwargs)
+            forward_url = reverse('database:thermo-entry', kwargs=kwargs)
             
             if False:
                 # Just return the text.
@@ -1774,7 +1774,7 @@ def thermoEntryEdit(request, section, subsection, index):
                        'subsection': subsection,
                        'index': index,
                       }
-                forward_url = reverse(thermoEntry, kwargs=kwargs)
+                forward_url = reverse('database:thermo-entry', kwargs=kwargs)
                 message = """
                 Changes saved succesfully:<br>
                 <pre>{0}</pre><br>
@@ -1848,7 +1848,7 @@ def kineticsEntry(request, section, subsection, index):
             index = min(entry.index for entry in entries if entry.index > 0)
         else:
             index = max(entry.index for entry in entries if entry.index > 0)
-        return HttpResponseRedirect(reverse(kineticsEntry,
+        return HttpResponseRedirect(reverse('database:kinetics-entry',
                                             kwargs={'section': section,
                                                     'subsection': subsection,
                                                     'index': index,
@@ -1970,12 +1970,12 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
         if estimator == 'group_additivity':
             reference = rmgpy.data.reference.Reference(
                 url=request.build_absolute_uri(
-                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+                    reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/groups'})),
             )
         else:
             reference = rmgpy.data.reference.Reference(
                 url=request.build_absolute_uri(
-                    reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+                    reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/rules'})),
             )
         referenceType = ''
     else:
@@ -1999,12 +1999,12 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
             if estimator == 'group_additivity':
                 reference = rmgpy.data.reference.Reference(
                     url=request.build_absolute_uri(
-                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/groups'})),
+                        reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/groups'})),
                 )
             else:
                 reference = rmgpy.data.reference.Reference(
                     url=request.build_absolute_uri(
-                        reverse(kinetics, kwargs={'section': 'families', 'subsection': family + '/rules'})),
+                        reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/rules'})),
                 )
             referenceType = ''
 
@@ -2073,7 +2073,7 @@ def kineticsSearch(request):
 
             kwargs['resonance'] = form.cleaned_data['resonance']
 
-            return HttpResponseRedirect(reverse(kineticsResults, kwargs=kwargs))
+            return HttpResponseRedirect(reverse('database:kinetics-results', kwargs=kwargs))
     else:
         form = KineticsSearchForm()
 
@@ -2224,11 +2224,11 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             if 'untrained' in reaction.depository.name:
                 continue
             source = '%s' % (reaction.depository.name)
-            href = reverse(kineticsEntry, kwargs={'section': 'families', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
+            href = reverse('database:kinetics-entry', kwargs={'section': 'families', 'subsection': reaction.depository.label, 'index': reaction.entry.index})
             entry = reaction.entry
         elif isinstance(reaction, LibraryReaction):
             source = reaction.library.name
-            href = reverse(kineticsEntry, kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
+            href = reverse('database:kinetics-entry', kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
             entry = reaction.entry
         
         forwardKinetics = reaction.kinetics
@@ -2335,10 +2335,10 @@ def moleculeSearch(request):
 
         if adjlist is not None:
             if 'thermo' in request.POST:
-                return HttpResponseRedirect(reverse(thermoData, kwargs={'adjlist': adjlist}))
+                return HttpResponseRedirect(reverse('database:thermo-data', kwargs={'adjlist': adjlist}))
 
             if 'transport' in request.POST:
-                return HttpResponseRedirect(reverse(transportData, kwargs={'adjlist': adjlist}))
+                return HttpResponseRedirect(reverse('database:transport-data', kwargs={'adjlist': adjlist}))
 
             if 'reset' in request.POST:
                 form = MoleculeSearchForm()
@@ -2385,7 +2385,7 @@ def solvationSearch(request):
                     solvent = 'None'
         
             if 'solvation' in request.POST:
-                return HttpResponseRedirect(reverse(solvationData, kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
+                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
                     
             if 'reset' in request.POST:
                 form = SolvationSearchForm()

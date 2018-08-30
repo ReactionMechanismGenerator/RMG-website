@@ -66,7 +66,7 @@ def start(request):
     # Create and save a new Network
     network = Network(title='Untitled Network', user=request.user)
     network.save()
-    return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+    return HttpResponseRedirect(reverse('pdep:network-index',args=(network.pk,)))
 
 def networkIndex(request, networkKey):
     """
@@ -161,7 +161,7 @@ def networkEditor(request, networkKey):
             # Save the form
             network = form.save()
             # Go back to the network's main page
-            return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+            return HttpResponseRedirect(reverse('pdep:network-index',args=(network.pk,)))
     else:
         # Load the text from the input file into the inputText field
         network.loadInputText()
@@ -175,7 +175,7 @@ def networkDelete(request, networkKey):
     """
     network = get_object_or_404(Network, pk=networkKey)
     network.delete()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('pdep:index'))
 
 
 def networkUpload(request, networkKey):
@@ -194,7 +194,7 @@ def networkUpload(request, networkKey):
             # Load the text from the input file into the inputText field
             network.loadInputText()
             # Go back to the network's main page
-            return HttpResponseRedirect(reverse(networkIndex,args=(network.pk,)))
+            return HttpResponseRedirect(reverse('pdep:network-index',args=(network.pk,)))
     else:
         # Create the form
         form = UploadNetworkForm(instance=network)
@@ -217,7 +217,7 @@ def networkDrawPNG(request, networkKey):
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
+    return HttpResponseRedirect(reverse('pdep:network-index',args=(networkModel.pk,)))
 
 def networkDrawPDF(request, networkKey):
     """
@@ -236,7 +236,7 @@ def networkDrawPDF(request, networkKey):
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
+    return HttpResponseRedirect(reverse('pdep:network-index',args=(networkModel.pk,)))
 
 def networkDrawSVG(request, networkKey):
     """
@@ -254,7 +254,7 @@ def networkDrawSVG(request, networkKey):
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
+    return HttpResponseRedirect(reverse('pdep:network-index',args=(networkModel.pk,)))
 
 def networkRun(request, networkKey):
     """
@@ -272,7 +272,7 @@ def networkRun(request, networkKey):
     )
     
     # Go back to the network's main page
-    return HttpResponseRedirect(reverse(networkIndex,args=(networkModel.pk,)))
+    return HttpResponseRedirect(reverse('pdep:network-index',args=(networkModel.pk,)))
 
 def networkSpecies(request, networkKey, species):
     """
