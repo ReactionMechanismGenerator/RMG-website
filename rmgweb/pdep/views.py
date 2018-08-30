@@ -32,7 +32,7 @@ import os.path
 import time
 import re
 
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from django.http import Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -54,7 +54,7 @@ def index(request):
         networks = Network.objects.filter(user=request.user)
     else:
         networks = []
-    return render_to_response('pdep.html', {'networks': networks}, context_instance=RequestContext(request))
+    return render(request, 'pdep.html', {'networks': networks})
 
 @login_required
 def start(request):
@@ -137,19 +137,15 @@ def networkIndex(request, networkKey):
             kinetics = 'yes' if rxn.kinetics is not None else ''
             netReactionList.append((reactants, arrow, products, kinetics))
     
-    return render_to_response(
-        'networkIndex.html', 
-        {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'speciesList': speciesList, 
-            'pathReactionList': pathReactionList, 
-            'netReactionList': netReactionList, 
-            'filesize': filesize, 
-            'modificationTime': modificationTime,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkIndex.html',
+                  {'network': networkModel,
+                   'networkKey': networkKey,
+                   'speciesList': speciesList,
+                   'pathReactionList': pathReactionList,
+                   'netReactionList': netReactionList,
+                   'filesize': filesize,
+                   'modificationTime': modificationTime,
+                   })
 
 def networkEditor(request, networkKey):
     """
@@ -171,7 +167,7 @@ def networkEditor(request, networkKey):
         network.loadInputText()
         # Create the form
         form = EditNetworkForm(instance=network)
-    return render_to_response('networkEditor.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
+    return render(request, 'networkEditor.html', {'network': network, 'networkKey': networkKey, 'form': form})
 
 def networkDelete(request, networkKey):
     """
@@ -202,7 +198,7 @@ def networkUpload(request, networkKey):
     else:
         # Create the form
         form = UploadNetworkForm(instance=network)
-    return render_to_response('networkUpload.html', {'network': network, 'networkKey': networkKey, 'form': form}, context_instance=RequestContext(request))
+    return render(request, 'networkUpload.html', {'network': network, 'networkKey': networkKey, 'form': form})
 
 def networkDrawPNG(request, networkKey):
     """
@@ -302,19 +298,15 @@ def networkSpecies(request, networkKey, species):
         if conformer.E0:
             E0 = '{0:g}'.format(conformer.E0.value_si / 4184.)  # convert to kcal/mol
     
-    return render_to_response(
-        'networkSpecies.html', 
-        {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'species': species, 
-            'label': label,
-            'structure': structure,
-            'E0': E0,
-            'hasTorsions': hasTorsions,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkSpecies.html',
+                  {'network': networkModel,
+                   'networkKey': networkKey,
+                   'species': species,
+                   'label': label,
+                   'structure': structure,
+                   'E0': E0,
+                   'hasTorsions': hasTorsions,
+                   })
 
 def computeMicrocanonicalRateCoefficients(network, T=1000):
     """
@@ -464,24 +456,20 @@ def networkPathReaction(request, networkKey, reaction):
     products_render = ' + '.join([getStructureMarkup(product) for product in reaction.products])
     arrow = '&hArr;' if reaction.reversible else '&rarr;'
     
-    return render_to_response(
-        'networkPathReaction.html', 
-        {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'reaction': reaction, 
-            'index': index,
-            'reactants': reactants_render,
-            'products': products_render,
-            'arrow': arrow,
-            'E0': E0,
-            'conformer': conformer,
-            'hasTorsions': hasTorsions,
-            'kinetics': kinetics,
-            'microcanonicalRates': microcanonicalRates,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkPathReaction.html',
+                  {'network': networkModel,
+                   'networkKey': networkKey,
+                   'reaction': reaction,
+                   'index': index,
+                   'reactants': reactants_render,
+                   'products': products_render,
+                   'arrow': arrow,
+                   'E0': E0,
+                   'conformer': conformer,
+                   'hasTorsions': hasTorsions,
+                   'kinetics': kinetics,
+                   'microcanonicalRates': microcanonicalRates,
+                   })
 
 def networkNetReaction(request, networkKey, reaction):
     """
@@ -506,20 +494,16 @@ def networkNetReaction(request, networkKey, reaction):
     
     kinetics = reaction.kinetics
     
-    return render_to_response(
-        'networkNetReaction.html', 
-        {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'reaction': reaction, 
-            'index': index,
-            'reactants': reactants,
-            'products': products,
-            'arrow': arrow,
-            'kinetics': kinetics,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkNetReaction.html',
+                  {'network': networkModel,
+                   'networkKey': networkKey,
+                   'reaction': reaction,
+                   'index': index,
+                   'reactants': reactants,
+                   'products': products,
+                   'arrow': arrow,
+                   'kinetics': kinetics,
+                   })
 
 def networkPlotKinetics(request, networkKey):
     """
@@ -559,20 +543,16 @@ def networkPlotKinetics(request, networkKey):
             products = u' + '.join([spec.label for spec in rxn.products])
             kineticsSet[products] = rxn.kinetics
     
-    return render_to_response(
-        'networkPlotKinetics.html', 
-        {
-            'form': form,
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'configurations': configurations, 
-            'source': source,
-            'kineticsSet': kineticsSet,
-            'T': T,
-            'P': P,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkPlotKinetics.html',
+                  {'form': form,
+                   'network': networkModel,
+                   'networkKey': networkKey,
+                   'configurations': configurations,
+                   'source': source,
+                   'kineticsSet': kineticsSet,
+                   'T': T,
+                   'P': P,
+                   })
 
 def networkPlotMicro(request, networkKey):
     """
@@ -663,13 +643,9 @@ def networkPlotMicro(request, networkKey):
                 'kdata': list(krlist),
             })
     
-    return render_to_response(
-        'networkPlotMicro.html', 
-        {
-            'network': networkModel, 
-            'networkKey': networkKey, 
-            'densityOfStatesData': densityOfStatesData,
-            'microKineticsData': microKineticsData,
-        }, 
-        context_instance=RequestContext(request),
-    )
+    return render(request, 'networkPlotMicro.html',
+                  {'network': networkModel,
+                   'networkKey': networkKey,
+                   'densityOfStatesData': densityOfStatesData,
+                   'microKineticsData': microKineticsData,
+                   })

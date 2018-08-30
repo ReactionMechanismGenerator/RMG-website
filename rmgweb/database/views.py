@@ -47,7 +47,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 import rmgpy
@@ -92,7 +92,7 @@ def index(request):
     """
     The RMG database homepage.
     """
-    return render_to_response('database.html', context_instance=RequestContext(request))
+    return render(request, 'database.html')
 
 def export(request, type):
     """
@@ -183,7 +183,7 @@ def transport(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('transportTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render(request, 'transportTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries})
 
     else:
         # No subsection was specified, so render an outline of the transport
@@ -192,7 +192,7 @@ def transport(request, section='', subsection=''):
         transportLibraries.sort()
         transportGroups = [(label, groups) for label, groups in database.transport.groups.iteritems()]
         transportGroups.sort()
-        return render_to_response('transport.html', {'section': section, 'subsection': subsection, 'transportLibraries': transportLibraries, 'transportGroups': transportGroups}, context_instance=RequestContext(request))
+        return render(request, 'transport.html', {'section': section, 'subsection': subsection, 'transportLibraries': transportLibraries, 'transportGroups': transportGroups})
     
 def transportEntry(request, section, subsection, index):
     """
@@ -239,7 +239,7 @@ def transportEntry(request, section, subsection, index):
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport}, context_instance=RequestContext(request))
+    return render(request, 'transportEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'transport': transport})
 
 def transportData(request, adjlist):
     """
@@ -276,7 +276,7 @@ def transportData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render_to_response('transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+    return render(request, 'transportData.html', {'molecule': molecule, 'structure': structure, 'transportDataList': transportDataList, 'symmetryNumber': symmetryNumber})
 
 #################################################################################################################################################
 
@@ -321,7 +321,7 @@ def solvation(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('solvationTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render(request, 'solvationTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries})
 
     else:
         # No subsection was specified, so render an outline of the solvation
@@ -332,7 +332,7 @@ def solvation(request, section='', subsection=''):
         solvationLibraries.sort()
         solvationGroups = [(label, groups) for label, groups in database.solvation.groups.iteritems()]
         solvationGroups.sort()
-        return render_to_response('solvation.html', {'section': section, 'subsection': subsection, 'solvationLibraries': solvationLibraries, 'solvationGroups': solvationGroups}, context_instance=RequestContext(request))
+        return render(request, 'solvation.html', {'section': section, 'subsection': subsection, 'solvationLibraries': solvationLibraries, 'solvationGroups': solvationGroups})
     
 def solvationEntry(request, section, subsection, index):
     """
@@ -379,7 +379,7 @@ def solvationEntry(request, section, subsection, index):
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation}, context_instance=RequestContext(request))
+    return render(request, 'solvationEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'solvation': solvation})
 
 def solvationData(request, solute_adjlist, solvent=''):
     """
@@ -425,7 +425,7 @@ def solvationData(request, solute_adjlist, solvent=''):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render_to_response('solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'solventDataInfo': solventDataInfo}, context_instance=RequestContext(request))
+    return render(request, 'solvationData.html', {'molecule': molecule, 'structure': structure, 'solvationDataList': solvationDataList, 'solventDataInfo': solventDataInfo})
 
 
 #################################################################################################################################################
@@ -464,7 +464,7 @@ def statmech(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('statmechTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render(request, 'statmechTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries})
 
     else:
         # No subsection was specified, so render an outline of the statmech
@@ -475,7 +475,7 @@ def statmech(request, section='', subsection=''):
         statmechLibraries.sort()
         statmechGroups = [name for name in database.statmech.groups.iteritems()]
         statmechGroups.sort()
-        return render_to_response('statmech.html', {'section': section, 'subsection': subsection, 'statmechDepository': statmechDepository, 'statmechLibraries': statmechLibraries, 'statmechGroups': statmechGroups}, context_instance=RequestContext(request))
+        return render(request, 'statmech.html', {'section': section, 'subsection': subsection, 'statmechDepository': statmechDepository, 'statmechLibraries': statmechLibraries, 'statmechGroups': statmechGroups})
     
 def statmechEntry(request, section, subsection, index):
     """
@@ -522,7 +522,7 @@ def statmechEntry(request, section, subsection, index):
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('statmechEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'statmech': statmech}, context_instance=RequestContext(request))
+    return render(request, 'statmechEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'statmech': statmech})
 
 def statmechData(request, adjlist):
     """
@@ -548,7 +548,7 @@ def statmechData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render_to_response('statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmechDataList, 'symmetryNumber': symmetryNumber}, context_instance=RequestContext(request))
+    return render(request, 'statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmechDataList, 'symmetryNumber': symmetryNumber})
 
 #################################################################################################################################################
 
@@ -597,7 +597,7 @@ def thermo(request, section='', subsection=''):
                 
             entries.append((entry.index,entry.label,structure,dataFormat))
 
-        return render_to_response('thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries}, context_instance=RequestContext(request))
+        return render(request, 'thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries})
 
     else:
         # No subsection was specified, so render an outline of the thermo
@@ -608,7 +608,7 @@ def thermo(request, section='', subsection=''):
         #If they weren't already sorted in our preferred order, we'd call thermoLibraries.sort()
         thermoGroups = [(label, groups) for label, groups in database.thermo.groups.iteritems()]
         thermoGroups.sort()
-        return render_to_response('thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups}, context_instance=RequestContext(request))
+        return render(request, 'thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups})
 
 def thermoEntry(request, section, subsection, index):
     """
@@ -673,7 +673,7 @@ def thermoEntry(request, section, subsection, index):
         
     referenceType = ''
     reference = entry.reference
-    return render_to_response('thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string}, context_instance=RequestContext(request))
+    return render(request, 'thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string':nasa_string})
 
 
 def thermoData(request, adjlist):
@@ -725,7 +725,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render_to_response('thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)}, context_instance=RequestContext(request))
+    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)})
 
 ################################################################################
 
@@ -1275,7 +1275,7 @@ def kinetics(request, section='', subsection=''):
 
             entries.append(entry)
             
-        return render_to_response('kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'databaseDesc':db.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase}, context_instance=RequestContext(request))
+        return render(request, 'kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'databaseDesc':db.longDesc,'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase})
 
     else:
         # No subsection was specified, so render an outline of the kinetics
@@ -1289,7 +1289,7 @@ def kinetics(request, section='', subsection=''):
             family.depositories.append(getUntrainedReactions(family))
         kineticsFamilies = [(label, family) for label, family in database.kinetics.families.iteritems() if subsection in label]
         kineticsFamilies.sort()
-        return render_to_response('kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies}, context_instance=RequestContext(request))
+        return render(request, 'kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies})
 
 def kineticsUntrained(request, family):
     database.load('kinetics', 'families')
@@ -1308,7 +1308,7 @@ def kineticsUntrained(request, family):
         entry['arrow'] = '&hArr;' if entry0.item.reversible else '&rarr;'
         
         entries.append(entry)
-    return render_to_response('kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False}, context_instance=RequestContext(request))
+    return render(request, 'kineticsTable.html', {'section': 'families', 'subsection': family, 'databaseName': '{0}/untrained'.format(family), 'entries': entries, 'tree': None, 'isGroupDatabase': False})
 
 def getReactionUrl(reaction, family=None, estimator=None, resonance=True):
     """
@@ -1392,11 +1392,8 @@ def kineticsEntryNew(request, family, type):
                             View or edit it at <a href="{1}">{1}</a>.
                             """.format(subsection, forward_url)
                             title = '- Entry already in {0}.'.format(subsection)
-                        return render_to_response('simple.html',
-                                                  {'title': title,
-                                                   'body': message,
-                                                   },
-                                                  context_instance=RequestContext(request))
+                        return render(request, 'simple.html',
+                                      {'title': title, 'body': message})
 
             if type == 'NIST':
                 squib = new_entry.label
@@ -1405,11 +1402,10 @@ def kineticsEntryNew(request, family, type):
                 if not isinstance(new_entry, Entry):
                     url = 'http://nist.kinetics.gov/kinetics/Detail?id={0}'.format(squib)
                     message = 'Error in grabbing kinetics from <a href="{0}">NIST</a>.<br>{1}'.format(url, new_entry)
-                    return render_to_response('simple.html',
-                                              {'title': 'Error in grabbing kinetics for {0}.'.format(squib),
-                                               'body': message,
-                                               },
-                                              context_instance=RequestContext(request))
+                    return render(request, 'simple.html',
+                                  {'title': 'Error in grabbing kinetics for {0}.'.format(squib),
+                                   'body': message,
+                                   })
                 msg = 'Imported from NIST database at {0}'.format(new_entry.reference.url)
             else:
                 msg = form.cleaned_data['change']
@@ -1457,21 +1453,18 @@ def kineticsEntryNew(request, family, type):
                 <pre>{0}</pre><br>
                 See result at <a href="{1}">{1}</a>.
                 """.format(commit_result, forward_url)
-                return render_to_response('simple.html', { 
-                    'title': '',
-                    'body': message,
-                    },
-                    context_instance=RequestContext(request))
+                return render(request, 'simple.html',
+                              {'title': '', 'body': message})
     else: # not POST
         form = KineticsEntryEditForm()
 
-    return render_to_response('kineticsEntryEdit.html', {'section': 'families',
-                                                        'subsection': subsection,
-                                                        'databaseName': family,
-                                                        'entry': entry,
-                                                        'form': form,
-                                                        },
-                                  context_instance=RequestContext(request))
+    return render(request, 'kineticsEntryEdit.html',
+                  {'section': 'families',
+                   'subsection': subsection,
+                   'databaseName': family,
+                   'entry': entry,
+                   'form': form,
+                   })
 
 
 @login_required
@@ -1523,14 +1516,14 @@ def kineticsEntryEdit(request, section, subsection, index):
                 return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
-                return render_to_response('kineticsEntry.html', {'section': section,
-                                                         'subsection': subsection,
-                                                         'databaseName': db.name,
-                                                         'entry': new_entry,
-                                                         'reference': entry.reference,
-                                                         'kinetics': entry.data,
-                                                         },
-                              context_instance=RequestContext(request))
+                return render(request, 'kineticsEntry.html',
+                              {'section': section,
+                               'subsection': subsection,
+                               'databaseName': db.name,
+                               'entry': new_entry,
+                               'reference': entry.reference,
+                               'kinetics': entry.data,
+                               })
             if True:
                 # save it
                 db.entries[index] = new_entry
@@ -1557,11 +1550,10 @@ def kineticsEntryEdit(request, section, subsection, index):
                 <pre>{0}</pre><br>
                 See result at <a href="{1}">{1}</a>.
                 """.format(commit_result, forward_url)
-                return render_to_response('simple.html', { 
-                    'title': 'Change saved successfully.',
-                    'body': message,
-                    },
-                    context_instance=RequestContext(request))
+                return render(request, 'simple.html',
+                              {'title': 'Change saved successfully.',
+                               'body': message,
+                               })
             
             # redirect
             return HttpResponseRedirect(forward_url)
@@ -1586,13 +1578,13 @@ def kineticsEntryEdit(request, section, subsection, index):
         
         form = KineticsEntryEditForm(initial={'entry':entry_string })
     
-    return render_to_response('kineticsEntryEdit.html', {'section': section,
-                                                        'subsection': subsection,
-                                                        'databaseName': db.name,
-                                                        'entry': entry,
-                                                        'form': form,
-                                                        },
-                                  context_instance=RequestContext(request))
+    return render(request, 'kineticsEntryEdit.html',
+                  {'section': section,
+                   'subsection': subsection,
+                   'databaseName': db.name,
+                   'entry': entry,
+                   'form': form,
+                   })
 
 @login_required
 def thermoEntryNew(request, section, subsection, adjlist):
@@ -1673,11 +1665,8 @@ def thermoEntryNew(request, section, subsection, adjlist):
                 <pre>{0}</pre><br>
                 See result at <a href="{1}">{1}</a>.
                 """.format(commit_result, forward_url)
-                return render_to_response('simple.html', { 
-                    'title': '',
-                    'body': message,
-                    },
-                    context_instance=RequestContext(request))
+                return render(request, 'simple.html',
+                              {'title': '', 'body': message})
     else: # not POST
         entry_string ="""
 label = "{label}",
@@ -1699,13 +1688,13 @@ longDesc =
 
         form = ThermoEntryEditForm(initial={'entry':entry_string })
 
-    return render_to_response('thermoEntryEdit.html', {'section': section,
-                                                        'subsection': subsection,
-                                                        'databaseName': db.name,
-                                                        'entry': entry,
-                                                        'form': form,
-                                                        },
-                                  context_instance=RequestContext(request))
+    return render(request, 'thermoEntryEdit.html',
+                  {'section': section,
+                   'subsection': subsection,
+                   'databaseName': db.name,
+                   'entry': entry,
+                   'form': form,
+                   })
     
 
 @login_required
@@ -1757,14 +1746,14 @@ def thermoEntryEdit(request, section, subsection, index):
                 return HttpResponse(entry_string, content_type="text/plain")
             if False:
                 # Render it as if it were saved.
-                return render_to_response('thermoEntry.html', {'section': section,
-                                                         'subsection': subsection,
-                                                         'databaseName': db.name,
-                                                         'entry': new_entry,
-                                                         'reference': entry.reference,
-                                                         'kinetics': entry.data,
-                                                         },
-                              context_instance=RequestContext(request))
+                return render(request, 'thermoEntry.html',
+                              {'section': section,
+                               'subsection': subsection,
+                               'databaseName': db.name,
+                               'entry': new_entry,
+                               'reference': entry.reference,
+                               'kinetics': entry.data,
+                               })
             if True:
                 # save it
                 db.entries[index] = new_entry
@@ -1791,11 +1780,10 @@ def thermoEntryEdit(request, section, subsection, index):
                 <pre>{0}</pre><br>
                 See result at <a href="{1}">{1}</a>.
                 """.format(commit_result, forward_url)
-                return render_to_response('simple.html', { 
-                    'title': 'Change saved successfully.',
-                    'body': message,
-                    },
-                    context_instance=RequestContext(request))
+                return render(request, 'simple.html',
+                              {'title': 'Change saved successfully.',
+                               'body': message,
+                               })
             
             # redirect
             return HttpResponseRedirect(forward_url)
@@ -1820,13 +1808,13 @@ def thermoEntryEdit(request, section, subsection, index):
         
         form = ThermoEntryEditForm(initial={'entry':entry_string })
     
-    return render_to_response('thermoEntryEdit.html', {'section': section,
-                                                        'subsection': subsection,
-                                                        'databaseName': db.name,
-                                                        'entry': entry,
-                                                        'form': form,
-                                                        },
-                                  context_instance=RequestContext(request))
+    return render(request, 'thermoEntryEdit.html',
+                  {'section': section,
+                   'subsection': subsection,
+                   'databaseName': db.name,
+                   'entry': entry,
+                   'form': form,
+                   })
 
 
 def kineticsEntry(request, section, subsection, index):
@@ -1879,15 +1867,15 @@ def kineticsEntry(request, section, subsection, index):
     
     if isinstance(db, KineticsGroups):
         structure = getStructureInfo(entry.item)
-        return render_to_response('kineticsEntry.html', {'section': section,
-                                                         'subsection': subsection,
-                                                         'databaseName': db.name,
-                                                         'entry': entry,
-                                                         'structure': structure,
-                                                         'reference': reference,
-                                                         'referenceType': referenceType,
-                                                         },
-                                  context_instance=RequestContext(request))
+        return render(request, 'kineticsEntry.html',
+                      {'section': section,
+                       'subsection': subsection,
+                       'databaseName': db.name,
+                       'entry': entry,
+                       'structure': structure,
+                       'reference': reference,
+                       'referenceType': referenceType,
+                       })
     else:
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.reactants])
         products = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.products])
@@ -1898,17 +1886,18 @@ def kineticsEntry(request, section, subsection, index):
         reactionUrl = getReactionUrl(entry.item)
 
         
-        return render_to_response('kineticsEntry.html', {'section': section,
-                                                        'subsection': subsection,
-                                                        'databaseName': db.name,
-                                                        'entry': entry,
-                                                        'reactants': reactants,
-                                                        'arrow': arrow,
-                                                        'products': products,
-                                                        'reference': reference,
-                                                        'referenceType': referenceType,
-                                                        'reactionUrl': reactionUrl },
-                                  context_instance=RequestContext(request))
+        return render(request, 'kineticsEntry.html',
+                      {'section': section,
+                       'subsection': subsection,
+                       'databaseName': db.name,
+                       'entry': entry,
+                       'reactants': reactants,
+                       'arrow': arrow,
+                       'products': products,
+                       'reference': reference,
+                       'referenceType': referenceType,
+                       'reactionUrl': reactionUrl,
+                       })
 
 
 def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, reactant2='', reactant3='', product2='', product3='', resonance=True):
@@ -2026,23 +2015,23 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
 
     assert not (entry and entry_list), 'Either `entry` or `entry_list` should have a value, not both.'
 
-    return render_to_response('kineticsEntry.html', {'section': 'families',
-                                                     'subsection': family,
-                                                     'databaseName': family,
-                                                     'reactants': reactants,
-                                                     'arrow': arrow,
-                                                     'products': products,
-                                                     'reference': reference,
-                                                     'referenceType': referenceType,
-                                                     'entry': entry,
-                                                     'entry_list': entry_list,
-                                                     'forward': True,
-                                                     'reactionUrl': reactionUrl,
-                                                     'reaction': reaction0,
-                                                     'plotWidth': 500,
-                                                     'plotHeight': 400 + 15 * len(entry_list),
-                                                     },
-                              context_instance=RequestContext(request))
+    return render(request, 'kineticsEntry.html',
+                  {'section': 'families',
+                   'subsection': family,
+                   'databaseName': family,
+                   'reactants': reactants,
+                   'arrow': arrow,
+                   'products': products,
+                   'reference': reference,
+                   'referenceType': referenceType,
+                   'entry': entry,
+                   'entry_list': entry_list,
+                   'forward': True,
+                   'reactionUrl': reactionUrl,
+                   'reaction': reaction0,
+                   'plotWidth': 500,
+                   'plotHeight': 400 + 15 * len(entry_list),
+                   })
     
 
 def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
@@ -2052,7 +2041,7 @@ def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParam
     reference = ''
     referenceType = ''
     arrow = '&hArr;'
-    return render_to_response('kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': referenceType, 'kinetics': entry.data}, context_instance=RequestContext(request))
+    return render(request, 'kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': referenceType, 'kinetics': entry.data})
 
 def kineticsSearch(request):
     """
@@ -2088,7 +2077,7 @@ def kineticsSearch(request):
     else:
         form = KineticsSearchForm()
 
-    return render_to_response('kineticsSearch.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'kineticsSearch.html', {'form': form})
 
 def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
@@ -2145,7 +2134,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         else:
             reactionDataList.append([products, arrow, reactants, count, reactionUrl])
         
-    return render_to_response('kineticsResults.html', {'reactionDataList': reactionDataList}, context_instance=RequestContext(request))
+    return render(request, 'kineticsResults.html', {'reactionDataList': reactionDataList})
 
 def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
     """
@@ -2293,18 +2282,18 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
 
-    return render_to_response('kineticsData.html', {'kineticsDataList': kineticsDataList,
-                                                    'plotWidth': 500,
-                                                    'plotHeight': 400 + 15 * len(kineticsDataList),
-                                                    'reactantList': reactantList,
-                                                    'productList': productList,
-                                                    'reverseReactionURL':reverseReactionURL,
-                                                    'form':rateForm,
-                                                    'eval':eval,
-                                                    'new_entry_form':new_entry_form,
-                                                    'subsection':family
-                                                    },
-                                             context_instance=RequestContext(request))
+    return render(request, 'kineticsData.html',
+                  {'kineticsDataList': kineticsDataList,
+                   'plotWidth': 500,
+                   'plotHeight': 400 + 15 * len(kineticsDataList),
+                   'reactantList': reactantList,
+                   'productList': productList,
+                   'reverseReactionURL':reverseReactionURL,
+                   'form':rateForm,
+                   'eval':eval,
+                   'new_entry_form':new_entry_form,
+                   'subsection':family
+                   })
 
 def moleculeSearch(request):
     """
@@ -2362,14 +2351,14 @@ def moleculeSearch(request):
             except Exception:
                 pass
     
-    return render_to_response('moleculeSearch.html',
-                              {'structure_markup': structure_markup,
-                               'molecule': molecule,
-                               'smiles': smiles,
-                               'inchi': inchi,
-                               'form': form,
-                               'oldAdjlist': oldAdjlist},
-                              context_instance=RequestContext(request))
+    return render(request, 'moleculeSearch.html',
+                  {'structure_markup': structure_markup,
+                   'molecule': molecule,
+                   'smiles': smiles,
+                   'inchi': inchi,
+                   'form': form,
+                   'oldAdjlist': oldAdjlist,
+                   })
 
 
 def solvationSearch(request):
@@ -2403,7 +2392,7 @@ def solvationSearch(request):
                 structure_markup = ''
                 molecule = Molecule()
             
-    return render_to_response('solvationSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form}, context_instance=RequestContext(request))
+    return render(request, 'solvationSearch.html', {'structure_markup':structure_markup,'molecule':molecule,'form': form})
     
 def groupDraw(request):
     """
@@ -2431,7 +2420,7 @@ def groupDraw(request):
             structure_markup = ''
             group = Group()
     
-    return render_to_response('groupDraw.html', {'structure_markup':structure_markup,'group':group,'form': form}, context_instance=RequestContext(request))
+    return render(request, 'groupDraw.html', {'structure_markup':structure_markup,'group':group,'form': form})
 
 def EniSearch(request):
     """
@@ -2472,7 +2461,7 @@ def EniSearch(request):
         logK_BA = 0        
         form = EniSearchForm()            
             
-    return render_to_response('EniSearch.html', {'detergentA': detergentA, 'detergentB': detergentB, 'depositA': depositA, 'depositB': depositB, 'logKAB': logK_AB, 'logKBA': logK_BA, 'form': form}, context_instance=RequestContext(request))
+    return render(request, 'EniSearch.html', {'detergentA': detergentA, 'detergentB': detergentB, 'depositA': depositA, 'depositB': depositB, 'logKAB': logK_AB, 'logKBA': logK_BA, 'form': form})
     
 def moleculeEntry(request,adjlist):
     """
@@ -2490,7 +2479,7 @@ def moleculeEntry(request,adjlist):
         oldAdjlist = molecule.toAdjacencyList(removeH=True,oldStyle=True)
     except:
         pass
-    return render_to_response('moleculeEntry.html',{'structure':structure,'molecule':molecule,'oldAdjlist':oldAdjlist}, context_instance=RequestContext(request))
+    return render(request, 'moleculeEntry.html',{'structure':structure,'molecule':molecule,'oldAdjlist':oldAdjlist})
 
 def groupEntry(request,adjlist):
     """
@@ -2502,7 +2491,7 @@ def groupEntry(request,adjlist):
     group = Group().fromAdjacencyList(adjlist)
     structure = getStructureInfo(group)
     
-    return render_to_response('groupEntry.html',{'structure':structure,'group':group}, context_instance=RequestContext(request))
+    return render(request, 'groupEntry.html',{'structure':structure,'group':group})
 
 def json_to_adjlist(request):
     """
