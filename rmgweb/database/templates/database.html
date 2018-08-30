@@ -7,7 +7,7 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -16,46 +16,46 @@
 {% block page_title %}RMG Database{% endblock %}
 
 {% block page_body %}
-<h2><a href="{% url 'database.views.kinetics' %}">Kinetics Database</a></h2>
+<h2><a href="{% url 'database:kinetics' %}">Kinetics Database</a></h2>
 
 <ul>
-<li> <a href="{% url 'database.views.kineticsSearch' %}">Kinetics Search</a></li>
-<li><a href="{% url 'database.views.kinetics' section='libraries' %}">Kinetics Libraries</a></li>
-<li><a href="{% url 'database.views.kinetics' section='families' %}">Kinetics Families</a></li>
+<li> <a href="{% url 'database:kinetics-search' %}">Kinetics Search</a></li>
+<li><a href="{% url 'database:kinetics' section='libraries' %}">Kinetics Libraries</a></li>
+<li><a href="{% url 'database:kinetics' section='families' %}">Kinetics Families</a></li>
 </ul>
 
-<h2><a href="{% url 'database.views.solvation' %}">Solvation Database</a></h2>
+<h2><a href="{% url 'database:solvation' %}">Solvation Database</a></h2>
 
 <ul>
-<li><a href="{% url 'database.views.solvationSearch' %}">Solvation Search</a></li>
-<li><a href="{% url 'database.views.solvation' section='libraries' %}">Solvation Libraries</a></li>
-<li><a href="{% url 'database.views.solvation' section='groups' %}">Solvation Groups</a></li>
+<li><a href="{% url 'database:solvation-search' %}">Solvation Search</a></li>
+<li><a href="{% url 'database:solvation' section='libraries' %}">Solvation Libraries</a></li>
+<li><a href="{% url 'database:solvation' section='groups' %}">Solvation Groups</a></li>
 </ul>
 
-<h2><a href="{% url 'database.views.statmech' %}">Statmech Database</a></h2>
+<h2><a href="{% url 'database:statmech' %}">Statmech Database</a></h2>
 
 <ul>
-<li><a href="{% url 'database.views.moleculeSearch' %}">Statmech Search</a></li>
-<li><a href="{% url 'database.views.statmech' section='depository' %}">Statmech Depository</a></li>
-<li><a href="{% url 'database.views.statmech' section='libraries' %}">Statmech Libraries</a></li>
-<li><a href="{% url 'database.views.statmech' section='groups' %}">Statmech Groups</a></li>
+<li><a href="{% url 'molecule-search' %}">Statmech Search</a></li>
+<li><a href="{% url 'database:statmech' section='depository' %}">Statmech Depository</a></li>
+<li><a href="{% url 'database:statmech' section='libraries' %}">Statmech Libraries</a></li>
+<li><a href="{% url 'database:statmech' section='groups' %}">Statmech Groups</a></li>
 </ul>
 
-<h2><a href="{% url 'database.views.thermo' %}">Thermodynamics Database</a></h2>
+<h2><a href="{% url 'database:thermo' %}">Thermodynamics Database</a></h2>
 
 <ul>
-<li><a href="{% url 'database.views.moleculeSearch' %}">Species Thermodynamics Search</a></li>
-<li><a href="{% url 'database.views.thermo' section='depository' %}">Thermodynamics Depository</a></li>
-<li><a href="{% url 'database.views.thermo' section='libraries' %}">Thermodynamics Libraries</a></li>
-<li><a href="{% url 'database.views.thermo' section='groups' %}">Thermodynamics Groups</a></li>
+<li><a href="{% url 'molecule-search' %}">Species Thermodynamics Search</a></li>
+<li><a href="{% url 'database:thermo' section='depository' %}">Thermodynamics Depository</a></li>
+<li><a href="{% url 'database:thermo' section='libraries' %}">Thermodynamics Libraries</a></li>
+<li><a href="{% url 'database:thermo' section='groups' %}">Thermodynamics Groups</a></li>
 </ul>
 
-<h2><a href="{% url 'database.views.transport' %}">Transport Database</a></h2>
+<h2><a href="{% url 'database:transport' %}">Transport Database</a></h2>
 
 <ul>
-<li><a href="{% url 'database.views.moleculeSearch' %}">Transport Search</a></li>
-<li><a href="{% url 'database.views.transport' section='libraries' %}">Transport Libraries</a></li>
-<li><a href="{% url 'database.views.transport' section='groups' %}">Transport Groups</a></li>
+<li><a href="{% url 'molecule-search' %}">Transport Search</a></li>
+<li><a href="{% url 'database:transport' section='libraries' %}">Transport Libraries</a></li>
+<li><a href="{% url 'database:transport' section='groups' %}">Transport Groups</a></li>
 </ul>
 
 <h3><a href="https://github.com/ReactionMechanismGenerator/RMG-database/archive/{{ dc }}.zip" target="_blank">Download Database</a></h3>

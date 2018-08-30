@@ -15,10 +15,10 @@ RMG Kinetics Database
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-{% if section != '' %}<li><a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a></li>{% endif %}
-{% if subsection != '' %}<li><a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+{% if section != '' %}<li><a href="{% url 'database:kinetics' section=section %}">{{ section|title }}</a></li>{% endif %}
+{% if subsection != '' %}<li><a href="{% url 'database:kinetics' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
 {% endblock %}
 
 {% block sidebar_items %}
@@ -36,9 +36,9 @@ RMG Kinetics Database
 
 
 {% if section == '' %}
-<h2>1. <a href="{% url 'database.views.kineticsSearch' %}">Search Reaction Kinetics</a></h2>
+<h2>1. <a href="{% url 'database:kinetics-search' %}">Search Reaction Kinetics</a></h2>
 
-<h2>2. <a href="{% url 'database.views.kinetics' section='libraries' %}">Kinetics Libraries</a></h2>
+<h2>2. <a href="{% url 'database:kinetics' section='libraries' %}">Kinetics Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
@@ -47,7 +47,7 @@ RMG Kinetics Database
 <table class="kineticsData">
 {% for subsection, library in kineticsLibraries %}
     <tr>
-        <td><a href="{% url 'database.views.kinetics' section='libraries' subsection=subsection %}">{{ library.label }}</a></td>
+        <td><a href="{% url 'database:kinetics' section='libraries' subsection=subsection %}">{{ library.label }}</a></td>
         <td>({{ library.entries|length }} entries)</td>
         <td>{{ library.shortDesc}}</td>
     </tr>
@@ -57,7 +57,7 @@ RMG Kinetics Database
 {% endif %}
 
 {% if section == '' %}
-<h2>3. <a href="{% url 'database.views.kinetics' section='families' %}">Kinetics Families</a></h2>
+<h2>3. <a href="{% url 'database:kinetics' section='families' %}">Kinetics Families</a></h2>
 {% endif %}
 
 {% if section == 'families' or section == '' %}
@@ -65,16 +65,16 @@ RMG Kinetics Database
 <table class="kineticsData">
 {% for subsection, family in kineticsFamilies %}
     <tr>
-        <td><a href="{% url 'database.views.kinetics' section='families' subsection=subsection %}">{{ family.name }}</a></td>
+        <td><a href="{% url 'database:kinetics' section='families' subsection=subsection %}">{{ family.name }}</a></td>
         <td>        
         	<ul>
-            <li><a href="{% url 'database.views.kinetics' section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
+            <li><a href="{% url 'database:kinetics' section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a> ({{ family.groups.entries|length }} entries)</li>
             {% if family.rules.entries %}
-            <li><a href="{% url 'database.views.kinetics' section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a> ({{ family.rules.entries|length }} entries)</li>
+            <li><a href="{% url 'database:kinetics' section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a> ({{ family.rules.entries|length }} entries)</li>
             {% endif %}
             {% for depository in family.depositories %}
             {% if depository.entries %}
-            <li><a href="{% url 'database.views.kinetics' section='families' subsection=depository.label %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
+            <li><a href="{% url 'database:kinetics' section='families' subsection=depository.label %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
             {% endif %}
             {% endfor %}
         	</ul>

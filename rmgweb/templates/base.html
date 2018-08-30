@@ -62,7 +62,7 @@
     <div id="sidebar">
         <div id="logo">
             {% block sidebar_logo %}
-            <a href="{% url 'main.views.index' %}">
+            <a href="{% url 'index' %}">
                 <img src="{% static 'img/rmg-logo.png' %}" alt="RMG" height="100%"/>
             </a>
             {% endblock %}
@@ -77,7 +77,7 @@
             </div>
         </a>
 
-        <a href="{% url 'main.views.resources' %}">
+        <a href="{% url 'resources' %}">
             <div class="menuitem">
                 <img src="{% static 'img/resources-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Resources</div>
@@ -85,7 +85,7 @@
             </div>
         </a>
 
-        <a href="{% url 'database.views.index' %}">
+        <a href="{% url 'database:index' %}">
             <div class="menuitem">
                 <img src="{% static 'img/database-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Database</div>
@@ -93,7 +93,7 @@
             </div>
         </a>
 
-        <a href="{% url 'rmg.views.input' %}">
+        <a href="{% url 'input' %}">
             <div class="menuitem">
                 <img src="{% static 'img/input-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Create Input File</div>
@@ -101,7 +101,7 @@
             </div>
         </a>
 
-        <a href="{% url 'database.views.moleculeSearch' %}">
+        <a href="{% url 'molecule-search' %}">
             <div class="menuitem">
                 <img src="{% static 'img/molecule-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Molecule Search</div>
@@ -109,7 +109,7 @@
             </div>
         </a>
 
-        <a href="{% url 'database.views.kineticsSearch' %}">
+        <a href="{% url 'database:kinetics-search' %}">
             <div class="menuitem">
                 <img src="{% static 'img/kinetics-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Kinetics Search</div>
@@ -117,7 +117,7 @@
             </div>
         </a>
 
-        <a href="{% url 'database.views.solvationSearch' %}">
+        <a href="{% url 'database:solvation-search' %}">
             <div class="menuitem">
                 <img src="{% static 'img/solvation-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Solvation Search</div>
@@ -125,7 +125,7 @@
             </div>
         </a>
 
-        <a href="{% url 'pdep.views.index' %}">
+        <a href="{% url 'pdep:index' %}">
             <div class="menuitem">
                 <img src="{% static 'img/pdep-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Pressure Dependent Networks</div>
@@ -133,7 +133,7 @@
             </div>
         </a>
 
-        <a href="{% url 'rmg.views.index' %}">
+        <a href="{% url 'rmg:index' %}">
             <div class="menuitem">
                 <img src="{% static 'img/tools-icon.png' %}" class="icon" width="100%"/>
                 <div class="menutext menutitle">Other RMG Tools</div>
@@ -167,11 +167,11 @@
             <div class="user-toolbar">
                 <a class="user-button" onclick="toggleCSS()" href="#">Change Theme</a>
                 {% if user.is_authenticated %}
-                <a class="user-button" href="{% url 'main.views.viewProfile' user.username %}">{{ user.username }}</a>
-                <a class="user-button" href="{% url 'main.views.editProfile' %}">Edit Profile</a>
-                <a class="user-button" href="{% url 'main.views.logout' %}?next={{ request.path }}">Log Out</a>
+                <a class="user-button" href="{% url 'view-profile' user.username %}">{{ user.username }}</a>
+                <a class="user-button" href="{% url 'edit-profile' %}">Edit Profile</a>
+                <a class="user-button" href="{% url 'logout' %}?next={{ request.path }}">Log Out</a>
                 {% else %}
-                <a class="user-button" href="{% url 'main.views.login' %}?next={{ request.path }}">Log In</a>
+                <a class="user-button" href="{% url 'login' %}?next={{ request.path }}">Log In</a>
                 {% endif %}
             </div>
         </div>
@@ -179,7 +179,7 @@
         <div id="main">
             <div id="navbar">
                 <ul id="breadcrumb">
-                    <li><a href="{% url 'main.views.index' %}">Home</a></li>
+                    <li><a href="{% url 'index' %}">Home</a></li>
                     {% block navbar_items %}{% endblock %}
                 </ul>
             </div>
@@ -203,7 +203,7 @@
                 Read the <a href="/privacy">Privacy Policy</a>.
                 <br />
                 Last updated: {{ pds }} (RMG-Py), {{ dds }} (RMG-database), {{ wds }} (RMG-website).
-                See <a href="{% url 'main.views.version' %}">Backend Version</a> for details.
+                See <a href="{% url 'version' %}">Backend Version</a> for details.
                 {% endblock %}
             </div>
         </div>

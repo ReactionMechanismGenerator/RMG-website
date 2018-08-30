@@ -56,10 +56,10 @@ span.kineticsDatumLabel {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-<li><a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a></li>
-<li><a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database:kinetics' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database:kinetics' section=section subsection=subsection %}">{{ databaseName }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -131,7 +131,7 @@ $(document).ready(function() {
             </tr>
             {% for entry in entries %}
             <tr>
-                <td><a href="{% url 'database.views.kineticsEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
+                <td><a href="{% url 'database:kinetics-entry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></td>
                 <td class="reactants">{{ entry.reactants|safe }}</td>
                 <td class="reactionArrow">{{ entry.arrow|safe }}</td>
                 <td class="products">{{ entry.products|safe }}</td>

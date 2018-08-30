@@ -20,8 +20,8 @@ $().ready(function() {
 {%endblock%}
 
 {% block navbar_items %}
-<li><a href="{% url 'rmg.views.index' %}">RMG Tools</a></li>
-<li><a href="{% url 'rmg.views.generateFlux' %}">Generate Flux Diagram</a></li>
+<li><a href="{% url 'rmg:index' %}">RMG Tools</a></li>
+<li><a href="{% url 'rmg:generate-flux' %}">Generate Flux Diagram</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
