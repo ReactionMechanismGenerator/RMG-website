@@ -191,28 +191,46 @@ def getAdjacencyList(request, identifier):
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
     is the SMILES for water.
     """
-    from rmgpy.molecule import AtomTypeError
+    from rmgpy.molecule import Molecule
+    from rmgpy.exceptions import AtomTypeError
     from ssl import SSLError
 
-    if identifier.strip() == '':
+    known_names = {
+        'o2': '[O][O]',
+        'oxygen': '[O][O]',
+        'benzyl': '[CH2]c1ccccc1',
+        'phenyl': '[c]1ccccc1',
+    }
+
+    # Ensure that input is a string
+    identifier = str(identifier).strip()
+
+    # Return empty string for empty input
+    if identifier == '':
         return HttpResponse('', content_type="text/plain")
-    from rmgpy.molecule.molecule import Molecule
+
     molecule = Molecule()
-    try:
-        # try using the string as a SMILES directly
-        molecule.fromSMILES(str(identifier))
-    except AtomTypeError:
-        return HttpResponse('Invalid Molecule', status=501)
-    except KeyError, e:
-        return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-    except (IOError, ValueError):
-        known_names = {'O2':'[O][O]',
-                       'oxygen':'[O][O]'}
-        key = str(identifier)
-        if key in known_names:
-            smiles = known_names[key]
-        else:
-            # try converting it to a SMILES using the NCI chemical resolver 
+
+    # Check if identifier is an InChI string
+    if identifier.startswith('InChI=1'):
+        try:
+            molecule.fromInChI(identifier)
+        except AtomTypeError:
+            return HttpResponse('Invalid Molecule', status=501)
+        except KeyError, e:
+            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+    elif identifier.lower() in known_names:
+        molecule.fromSMILES(known_names[identifier.lower()])
+    else:
+        try:
+            # Try parsing as a SMILES string
+            molecule.fromSMILES(identifier)
+        except AtomTypeError:
+            return HttpResponse('Invalid Molecule', status=501)
+        except KeyError, e:
+            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+        except (IOError, ValueError):
+            # Try converting it to a SMILES using the NCI chemical resolver
             url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
             try:
                 f = urllib2.urlopen(url, timeout=5)
@@ -221,14 +239,14 @@ def getAdjacencyList(request, identifier):
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
             smiles = f.read()
-        try:
-            molecule.fromSMILES(smiles)
-        except AtomTypeError:
-            return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
-            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-        except ValueError, e:
-            return HttpResponse(str(e), status=500)
+            try:
+                molecule.fromSMILES(smiles)
+            except AtomTypeError:
+                return HttpResponse('Invalid Molecule', status=501)
+            except KeyError, e:
+                return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+            except ValueError, e:
+                return HttpResponse(str(e), status=500)
     
     adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, content_type="text/plain")
