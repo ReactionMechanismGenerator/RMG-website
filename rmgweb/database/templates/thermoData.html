@@ -19,7 +19,7 @@ jQuery(document).ready(function() {
     Sseries = new Array();
     Gseries = new Array();
     
-    {% for entry, thermo, source, href in thermoDataList %}
+    {% for entry, thermo, source, href, nasa in thermoDataList %}
     {{ thermo|get_thermo_data:user }}
     {% include "thermoModel.js" %}
     {% endfor %}
