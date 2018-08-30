@@ -92,7 +92,7 @@
                 <div class="menutext menudesc">Browse the RMG database of chemical and kinetic parameters</div>
             </div>
         </a>
-
+{% comment %}
         <a href="{% url 'input' %}">
             <div class="menuitem">
                 <img src="{% static 'img/input-icon.png' %}" class="icon" width="100%"/>
@@ -100,6 +100,7 @@
                 <div class="menutext menudesc">Online form for making an RMG input file</div>
             </div>
         </a>
+{% endcomment %}
 
         <a href="{% url 'molecule-search' %}">
             <div class="menuitem">

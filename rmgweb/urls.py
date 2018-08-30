@@ -101,7 +101,7 @@ urlpatterns = [
     url(r'^tools/', include('rmgweb.rmg.urls')),
     
     # RMG Input Form
-    url(r'^input', rmgweb.rmg.views.input, name='input'),
+    # url(r'^input', rmgweb.rmg.views.input, name='input'),
     
     # Documentation auto-rebuild
     url(r'^rebuild$', rmgweb.main.views.rebuild, name='rebuild'),
