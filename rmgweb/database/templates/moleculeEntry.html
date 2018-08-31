@@ -57,6 +57,11 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 <th>Molecule Structure:</th>
 <td style="padding: 40px;">{{ structure|safe }}</td>
 </tr>
+<tr>
+    <th>SVG File:</th>
+    <td><a href="{% url 'draw-molecule' molecule.toAdjacencyList 'svg' %}">Click to download</a></td>
+</tr>
+
 <tr class ="result">
     <th>Molecular Weight:</th>
     <td>{{ molecule.getMolecularWeight|renderMW }}</td>

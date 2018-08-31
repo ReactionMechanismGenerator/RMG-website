@@ -50,6 +50,10 @@ $(document).ready(function() {
 <th>Group Structure:</th>
 <td style="padding: 40px;">{{ structure|safe }}</td>
 </tr>
+<tr>
+    <th>SVG File:</th>
+    <td><a href="{% url 'draw-group' group.toAdjacencyList 'svg' %}">Click to download</a></td>
+</tr>
 
 <tr class="result">
 <th valign="top">Adjacency List:</th>
