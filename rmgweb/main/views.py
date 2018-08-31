@@ -292,7 +292,7 @@ def cactusResolver(request, query):
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
     
-def drawMolecule(request, adjlist):
+def drawMolecule(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
     urllib is used to quote/unquote the adjacency list.
@@ -309,29 +309,39 @@ def drawMolecule(request, adjlist):
     except InvalidAdjacencyListError:
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
-        response = HttpResponse(content_type="image/svg+xml")
-        MoleculeDrawer().draw(molecule, format='svg', target=response)
+        if format == 'png':
+            response = HttpResponse(content_type="image/png")
+            surface, _, _ = MoleculeDrawer().draw(molecule, format='png')
+            surface.write_to_png(response)
+        elif format == 'svg':
+            response = HttpResponse(content_type="image/svg+xml")
+            MoleculeDrawer().draw(molecule, format='svg', target=response)
+        else:
+            response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 
-def drawGroup(request, adjlist):
+def drawGroup(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecular
-    pattern.  urllib is used to quote/unquote the adjacency list.
+    group.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
 
-    response = HttpResponse(content_type="image/svg+xml")
-
     adjlist = str(urllib.unquote(adjlist))
-    pattern = Group().fromAdjacencyList(adjlist)
+    group = Group().fromAdjacencyList(adjlist)
 
-    # Create an svg drawing of the group
-    svgdata = pattern.draw('svg')
-    # Remove the scale and rotate transformations applied by pydot
-    svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
-
-    response.write(svgdata)
+    if format == 'png':
+        response = HttpResponse(content_type="image/png")
+        response.write(group.draw('png'))
+    elif format == 'svg':
+        response = HttpResponse(content_type="image/svg+xml")
+        svgdata = group.draw('svg')
+        # Remove the scale and rotate transformations applied by pydot
+        svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
+        response.write(svgdata)
+    else:
+        response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 

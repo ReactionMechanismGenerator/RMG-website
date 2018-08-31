@@ -86,9 +86,11 @@ urlpatterns = [
     url(r'^pdep/', include('rmgweb.pdep.urls')),
 
     # Molecule drawing
+    url(r'^molecule/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
     url(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
+    url(r'^group/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawGroup, name='draw-group'),
     url(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup, name='draw-group'),
-    
+
     url(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList, name='get-adjacency-list'),
     url(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver, name='cactus-resolver'),
     url(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas, name='get-nist-cas'),
