@@ -331,7 +331,7 @@ class RateEvaluationForm(forms.Form):
     on a set of kinetics.
     """
     #hidden = forms.CharField(widget=forms.HiddenInput())
-    temp_units = (('K','K',),('C','C',))
+    temp_units = (('K','K',),)
     p_units = (('bar','bar',),('torr','torr',),('atm','atm',))
     temperature = forms.FloatField(label="Temperature")    
     temperature_units = forms.ChoiceField(choices=temp_units)
