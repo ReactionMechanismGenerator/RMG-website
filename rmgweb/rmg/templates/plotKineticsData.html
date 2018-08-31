@@ -93,7 +93,7 @@ function calculateAverage() {
     count = 0;
     var highChartsSeriesIndex = 0
     refList = '';
-    {% for reactants, arrow, products, entry, kinetics, source, href, forward in kineticsDataList %}
+    {% for reactants, arrow, products, entry, kinetics, source, href, forward, chemkin, reversekinetics, chemkin_rev in kineticsDataList %}
     {% if kinetics %}
     if (visible[highChartsSeriesIndex]) {
         {{ kinetics|get_rate_coefficients:"A_n_Ea" }} {# returns A=, n=, Ea=, Aunits=, Eunits=, and Pnote= #}
