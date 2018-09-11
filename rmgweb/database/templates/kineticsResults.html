@@ -9,9 +9,9 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-<li><a href="{% url 'database.views.kineticsSearch' %}">Search</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database:kinetics-search' %}">Search</a></li>
 <li><a href="">Results</a></li>
 {% endblock %}
 
@@ -22,16 +22,26 @@
 
 {% block page_body %}
 
-<table class="kineticsData">
-{% for reactants, arrow, products, count, reactionUrl in reactionDataList %}
-    <tr>
-        <td><a href="{{ reactionUrl }}">{{ forloop.counter }}.</a></td>
-        <td class="reactants">{{ reactants|safe }}</td>
-        <td class="reactionArrow">{{ arrow|safe }}</td>
-        <td class="products">{{ products|safe }}</td>
-        <td><a href="{{ reactionUrl }}">{{ count }} result{% if count > 1 %}s{% endif %}</a></td>
-    </tr>
-{% endfor %}
-</table>
+{% if reactionDataList %}
+    <table class="kineticsData">
+    {% for reactants, arrow, products, count, reactionUrl in reactionDataList %}
+        <tr>
+            <td><a href="{{ reactionUrl }}">{{ forloop.counter }}.</a></td>
+            <td class="reactants">{{ reactants|safe }}</td>
+            <td class="reactionArrow">{{ arrow|safe }}</td>
+            <td class="products">{{ products|safe }}</td>
+            <td><a href="{{ reactionUrl }}">{{ count }} result{% if count > 1 %}s{% endif %}</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <h2>
+        No results found.
+    </h2>
+    <p>
+        Our database could not find any reactions between these two species which give new products.
+        If you think this is an error, please <a href="https://github.com/ReactionMechanismGenerator/RMG-Py/issues/new/choose">post an issue</a> on our GitHub page.
+    </p>
+{% endif %}
 
 {% endblock %}

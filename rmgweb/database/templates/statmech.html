@@ -13,10 +13,10 @@ RMG Statmech Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.statmech' %}">statmech</a></li>
-{% if section != '' %}<li><a href="{% url 'database.views.statmech' section=section %}">{{ section|title }}</a></li>
-{% if subsection != '' %}<li><a href="{% url 'database.views.statmech' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:statmech' %}">statmech</a></li>
+{% if section != '' %}<li><a href="{% url 'database:statmech' section=section %}">{{ section|title }}</a></li>
+{% if subsection != '' %}<li><a href="{% url 'database:statmech' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
 {% endif %}
 {% endblock %}
 
@@ -34,17 +34,17 @@ RMG Statmech Database
 {% block page_body %}
 
 {% if section == '' %}
-<h2>1. <a href="{% url 'database.views.moleculeSearch' %}">Statmech Search</a></h2>
+<h2>1. <a href="{% url 'molecule-search' %}">Statmech Search</a></h2>
 {% endif %}
 
 {% if section == '' %}
-<h2>2. <a href="{% url 'database.views.statmech' section='depository' %}">Statmech Depository</a></h2>
+<h2>2. <a href="{% url 'database:statmech' section='depository' %}">Statmech Depository</a></h2>
 {% endif %}
 
 {% if section == 'depository' or section == '' %}
 <ul>
 {% for subsection, depository in statmechDepository %}
-<li><a href="{% url 'database.views.statmech' section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
+<li><a href="{% url 'database:statmech' section='depository' subsection=subsection %}">{{ depository.name }}</a> ({{ depository.entries|length }} entries)</li>
 
 {% empty %}
 No statmech depositories found.
@@ -55,13 +55,13 @@ No statmech depositories found.
 {% endif %}
 
 {% if section == '' %}
-<h2>3. <a href="{% url 'database.views.statmech' section='libraries' %}">Statmech Libraries</a></h2>
+<h2>3. <a href="{% url 'database:statmech' section='libraries' %}">Statmech Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
 <ul>
 {% for subsection, library in statmechLibraries %}
-<li><a href="{% url 'database.views.statmech' section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
+<li><a href="{% url 'database:statmech' section='libraries' subsection=subsection %}">{{ library.name }}</a> ({{ library.entries|length }} entries)</li>
 
 
 {% empty %}
@@ -74,14 +74,14 @@ No statmech libraries found.
 {% endif %}
 
 {% if section == '' %}
-<h2>4. <a href="{% url 'database.views.statmech' section='groups' %}"> Statmech Groups</a></h2>
+<h2>4. <a href="{% url 'database:statmech' section='groups' %}"> Statmech Groups</a></h2>
 {% endif %}
 
 {% if section == 'groups' or section == '' %}
 <ul>
    {% for subsection, groups in statmechGroups %}
     {% if subsection != 'group' %}
-        <li><a href="{% url 'database.views.statmech' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
+        <li><a href="{% url 'database:statmech' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
     {% endif %}
     {% empty %}
     No statmech groups found.

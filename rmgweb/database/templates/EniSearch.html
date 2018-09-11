@@ -23,7 +23,7 @@ function resolve(fieldName){
 // convert an adjacency list into an image url
 function adjlist2img(s) {
    adjlist = encodeURI(s);
-   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'draw-molecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {

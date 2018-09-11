@@ -13,10 +13,10 @@ RMG Transport Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.transport' %}">Transport</a></li>
-{% if section != '' %}<li><a href="{% url 'database.views.transport' section=section %}">{{ section|title }}</a></li>
-{% if subsection != '' %}<li><a href="{% url 'database.views.transport' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:transport' %}">Transport</a></li>
+{% if section != '' %}<li><a href="{% url 'database:transport' section=section %}">{{ section|title }}</a></li>
+{% if subsection != '' %}<li><a href="{% url 'database:transport' section=section subsection=subsection %}">{{ subsection|title }}</a></li>{% endif %}
 {% endif %}
 {% endblock %}
 
@@ -34,31 +34,31 @@ RMG Transport Database
 {% block page_body %}
 
 {% if section == '' %}
-<h2>1. <a href="{% url 'database.views.moleculeSearch' %}">Transport Search</a></h2>
+<h2>1. <a href="{% url 'molecule-search' %}">Transport Search</a></h2>
 {% endif %}
 
 {% if section == '' %}
-<h2>2. <a href="{% url 'database.views.transport' section='libraries' %}">Transport Libraries</a></h2>
+<h2>2. <a href="{% url 'database:transport' section='libraries' %}">Transport Libraries</a></h2>
 {% endif %}
 
 {% if section == 'libraries' or section == '' %}
 <ul>
 {% for subsection, library in transportLibraries %}
-<li><a href="{% url 'database.views.transport' section='libraries' subsection=subsection %}">{{ library.label }}</a> ({{ library.entries|length }} entries)</li>
+<li><a href="{% url 'database:transport' section='libraries' subsection=subsection %}">{{ library.label }}</a> ({{ library.entries|length }} entries)</li>
 {% endfor %}
 </ul>
 {% endif %}
 
 {% if section == '' %}
-<h2>3. <a href="{% url 'database.views.transport' section='groups' %}"> Transport Groups</a></h2>
+<h2>3. <a href="{% url 'database:transport' section='groups' %}"> Transport Groups</a></h2>
 {% endif %}
 
 {% if section == 'groups' or section == '' %}
 <ul>
-    {# <li><a href="{% url 'database.views.transport' section='groups' subsection='group' %}">{{ transportDatabase.groups.group.name }}</a> ({{ transportDatabase.groups.group.entries|length }} entries)</li> #}
+    {# <li><a href="{% url 'database:transport' section='groups' subsection='group' %}">{{ transportDatabase.groups.group.name }}</a> ({{ transportDatabase.groups.group.entries|length }} entries)</li> #}
 {% for subsection, groups in transportGroups %}
     {% if subsection != 'group' %}
-        <li><a href="{% url 'database.views.transport' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
+        <li><a href="{% url 'database:transport' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
     {% endif %}
 {% endfor %}
 

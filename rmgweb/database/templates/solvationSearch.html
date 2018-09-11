@@ -24,7 +24,7 @@ function resolve(){
 // convert an adjancency list into an image url
 function adjlist2img(s) {
    adjlist = encodeURI(s);
-   return "{% url 'main.views.drawMolecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+   return "{% url 'draw-molecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
 }
 
 $(document).ready(function() {
@@ -57,7 +57,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.solvationSearch' %}">Solvation Search</a></li>
+<li><a href="{% url 'database:solvation-search' %}">Solvation Search</a></li>
 {% endblock %}
 
 {% block page_title %}Solvation Search{% endblock %}
@@ -71,8 +71,8 @@ Select the solvent molecule you would like to be included
 in your solvation estimation in the drop down menu. 
 </p>
 
-<P>You can browse the available solute molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='solute' %}" target="_blank">Solute Molecules</a>
-<P>You can browse the available solvent molecules here: <a href="{% url 'database.views.solvation' section='libraries' subsection='solvent' %}" target="_blank">Solvent Molecules</a>
+<P>You can browse the available solute molecules here: <a href="{% url 'database:solvation' section='libraries' subsection='solute' %}" target="_blank">Solute Molecules</a>
+<P>You can browse the available solvent molecules here: <a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}" target="_blank">Solvent Molecules</a>
 
 <P>Any solute can be used in this search form.  The search will pull the solute data if it exists in the library, otherwise it will estimate the solvation
 properties using the Abraham parameters to perform group estimation.  

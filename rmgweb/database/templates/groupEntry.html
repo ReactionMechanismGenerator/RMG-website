@@ -38,7 +38,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.groupDraw' %}">Group Draw</a></li>
+<li><a href="{% url 'rmg:group-draw' %}">Group Draw</a></li>
 {% endblock %}
 
 {% block page_title %}Group Information{% endblock %}
@@ -49,6 +49,10 @@ $(document).ready(function() {
 <tr>
 <th>Group Structure:</th>
 <td style="padding: 40px;">{{ structure|safe }}</td>
+</tr>
+<tr>
+    <th>SVG File:</th>
+    <td><a href="{% url 'draw-group' group.toAdjacencyList 'svg' %}">Click to download</a></td>
 </tr>
 
 <tr class="result">

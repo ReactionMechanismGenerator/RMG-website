@@ -28,7 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 import django.contrib.auth.views
@@ -49,21 +49,19 @@ def index(request):
     The RMG website homepage.
     """
     from rmgpy import __version__
-    return render_to_response('index.html', {'version': __version__}, context_instance=RequestContext(request))
+    return render(request, 'index.html', {'version': __version__})
 
 def privacy(request):
     """
     The RMG privacy policy.
     """
-    return render_to_response('privacy.html',
-                              {'admins': settings.ADMINS},
-                              context_instance=RequestContext(request))
+    return render(request, 'privacy.html', {'admins': settings.ADMINS})
 
 def version(request):
     """
     Version information for RMG-website, RMG-Py, and RMG-database
     """
-    return render_to_response('version.html', context_instance=RequestContext(request))
+    return render(request, 'version.html')
 
 def resources(request):
     """
@@ -98,9 +96,7 @@ def resources(request):
             title = title.replace('+', ' and ')
             presentations.append((title, date, f))
 
-    return render_to_response('resources.html',
-                              {'presentations': presentations},
-                              context_instance=RequestContext(request))
+    return render(request, 'resources.html', {'presentations': presentations})
 
 def login(request):
     """
@@ -142,7 +138,7 @@ def signup(request):
         profileForm = UserProfileSignupForm(error_class=DivErrorList)
         passwordForm = PasswordCreateForm(error_class=DivErrorList)
         
-    return render_to_response('signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
+    return render(request, 'signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
 
 def viewProfile(request, username):
     """
@@ -154,7 +150,7 @@ def viewProfile(request, username):
     user0 = User.objects.get(username=username)
     userProfile = user0.userprofile
     networks = Network.objects.filter(user=user0)
-    return render_to_response('viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks}, context_instance=RequestContext(request))
+    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks})
 
 @login_required
 def editProfile(request):
@@ -170,13 +166,13 @@ def editProfile(request):
             userForm.save()
             profileForm.save()
             passwordForm.save()
-            return HttpResponseRedirect(reverse(viewProfile, kwargs={'username': request.user.username})) # Redirect after POST
+            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username})) # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
         passwordForm = PasswordChangeForm(error_class=DivErrorList)
         
-    return render_to_response('editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm}, context_instance=RequestContext(request))
+    return render(request, 'editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
 
 def getAdjacencyList(request, identifier):
     """
@@ -195,28 +191,46 @@ def getAdjacencyList(request, identifier):
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
     is the SMILES for water.
     """
-    from rmgpy.molecule import AtomTypeError
+    from rmgpy.molecule import Molecule
+    from rmgpy.exceptions import AtomTypeError
     from ssl import SSLError
 
-    if identifier.strip() == '':
+    known_names = {
+        'o2': '[O][O]',
+        'oxygen': '[O][O]',
+        'benzyl': '[CH2]c1ccccc1',
+        'phenyl': '[c]1ccccc1',
+    }
+
+    # Ensure that input is a string
+    identifier = str(identifier).strip()
+
+    # Return empty string for empty input
+    if identifier == '':
         return HttpResponse('', content_type="text/plain")
-    from rmgpy.molecule.molecule import Molecule
+
     molecule = Molecule()
-    try:
-        # try using the string as a SMILES directly
-        molecule.fromSMILES(str(identifier))
-    except AtomTypeError:
-        return HttpResponse('Invalid Molecule', status=501)
-    except KeyError, e:
-        return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-    except (IOError, ValueError):
-        known_names = {'O2':'[O][O]',
-                       'oxygen':'[O][O]'}
-        key = str(identifier)
-        if key in known_names:
-            smiles = known_names[key]
-        else:
-            # try converting it to a SMILES using the NCI chemical resolver 
+
+    # Check if identifier is an InChI string
+    if identifier.startswith('InChI=1'):
+        try:
+            molecule.fromInChI(identifier)
+        except AtomTypeError:
+            return HttpResponse('Invalid Molecule', status=501)
+        except KeyError, e:
+            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+    elif identifier.lower() in known_names:
+        molecule.fromSMILES(known_names[identifier.lower()])
+    else:
+        try:
+            # Try parsing as a SMILES string
+            molecule.fromSMILES(identifier)
+        except AtomTypeError:
+            return HttpResponse('Invalid Molecule', status=501)
+        except KeyError, e:
+            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+        except (IOError, ValueError):
+            # Try converting it to a SMILES using the NCI chemical resolver
             url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
             try:
                 f = urllib2.urlopen(url, timeout=5)
@@ -225,14 +239,14 @@ def getAdjacencyList(request, identifier):
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
             smiles = f.read()
-        try:
-            molecule.fromSMILES(smiles)
-        except AtomTypeError:
-            return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
-            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-        except ValueError, e:
-            return HttpResponse(str(e), status=500)
+            try:
+                molecule.fromSMILES(smiles)
+            except AtomTypeError:
+                return HttpResponse('Invalid Molecule', status=501)
+            except KeyError, e:
+                return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+            except ValueError, e:
+                return HttpResponse(str(e), status=500)
     
     adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, content_type="text/plain")
@@ -278,7 +292,7 @@ def cactusResolver(request, query):
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
     
-def drawMolecule(request, adjlist):
+def drawMolecule(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
     urllib is used to quote/unquote the adjacency list.
@@ -295,29 +309,39 @@ def drawMolecule(request, adjlist):
     except InvalidAdjacencyListError:
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
-        response = HttpResponse(content_type="image/svg+xml")
-        MoleculeDrawer().draw(molecule, format='svg', target=response)
+        if format == 'png':
+            response = HttpResponse(content_type="image/png")
+            surface, _, _ = MoleculeDrawer().draw(molecule, format='png')
+            surface.write_to_png(response)
+        elif format == 'svg':
+            response = HttpResponse(content_type="image/svg+xml")
+            MoleculeDrawer().draw(molecule, format='svg', target=response)
+        else:
+            response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 
-def drawGroup(request, adjlist):
+def drawGroup(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecular
-    pattern.  urllib is used to quote/unquote the adjacency list.
+    group.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
 
-    response = HttpResponse(content_type="image/svg+xml")
-
     adjlist = str(urllib.unquote(adjlist))
-    pattern = Group().fromAdjacencyList(adjlist)
+    group = Group().fromAdjacencyList(adjlist)
 
-    # Create an svg drawing of the group
-    svgdata = pattern.draw('svg')
-    # Remove the scale and rotate transformations applied by pydot
-    svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
-
-    response.write(svgdata)
+    if format == 'png':
+        response = HttpResponse(content_type="image/png")
+        response.write(group.draw('png'))
+    elif format == 'svg':
+        response = HttpResponse(content_type="image/svg+xml")
+        svgdata = group.draw('svg')
+        # Remove the scale and rotate transformations applied by pydot
+        svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
+        response.write(svgdata)
+    else:
+        response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 

@@ -116,7 +116,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # extra ones
-                "django.core.context_processors.request",  # adds 'request' to every view
+                "django.template.context_processors.request",  # adds 'request' to every view
                 # Custom context processors
                 'rmgweb.main.gitContext.getCommits', # gets git commit hashes
             ],

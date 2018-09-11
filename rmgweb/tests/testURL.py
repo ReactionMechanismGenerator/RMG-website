@@ -59,8 +59,8 @@ multiplicity 2
                                                                    'reactant2': reactant2,
                                                                    'resonance': False})
 
-        base_url = 'http://testserver/database/kinetics/results/reactant1={0}__reactant2={1}__res=False'
-        expected_url = iri_to_uri(base_url.format(reactant1, reactant2))
+        base_url = '/database/kinetics/results/reactant1={0}__reactant2={1}__res=False'
+        expected_url = iri_to_uri(base_url.format(reactant1.strip(), reactant2.strip()))
 
         self.assertRedirects(response, expected_url)
 

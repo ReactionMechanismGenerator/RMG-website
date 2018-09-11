@@ -7,7 +7,7 @@
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'rmg.views.index' %}">RMG Tools</a></li>
+<li><a href="{% url 'rmg:index' %}">RMG Tools</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -19,21 +19,21 @@
 
 
     <ol>
-        <li><a href ="{% url 'rmg.views.convertChemkin' %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
+        <li><a href ="{% url 'rmg:convert-chemkin' %}">Visualize Chemkin File</a>: visualize a model by supplying its chemkin file
             and RMG-generated species dictionary.<P>
-        <li><a href ="{% url 'rmg.views.compareModels' %}">Model Comparison</a>: compare two RMG-generated models by supplying
+        <li><a href ="{% url 'rmg:compare-models' %}">Model Comparison</a>: compare two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
-        <li><a href ="{% url 'rmg.views.convertAdjlists' %}">Convert Adjacency Lists</a>: convert adjacency lists in a text file to old-style adjacency lists
+        <li><a href ="{% url 'rmg:convert-adjlists' %}">Convert Adjacency Lists</a>: convert adjacency lists in a text file to old-style adjacency lists
         which are compatible with RMG-Java.<P>
-        <li><a href ="{% url 'rmg.views.mergeModels' %}">Merge Models</a>: merge two RMG-generated models by supplying
+        <li><a href ="{% url 'rmg:merge-models' %}">Merge Models</a>: merge two RMG-generated models by supplying
             their individual chemkin files and species dictionaries.<P>
-        <li><a href ="{% url 'rmg.views.generateFlux' %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
+        <li><a href ="{% url 'rmg:generate-flux' %}">Generate Flux Diagram</a>: generate a flux diagram video by supplying a RMG input file and
             completed mechanism, or with a customized set of concentration profiles from a Chemkin job.<P>
-		<li><a href ="{% url 'rmg.views.runPopulateReactions' %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
-		<li><a href="{% url 'rmg.views.plotKinetics' %}">Plot Kinetics</a>: plot forward and reverse kinetics by supplying a list of reactions in chemkin format along with a RMG dictionary.<P>
-		<li><a href="{% url 'rmg.views.javaKineticsLibrary' %}">Create RMG-Java Kinetics Library</a>: create an RMG-Java kinetics library for use as a seed-mechanism or reaction library by supplying a chemkin file along with a RMG dictionary.<P>
-		<li><a href="{% url 'rmg.views.evaluateNASA' %}">Evaluate NASA Polynomial</a>: View enthalpy, entropy, and heat capacity information in human readable format for a CHEMKIN format NASA polynomial.<P>
-		<li><a href="{% url 'database.views.groupDraw' %}">Draw Functional Group</a>: Draw an RMG group definition from its Adjacency List.<P>
+		<li><a href ="{% url 'rmg:run-populate-reactions' %}">PopulateReactions</a>: generate all possible reactions from a set of initial species.<P>
+		<li><a href="{% url 'rmg:plot-kinetics' %}">Plot Kinetics</a>: plot forward and reverse kinetics by supplying a list of reactions in chemkin format along with a RMG dictionary.<P>
+		<li><a href="{% url 'rmg:java-kinetics-library' %}">Create RMG-Java Kinetics Library</a>: create an RMG-Java kinetics library for use as a seed-mechanism or reaction library by supplying a chemkin file along with a RMG dictionary.<P>
+		<li><a href="{% url 'rmg:evaluate-nasa' %}">Evaluate NASA Polynomial</a>: View enthalpy, entropy, and heat capacity information in human readable format for a CHEMKIN format NASA polynomial.<P>
+		<li><a href="{% url 'rmg:group-draw' %}">Draw Functional Group</a>: Draw an RMG group definition from its Adjacency List.<P>
 					</ol>
 	
 {% endblock %}

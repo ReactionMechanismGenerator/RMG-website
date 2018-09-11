@@ -13,10 +13,10 @@ RMG Thermodynamics Database
 {% block extrahead %}{% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.thermo' %}">Thermodynamics</a></li>
-<li><a href="{% url 'database.views.thermo' section=section %}">{{ section|title }}</a></li>
-<li><a href="{% url 'database.views.thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:thermo' %}">Thermodynamics</a></li>
+<li><a href="{% url 'database:thermo' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database:thermo' section=section subsection=subsection %}">{{ databaseName }}</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -34,7 +34,7 @@ RMG Thermodynamics Database
 </tr>
 {% for index, label, structure, dataFormat in entries %}
 <tr>
-    <td><a href="{% url 'database.views.thermoEntry' section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
+    <td><a href="{% url 'database:thermo-entry' section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
     <td>{{ structure|safe }}</td>
     <td>{{ dataFormat }}</td>
 </tr>

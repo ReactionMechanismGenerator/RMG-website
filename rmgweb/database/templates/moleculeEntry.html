@@ -44,7 +44,7 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 {% endblock %}
 
 {% block navbar_items %}
-<li><a href="{% url 'database.views.moleculeSearch' %}">Molecule Search</a></li>
+<li><a href="{% url 'molecule-search' %}">Molecule Search</a></li>
 {% endblock %}
 
 {% block page_title %}Molecule Information{% endblock %}
@@ -57,6 +57,11 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 <th>Molecule Structure:</th>
 <td style="padding: 40px;">{{ structure|safe }}</td>
 </tr>
+<tr>
+    <th>SVG File:</th>
+    <td><a href="{% url 'draw-molecule' molecule.toAdjacencyList 'svg' %}">Click to download</a></td>
+</tr>
+
 <tr class ="result">
     <th>Molecular Weight:</th>
     <td>{{ molecule.getMolecularWeight|renderMW }}</td>
@@ -64,12 +69,12 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 <tr class ="result">
     <th>Thermochemistry:</th>
     <td>
-<a href="{% url 'database.views.thermoData' molecule.toAdjacencyList %}">Click here</a></td>
+<a href="{% url 'database:thermo-data' molecule.toAdjacencyList %}">Click here</a></td>
 </tr>
 <tr class ="result">
     <th>Transport:</th>
     <td>
-<a href="{% url 'database.views.transportData' molecule.toAdjacencyList %}">Click here</a></td>
+<a href="{% url 'database:transport-data' molecule.toAdjacencyList %}">Click here</a></td>
 </tr>
 
 <tr class="result">

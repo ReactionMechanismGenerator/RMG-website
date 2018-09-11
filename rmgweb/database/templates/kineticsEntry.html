@@ -89,11 +89,11 @@ jQuery(document).ready(
 {% block navbar_items %}
 
 {% if section != '' %}
-<li><a href="{% url 'database.views.index' %}">Database</a></li>
-<li><a href="{% url 'database.views.kinetics' %}">Kinetics</a></li>
-<li><a href="{% url 'database.views.kinetics' section=section %}">{{ section|title }}</a></li>
-<li><a href="{% url 'database.views.kinetics' section=section subsection=subsection %}">{{ databaseName }}</a></li>
-{% if entry and entry.index and entry.index != -1 %}<li><a href="{% url 'database.views.kineticsEntry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:kinetics' %}">Kinetics</a></li>
+<li><a href="{% url 'database:kinetics' section=section %}">{{ section|title }}</a></li>
+<li><a href="{% url 'database:kinetics' section=section subsection=subsection %}">{{ databaseName }}</a></li>
+{% if entry and entry.index and entry.index != -1 %}<li><a href="{% url 'database:kinetics-entry' section=section subsection=subsection index=entry.index %}">{{ entry.index }}. {{ entry.label }}</a></li>{% endif %}
 {% if reaction %}<li><a href="">{{ reaction }}</a></li>{% endif %}
 {% endif %}
 
@@ -175,14 +175,14 @@ jQuery(document).ready(
 
 <h2>Update database</h2>
 If you noticed a mistake or have better data, then edit this entry here:
-    <a href="{% url 'database.views.kineticsEntryEdit' section=section subsection=subsection index=entry.index %}">
+    <a href="{% url 'database:kinetics-entry-edit' section=section subsection=subsection index=entry.index %}">
         <button type="button">Edit entry</button>
     </a>.
 
 {% if user.is_authenticated %}
 You are logged in as {{ user.get_full_name }}</a> 
 {% else %}
-You must <a href="{% url 'main.views.login' %}?next={{ request.path }}">log in first.</a>
+You must <a href="{% url 'login' %}?next={{ request.path }}">log in first.</a>
 {% endif %}
 
 {% endif %}

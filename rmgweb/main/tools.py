@@ -56,9 +56,7 @@ def moleculeToInfo(molecule):
     Creates an html rendering which includes molecule structure image but
     also allows you to click on it to enter a molecule info page.
     """
-
-    from rmgweb.database.views import moleculeEntry
-    href = reverse(moleculeEntry, kwargs={'adjlist': molecule.toAdjacencyList()})
+    href = reverse('database:molecule-entry', kwargs={'adjlist': molecule.toAdjacencyList()})
     structureMarkup = getStructureMarkup(molecule)
     markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
     return markup
@@ -89,9 +87,7 @@ def groupToInfo(group):
     Creates an html rendering which includes group structure image but
     also allows you to click on it to enter a group info page.
     """
-
-    from rmgweb.database.views import groupEntry
-    href = reverse(groupEntry, kwargs={'adjlist': group.toAdjacencyList()})
+    href = reverse('database:group-entry', kwargs={'adjlist': group.toAdjacencyList()})
     structureMarkup = getStructureMarkup(group)
     markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
     return markup
@@ -163,12 +159,12 @@ def getStructureMarkup(item):
         # We can draw Molecule objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList(removeH=False)
         url = urllib.quote(adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': url}), adjlist)
+        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), adjlist)
     elif isinstance(item, Species) and len(item.molecule) > 0:
         # We can draw Species objects, so use that instead of an adjacency list
         adjlist = item.molecule[0].toAdjacencyList(removeH=False)
         url = urllib.quote(adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('rmgweb.main.views.drawMolecule', kwargs={'adjlist': url}), item.label)
+        structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), item.label)
     elif isinstance(item, Species) and len(item.molecule) == 0:
         # We can draw Species objects, so use that instead of an adjacency list
         structure = item.label
@@ -176,7 +172,7 @@ def getStructureMarkup(item):
         # We can draw Group objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList()
         url = urllib.quote(adjlist)
-        structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('rmgweb.main.views.drawGroup', kwargs={'adjlist': url}), adjlist)
+        structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('draw-group', kwargs={'adjlist': url}), adjlist)
         #structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)
     elif isinstance(item, str) or isinstance(item, unicode):
         structure = item
