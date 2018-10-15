@@ -64,6 +64,8 @@ from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, \
                            Chebyshev, Troe, Lindemann, ThirdBody
 from rmgpy.molecule import Group, Molecule, Atom, Bond
 from rmgpy.molecule.adjlist import Saturator
+from rmgpy.molecule.resonance import generate_resonance_structures
+from rmgpy.molecule.filtration import filter_structures
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
 from rmgpy.thermo import ThermoData, Wilhoit, NASA
@@ -2340,6 +2342,9 @@ def moleculeSearch(request):
             if 'transport' in request.POST:
                 return HttpResponseRedirect(reverse('database:transport-data', kwargs={'adjlist': adjlist}))
 
+            if 'resonance' in request.POST:
+                return HttpResponseRedirect(reverse('database:resonance', kwargs={'adjlist': adjlist}))
+
             if 'reset' in request.POST:
                 form = MoleculeSearchForm()
                 structure_markup = ''
@@ -2538,3 +2543,44 @@ def json_to_adjlist(request):
             adjlist = 'Unable to convert molecule drawing to adjacency list.'
 
     return HttpResponse(adjlist)
+
+def generateResonanceStructure(request, adjlist):
+    """
+    Creates webpage that display the representative and non-representative resonance structure
+    of give molecule structure.
+    """
+
+    # Convert adjlist to real adjacency list
+    adjlist = str(urllib.unquote(adjlist))
+
+    # Obtain the molecule structure
+    molecule = Molecule().fromAdjacencyList(adjlist)
+
+    # Generate unfiltered resonance structure for the molecule
+    res_list_expoct = generate_resonance_structures(molecule, filter_structures=False)
+
+    # Generate representative structure of expanded-octet
+    repr_expoct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=True)
+
+    # Generate representative structure of octet
+    repr_oct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=False)
+
+    output = []
+    for item in res_list_expoct:
+        # (item, repr, oct, origin)
+        content = []
+        if (item in repr_oct) and (item in repr_expoct):
+            content = [getStructureInfo(item), 'repr_both']
+        elif item in repr_oct:
+            content = [getStructureInfo(item), 'repr_oct']
+        elif item in repr_expoct:
+            content = [getStructureInfo(item), 'repr_expoct']
+        else:
+            content = [getStructureInfo(item), 'unre']
+
+        if molecule.isIsomorphic(item):
+            content[1] = content[1] + ' origin'
+
+        output.append(tuple(content))
+
+    return render(request, 'resonance.html', {'structure': output, })

@@ -97,6 +97,9 @@ urlpatterns = [
     #Group Information Page
     url(r'^group/(?P<adjlist>[\S\s]+)$', views.groupEntry, name='group-entry'),
 
+    # Generate Resonance Structure
+    url(r'^resonance_structure/(?P<adjlist>[\S\s]+)$', views.generateResonanceStructure, name='resonance'),
+
     # Eni detergent-dirt binding strength
     url(r'^eni', views.EniSearch, name='eni-search'),
 

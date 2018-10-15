@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+ #layout ul li {
+    float: left;
+    width: 100px;
+    margin-top: 10px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    text-align: center;
+    }
+
+{% block title %}
+RMG Resonance <!--{{ section|title }}-->
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript">
+        var show = function() {
+        $('expoct').css('display', 'block');
+        }
+        var hide = function() {
+        $('expoct').css('display', 'none');
+        }
+    </script>
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'molecule-search' %}">Molecule Search</a></li>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Resonance Structures{% endblock %}
+
+{% block page_body %}
+<h2>Representative Structures:</h2>
+    <div style="display: flex; flex-wrap: wrap;">
+        {% for struct, class in structure %}
+            {% if 'repr' in class %}
+                {% if 'repr_oct' in class %}
+                    <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
+                {% else %}
+                    <div class="{{ class }}">{{ struct|safe }}</div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+
+<h2>Unrepresentative Structures:</h2>
+    <div style="display: flex; flex-wrap: wrap;">
+        {% for struct, class in structure %}
+            {% if 'unre' in class %}
+                <div class="{{ class }}">{{ struct|safe }}</div>
+            {% elif 'repr_expoct' in class %}
+                <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
+            {% elif 'repr_oct' in class %}
+                <div class="{{ class }}">{{ struct|safe }}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <button type="button" onclick="$('.repr_expoct').toggle();$('.repr_oct').toggle()">Octet/Expanded Octet representative</button>
+{% endblock %}

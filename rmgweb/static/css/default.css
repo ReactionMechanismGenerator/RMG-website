@@ -472,6 +472,25 @@ img.family {
     width: 100%;
 }
 
+.origin {
+    border-width: 2px;
+    border-color: red;
+    border-style: solid;
+    padding: 10px;
+}
+
+.unre {
+    padding: 12px;
+}
+
+.repr_oct {
+    padding: 12px;
+}
+
+.repr_expoct {
+    padding: 12px;
+}
+
 /*------------------------------------*\
   IPHONE
 \*------------------------------------*/
