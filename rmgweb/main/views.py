@@ -42,6 +42,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render
 from django.template import RequestContext, loader
+from django.templatetags.static import static
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import *
@@ -302,13 +303,12 @@ def drawMolecule(request, adjlist, format='png'):
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
-    from django.templatetags.static import static
 
     adjlist = str(urllib.unquote(adjlist))
 
     try:
         molecule = Molecule().fromAdjacencyList(adjlist)
-    except InvalidAdjacencyListError:
+    except InvalidAdjacencyListError, ValueError:
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
         if format == 'png':
@@ -329,21 +329,26 @@ def drawGroup(request, adjlist, format='png'):
     group.  urllib is used to quote/unquote the adjacency list.
     """
     from rmgpy.molecule.group import Group
+    from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
     adjlist = str(urllib.unquote(adjlist))
-    group = Group().fromAdjacencyList(adjlist)
 
-    if format == 'png':
-        response = HttpResponse(content_type="image/png")
-        response.write(group.draw('png'))
-    elif format == 'svg':
-        response = HttpResponse(content_type="image/svg+xml")
-        svgdata = group.draw('svg')
-        # Remove the scale and rotate transformations applied by pydot
-        svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
-        response.write(svgdata)
+    try:
+        group = Group().fromAdjacencyList(adjlist)
+    except InvalidAdjacencyListError, ValueError:
+        response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
-        response = HttpResponse('Image format not implemented.', status=501)
+        if format == 'png':
+            response = HttpResponse(content_type="image/png")
+            response.write(group.draw('png'))
+        elif format == 'svg':
+            response = HttpResponse(content_type="image/svg+xml")
+            svgdata = group.draw('svg')
+            # Remove the scale and rotate transformations applied by pydot
+            svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
+            response.write(svgdata)
+        else:
+            response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 
