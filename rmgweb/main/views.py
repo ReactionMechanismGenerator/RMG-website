@@ -28,21 +28,23 @@
 #                                                                             #
 ###############################################################################
 
-from django.shortcuts import render
-from django.template import RequestContext, loader
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
+import re
+import os
+import urllib
+import urllib2
+
 import django.contrib.auth.views
-from django.core.urlresolvers import reverse
+from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
+from django.shortcuts import render
+from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
-import urllib, urllib2
 
-from forms import *
-import os
-import re
+from .forms import *
 
 def index(request):
     """
