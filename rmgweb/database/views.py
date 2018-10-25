@@ -46,7 +46,7 @@ except ImportError:
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.urlresolvers import reverse
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.template import RequestContext
 
@@ -2472,7 +2472,10 @@ def moleculeEntry(request,adjlist):
     Basically works as an equivalent of the molecule search function.
     """
     adjlist = str(urllib.unquote(adjlist))
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    try:
+        molecule = Molecule().fromAdjacencyList(adjlist)
+    except:
+        return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(molecule)
     oldAdjlist=''
     try:
@@ -2488,7 +2491,10 @@ def groupEntry(request,adjlist):
     Basically works as an equivalent of the group search function.
     """
     adjlist = str(urllib.unquote(adjlist))
-    group = Group().fromAdjacencyList(adjlist)
+    try:
+        group = Group().fromAdjacencyList(adjlist)
+    except:
+        return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(group)
     
     return render(request, 'groupEntry.html',{'structure':structure,'group':group})
