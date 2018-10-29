@@ -308,7 +308,7 @@ def drawMolecule(request, adjlist, format='png'):
 
     try:
         molecule = Molecule().fromAdjacencyList(adjlist)
-    except InvalidAdjacencyListError, ValueError:
+    except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
         if format == 'png':
@@ -335,7 +335,7 @@ def drawGroup(request, adjlist, format='png'):
 
     try:
         group = Group().fromAdjacencyList(adjlist)
-    except InvalidAdjacencyListError, ValueError:
+    except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
         if format == 'png':
