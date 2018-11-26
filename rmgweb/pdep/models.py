@@ -285,7 +285,7 @@ class Network(models.Model):
             self.pdep = PressureDependenceJob(network=None)
             
             if self.inputFileExists():
-                jobList = loadInputFile(self.getInputFilename())
+                jobList = loadInputFile(self.getInputFilename())[0]
                 assert len(jobList) == 1
                 job = jobList[0]
                 if isinstance(job, PressureDependenceJob) is False:
