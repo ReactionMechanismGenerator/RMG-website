@@ -213,10 +213,20 @@ html, body {
 #announcement {
     flex: 1 1 auto;
     font-size: 120%;
+    font-weight: bold;
+    text-align: center;
+    min-height: 30px;
+    line-height: 30px;
+    padding: 0px 10px;
+}
+
+#announcement span {
+    display: inline-block;
+    background-color: #FFFFFF;
     color: #F04040;
     text-align: center;
-    height: 30px;
-    line-height: 30px;
+    border: none;
+    border-radius: 4px;
     padding: 0px 10px;
 }
 

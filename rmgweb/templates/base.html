@@ -164,7 +164,11 @@
 
     <div id="mainbar">
         <div id="header">
-            <div id="announcement"></div>
+            <div id="announcement">
+                {% if announcement %}
+                    <span>{{ announcement|safe }}</span>
+                {% endif %}
+            </div>
             <div class="user-toolbar">
                 <a class="user-button" onclick="toggleCSS()" href="#">Change Theme</a>
                 {% if user.is_authenticated %}

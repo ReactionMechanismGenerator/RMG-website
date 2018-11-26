@@ -38,7 +38,28 @@ import subprocess
 import rmgpy
 import rmgweb
 
+from rmgweb.settings import PROJECT_PATH
+
 context = None
+
+
+def get_announcement(request):
+    """
+    Context processor to get an announcement message if it exists.
+    """
+
+    path = os.path.join(os.path.dirname(PROJECT_PATH), 'announcement.txt')
+    msg_context = {}
+
+    if os.path.isfile(path):
+        with open(path, 'r') as f:
+            lines = f.readlines()
+        message = '<br>'.join(lines).strip()
+        if message:
+            msg_context = {'announcement': message}
+
+    return msg_context
+
 
 def get_git_commit(modulePath):
     """
@@ -62,6 +83,7 @@ def get_git_commit(modulePath):
             pass
         
     return commit, date, subject, body
+
 
 def get_commits(request):
     """
