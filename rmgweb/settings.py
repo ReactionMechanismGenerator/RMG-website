@@ -118,7 +118,7 @@ TEMPLATES = [
                 # extra ones
                 "django.template.context_processors.request",  # adds 'request' to every view
                 # Custom context processors
-                'rmgweb.main.gitContext.getCommits', # gets git commit hashes
+                'rmgweb.main.context.get_commits', # gets git commit hashes
             ],
             'loaders': [
                 # insert your TEMPLATE_LOADERS here

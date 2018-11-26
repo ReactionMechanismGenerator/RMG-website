@@ -28,6 +28,11 @@
 #                                                                             #
 ###############################################################################
 
+"""
+This module contains custom context processors and related functions.
+These are activated in the `context_processors` block of `settings.py`.
+"""
+
 import os.path
 import subprocess
 import rmgpy
@@ -35,7 +40,7 @@ import rmgweb
 
 context = None
 
-def getGitCommit(modulePath):
+def get_git_commit(modulePath):
     """
     Get git commit hash for given repository path.
     """
@@ -58,7 +63,7 @@ def getGitCommit(modulePath):
         
     return commit, date, subject, body
 
-def getCommits(request):
+def get_commits(request):
     """
     Context processor to return git commits for RMG-Py, 
     RMG-database, and RMG-website.
@@ -71,9 +76,9 @@ def getCommits(request):
         dataPath = rmgpy.settings['database.directory']
         webPath = os.path.dirname(rmgweb.__file__)
         
-        pyCommit, pyDate, pySubject, pyBody = getGitCommit(pyPath)
-        dataCommit, dataDate, dataSubject, dataBody = getGitCommit(dataPath)
-        webCommit, webDate, webSubject, webBody = getGitCommit(webPath)
+        pyCommit, pyDate, pySubject, pyBody = get_git_commit(pyPath)
+        dataCommit, dataDate, dataSubject, dataBody = get_git_commit(dataPath)
+        webCommit, webDate, webSubject, webBody = get_git_commit(webPath)
         
         pyDateShort = ' '.join(pyDate.split()[1:4])
         dataDateShort = ' '.join(dataDate.split()[1:4])
