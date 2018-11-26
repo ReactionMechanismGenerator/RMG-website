@@ -416,7 +416,7 @@ class PopulateReactions(models.Model):
 # INPUT MODEL
 ################################################################################
 
-from rmgpy.cantherm.pdep import PressureDependenceJob
+from arkane.pdep import PressureDependenceJob
 from rmgpy.solver.base import TerminationTime, TerminationConversion
 from rmgpy.solver.simple import SimpleReactor
 from rmgpy.species import Species        

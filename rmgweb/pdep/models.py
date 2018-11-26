@@ -89,7 +89,7 @@ class Network(models.Model):
         """
         Return the absolute path of the log file.
         """
-        return os.path.join(self.getDirname(), 'cantherm.log')
+        return os.path.join(self.getDirname(), 'arkane.log')
     
     def getSurfaceFilenamePNG(self):
         """
@@ -277,8 +277,8 @@ class Network(models.Model):
         """
         Load the contents of the input file into a PressureDependenceJob object.
         """
-        from rmgpy.cantherm.pdep import PressureDependenceJob
-        from rmgpy.cantherm.input import loadInputFile
+        from arkane.pdep import PressureDependenceJob
+        from arkane.input import loadInputFile
         
         # Seed with a PdepJob object
         if self.pdep is None:

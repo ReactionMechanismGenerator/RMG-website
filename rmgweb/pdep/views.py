@@ -209,7 +209,7 @@ def networkDrawPNG(request, networkKey):
     networkModel = get_object_or_404(Network, pk=networkKey)
     
     networkModel.load()
-    # Run CanTherm! This may take some time...
+    # Run Arkane! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
         plot = False, 
@@ -228,7 +228,7 @@ def networkDrawPDF(request, networkKey):
     networkModel = get_object_or_404(Network, pk=networkKey)
     
     networkModel.load()
-    # Run CanTherm! This may take some time...
+    # Run Arkane! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
         plot = False, 
@@ -246,7 +246,7 @@ def networkDrawSVG(request, networkKey):
     networkModel = get_object_or_404(Network, pk=networkKey)
     
     networkModel.load()
-    # Run CanTherm! This may take some time...
+    # Run Arkane! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
         plot = False, 
@@ -258,13 +258,13 @@ def networkDrawSVG(request, networkKey):
 
 def networkRun(request, networkKey):
     """
-    A view called when a user wants to run CanTherm on the pdep input file for a
+    A view called when a user wants to run Arkane on the pdep input file for a
     given Network.
     """
     networkModel = get_object_or_404(Network, pk=networkKey)
     
     networkModel.load()
-    # Run CanTherm! This may take some time...
+    # Run Arkane! This may take some time...
     networkModel.pdep.execute(
         outputFile = networkModel.getOutputFilename(),
         plot = False, 
