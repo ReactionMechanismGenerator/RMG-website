@@ -1,15 +1,5 @@
 {% extends "base.html" %}
 
- #layout ul li {
-    float: left;
-    width: 100px;
-    margin-top: 10px;
-    margin-right: 20px;
-    margin-bottom: 10px;
-    margin-left: 20px;
-    text-align: center;
-    }
-
 {% block title %}
 RMG Resonance
 {% endblock %}
@@ -18,15 +8,16 @@ RMG Resonance
     <script type="text/javascript">
         var show = function() {
         $('expoct').css('display', 'block');
-        }
+        };
         var hide = function() {
         $('expoct').css('display', 'none');
-        }
+        };
     </script>
 {% endblock %}
 
 {% block navbar_items %}
 <li><a href="{% url 'molecule-search' %}">Molecule Search</a></li>
+<li><a href="#">Resonance</a></li>
 {% endblock %}
 
 {% block sidebar_items %}
@@ -35,54 +26,72 @@ RMG Resonance
 {% block page_title %}Resonance Structures{% endblock %}
 
 {% block page_body %}
-    <p>
-        RMG generates resonance structures using templates in a restricted electronic structure search space (defined by atom types). So-generated resonance structures are subsequently filtered to identify representative structures which exclusively will be used to generate reactions in RMG.<br/>
-        Cautious! The unrepresentative structures shown below might be incomplete, as an on-the-fly filtration feature prevents further exploration of resonance structures with a large deviation from an octet or a large charge separation.
-    </p>
+<p>
+Resonance structures are localized representations of the electronic structure of a molecule depicted using
+<a href="https://en.wikipedia.org/wiki/Lewis_structure">Lewis Structures</a>, such that the true structure of the
+molecule is some weighted average of the localized representations (read more about <a href="https://en.wikipedia.org/wiki/Resonance_(chemistry)">resonance</a>).
+</p>
+<p>
+RMG generates resonance structures using templates in a restricted electronic structure search space
+defined by <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/database/introduction.html">atom types</a>.
+These resonance structures are subsequently filtered to identify representative structures which are used to generate reactions.
+</p>
+<p><strong>Notes:</strong></p>
+<ul>
+    <li>
+        The unrepresentative structures shown below might be incomplete, as an on-the-fly filtration feature prevents
+        further exploration of resonance structures with a large deviation from an octet or a large charge separation.
+    </li>
+    <li>
+        You can choose to whether to consider octet-conforming or expanded-octet structures as being representative. This only affects third-row elements (currently only sulfur).
+    </li>
+    <li>
+        The input structure is indicated by the red box.
+    </li>
+</ul>
+
+<p><strong>Toggle octet-conforming or expanded-octet representative structures:</strong></p>
+<button class="switch" type="button" onclick="$('.repr_expoct').toggle();$('.repr_oct').toggle()">Switch to octet-conforming</button>
+<script>
+    $(function(){
+        $(".switch").click(function () {
+            $(this).text(function(i, text){
+                return text === "Switch to octet-conforming" ? "Switch to expanded-octet" : "Switch to octet-conforming";
+            })
+        });
+    })
+</script>
+
+<div id="resonance">
+
 <h2>Representative Structures:</h2>
-    <div style="display: flex; flex-wrap: wrap;">
-        {% for struct, class in structure %}
-            {% if 'repr' in class %}
-                {% if 'repr_oct' in class %}
-                    <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
-                {% else %}
-                    <div class="{{ class }}">{{ struct|safe }}</div>
-                {% endif %}
+
+<div class="structures">
+    {% for struct, class in structure %}
+        {% if 'repr' in class %}
+            {% if 'repr_oct' in class %}
+                <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
+            {% else %}
+                <div class="{{ class }}">{{ struct|safe }}</div>
             {% endif %}
-        {% endfor %}
-    </div>
+        {% endif %}
+    {% endfor %}
+</div>
 
 <h2>Unrepresentative Structures:</h2>
-    <div style="display: flex; flex-wrap: wrap;">
-        {% for struct, class in structure %}
-            {% if 'unre' in class %}
-                <div class="{{ class }}">{{ struct|safe }}</div>
-            {% elif 'repr_expoct' in class %}
-                <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
-            {% elif 'repr_oct' in class %}
-                <div class="{{ class }}">{{ struct|safe }}</div>
-            {% endif %}
-        {% endfor %}
-    </div>
-    <div>
-    <br/><strong>Want to see the representative structure in the other rule?</strong>
-    </div>
-    <button class="switch" type="button" onclick="$('.repr_expoct').toggle();$('.repr_oct').toggle()">Switch to Octet Representative</button>
-    <script>
-        $(function(){
-            $(".switch").click(function () {
-                $(this).text(function(i, text){
-                    return text === "Switch to Octet Representative" ? "Switch to Expanded Octet Representative" : "Switch to Octet Representative";
-                })
-            });
-        })
-    </script>
 
-    <div>
-        <p>
-            <strong>Hints:</strong><br/>
-            <span style="color:red">RED BOX</span> indicates the input of user<br/>
-            Expanded octet structures only accounts for sulfur-containing species currently
-        </p>
-    </div>
+<div class="structures">
+    {% for struct, class in structure %}
+        {% if 'unre' in class %}
+            <div class="{{ class }}">{{ struct|safe }}</div>
+        {% elif 'repr_expoct' in class %}
+            <div style="display: none;" class="{{ class }}">{{ struct|safe }}</div>
+        {% elif 'repr_oct' in class %}
+            <div class="{{ class }}">{{ struct|safe }}</div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+</div>
+
 {% endblock %}

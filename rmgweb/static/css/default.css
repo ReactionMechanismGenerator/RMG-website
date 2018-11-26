@@ -472,22 +472,21 @@ img.family {
     width: 100%;
 }
 
-.origin {
-    border-width: 2px;
-    border-color: red;
-    border-style: solid;
+#resonance h2{
+    margin: 20px 0px;
+}
+
+#resonance div.structures{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#resonance .origin {
+    border: 2px solid #F04040;
     padding: 10px;
 }
 
-.unre {
-    padding: 12px;
-}
-
-.repr_oct {
-    padding: 12px;
-}
-
-.repr_expoct {
+#resonance .repr_both, .repr_oct, .repr_expoct, .unre {
     padding: 12px;
 }
 
