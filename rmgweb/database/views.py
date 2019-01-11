@@ -64,7 +64,7 @@ from rmgpy.kinetics import KineticsData, Arrhenius, ArrheniusEP, \
                            Chebyshev, Troe, Lindemann, ThirdBody
 from rmgpy.molecule import Group, Molecule, Atom, Bond
 from rmgpy.molecule.adjlist import Saturator
-from rmgpy.molecule.resonance import generate_resonance_structures
+from rmgpy.molecule.resonance import analyze_molecule, generate_resonance_structures
 from rmgpy.molecule.filtration import filter_structures
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
@@ -2555,15 +2555,16 @@ def generateResonanceStructure(request, adjlist):
 
     # Obtain the molecule structure
     molecule = Molecule().fromAdjacencyList(adjlist)
+    features = analyze_molecule(molecule)
 
     # Generate unfiltered resonance structure for the molecule
     res_list_expoct = generate_resonance_structures(molecule, filter_structures=False)
 
     # Generate representative structure of expanded-octet
-    repr_expoct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=True)
+    repr_expoct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=True, features=features)
 
     # Generate representative structure of octet
-    repr_oct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=False)
+    repr_oct = filter_structures(res_list_expoct, mark_unreactive=False, allow_expanded_octet=False, features=features)
 
     output = []
     for item in res_list_expoct:
