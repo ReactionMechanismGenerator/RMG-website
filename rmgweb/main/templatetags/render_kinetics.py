@@ -270,74 +270,42 @@ def getRateCoefficientUnits(kinetics, user=None):
     specified, the user's preferred units will be used; otherwise default units
     will be used.
     """
-    
-    # Determine the number of reactants based on the units of one of the
-    # kinetic parameters (which to use depends on the model)
-    numReactants = 0
-    if isinstance(kinetics, Arrhenius):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.A.units)
-    elif isinstance(kinetics, ArrheniusEP):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.A.units)
+    # Get units from based on the kinetics type
+    if isinstance(kinetics, (Arrhenius, ArrheniusEP, SurfaceArrhenius, SurfaceArrheniusBEP, StickingCoefficient, StickingCoefficientBEP)):
+        units = kinetics.A.units
     elif isinstance(kinetics, KineticsData):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.kdata.units)
-    elif isinstance(kinetics, PDepArrhenius):
+        units = kinetics.kdata.units
+    elif isinstance(kinetics, (PDepArrhenius, MultiArrhenius, MultiPDepArrhenius)):
         return getRateCoefficientUnits(kinetics.arrhenius[0])
     elif isinstance(kinetics, Chebyshev):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
+        units = kinetics.kunits
     elif isinstance(kinetics, Troe):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+        units = kinetics.arrheniusHigh.A.units
     elif isinstance(kinetics, Lindemann):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+        units = kinetics.arrheniusHigh.A.units
     elif isinstance(kinetics, ThirdBody):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusLow.A.units)
-    elif isinstance(kinetics, MultiArrhenius):
-        return getRateCoefficientUnits(kinetics.arrhenius[0])
-    elif isinstance(kinetics, MultiPDepArrhenius):
-        return getRateCoefficientUnits(kinetics.arrhenius[0])
-    
-    # Use the number of reactants to get the rate coefficient units and conversion factor
-    kunitsDict = {
-        1: 's^-1',
-        2: 'm^3/(mol*s)',
-        3: 'm^6/(mol^2*s)',
-        4: 'm^9/(mol^3*s)',
-    }
+        units = kinetics.arrheniusLow.A.units
+    else:
+        raise NotImplementedError('Cannot get units for {0} class.'.format(kinetics.__class__.__name__))
+
     if user and user.is_authenticated():
+        # If user is logged in, get their desired units
         user_profile = UserProfile.objects.get(user=user)
-        if user_profile.rateCoefficientUnits == 'm^3,mol,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'm^3/(mol*s)',
-                3: 'm^6/(mol^2*s)',
-                4: 'm^9/(mol^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'cm^3,mol,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'cm^3/(mol*s)',
-                3: 'cm^6/(mol^2*s)',
-                4: 'cm^9/(mol^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'm^3,molecule,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'm^3/(molecule*s)',
-                3: 'm^6/(molecule^2*s)',
-                4: 'm^9/(molecule^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'cm^3,molecule,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'cm^3/(molecule*s)',
-                3: 'cm^6/(molecule^2*s)',
-                4: 'cm^9/(molecule^3*s)',
-            }
-            
-    kunits = kunitsDict[numReactants]
-    kunits_low = kunitsDict[numReactants+1]
-    kfactor = Quantity(1, kunits).getConversionFactorFromSI()
-    
-    return kunits, kunits_low, kfactor, numReactants
+        desired_units = user_profile.rateCoefficientUnits
+    else:
+        # Default base units
+        desired_units = 'm^3,mol,s'
+
+    if units == '':
+        # Dimensionless
+        return '', '', 1
+    else:
+        # Reconstruct the rate units using the desired base units
+        kunits = reconstruct_rate_units(units, desired_units)
+        kunits_low = reconstruct_rate_units(units, desired_units, add_conc_dim=True)
+        kfactor = Quantity(1, kunits).getConversionFactorFromSI()
+
+        return kunits, kunits_low, kfactor
 
 ################################################################################
 
@@ -360,7 +328,7 @@ def render_kinetics_math(kinetics, user=None):
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
@@ -585,7 +553,7 @@ def get_rate_coefficients(kinetics, user=None):
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
@@ -697,7 +665,7 @@ def get_specific_rate(kinetics, eval):
     if kinetics is None:
         return "// There are no kinetics for this entry."
     temperature, pressure = eval
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics)
     rate = kinetics.getRateCoefficient(temperature, pressure)*kfactor
     result = '<script type="math/tex; mode=display">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</script>'.format(kunits)
@@ -710,6 +678,6 @@ def get_user_kfactor(kinetics, user=None):
     """
     Return the scaling factor required for average kinetics plotting.
     """
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     
     return mark_safe("""kfactor = {0};""".format(kfactor))
