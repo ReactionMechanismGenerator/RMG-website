@@ -2284,12 +2284,29 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
 
+    # Generate InChIs here so we can catch errors
+    reactantInChIs = []
+    for reactant in reactantList:
+        try:
+            reactantInChIs.append(reactant.InChI)
+        except ValueError:
+            reactantInChIs.append('')
+
+    productInChIs = []
+    for product in productList:
+        try:
+            productInChIs.append(product.InChI)
+        except ValueError:
+            productInChIs.append('')
+
     return render(request, 'kineticsData.html',
                   {'kineticsDataList': kineticsDataList,
                    'plotWidth': 500,
                    'plotHeight': 400 + 15 * len(kineticsDataList),
                    'reactantList': reactantList,
                    'productList': productList,
+                   'reactantInChIs': reactantInChIs,
+                   'productInChIs': productInChIs,
                    'reverseReactionURL':reverseReactionURL,
                    'form':rateForm,
                    'eval':eval,
