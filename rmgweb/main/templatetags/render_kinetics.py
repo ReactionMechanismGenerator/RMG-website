@@ -338,7 +338,7 @@ def render_kinetics_math(kinetics, user=None):
     # The string that will be returned to the template
     result = ''
     
-    if isinstance(kinetics, Arrhenius):
+    if isinstance(kinetics, (Arrhenius, SurfaceArrhenius, StickingCoefficient)):
         # The kinetics is in Arrhenius format
         result += r'<script type="math/tex; mode=display">k(T) = {0!s}</script>'.format(getArrheniusJSMath(
             kinetics.A.value_si * kfactor, kunits, 
@@ -347,13 +347,13 @@ def render_kinetics_math(kinetics, user=None):
             kinetics.T0.value_si * Tfactor, Tunits,
         ))
     
-    elif isinstance(kinetics, ArrheniusEP):
+    elif isinstance(kinetics, (ArrheniusEP, SurfaceArrheniusBEP, StickingCoefficientBEP)):
         # The kinetics is in ArrheniusEP format
         result += r'<script type="math/tex; mode=display">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
         if kinetics.n.value_si != 0:
             result += r' T^{{ {0:.2f} }}'.format(kinetics.n.value_si)
         result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value_si * Efactor, Eunits, kinetics.alpha.value_si)
-        result += ' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
+        result += r' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
     
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
