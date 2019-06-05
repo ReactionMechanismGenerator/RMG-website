@@ -593,6 +593,9 @@ def get_rate_coefficients(kinetics, user=None):
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+        for T in Tdata:
+            kdata.append(kinetics.getStickingCoefficient(T) * kfactor)
     else:
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T) * kfactor)
@@ -611,6 +614,9 @@ def get_rate_coefficients(kinetics, user=None):
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+        for T in Tdata:
+            kdata2.append(kinetics.getStickingCoefficient(T) * kfactor)
     else:
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
@@ -623,12 +629,20 @@ def get_rate_coefficients(kinetics, user=None):
             # Use the highest pressure we have available
             klist = numpy.array(kdata[-1], numpy.float64)
             pressure_note = " (At {0} {1})".format(Pdata[-1],Punits)
+            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
+        elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+            kModel = StickingCoefficient().fitToData(Tlist, klist, kunits)
+        elif isinstance(kinetics, (SurfaceArrhenius, SurfaceArrheniusBEP)):
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+            kModel = SurfaceArrhenius().fitToData(Tlist, klist, kunits)
         else:
             klist = numpy.array(kdata, numpy.float64)
             pressure_note = ""
+            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
 
-        kModel = Arrhenius().fitToData(Tlist, klist, kunits)
-    
         return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
                             kModel.A.value_si * kfactor,
                             kModel.n.value_si,
