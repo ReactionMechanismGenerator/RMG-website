@@ -49,6 +49,15 @@ from rmgpy.kinetics import *
 
 ################################################################################
 
+UNIT_TYPES = {
+    'cm': 'length',
+    'm': 'length',
+    'mol': 'mol',
+    'molecule': 'mol',
+    's': 'time',
+}
+
+
 def getNumberOfReactantsFromUnits(units):
     si_units = {
         's^-1': 1,
@@ -101,6 +110,157 @@ def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
         result += r' \exp \left(\frac{{ {0:.2f} \ \mathrm{{ {1!s} }} }}{{ R T }} \right)'.format(-Ea, Eaunits)
     result += ' \ \mathrm{{ {0!s} }}'.format(Aunits)
     return result
+
+
+def get_rate_unit_dimensionality(units):
+    """
+    For the given units, deconstruct into dimensions and powers, returned
+    as a dictionary. Assumes fairly consistent unit formatting.
+
+    Set of units for which this function was designed:
+        's^-1'
+        's**-1'
+        'm^3/(mol*s)'
+        'm**3/(mol*s)'
+        'm^3/mol/s'
+        'm**3/mol/s'
+        'cm^3/(mol*s)'
+        'cm**3/(mol*s)'
+        'cm^3/mol/s'
+        'cm**3/mol/s'
+        'm^3/(molecule*s)'
+        'm**3/(molecule*s)'
+        'm^3/molecule/s'
+        'm**3/molecule/s'
+        'cm^3/(molecule*s)'
+        'cm**3/(molecule*s)'
+        'cm^3/molecule/s'
+        'cm**3/molecule/s'
+        'm^6/(mol^2*s)'
+        'm**6/(mol^2*s)'
+        'm^6/mol^2/s'
+        'm**6/mol^2/s'
+        'cm^6/(mol^2*s)'
+        'cm**6/(mol^2*s)'
+        'cm^6/mol^2/s'
+        'cm**6/mol^2/s'
+        'm^6/(molecule^2*s)'
+        'm**6/(molecule^2*s)'
+        'm^6/molecule^2/s'
+        'm**6/molecule^2/s'
+        'cm^6/(molecule^2*s)'
+        'cm**6/(molecule^2*s)'
+        'cm^6/molecule^2/s'
+        'cm**6/molecule^2/s'
+    """
+    dimensionality = {}
+    units = units.replace('**', '^')
+
+    fractions = units.split('/')
+    for i, frac in enumerate(fractions):
+        # Remove any parentheses and split by *
+        parts = frac.replace('(', '').replace(')', '').split('*')
+        for part in parts:
+            if '^' in part:
+                unit, power = part.split('^')
+                power = int(power)
+            else:
+                unit, power = part, 1
+            if i % 2:
+                # In denominator, should have negative power
+                power = -power
+            dimensionality[UNIT_TYPES[unit]] = power
+
+    return dimensionality
+
+
+def construct_rate_units(dimensionality, desired_units):
+    """
+    Put the provided unit parts back together into a single unit based on the
+    provided dimensionality and units.
+    """
+    error = False
+    units = ''
+    if len(dimensionality) == 1:
+        # Should just be time units
+        unit, power = desired_units['time'], dimensionality['time']
+        units = '{0}^{1}'.format(unit, power)
+    elif len(dimensionality) == 3:
+        # Should be combination of length, mol, and time units
+        l = m = t = ''
+        for dimension, power in dimensionality.items():
+            if abs(power) == 1:
+                exponent = ''
+            else:
+                exponent = '^{0}'.format(abs(power))
+            if dimension == 'length':
+                if power < 1:
+                    # length units should have positive exponent
+                    error = True
+                l = desired_units[dimension] + exponent
+            elif dimension == 'mol':
+                if power > 1:
+                    # mol units should have negative exponent
+                    error = True
+                m = desired_units[dimension] + exponent
+            elif dimension == 'time':
+                if power > 1:
+                    # time units should have negative exponent
+                    error = True
+                t = desired_units[dimension] + exponent
+        if l and m and t:
+            units = '{0}/({1}*{2})'.format(l, m, t)
+        else:
+            error = True
+    else:
+        error = True
+
+    if error:
+        raise ValueError('Unable to construct rate units from the provided dimensionality: {0!r}'.format(dimensionality))
+
+    return units
+
+
+def reconstruct_rate_units(units, desired_units, add_conc_dim=False):
+    """
+    Reconstruct the specified units using the desired base units.
+
+    For example, if m^6/(mol^2*s) is provided and the desired units are
+    cm^3, molecule, s, then return cm^6/(molecule^2*s).
+    """
+    dimensionality = get_rate_unit_dimensionality(units)
+
+    if add_conc_dim:
+        # Add an additional inverse concentration dimension for low pressure kinetics
+        if 'length' in dimensionality:
+            dimensionality['length'] += 3
+        else:
+            dimensionality['length'] = 3
+        if 'mol' in dimensionality:
+            dimensionality['mol'] -= 1
+        else:
+            dimensionality['mol'] = -1
+
+    unit_dict = {}
+    if desired_units == 'm^3,mol,s':
+        unit_dict['length'] = 'm'
+        unit_dict['mol'] = 'mol'
+        unit_dict['time'] = 's'
+    elif desired_units == 'cm^3,mol,s':
+        unit_dict['length'] = 'cm'
+        unit_dict['mol'] = 'mol'
+        unit_dict['time'] = 's'
+    elif desired_units == 'm^3,molecule,s':
+        unit_dict['length'] = 'm'
+        unit_dict['mol'] = 'molecule'
+        unit_dict['time'] = 's'
+    elif desired_units == 'cm^3,molecule,s':
+        unit_dict['length'] = 'cm'
+        unit_dict['mol'] = 'molecule'
+        unit_dict['time'] = 's'
+
+    return construct_rate_units(dimensionality, unit_dict)
+
 
 def getRateCoefficientUnits(kinetics, user=None):
     """
