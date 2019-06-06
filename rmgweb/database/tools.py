@@ -821,6 +821,28 @@ def getAbrahamAB(smiles):
     return molecule.A, molecule.B
 
 
+def getLibraryLists():
+    """
+    Get a list of thermo and kinetics libraries without loading the database.
+    """
+    db_path = rmgweb.settings.DATABASE_PATH
+
+    thermo_lib_dir = os.path.join(db_path, 'thermo', 'libraries')
+    thermo_libraries = []
+    for filename in os.listdir(thermo_lib_dir):
+        if '.py' in filename:
+            thermo_libraries.append(os.path.splitext(filename)[0])
+
+    kinetics_lib_dir = os.path.join(db_path, 'kinetics', 'libraries')
+
+    kinetics_libraries = []
+    for root, dirs, files in os.walk(kinetics_lib_dir):
+        if 'reactions.py' in files:
+            kinetics_libraries.append(root.split('/libraries/')[-1])
+
+    return sorted(thermo_libraries), sorted(kinetics_libraries)
+
+
 ################################################################################
 
 # Initialize module level database instance
