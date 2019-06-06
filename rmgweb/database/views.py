@@ -1234,20 +1234,10 @@ def kinetics(request, section='', subsection=''):
         entries = []
 
         for entry0 in entries0:
-
-            dataFormat = ''
-
-            if isinstance(entry0.data, KineticsData): dataFormat = 'KineticsData'
-            elif isinstance(entry0.data, Arrhenius): dataFormat = 'Arrhenius'
-            elif isinstance(entry0.data, str): dataFormat = 'Link'
-            elif isinstance(entry0.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry0.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
-            elif isinstance(entry0.data, MultiPDepArrhenius): dataFormat = 'MultiPDepArrhenius'
-            elif isinstance(entry0.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
-            elif isinstance(entry0.data, Chebyshev): dataFormat = 'Chebyshev'
-            elif isinstance(entry0.data, Troe): dataFormat = 'Troe'
-            elif isinstance(entry0.data, Lindemann): dataFormat = 'Lindemann'
-            elif isinstance(entry0.data, ThirdBody): dataFormat = 'ThirdBody'
+            if isinstance(entry0.data, str):
+                dataFormat = 'Link'
+            else:
+                dataFormat = entry0.data.__class__.__name__
 
             entry = {
                 'index': entry0.index,
