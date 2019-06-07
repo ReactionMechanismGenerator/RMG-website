@@ -46,7 +46,7 @@ import itertools
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.species import Species
-from rmgpy.reaction import Reaction
+from rmgpy.reaction import Reaction, same_species_lists
 from rmgpy.data.base import Entry
 from rmgpy.data.kinetics import TemplateReaction, DepositoryReaction
 from rmgweb.main.tools import *
@@ -463,18 +463,8 @@ def reactionHasReactants(reaction, reactants):
     Return ``True`` if the given `reaction` has all of the specified
     `reactants` (and no others), or ``False if not.
     """
-    if len(reactants) == len(reaction.reactants) == 1:
-        if reaction.reactants[0].isIsomorphic(reactants[0]):
-            return True
-    elif len(reactants) == len(reaction.reactants) == 2:
-        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[1]):
-            return True
-        elif reaction.reactants[0].isIsomorphic(reactants[1]) and reaction.reactants[1].isIsomorphic(reactants[0]):
-            return True
-    elif len(reactants) == 1 and len(reaction.reactants) == 2:
-        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[0]):
-            return True
-    return False
+    return same_species_lists(reaction.reactants, reactants, strict=False)
+
 
 def getRMGJavaKineticsFromReaction(reaction):
     """
