@@ -58,45 +58,6 @@ UNIT_TYPES = {
 }
 
 
-def getNumberOfReactantsFromUnits(units):
-    si_units = {
-        's^-1': 1,
-        's**-1': 1,
-        'm^3/(mol*s)': 2,
-        'm**3/(mol*s)': 2,
-        'm^3/mol/s': 2,
-        'm**3/mol/s': 2,
-        'cm^3/(mol*s)': 2,
-        'cm**3/(mol*s)': 2,
-        'cm^3/mol/s': 2,
-        'cm**3/mol/s': 2,
-        'm^3/(molecule*s)': 2,
-        'm**3/(molecule*s)': 2,
-        'm^3/molecule/s': 2,
-        'm**3/molecule/s': 2,
-        'cm^3/(molecule*s)': 2,
-        'cm**3/(molecule*s)': 2,
-        'cm^3/molecule/s': 2,
-        'cm**3/molecule/s': 2,
-        'm^6/(mol^2*s)': 3,
-        'm**6/(mol^2*s)': 3,
-        'm^6/mol^2/s': 3,
-        'm**6/mol^2/s': 3,
-        'cm^6/(mol^2*s)': 3,
-        'cm**6/(mol^2*s)': 3,
-        'cm^6/mol^2/s': 3,
-        'cm**6/mol^2/s': 3,
-        'm^6/(molecule^2*s)': 3,
-        'm**6/(molecule^2*s)': 3,
-        'm^6/molecule^2/s': 3,
-        'm**6/molecule^2/s': 3,
-        'cm^6/(molecule^2*s)': 3,
-        'cm**6/(molecule^2*s)': 3,
-        'cm^6/molecule^2/s': 3,
-        'cm**6/molecule^2/s': 3,
-    }
-    return si_units[units]
-
 def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
     result = '{0!s}'.format(getLaTeXScientificNotation(A))
     if n != 0:
