@@ -49,44 +49,14 @@ from rmgpy.kinetics import *
 
 ################################################################################
 
-def getNumberOfReactantsFromUnits(units):
-    si_units = {
-        's^-1': 1,
-        's**-1': 1,
-        'm^3/(mol*s)': 2,
-        'm**3/(mol*s)': 2,
-        'm^3/mol/s': 2,
-        'm**3/mol/s': 2,
-        'cm^3/(mol*s)': 2,
-        'cm**3/(mol*s)': 2,
-        'cm^3/mol/s': 2,
-        'cm**3/mol/s': 2,
-        'm^3/(molecule*s)': 2,
-        'm**3/(molecule*s)': 2,
-        'm^3/molecule/s': 2,
-        'm**3/molecule/s': 2,
-        'cm^3/(molecule*s)': 2,
-        'cm**3/(molecule*s)': 2,
-        'cm^3/molecule/s': 2,
-        'cm**3/molecule/s': 2,
-        'm^6/(mol^2*s)': 3,
-        'm**6/(mol^2*s)': 3,
-        'm^6/mol^2/s': 3,
-        'm**6/mol^2/s': 3,
-        'cm^6/(mol^2*s)': 3,
-        'cm**6/(mol^2*s)': 3,
-        'cm^6/mol^2/s': 3,
-        'cm**6/mol^2/s': 3,
-        'm^6/(molecule^2*s)': 3,
-        'm**6/(molecule^2*s)': 3,
-        'm^6/molecule^2/s': 3,
-        'm**6/molecule^2/s': 3,
-        'cm^6/(molecule^2*s)': 3,
-        'cm**6/(molecule^2*s)': 3,
-        'cm^6/molecule^2/s': 3,
-        'cm**6/molecule^2/s': 3,
-    }
-    return si_units[units]
+UNIT_TYPES = {
+    'cm': 'length',
+    'm': 'length',
+    'mol': 'mol',
+    'molecule': 'mol',
+    's': 'time',
+}
+
 
 def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
     result = '{0!s}'.format(getLaTeXScientificNotation(A))
@@ -102,6 +72,157 @@ def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
     result += ' \ \mathrm{{ {0!s} }}'.format(Aunits)
     return result
 
+
+def get_rate_unit_dimensionality(units):
+    """
+    For the given units, deconstruct into dimensions and powers, returned
+    as a dictionary. Assumes fairly consistent unit formatting.
+
+    Set of units for which this function was designed:
+        's^-1'
+        's**-1'
+        'm^3/(mol*s)'
+        'm**3/(mol*s)'
+        'm^3/mol/s'
+        'm**3/mol/s'
+        'cm^3/(mol*s)'
+        'cm**3/(mol*s)'
+        'cm^3/mol/s'
+        'cm**3/mol/s'
+        'm^3/(molecule*s)'
+        'm**3/(molecule*s)'
+        'm^3/molecule/s'
+        'm**3/molecule/s'
+        'cm^3/(molecule*s)'
+        'cm**3/(molecule*s)'
+        'cm^3/molecule/s'
+        'cm**3/molecule/s'
+        'm^6/(mol^2*s)'
+        'm**6/(mol^2*s)'
+        'm^6/mol^2/s'
+        'm**6/mol^2/s'
+        'cm^6/(mol^2*s)'
+        'cm**6/(mol^2*s)'
+        'cm^6/mol^2/s'
+        'cm**6/mol^2/s'
+        'm^6/(molecule^2*s)'
+        'm**6/(molecule^2*s)'
+        'm^6/molecule^2/s'
+        'm**6/molecule^2/s'
+        'cm^6/(molecule^2*s)'
+        'cm**6/(molecule^2*s)'
+        'cm^6/molecule^2/s'
+        'cm**6/molecule^2/s'
+    """
+    dimensionality = {}
+    units = units.replace('**', '^')
+
+    fractions = units.split('/')
+    for i, frac in enumerate(fractions):
+        # Remove any parentheses and split by *
+        parts = frac.replace('(', '').replace(')', '').split('*')
+        for part in parts:
+            if '^' in part:
+                unit, power = part.split('^')
+                power = int(power)
+            else:
+                unit, power = part, 1
+            if i % 2:
+                # In denominator, should have negative power
+                power = -power
+            dimensionality[UNIT_TYPES[unit]] = power
+
+    return dimensionality
+
+
+def construct_rate_units(dimensionality, desired_units):
+    """
+    Put the provided unit parts back together into a single unit based on the
+    provided dimensionality and units.
+    """
+    error = False
+    units = ''
+    if len(dimensionality) == 1:
+        # Should just be time units
+        unit, power = desired_units['time'], dimensionality['time']
+        units = '{0}^{1}'.format(unit, power)
+    elif len(dimensionality) == 3:
+        # Should be combination of length, mol, and time units
+        l = m = t = ''
+        for dimension, power in dimensionality.items():
+            if abs(power) == 1:
+                exponent = ''
+            else:
+                exponent = '^{0}'.format(abs(power))
+            if dimension == 'length':
+                if power < 1:
+                    # length units should have positive exponent
+                    error = True
+                l = desired_units[dimension] + exponent
+            elif dimension == 'mol':
+                if power > 1:
+                    # mol units should have negative exponent
+                    error = True
+                m = desired_units[dimension] + exponent
+            elif dimension == 'time':
+                if power > 1:
+                    # time units should have negative exponent
+                    error = True
+                t = desired_units[dimension] + exponent
+        if l and m and t:
+            units = '{0}/({1}*{2})'.format(l, m, t)
+        else:
+            error = True
+    else:
+        error = True
+
+    if error:
+        raise ValueError('Unable to construct rate units from the provided dimensionality: {0!r}'.format(dimensionality))
+
+    return units
+
+
+def reconstruct_rate_units(units, desired_units, add_conc_dim=False):
+    """
+    Reconstruct the specified units using the desired base units.
+
+    For example, if m^6/(mol^2*s) is provided and the desired units are
+    cm^3, molecule, s, then return cm^6/(molecule^2*s).
+    """
+    dimensionality = get_rate_unit_dimensionality(units)
+
+    if add_conc_dim:
+        # Add an additional inverse concentration dimension for low pressure kinetics
+        if 'length' in dimensionality:
+            dimensionality['length'] += 3
+        else:
+            dimensionality['length'] = 3
+        if 'mol' in dimensionality:
+            dimensionality['mol'] -= 1
+        else:
+            dimensionality['mol'] = -1
+
+    unit_dict = {}
+    if desired_units == 'm^3,mol,s':
+        unit_dict['length'] = 'm'
+        unit_dict['mol'] = 'mol'
+        unit_dict['time'] = 's'
+    elif desired_units == 'cm^3,mol,s':
+        unit_dict['length'] = 'cm'
+        unit_dict['mol'] = 'mol'
+        unit_dict['time'] = 's'
+    elif desired_units == 'm^3,molecule,s':
+        unit_dict['length'] = 'm'
+        unit_dict['mol'] = 'molecule'
+        unit_dict['time'] = 's'
+    elif desired_units == 'cm^3,molecule,s':
+        unit_dict['length'] = 'cm'
+        unit_dict['mol'] = 'molecule'
+        unit_dict['time'] = 's'
+
+    return construct_rate_units(dimensionality, unit_dict)
+
+
 def getRateCoefficientUnits(kinetics, user=None):
     """
     For a given `kinetics` model, return the desired rate coefficient units
@@ -110,74 +231,42 @@ def getRateCoefficientUnits(kinetics, user=None):
     specified, the user's preferred units will be used; otherwise default units
     will be used.
     """
-    
-    # Determine the number of reactants based on the units of one of the
-    # kinetic parameters (which to use depends on the model)
-    numReactants = 0
-    if isinstance(kinetics, Arrhenius):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.A.units)
-    elif isinstance(kinetics, ArrheniusEP):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.A.units)
+    # Get units from based on the kinetics type
+    if isinstance(kinetics, (Arrhenius, ArrheniusEP, SurfaceArrhenius, SurfaceArrheniusBEP, StickingCoefficient, StickingCoefficientBEP)):
+        units = kinetics.A.units
     elif isinstance(kinetics, KineticsData):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.kdata.units)
-    elif isinstance(kinetics, PDepArrhenius):
+        units = kinetics.kdata.units
+    elif isinstance(kinetics, (PDepArrhenius, MultiArrhenius, MultiPDepArrhenius)):
         return getRateCoefficientUnits(kinetics.arrhenius[0])
     elif isinstance(kinetics, Chebyshev):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.kunits)
+        units = kinetics.kunits
     elif isinstance(kinetics, Troe):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+        units = kinetics.arrheniusHigh.A.units
     elif isinstance(kinetics, Lindemann):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusHigh.A.units)
+        units = kinetics.arrheniusHigh.A.units
     elif isinstance(kinetics, ThirdBody):
-        numReactants = getNumberOfReactantsFromUnits(kinetics.arrheniusLow.A.units)
-    elif isinstance(kinetics, MultiArrhenius):
-        return getRateCoefficientUnits(kinetics.arrhenius[0])
-    elif isinstance(kinetics, MultiPDepArrhenius):
-        return getRateCoefficientUnits(kinetics.arrhenius[0])
-    
-    # Use the number of reactants to get the rate coefficient units and conversion factor
-    kunitsDict = {
-        1: 's^-1',
-        2: 'm^3/(mol*s)',
-        3: 'm^6/(mol^2*s)',
-        4: 'm^9/(mol^3*s)',
-    }
+        units = kinetics.arrheniusLow.A.units
+    else:
+        raise NotImplementedError('Cannot get units for {0} class.'.format(kinetics.__class__.__name__))
+
     if user and user.is_authenticated():
+        # If user is logged in, get their desired units
         user_profile = UserProfile.objects.get(user=user)
-        if user_profile.rateCoefficientUnits == 'm^3,mol,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'm^3/(mol*s)',
-                3: 'm^6/(mol^2*s)',
-                4: 'm^9/(mol^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'cm^3,mol,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'cm^3/(mol*s)',
-                3: 'cm^6/(mol^2*s)',
-                4: 'cm^9/(mol^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'm^3,molecule,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'm^3/(molecule*s)',
-                3: 'm^6/(molecule^2*s)',
-                4: 'm^9/(molecule^3*s)',
-            }
-        elif user_profile.rateCoefficientUnits == 'cm^3,molecule,s':
-            kunitsDict = {
-                1: 's^-1',
-                2: 'cm^3/(molecule*s)',
-                3: 'cm^6/(molecule^2*s)',
-                4: 'cm^9/(molecule^3*s)',
-            }
-            
-    kunits = kunitsDict[numReactants]
-    kunits_low = kunitsDict[numReactants+1]
-    kfactor = Quantity(1, kunits).getConversionFactorFromSI()
-    
-    return kunits, kunits_low, kfactor, numReactants
+        desired_units = user_profile.rateCoefficientUnits
+    else:
+        # Default base units
+        desired_units = 'm^3,mol,s'
+
+    if units == '':
+        # Dimensionless
+        return '', '', 1
+    else:
+        # Reconstruct the rate units using the desired base units
+        kunits = reconstruct_rate_units(units, desired_units)
+        kunits_low = reconstruct_rate_units(units, desired_units, add_conc_dim=True)
+        kfactor = Quantity(1, kunits).getConversionFactorFromSI()
+
+        return kunits, kunits_low, kfactor
 
 ################################################################################
 
@@ -200,7 +289,7 @@ def render_kinetics_math(kinetics, user=None):
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
@@ -210,7 +299,7 @@ def render_kinetics_math(kinetics, user=None):
     # The string that will be returned to the template
     result = ''
     
-    if isinstance(kinetics, Arrhenius):
+    if isinstance(kinetics, (Arrhenius, SurfaceArrhenius, StickingCoefficient)):
         # The kinetics is in Arrhenius format
         result += r'<script type="math/tex; mode=display">k(T) = {0!s}</script>'.format(getArrheniusJSMath(
             kinetics.A.value_si * kfactor, kunits, 
@@ -219,13 +308,13 @@ def render_kinetics_math(kinetics, user=None):
             kinetics.T0.value_si * Tfactor, Tunits,
         ))
     
-    elif isinstance(kinetics, ArrheniusEP):
+    elif isinstance(kinetics, (ArrheniusEP, SurfaceArrheniusBEP, StickingCoefficientBEP)):
         # The kinetics is in ArrheniusEP format
         result += r'<script type="math/tex; mode=display">k(T) = {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
         if kinetics.n.value_si != 0:
             result += r' T^{{ {0:.2f} }}'.format(kinetics.n.value_si)
         result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value_si * Efactor, Eunits, kinetics.alpha.value_si)
-        result += ' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
+        result += r' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
     
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
@@ -425,7 +514,7 @@ def get_rate_coefficients(kinetics, user=None):
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
@@ -465,6 +554,9 @@ def get_rate_coefficients(kinetics, user=None):
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+        for T in Tdata:
+            kdata.append(kinetics.getStickingCoefficient(T) * kfactor)
     else:
         for T in Tdata:
             kdata.append(kinetics.getRateCoefficient(T) * kfactor)
@@ -483,6 +575,9 @@ def get_rate_coefficients(kinetics, user=None):
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+        for T in Tdata:
+            kdata2.append(kinetics.getStickingCoefficient(T) * kfactor)
     else:
         for T in Tdata2:
             kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
@@ -495,12 +590,20 @@ def get_rate_coefficients(kinetics, user=None):
             # Use the highest pressure we have available
             klist = numpy.array(kdata[-1], numpy.float64)
             pressure_note = " (At {0} {1})".format(Pdata[-1],Punits)
+            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
+        elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+            kModel = StickingCoefficient().fitToData(Tlist, klist, kunits)
+        elif isinstance(kinetics, (SurfaceArrhenius, SurfaceArrheniusBEP)):
+            klist = numpy.array(kdata, numpy.float64)
+            pressure_note = ""
+            kModel = SurfaceArrhenius().fitToData(Tlist, klist, kunits)
         else:
             klist = numpy.array(kdata, numpy.float64)
             pressure_note = ""
+            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
 
-        kModel = Arrhenius().fitToData(Tlist, klist, kunits)
-    
         return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
                             kModel.A.value_si * kfactor,
                             kModel.n.value_si,
@@ -537,7 +640,7 @@ def get_specific_rate(kinetics, eval):
     if kinetics is None:
         return "// There are no kinetics for this entry."
     temperature, pressure = eval
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics)
     rate = kinetics.getRateCoefficient(temperature, pressure)*kfactor
     result = '<script type="math/tex; mode=display">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</script>'.format(kunits)
@@ -550,6 +653,6 @@ def get_user_kfactor(kinetics, user=None):
     """
     Return the scaling factor required for average kinetics plotting.
     """
-    kunits, kunits_low, kfactor, numReactants = getRateCoefficientUnits(kinetics, user=user)
+    kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
     
     return mark_safe("""kfactor = {0};""".format(kfactor))

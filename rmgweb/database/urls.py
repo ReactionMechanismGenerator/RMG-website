@@ -146,12 +146,14 @@ for r2, r3, p1, p2, p3, res in itertools.product([1, 0], repeat=6):
 
     urlpatterns.append(url(url_pattern, views.kineticsData, name='kinetics-data'))
 
-for r2, p2, res in itertools.product([1, 0], repeat=3):
+for r2, r3, p2, p3, res in itertools.product([1, 0], repeat=5):
     url_pattern = r'^kinetics/families/(?P<family>[^/]+)/(?P<estimator>[^/]+)/'
     url_pattern += url_parts[0]
     if r2: url_pattern += url_parts[1]
+    if r2 and r3: url_pattern += url_parts[2]
     url_pattern += url_parts[3]
     if p2: url_pattern += url_parts[4]
+    if p2 and p3: url_pattern += url_parts[5]
     if res: url_pattern += url_parts[6]
     url_pattern += r'$'
 

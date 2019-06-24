@@ -1234,20 +1234,10 @@ def kinetics(request, section='', subsection=''):
         entries = []
 
         for entry0 in entries0:
-
-            dataFormat = ''
-
-            if isinstance(entry0.data, KineticsData): dataFormat = 'KineticsData'
-            elif isinstance(entry0.data, Arrhenius): dataFormat = 'Arrhenius'
-            elif isinstance(entry0.data, str): dataFormat = 'Link'
-            elif isinstance(entry0.data, ArrheniusEP): dataFormat = 'ArrheniusEP'
-            elif isinstance(entry0.data, MultiArrhenius): dataFormat = 'MultiArrhenius'
-            elif isinstance(entry0.data, MultiPDepArrhenius): dataFormat = 'MultiPDepArrhenius'
-            elif isinstance(entry0.data, PDepArrhenius): dataFormat = 'PDepArrhenius'
-            elif isinstance(entry0.data, Chebyshev): dataFormat = 'Chebyshev'
-            elif isinstance(entry0.data, Troe): dataFormat = 'Troe'
-            elif isinstance(entry0.data, Lindemann): dataFormat = 'Lindemann'
-            elif isinstance(entry0.data, ThirdBody): dataFormat = 'ThirdBody'
+            if isinstance(entry0.data, str):
+                dataFormat = 'Link'
+            else:
+                dataFormat = entry0.data.__class__.__name__
 
             entry = {
                 'index': entry0.index,
@@ -2284,12 +2274,29 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
 
+    # Generate InChIs here so we can catch errors
+    reactantInChIs = []
+    for reactant in reactantList:
+        try:
+            reactantInChIs.append(reactant.InChI)
+        except ValueError:
+            reactantInChIs.append('')
+
+    productInChIs = []
+    for product in productList:
+        try:
+            productInChIs.append(product.InChI)
+        except ValueError:
+            productInChIs.append('')
+
     return render(request, 'kineticsData.html',
                   {'kineticsDataList': kineticsDataList,
                    'plotWidth': 500,
                    'plotHeight': 400 + 15 * len(kineticsDataList),
                    'reactantList': reactantList,
                    'productList': productList,
+                   'reactantInChIs': reactantInChIs,
+                   'productInChIs': productInChIs,
                    'reverseReactionURL':reverseReactionURL,
                    'form':rateForm,
                    'eval':eval,

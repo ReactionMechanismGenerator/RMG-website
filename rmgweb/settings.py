@@ -89,6 +89,7 @@ STATIC_URL = '/static/'
 # A list of locations of additional static files
 STATICFILES_DIRS = [
     os.path.join(PROJECT_PATH, 'static'),
+    os.path.abspath(os.path.join(DATABASE_PATH, '..', 'families')),  # Location of reaction family images
     '/var/www/static/',
 ]
 

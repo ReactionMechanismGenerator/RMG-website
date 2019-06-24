@@ -46,7 +46,7 @@ import itertools
 from rmgpy.kinetics import Arrhenius
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.species import Species
-from rmgpy.reaction import Reaction
+from rmgpy.reaction import Reaction, same_species_lists
 from rmgpy.data.base import Entry
 from rmgpy.data.kinetics import TemplateReaction, DepositoryReaction
 from rmgweb.main.tools import *
@@ -463,18 +463,8 @@ def reactionHasReactants(reaction, reactants):
     Return ``True`` if the given `reaction` has all of the specified
     `reactants` (and no others), or ``False if not.
     """
-    if len(reactants) == len(reaction.reactants) == 1:
-        if reaction.reactants[0].isIsomorphic(reactants[0]):
-            return True
-    elif len(reactants) == len(reaction.reactants) == 2:
-        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[1]):
-            return True
-        elif reaction.reactants[0].isIsomorphic(reactants[1]) and reaction.reactants[1].isIsomorphic(reactants[0]):
-            return True
-    elif len(reactants) == 1 and len(reaction.reactants) == 2:
-        if reaction.reactants[0].isIsomorphic(reactants[0]) and reaction.reactants[1].isIsomorphic(reactants[0]):
-            return True
-    return False
+    return same_species_lists(reaction.reactants, reactants, strict=False)
+
 
 def getRMGJavaKineticsFromReaction(reaction):
     """
@@ -819,6 +809,28 @@ def getAbrahamAB(smiles):
     molecule.MatchPlattsBGroups(molecule.smiles)
     
     return molecule.A, molecule.B
+
+
+def getLibraryLists():
+    """
+    Get a list of thermo and kinetics libraries without loading the database.
+    """
+    db_path = rmgweb.settings.DATABASE_PATH
+
+    thermo_lib_dir = os.path.join(db_path, 'thermo', 'libraries')
+    thermo_libraries = []
+    for filename in os.listdir(thermo_lib_dir):
+        if '.py' in filename:
+            thermo_libraries.append(os.path.splitext(filename)[0])
+
+    kinetics_lib_dir = os.path.join(db_path, 'kinetics', 'libraries')
+
+    kinetics_libraries = []
+    for root, dirs, files in os.walk(kinetics_lib_dir):
+        if 'reactions.py' in files:
+            kinetics_libraries.append(root.split('/libraries/')[-1])
+
+    return sorted(thermo_libraries), sorted(kinetics_libraries)
 
 
 ################################################################################

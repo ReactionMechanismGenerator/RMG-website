@@ -38,7 +38,7 @@ from django.utils.deconstruct import deconstructible
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.rmg.main import RMG
 from rmgweb.main.tools import *
-from rmgweb.database.tools import database
+from rmgweb.database.tools import getLibraryLists
 
 import rmgweb.settings as settings
 
@@ -838,12 +838,9 @@ class Input(models.Model):
 ################################################################################
 # DATABASE MODELS
 ################################################################################
-database.load('thermo', 'libraries')
-database.load('kinetics', 'libraries')
-ThermoLibraries = [(label, label) for label, library in database.thermo.libraries.iteritems()]
-ThermoLibraries.sort()
-KineticsLibraries = [(label, label) for label, library in database.kinetics.libraries.iteritems()]
-KineticsLibraries.sort()
+thermo_libraries, kinetics_libraries = getLibraryLists()
+ThermoLibraries = [(label, label) for label in thermo_libraries]
+KineticsLibraries = [(label, label) for label in kinetics_libraries]
 
 class ThermoLibrary(models.Model):
     input = models.ForeignKey(Input, related_name = 'thermo_libraries')
