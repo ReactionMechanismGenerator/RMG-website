@@ -16,13 +16,11 @@ Because this script makes assumptions regarding the contents at the
 start of each file, be sure to double-check the results to make sure
 important lines aren't accidentally overwritten.
 """
+from __future__ import print_function
 
 import os
 
-shebang = """#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
+shebang = "#!/usr/bin/env python3"
 
 header = """###############################################################################
 #                                                                             #
@@ -40,7 +38,8 @@ header += """#                                                                  
 ###############################################################################
 """
 
-print header
+print(header)
+
 
 def replace_header(oldfile):
     newfile = os.path.join('tmp', 'tempfile')
@@ -79,6 +78,7 @@ def replace_header(oldfile):
     # Replace old file with new file
     os.rename(newfile, oldfile)
 
+
 # Create temporary directory for writing files
 if not os.path.exists('tmp'):
     os.makedirs('tmp')
@@ -89,13 +89,12 @@ filelist = ['manage.py']
 root_dirs = ['rmgweb']
 for root_dir in root_dirs:
     for root, dirs, files in os.walk(root_dir):
-        print root
+        print(root)
         for f in files:
             ext = os.path.splitext(f)[1]
             if ext in ['.py']:
                 filelist.append(os.path.join(root, f))
 
 for f in filelist:
-    print 'Updating {0} ...'.format(f)
+    print('Updating {0} ...'.format(f))
     replace_header(f)
-
