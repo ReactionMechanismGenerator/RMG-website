@@ -28,18 +28,18 @@
 #                                                                             #
 ###############################################################################
 
-from django.conf.urls import url, include
-from django.conf import settings
-import django
-import django.views.static
-import django.views.defaults
 import os
 
-import rmgweb
-import rmgweb.main.views
-import rmgweb.database.views
-import rmgweb.rmg.views
+import django
+import django.views.defaults
+import django.views.static
+from django.conf import settings
+from django.conf.urls import url, include
 
+import rmgweb
+import rmgweb.database.views
+import rmgweb.main.views
+import rmgweb.rmg.views
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -53,21 +53,22 @@ urlpatterns = [
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-    
+
     # Restart the django processes in the webserver
     url(r'^restart$', rmgweb.main.views.restartWSGI, name='restart-wsgi'),
+
     # Show debug info
     url(r'^debug$', rmgweb.main.views.debug, name='debug'),
-    
+
     # The RMG website homepage
     url(r'^$', rmgweb.main.views.index, name='index'),
-    
+
     # The privacy policy
     url(r'^privacy$', rmgweb.main.views.privacy, name='privacy'),
-    
+
     # Version information
     url(r'^version$', rmgweb.main.views.version, name='version'),
-    
+
     # Additional resources page
     url(r'^resources$', rmgweb.main.views.resources, name='resources'),
 
@@ -76,7 +77,7 @@ urlpatterns = [
     url(r'^logout$', rmgweb.main.views.logout, name='logout'),
     url(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
     url(r'^signup', rmgweb.main.views.signup, name='signup'),
-    
+
     url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile, name='view-profile'),
 
     # Database
@@ -101,15 +102,11 @@ urlpatterns = [
 
     # RMG-Py Stuff
     url(r'^tools/', include('rmgweb.rmg.urls')),
-    
-    # RMG Input Form
-    # url(r'^input', rmgweb.rmg.views.input, name='input'),
-    
+
     # Documentation auto-rebuild
     url(r'^rebuild$', rmgweb.main.views.rebuild, name='rebuild'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
-    
 ]
 
 # Set custom 500 handler
