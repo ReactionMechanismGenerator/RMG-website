@@ -60,19 +60,19 @@ def render_thermo_math(thermo, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = user_profile.temperatureUnits
-        Cpunits = user_profile.heatCapacityUnits
-        Hunits = user_profile.energyUnits
-        Sunits = user_profile.heatCapacityUnits
+        Tunits = user_profile.temperature_units
+        Cpunits = user_profile.heatCapacity_units
+        Hunits = user_profile.energy_units
+        Sunits = user_profile.heatCapacity_units
     else:
         Tunits = 'K'
         Cpunits = 'cal/(mol*K)'
         Hunits = 'kcal/mol'
         Sunits = 'cal/(mol*K)'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Cpfactor = Quantity(1, Cpunits).getConversionFactorFromSI()
-    Hfactor = Quantity(1, Hunits).getConversionFactorFromSI()
-    Sfactor = Quantity(1, Sunits).getConversionFactorFromSI()
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Cpfactor = Quantity(1, Cpunits).get_conversion_factor_from_si()
+    Hfactor = Quantity(1, Hunits).get_conversion_factor_from_si()
+    Sfactor = Quantity(1, Sunits).get_conversion_factor_from_si()
 
     # The string that will be returned to the template
     result = ''
@@ -275,22 +275,22 @@ def get_thermo_data(thermo, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = user_profile.temperatureUnits
-        Cpunits = user_profile.heatCapacityUnits
-        Hunits = user_profile.energyUnits
-        Sunits = user_profile.heatCapacityUnits
-        Gunits = user_profile.energyUnits
+        Tunits = user_profile.temperature_units
+        Cpunits = user_profile.heatCapacity_units
+        Hunits = user_profile.energy_units
+        Sunits = user_profile.heatCapacity_units
+        Gunits = user_profile.energy_units
     else:
         Tunits = 'K'
         Cpunits = 'cal/(mol*K)'
         Hunits = 'kcal/mol'
         Sunits = 'cal/(mol*K)'
         Gunits = 'kcal/mol'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Cpfactor = Quantity(1, Cpunits).getConversionFactorFromSI()
-    Hfactor = Quantity(1, Hunits).getConversionFactorFromSI()
-    Sfactor = Quantity(1, Sunits).getConversionFactorFromSI()
-    Gfactor = Quantity(1, Gunits).getConversionFactorFromSI()
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Cpfactor = Quantity(1, Cpunits).get_conversion_factor_from_si()
+    Hfactor = Quantity(1, Hunits).get_conversion_factor_from_si()
+    Sfactor = Quantity(1, Sunits).get_conversion_factor_from_si()
+    Gfactor = Quantity(1, Gunits).get_conversion_factor_from_si()
 
     if thermo.Tmin is not None and thermo.Tmax is not None:
         Tmin = thermo.Tmin.value_si
@@ -310,10 +310,10 @@ def get_thermo_data(thermo, user=None):
     try:
         for T in np.arange(Tmin, Tmax+1, 10):
             Tdata.append(T * Tfactor)
-            Cpdata.append(thermo.getHeatCapacity(T) * Cpfactor)
-            Hdata.append(thermo.getEnthalpy(T) * Hfactor)
-            Sdata.append(thermo.getEntropy(T) * Sfactor)
-            Gdata.append(thermo.getFreeEnergy(T) * Gfactor)
+            Cpdata.append(thermo.get_heat_capacity(T) * Cpfactor)
+            Hdata.append(thermo.get_enthalpy(T) * Hfactor)
+            Sdata.append(thermo.get_entropy(T) * Sfactor)
+            Gdata.append(thermo.get_free_energy(T) * Gfactor)
 
         return mark_safe("""
     Tlist = {0};

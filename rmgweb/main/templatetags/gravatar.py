@@ -46,13 +46,10 @@ where `email` is the email address you wish to fetch the gravatar for, and
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 
 import re
 import hashlib
-import urllib.request
-import urllib.parse
-import urllib.error
+import urllib
 
 from django import template
 from django.contrib.auth.models import User

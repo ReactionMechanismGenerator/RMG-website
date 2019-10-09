@@ -59,10 +59,10 @@ def render_states_math(states, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Eunits = user_profile.energyUnits
+        Eunits = user_profile.energy_units
     else:
         Eunits = 'kcal/mol'
-    Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
+    Efactor = Quantity(1, Eunits).get_conversion_factor_from_si()
 
     # The string that will be returned to the template
     result = ''
@@ -152,7 +152,7 @@ def render_states_math(states, user=None):
     result += '</tr>\n'
     result += '<tr>'
     result += r'    <td class="label">Spin multiplicity:</td>'
-    result += r'    <td>{0:d}</td>'.format(states.spinMultiplicity)
+    result += r'    <td>{0:d}</td>'.format(states.spin_multiplicity)
     result += '</tr>\n'
 
     result += '</table>\n'
@@ -173,13 +173,13 @@ def get_states_data(states, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = user_profile.temperatureUnits
-        Eunits = user_profile.energyUnits
+        Tunits = user_profile.temperature_units
+        Eunits = user_profile.energy_units
     else:
         Tunits = 'K'
         Eunits = 'kcal/mol'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Efactor = Quantity(1, Eunits).get_conversion_factor_from_si()
     Qunits = ''
     Qfactor = 1.0
     rhounits = 'per cm^-1'
@@ -194,12 +194,12 @@ def get_states_data(states, user=None):
     Qdata = []
     for T in np.arange(10, 2001, 10):
         Tdata.append(T * Tfactor)
-        Qdata.append(states.getPartitionFunction(T) * Qfactor)
+        Qdata.append(states.get_partition_function(T) * Qfactor)
 
     Edata = np.arange(0, 400001, 1000, np.float)
     rhodata = []
     try:
-        rhodata = states.getDensityOfStates(Edata)
+        rhodata = states.get_density_of_states(Edata)
     except Exception as e:
         print("Could not calculate density of states", e)
         pass
@@ -211,7 +211,7 @@ def get_states_data(states, user=None):
     Vdata = []
     for mode in states.modes:
         if isinstance(mode, HinderedRotor):
-            Vdata.append([mode.getPotential(phi) * Vfactor for phi in phidata])
+            Vdata.append([mode.get_potential(phi) * Vfactor for phi in phidata])
     phidata = list(phidata * phifactor)
 
     return mark_safe("""

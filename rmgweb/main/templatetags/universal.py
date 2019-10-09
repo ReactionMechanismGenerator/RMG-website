@@ -58,7 +58,7 @@ def get_ref_tooltip(reference):
     if isinstance(reference, Article):
         if reference.title:
             output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
-        output += reference.getAuthorString().encode('utf-8')
+        output += reference.get_author_string().encode('utf-8')
         if reference.journal:
             output += '\n{0}'.format(reference.journal.encode('utf-8'))
             if reference.volume:
@@ -80,7 +80,7 @@ def get_ref_tooltip(reference):
             if reference.year:
                 output += ' ({0})'.format(reference.year.encode('utf-8'))
             output += '\n\n'
-        output += reference.getAuthorString().encode('utf-8')
+        output += reference.get_author_string().encode('utf-8')
         if reference.publisher:
             output += '\n{0}'.format(reference.publisher.encode('utf-8'))
             if reference.address:
@@ -88,7 +88,7 @@ def get_ref_tooltip(reference):
     elif isinstance(reference, Thesis):
         if reference.title:
             output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
-        output += reference.getAuthorString().encode('utf-8')
+        output += reference.get_author_string().encode('utf-8')
         if reference.degree:
             output += '\n{0} Thesis'.format(reference.degree.encode('utf-8'))
             if reference.school:

@@ -47,7 +47,7 @@ def renderMW(MW):
     Renders molecular weight from SI units to the regular g/mol units we are used to.
     """
     mass = Quantity(MW, 'kg/mol').value
-    multfactor = Quantity(1, 'g/mol').getConversionFactorFromSI()
+    multfactor = Quantity(1, 'g/mol').get_conversion_factor_from_si()
     return mark_safe("{0:.2f}".format(mass*multfactor))
 
 

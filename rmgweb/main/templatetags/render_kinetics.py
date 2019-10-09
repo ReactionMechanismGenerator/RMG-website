@@ -32,7 +32,6 @@
 Provides template tags for rendering kinetics models in various ways.
 """
 
-# Register this module as a Django template tag library
 from builtins import zip
 from builtins import range
 
@@ -46,6 +45,7 @@ from rmgpy.kinetics import *
 from rmgweb.main.models import UserProfile
 from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
 
+# Register this module as a Django template tag library
 register = template.Library()
 
 ################################################################################
@@ -265,7 +265,7 @@ def getRateCoefficientUnits(kinetics, user=None):
         # Reconstruct the rate units using the desired base units
         kunits = reconstruct_rate_units(units, desired_units)
         kunits_low = reconstruct_rate_units(units, desired_units, add_conc_dim=True)
-        kfactor = Quantity(1, kunits).getConversionFactorFromSI()
+        kfactor = Quantity(1, kunits).get_conversion_factor_from_si()
 
         return kunits, kunits_low, kfactor
 
@@ -284,17 +284,17 @@ def render_kinetics_math(kinetics, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = user_profile.temperatureUnits
-        Punits = user_profile.pressureUnits
-        Eunits = user_profile.energyUnits
+        Tunits = user_profile.temperature_units
+        Punits = user_profile.pressure_units
+        Eunits = user_profile.energy_units
     else:
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
     kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Pfactor = Quantity(1, Punits).get_conversion_factor_from_si()
+    Efactor = Quantity(1, Eunits).get_conversion_factor_from_si()
     if kunits == 's^-1':
         kunits = 's^{-1}'
 
@@ -326,7 +326,7 @@ def render_kinetics_math(kinetics, user=None):
             result += r'<tr><td><script type="math/tex">{0:g} \ \mathrm{{ {1!s} }}</script></td><td><script type="math/tex">{2!s} \ \mathrm{{ {3!s} }}</script></td></tr>'.format(T * Tfactor, Tunits, getLaTeXScientificNotation(k * kfactor), kunits)
         result += r'</table>'
         # fit to an arrhenius
-        arr = kinetics.toArrhenius()
+        arr = kinetics.to_arrhenius()
         result += "Fitted to an Arrhenius:"
         result += r'<script type="math/tex; mode=display">k(T) = {0!s}</script>'.format(getArrheniusJSMath(
             arr.A.value_si * kfactor, kunits,
@@ -510,20 +510,22 @@ def get_rate_coefficients(kinetics, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = user_profile.temperatureUnits
-        Punits = user_profile.pressureUnits
-        Eunits = user_profile.energyUnits
+        Tunits = user_profile.temperature_units
+        Punits = user_profile.pressure_units
+        Eunits = user_profile.energy_units
     else:
         Tunits = 'K'
         Punits = 'Pa'
         Eunits = 'J/mol'
     kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics, user=user)
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Pfactor = Quantity(1, Punits).get_conversion_factor_from_si()
+    Efactor = Quantity(1, Eunits).get_conversion_factor_from_si()
 
     # Generate data to use for plots
-    Tdata = []; Pdata = []; kdata = []
+    Tdata = []
+    Pdata = []
+    kdata = []
     if kinetics.Tmin is not None and kinetics.Tmax is not None:
         if kinetics.Tmin.value_si == kinetics.Tmax.value_si:
             Tmin = kinetics.Tmin.value_si - 5
@@ -546,73 +548,73 @@ def get_rate_coefficients(kinetics, user=None):
 
     for Tinv in np.linspace(1.0 / Tmax, 1.0 / Tmin, points):
         Tdata.append(1.0 / Tinv)
-    if kinetics.isPressureDependent():
+    if kinetics.is_pressure_dependent():
         for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
             Pdata.append(10**logP)
         for P in Pdata:
             klist = []
             for T in Tdata:
-                klist.append(kinetics.getRateCoefficient(T, P) * kfactor)
+                klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
             kdata.append(klist)
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata:
-            kdata.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+            kdata.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
     elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
         for T in Tdata:
-            kdata.append(kinetics.getStickingCoefficient(T) * kfactor)
+            kdata.append(kinetics.get_sticking_coefficient(T) * kfactor)
     else:
         for T in Tdata:
-            kdata.append(kinetics.getRateCoefficient(T) * kfactor)
+            kdata.append(kinetics.get_rate_coefficient(T) * kfactor)
 
     Tdata2 = []
     Pdata2 = []
     kdata2 = []
     for Tinv in np.linspace(1.0 / Tmax, 1.0 / Tmin, points // 10):
         Tdata2.append(1.0 / Tinv)
-    if kinetics.isPressureDependent():
+    if kinetics.is_pressure_dependent():
         for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
             Pdata2.append(10**logP)
         for P in Pdata2:
             klist = []
             for T in Tdata2:
-                klist.append(kinetics.getRateCoefficient(T, P) * kfactor)
+                klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
             kdata2.append(klist)
     elif isinstance(kinetics, ArrheniusEP):
         for T in Tdata2:
-            kdata2.append(kinetics.getRateCoefficient(T, dHrxn=0) * kfactor)
+            kdata2.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
     elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
         for T in Tdata:
-            kdata2.append(kinetics.getStickingCoefficient(T) * kfactor)
+            kdata2.append(kinetics.get_sticking_coefficient(T) * kfactor)
     else:
         for T in Tdata2:
-            kdata2.append(kinetics.getRateCoefficient(T) * kfactor)
+            kdata2.append(kinetics.get_rate_coefficient(T) * kfactor)
 
     if return_A_n_Ea:
         "We are only interested in the (fitted) Arrhenius parameters (and their units)"
         Tlist = np.array([T * Tfactor for T in Tdata], np.float64)
 
-        if kinetics.isPressureDependent():
+        if kinetics.is_pressure_dependent():
             # Use the highest pressure we have available
             klist = np.array(kdata[-1], np.float64)
             pressure_note = " (At {0} {1})".format(Pdata[-1], Punits)
-            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
+            k_model = Arrhenius().fit_to_data(Tlist, klist, kunits)
         elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
             klist = np.array(kdata, np.float64)
             pressure_note = ""
-            kModel = StickingCoefficient().fitToData(Tlist, klist, kunits)
+            k_model = StickingCoefficient().fit_to_data(Tlist, klist, kunits)
         elif isinstance(kinetics, (SurfaceArrhenius, SurfaceArrheniusBEP)):
             klist = np.array(kdata, np.float64)
             pressure_note = ""
-            kModel = SurfaceArrhenius().fitToData(Tlist, klist, kunits)
+            k_model = SurfaceArrhenius().fit_to_data(Tlist, klist, kunits)
         else:
             klist = np.array(kdata, np.float64)
             pressure_note = ""
-            kModel = Arrhenius().fitToData(Tlist, klist, kunits)
+            k_model = Arrhenius().fit_to_data(Tlist, klist, kunits)
 
         return mark_safe("""A = {0}; n = {1}; Ea = {2}; Aunits = "{3}"; Eunits = "{4}"; Pnote = "{5}";""".format(
-                            kModel.A.value_si * kfactor,
-                            kModel.n.value_si,
-                            kModel.Ea.value_si * Efactor,
+                            k_model.A.value_si * kfactor,
+                            k_model.n.value_si,
+                            k_model.Ea.value_si * Efactor,
                             kunits,
                             Eunits,
                             pressure_note
@@ -645,7 +647,7 @@ def get_specific_rate(kinetics, eval):
         return "// There are no kinetics for this entry."
     temperature, pressure = eval
     kunits, kunits_low, kfactor = getRateCoefficientUnits(kinetics)
-    rate = kinetics.getRateCoefficient(temperature, pressure)*kfactor
+    rate = kinetics.get_rate_coefficient(temperature, pressure)*kfactor
     result = '<script type="math/tex; mode=display">k(T, P) = {0!s}'.format(getLaTeXScientificNotation(rate))
     result += '\ \mathrm{{ {0!s} }}</script>'.format(kunits)
     return mark_safe(result)

@@ -196,7 +196,7 @@ def render_solvation_math(solvation, user=None):
         result += '<tr>'
         result += r'    <td class = "key"><span>Solvent Viscosity μ at 298 K</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }} cP</script></td>'.format(solvation.getSolventViscosity(298)*1000, '')
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }} cP</script></td>'.format(solvation.get_solvent_viscosity(298)*1000, '')
         result += '</tr>\n'
 
         if solvation.A is not None:
