@@ -859,7 +859,8 @@ class ThermoLibrary(models.Model):
     thermo_lib = models.CharField(choices=thermo_libraries, max_length=200, blank=True)
 
     def __unicode__(self):
-        return self.thermolib
+        return self.thermo_lib
+
 
 
 class ReactionLibrary(models.Model):

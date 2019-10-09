@@ -211,7 +211,7 @@ class NASAForm(forms.Form):
             nasa = self.cleaned_data['NASA']
             if nasa == '':
                 return ''
-            read_thermo_entry(NASA)
+            read_thermo_entry(nasa)
         except Exception as e:
             import traceback
             traceback.print_exc(e)

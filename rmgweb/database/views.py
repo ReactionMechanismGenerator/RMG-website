@@ -262,7 +262,7 @@ def transportEntry(request, section, subsection, index):
                   {'section': section, 'subsection': subsection,
                    'databaseName': db.name, 'entry': entry,
                    'structure': structure, 'reference': reference,
-                   'referenceType': referenceType, 'transport': transport})
+                   'referenceType': reference_type, 'transport': transport})
 
 
 def transportData(request, adjlist):
@@ -423,7 +423,7 @@ def solvationEntry(request, section, subsection, index):
                   {'section': section, 'subsection': subsection,
                    'databaseName': db.name, 'entry': entry,
                    'structure': structure, 'reference': reference,
-                   'referenceType': referenceType, 'solvation': solvation})
+                   'referenceType': reference_type, 'solvation': solvation})
 
 
 def solvationData(request, solute_adjlist, solvent=''):
@@ -578,7 +578,7 @@ def statmechEntry(request, section, subsection, index):
                   {'section': section, 'subsection': subsection,
                    'databaseName': db.name, 'entry': entry,
                    'structure': structure, 'reference': reference,
-                   'referenceType': referenceType, 'statmech': statmech})
+                   'referenceType': reference_type, 'statmech': statmech})
 
 
 def statmechData(request, adjlist):
@@ -776,7 +776,7 @@ def thermoData(request, adjlist):
         elif library in list(database.thermo.libraries.values()):
             source = library.name
             href = reverse('database:thermo-entry', kwargs={'section': 'libraries', 'subsection': library.label, 'index': entry.index})
-        thermoDataList.append((
+        thermo_data_list.append((
             entry,
             data,
             source,
@@ -856,7 +856,7 @@ def getUntrainedReactions(family):
             if reaction.is_isomorphic(entry.item):
                 break
         else:
-            trainedReactions.append(entry.item)
+            trained_reactions.append(entry.item)
 
     # Load untrained reactions
     untrained_reactions = []
@@ -925,7 +925,7 @@ def queryNIST(entry, squib, entries, user):
 
     # Find table on page corresponding to kinetics entries
     try:
-        form = soup.find_all(name='form',
+        form = soup.findAll(name='form',
                              attrs={'name': 'KineticsResults'})[0]
     except:
         return 'No results found for {0}.'.format(squib)
@@ -1223,7 +1223,7 @@ def queryNIST(entry, squib, entries, user):
             entry.data.n.uncertainty = 0.0
 
     # Grab uncertainty and better value for activation energy
-    for sup in soup.find_all('sup'):
+    for sup in soup.findAll('sup'):
         if 'J/mole]/RT' in sup.text:
             entry.data.Ea.value_si = -float(sup.text.split(' ')[0])
             try:
@@ -1419,7 +1419,7 @@ def kineticsEntryNew(request, family, type):
             new_entry = form.cleaned_data['entry']
 
             # Set new entry index
-            indices = [entry.index for entry in db.entries.values()]å
+            indices = [entry.index for entry in db.entries.values()]
             new_entry.index = max(indices or [0]) + 1
 
             # Confirm entry does not already exist in depository
@@ -1914,7 +1914,7 @@ def kineticsEntry(request, section, subsection, index):
                        'entry': entry,
                        'structure': structure,
                        'reference': reference,
-                       'referenceType': referenceType,
+                       'referenceType': reference_type,
                        })
     else:
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in entry.item.reactants])
@@ -1934,7 +1934,7 @@ def kineticsEntry(request, section, subsection, index):
                        'arrow': arrow,
                        'products': products,
                        'reference': reference,
-                       'referenceType': referenceType,
+                       'referenceType': reference_type,
                        'reactionUrl': reaction_url,
                        })
 
@@ -2018,7 +2018,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
             )
         reference_type = ''
     else:
-        for i, reaction in enumerate(reactionList):
+        for i, reaction in enumerate(reaction_list):
             assert reaction.is_isomorphic(reaction0, either_direction=False), "Multiple group estimates must be isomorphic."
             # Replace reactants and products with the same object instances as reaction0
             reaction.reactants = reaction0.reactants
@@ -2166,7 +2166,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
         reaction_url = getReactionUrl(reaction, resonance=resonance)
 
-        forward = reactionHasReactants(reaction, reactantList)
+        forward = reactionHasReactants(reaction, reactant_list)
         if forward:
             reaction_data_list.append([reactants, arrow, products, count, reaction_url])
         else:
@@ -2237,7 +2237,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if isinstance(reaction.kinetics, ArrheniusEP):
             reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
-        is_forward = reactionHasReactants(reaction, reactantList)
+        is_forward = reactionHasReactants(reaction, reactant_list)
 
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
@@ -2311,14 +2311,14 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     else:
         new_entry_form = None
 
-    rateForm = RateEvaluationForm()
+    rate_form = RateEvaluationForm()
     eval = []
     if request.method == 'POST':
-        rateForm = RateEvaluationForm(request.POST, error_class=DivErrorList)
+        rate_form = RateEvaluationForm(request.POST, error_class=DivErrorList)
         initial = request.POST.copy()
-        if rateForm.is_valid():
-            temperature = Quantity(rateForm.cleaned_data['temperature'], str(rateForm.cleaned_data['temperature_units'])).value_si
-            pressure = Quantity(rateForm.cleaned_data['pressure'], str(rateForm.cleaned_data['pressure_units'])).value_si
+        if rate_form.is_valid():
+            temperature = Quantity(rate_form.cleaned_data['temperature'], str(rate_form.cleaned_data['temperature_units'])).value_si
+            pressure = Quantity(rate_form.cleaned_data['pressure'], str(rate_form.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
 
     # Generate InChIs here so we can catch errors
@@ -2327,7 +2327,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         try:
             reactant_inchis.append(reactant.inchi)
         except ValueError:
-            reactant_inchIs.append('')
+            reactant_inchis.append('')
 
     product_inchis = []
     for product in product_list:

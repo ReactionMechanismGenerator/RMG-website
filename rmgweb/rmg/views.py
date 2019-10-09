@@ -334,16 +334,17 @@ def plotKinetics(request):
         form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
         rate_form = RateEvaluationForm(request.POST)
         eval = []
+        kinetics_data_list = []
 
         if rate_form.is_valid():
             temperature = Quantity(rate_form.cleaned_data['temperature'], str(rate_form.cleaned_data['temperature_units'])).value_si
             pressure = Quantity(rate_form.cleaned_data['pressure'], str(rate_form.cleaned_data['pressure_units'])).value_si
             eval = [temperature, pressure]
-            kinetics_data_list = chemkin.get_kinetics()
+            kinetics_data_list = chemkin.getKinetics()
 
         if form.is_valid():
             form.save()
-            kinetics_data_list = chemkin.get_kinetics()
+            kinetics_data_list = chemkin.getKinetics()
 
         return render(request, 'plotKineticsData.html',
                       {'kineticsDataList': kinetics_data_list,
@@ -418,4 +419,4 @@ def evaluateNASA(request):
 
         form = NASAForm(initial, error_class=DivErrorList)
 
-    return render(request, 'NASA.html', {'form': form, 'thermo': thermo, 'thermoData': thermoData})
+    return render(request, 'NASA.html', {'form': form, 'thermo': thermo, 'thermoData': thermo_data})

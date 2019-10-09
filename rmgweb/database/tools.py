@@ -235,12 +235,12 @@ class RMGWebDatabase(object):
                     # Make sure to load the entire thermo database prior to adding training values to the rules
                     self.load('thermo', '')
                     for family in self.database.kinetics.families.values():
-                        oldentries = len(family.rules.entries)
+                        old_entries = len(family.rules.entries)
                         family.add_rules_from_training(thermo_database=self.database.thermo)
-                        newentries = len(family.rules.entries)
-                        if newentries != oldentries:
+                        new_entries = len(family.rules.entries)
+                        if new_entries != old_entries:
                             print('{0} new entries added to {1} family after adding rules '
-                                  'from training set.'.format(newentries - oldentries, family.label))
+                                  'from training set.'.format(new_entries - old_entries, family.label))
                         # Filling in rate rules in kinetics families by averaging...
                         family.fill_rules_by_averaging_up()
 
