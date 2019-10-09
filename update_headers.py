@@ -41,14 +41,14 @@ header += """#                                                                  
 print(header)
 
 
-def replace_header(oldfile):
-    newfile = os.path.join('tmp', 'tempfile')
+def replace_header(old_file):
+    new_file = os.path.join('tmp', 'tempfile')
 
-    ext = os.path.splitext(oldfile)[1]
+    ext = os.path.splitext(old_file)[1]
     if ext != '.py':
-        raise Exception('Unexpected file type: {0}'.format(oldfile))
+        raise Exception('Unexpected file type: {0}'.format(old_file))
 
-    with open(oldfile, 'r') as old, open(newfile, 'w+') as new:
+    with open(old_file, 'r') as old, open(new_file, 'w+') as new:
 
         # Write shebang and encoding
         new.write(shebang)
@@ -76,7 +76,7 @@ def replace_header(oldfile):
                     found_bar = True
 
     # Replace old file with new file
-    os.rename(newfile, oldfile)
+    os.rename(new_file, old_file)
 
 
 # Create temporary directory for writing files
@@ -84,7 +84,7 @@ if not os.path.exists('tmp'):
     os.makedirs('tmp')
 
 # Compile list of files to modify
-filelist = ['manage.py']
+file_list = ['manage.py']
 
 root_dirs = ['rmgweb']
 for root_dir in root_dirs:
@@ -93,8 +93,8 @@ for root_dir in root_dirs:
         for f in files:
             ext = os.path.splitext(f)[1]
             if ext in ['.py']:
-                filelist.append(os.path.join(root, f))
+                file_list.append(os.path.join(root, f))
 
-for f in filelist:
+for f in file_list:
     print('Updating {0} ...'.format(f))
     replace_header(f)
