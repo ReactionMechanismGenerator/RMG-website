@@ -28,7 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-import os.path
+import os
 import sys
-import rmgpy
 
+import rmgpy
