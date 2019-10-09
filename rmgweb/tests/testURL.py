@@ -28,12 +28,20 @@
 #                                                                             #
 ###############################################################################
 
+from future import standard_library
+standard_library.install_aliases()
+
+import urllib.error
+import urllib.parse
+import urllib.request
+
 from django.test import TestCase
-import urllib
 from django.utils.encoding import iri_to_uri
-from rmgpy.species import Species
 from rmgpy.reaction import Reaction
+from rmgpy.species import Species
+
 from rmgweb.database.views import getReactionUrl
+
 
 class urlTest(TestCase):
 
@@ -83,4 +91,3 @@ multiplicity 2
                                                   product1.toAdjacencyList()))
 
         self.assertEqual(url, expected_url)
-

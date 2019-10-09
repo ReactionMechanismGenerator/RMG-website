@@ -206,4 +206,3 @@ multiplicity 2
                                                                    'product2': product2})
 
         self.assertEqual(response.status_code, 302)
-
