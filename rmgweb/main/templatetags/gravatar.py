@@ -76,7 +76,7 @@ def gravatar(username, size=48):
 
     url = "http://www.gravatar.com/avatar.php?"
     url += urllib.parse.urlencode({
-        'gravatar_id': hashlib.md5(email).hexdigest(),
+        'gravatar_id': hashlib.md5(email.encode('utf-8')).hexdigest(),
         'size': size,
         'default': 'wavatar',
     })

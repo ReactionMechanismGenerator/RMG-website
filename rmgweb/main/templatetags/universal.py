@@ -57,47 +57,47 @@ def get_ref_tooltip(reference):
     output = ''
     if isinstance(reference, Article):
         if reference.title:
-            output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
-        output += reference.get_author_string().encode('utf-8')
+            output += '"{0}"\n\n'.format(reference.title)
+        output += reference.get_author_string()
         if reference.journal:
-            output += '\n{0}'.format(reference.journal.encode('utf-8'))
+            output += '\n{0}'.format(reference.journal)
             if reference.volume:
-                output += ', {0}'.format(reference.volume.encode('utf-8'))
+                output += ', {0}'.format(reference.volume)
                 if reference.number:
-                    output += ' ({0})'.format(reference.number.encode('utf-8'))
+                    output += ' ({0})'.format(reference.number)
                 if reference.pages:
                     output += (', p. '
-                               '{0}'.format(reference.pages.encode('utf-8')))
+                               '{0}'.format(reference.pages))
             if reference.year:
-                output += ' ({0})'.format(reference.year.encode('utf-8'))
+                output += ' ({0})'.format(reference.year)
     elif isinstance(reference, Book):
         if reference.title:
-            output += '"{0}"'.format(reference.title.encode('utf-8'))
+            output += '"{0}"'.format(reference.title)
             if reference.edition:
-                output += ', {0} ed.'.format(reference.edition.encode('utf-8'))
+                output += ', {0} ed.'.format(reference.edition)
             if reference.volume:
-                output += ', Vol. {0}'.format(reference.volume.encode('utf-8'))
+                output += ', Vol. {0}'.format(reference.volume)
             if reference.year:
-                output += ' ({0})'.format(reference.year.encode('utf-8'))
+                output += ' ({0})'.format(reference.year)
             output += '\n\n'
-        output += reference.get_author_string().encode('utf-8')
+        output += reference.get_author_string()
         if reference.publisher:
-            output += '\n{0}'.format(reference.publisher.encode('utf-8'))
+            output += '\n{0}'.format(reference.publisher)
             if reference.address:
-                output += ', {0}'.format(reference.address.encode('utf-8'))
+                output += ', {0}'.format(reference.address)
     elif isinstance(reference, Thesis):
         if reference.title:
-            output += '"{0}"\n\n'.format(reference.title.encode('utf-8'))
-        output += reference.get_author_string().encode('utf-8')
+            output += '"{0}"\n\n'.format(reference.title)
+        output += reference.get_author_string()
         if reference.degree:
-            output += '\n{0} Thesis'.format(reference.degree.encode('utf-8'))
+            output += '\n{0} Thesis'.format(reference.degree)
             if reference.school:
-                output += ', {0}'.format(reference.school.encode('utf-8'))
+                output += ', {0}'.format(reference.school)
         else:
             if reference.school:
-                output += '\n{0}'.format(reference.school.encode('utf-8'))
+                output += '\n{0}'.format(reference.school)
         if reference.year:
-            output += ' ({0})'.format(reference.year.encode('utf-8'))
+            output += ' ({0})'.format(reference.year)
 
     return output
 

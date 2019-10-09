@@ -225,8 +225,8 @@ def getAdjacencyList(request, identifier):
     identifier = identifier.strip()
 
     # Return empty string for empty input
-    if identifier == '':
-        return HttpResponse('', content_type="text/plain")
+    if identifier == "":
+        return HttpResponse("", content_type="text/plain", charset='utf-8')
 
     molecule = Molecule()
 
@@ -257,7 +257,7 @@ def getAdjacencyList(request, identifier):
                 return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
-            smiles = f.read()
+            smiles = f.read().decode('utf-8')
             try:
                 molecule.from_smiles(smiles)
             except AtomTypeError:

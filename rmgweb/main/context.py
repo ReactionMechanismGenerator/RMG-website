@@ -76,7 +76,7 @@ def get_git_commit(modulePath):
             lines = subprocess.check_output(['git',
                                              'log',
                                              '--format=%H%n%cD%n%s%n%b', '-1'],
-                                            cwd=modulePath).splitlines()
+                                            cwd=modulePath).decode('utf-8').splitlines()
             commit = lines[0]
             date = lines[1]
             subject = lines[2]
