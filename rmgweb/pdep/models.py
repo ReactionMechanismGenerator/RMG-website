@@ -59,8 +59,8 @@ class Network(models.Model):
     """
     id = models.CharField(max_length=32, primary_key=True, default=_createId)
     title = models.CharField(max_length=50)
-    inputFile = models.FileField(upload_to=uploadTo, verbose_name='Input file')
-    inputText = models.TextField(blank=True, verbose_name='')
+    input_file = models.FileField(upload_to=uploadTo, verbose_name='Input file')
+    input_text = models.TextField(blank=True, verbose_name='')
     user = models.ForeignKey(User)
 
     def __init__(self, *args, **kwargs):
@@ -272,9 +272,9 @@ class Network(models.Model):
         """
         Save the contents of the inputText field to the input file.
         """
-        fpath = self.getInputFilename()
+        f_path = self.getInputFilename()
         self.createDir()
-        f = open(fpath, 'w')
+        f = open(f_path, 'w')
         for line in self.inputText.splitlines():
             f.write(line + '\n')
         f.close()
@@ -291,9 +291,9 @@ class Network(models.Model):
             self.pdep = PressureDependenceJob(network=None)
 
             if self.inputFileExists():
-                jobList = loadInputFile(self.getInputFilename())[0]
-                assert len(jobList) == 1
-                job = jobList[0]
+                job_list = loadInputFile(self.getInputFilename())[0]
+                assert len(job_list) == 1
+                job = job_list[0]
                 if isinstance(job, PressureDependenceJob) is False:
                     raise Exception('Input file given did not provide a pressure dependence network.')
                 self.pdep = job
