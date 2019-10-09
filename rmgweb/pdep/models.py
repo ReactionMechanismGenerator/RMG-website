@@ -284,14 +284,14 @@ class Network(models.Model):
         Load the contents of the input file into a PressureDependenceJob object.
         """
         from arkane.pdep import PressureDependenceJob
-        from arkane.input import loadInputFile
+        from arkane.input import load_input_file
 
         # Seed with a PdepJob object
         if self.pdep is None:
             self.pdep = PressureDependenceJob(network=None)
 
             if self.inputFileExists():
-                job_list = loadInputFile(self.getInputFilename())[0]
+                job_list = load_input_file(self.getInputFilename())[0]
                 assert len(job_list) == 1
                 job = job_list[0]
                 if isinstance(job, PressureDependenceJob) is False:

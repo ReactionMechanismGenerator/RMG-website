@@ -332,11 +332,11 @@ def drawMolecule(request, adjlist, format='png'):
     else:
         if format == 'png':
             response = HttpResponse(content_type="image/png")
-            surface, _, _ = MoleculeDrawer().draw(molecule, format='png')
+            surface, _, _ = MoleculeDrawer().draw(molecule, file_format='png')
             surface.write_to_png(response)
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            MoleculeDrawer().draw(molecule, format='svg', target=response)
+            MoleculeDrawer().draw(molecule, file_format='svg', target=response)
         else:
             response = HttpResponse('Image format not implemented.', status=501)
 

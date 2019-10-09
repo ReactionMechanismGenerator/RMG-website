@@ -223,7 +223,7 @@ def networkDrawPNG(request, networkKey):
     network_model.pdep.execute(
         output_file=network_model.getOutputFilename(),
         plot=False,
-        format='png'
+        file_format='png'
     )
 
     # Go back to the network's main page
@@ -243,7 +243,7 @@ def networkDrawPDF(request, networkKey):
     network_model.pdep.execute(
         output_file=network_model.getOutputFilename(),
         plot=False,
-        format='pdf'
+        file_format='pdf'
     )
 
     # Go back to the network's main page
@@ -262,7 +262,7 @@ def networkDrawSVG(request, networkKey):
     network_model.pdep.execute(
         output_file=network_model.getOutputFilename(),
         plot=False,
-        format='svg'
+        file_format='svg'
     )
 
     # Go back to the network's main page

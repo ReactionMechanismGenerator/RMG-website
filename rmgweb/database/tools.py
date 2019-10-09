@@ -44,7 +44,8 @@ import openbabel as ob
 import pybel
 import xlrd
 from rmgpy.data.base import Entry
-from rmgpy.data.kinetics import DepositoryReaction, KineticsDatabase, TemplateReaction
+from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction
+from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.rmg import RMGDatabase, SolvationDatabase, StatmechDatabase
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.transport import TransportDatabase

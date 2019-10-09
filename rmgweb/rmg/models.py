@@ -81,12 +81,12 @@ class Chemkin(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        from rmgpy.chemkin import saveHTMLFile
+        from rmgpy.chemkin import save_html_file
         if self.foreign:
             # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
-            saveHTMLFile(self.path, read_comments=False)
+            save_html_file(self.path, read_comments=False)
         else:
-            saveHTMLFile(self.path)
+            save_html_file(self.path)
 
     def createDir(self):
         """

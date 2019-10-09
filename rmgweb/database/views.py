@@ -50,7 +50,8 @@ import urllib
 import rmgpy
 from rmgpy.data.base import Entry, LogicAnd, LogicNode, LogicOr
 from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
-                                TemplateReaction, DepositoryReaction, LibraryReaction
+                                TemplateReaction, LibraryReaction
+from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.reference import Article, Book
 from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
@@ -1896,12 +1897,12 @@ def kineticsEntry(request, section, subsection, index):
     reference = entry.reference
     reference_type = ''
 
-    numReactants = 0
+    reactant_num = 0
     degeneracy = 1
     if isinstance(db, KineticsGroups):
-        numReactants = db.numReactants
+        reactant_num = db.reactant_num
     else:
-        numReactants = len(entry.item.reactants)
+        reactant_num = len(entry.item.reactants)
         degeneracy = entry.item.degeneracy
 
     if isinstance(db, KineticsGroups):
@@ -2324,14 +2325,14 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     reactant_inchis = []
     for reactant in reactant_list:
         try:
-            reactant_inchis.append(reactant.InChI)
+            reactant_inchis.append(reactant.inchi)
         except ValueError:
             reactant_inchIs.append('')
 
     product_inchis = []
     for product in product_list:
         try:
-            product_inchis.append(product.InChI)
+            product_inchis.append(product.inchi)
         except ValueError:
             product_inchis.append('')
 
