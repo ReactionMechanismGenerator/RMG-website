@@ -28,10 +28,16 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+
 import re
 import os
-import urllib
-import urllib2
+import sys
+import urllib.request
+import urllib.parse
+import urllib.error
 
 import django.contrib.auth.views
 from django.conf import settings
@@ -41,11 +47,12 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render
-from django.template import RequestContext, loader
+from django.template import loader
 from django.templatetags.static import static
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import *
+from rmgweb.main.forms import *
+
 
 def index(request):
     """
@@ -54,17 +61,20 @@ def index(request):
     from rmgpy import __version__
     return render(request, 'index.html', {'version': __version__})
 
+
 def privacy(request):
     """
     The RMG privacy policy.
     """
     return render(request, 'privacy.html', {'admins': settings.ADMINS})
 
+
 def version(request):
     """
     Version information for RMG-website, RMG-Py, and RMG-database
     """
     return render(request, 'version.html')
+
 
 def resources(request):
     """
@@ -101,17 +111,20 @@ def resources(request):
 
     return render(request, 'resources.html', {'presentations': presentations})
 
+
 def login(request):
     """
     Called when the user wishes to log in to his/her account.
     """
     return django.contrib.auth.views.login(request, template_name='login.html')
 
+
 def logout(request):
     """
     Called when the user wishes to log out of his/her account.
     """
     return django.contrib.auth.views.logout(request, template_name='logout.html')
+
 
 def signup(request):
     """
@@ -140,8 +153,9 @@ def signup(request):
         userForm = UserSignupForm(error_class=DivErrorList)
         profileForm = UserProfileSignupForm(error_class=DivErrorList)
         passwordForm = PasswordCreateForm(error_class=DivErrorList)
-        
+
     return render(request, 'signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+
 
 def viewProfile(request, username):
     """
@@ -154,6 +168,7 @@ def viewProfile(request, username):
     userProfile = user0.userprofile
     networks = Network.objects.filter(user=user0)
     return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks})
+
 
 @login_required
 def editProfile(request):
@@ -169,26 +184,27 @@ def editProfile(request):
             userForm.save()
             profileForm.save()
             passwordForm.save()
-            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username})) # Redirect after POST
+            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username}))  # Redirect after POST
     else:
         userForm = UserForm(instance=request.user, error_class=DivErrorList)
         profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
         passwordForm = PasswordChangeForm(error_class=DivErrorList)
-        
+
     return render(request, 'editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+
 
 def getAdjacencyList(request, identifier):
     """
     Returns an adjacency list of the species corresponding to `identifier`.
-    
+
     `identifier` should be something recognized by NCI resolver, eg.
     SMILES, InChI, CACTVS, chemical name, etc.
-    
+
     The NCI resolver has some bugs regarding reading SMILES of radicals.
     E.g. it thinks CC[CH] is CCC, so we first try to use the identifier
     directly as a SMILES string, and only pass it through the resolver
-    if that does not work. 
-    
+    if that does not work.
+
     For specific problematic cases, the NCI resolver is bypassed and the SMILES
     is returned from a dictionary of values. For O2, the resolver returns the singlet
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
@@ -206,7 +222,7 @@ def getAdjacencyList(request, identifier):
     }
 
     # Ensure that input is a string
-    identifier = str(identifier).strip()
+    identifier = identifier.strip()
 
     # Return empty string for empty input
     if identifier == '':
@@ -220,7 +236,7 @@ def getAdjacencyList(request, identifier):
             molecule.fromInChI(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
+        except KeyError as e:
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
     elif identifier.lower() in known_names:
         molecule.fromSMILES(known_names[identifier.lower()])
@@ -230,14 +246,14 @@ def getAdjacencyList(request, identifier):
             molecule.fromSMILES(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
+        except KeyError as e:
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
         except (IOError, ValueError):
             # Try converting it to a SMILES using the NCI chemical resolver
-            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.parse.quote(identifier))
             try:
-                f = urllib2.urlopen(url, timeout=5)
-            except urllib2.URLError, e:
+                f = urllib.request.urlopen(url, timeout=5)
+            except urllib.error.URLError as e:
                 return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
@@ -246,22 +262,23 @@ def getAdjacencyList(request, identifier):
                 molecule.fromSMILES(smiles)
             except AtomTypeError:
                 return HttpResponse('Invalid Molecule', status=501)
-            except KeyError, e:
+            except KeyError as e:
                 return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-            except ValueError, e:
+            except ValueError as e:
                 return HttpResponse(str(e), status=500)
-    
+
     adjlist = molecule.toAdjacencyList(removeH=False)
     return HttpResponse(adjlist, content_type="text/plain")
+
 
 def getNISTcas(request, inchi):
     """
     Get the CAS number as used by NIST, from an InChI
     """
-    url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.quote(inchi))
+    url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.parse.quote(inchi))
     try:
-        f = urllib2.urlopen(url, timeout=5)
-    except urllib2.URLError, e:
+        f = urllib.request.urlopen(url, timeout=5)
+    except urllib.error.URLError as e:
         return HttpResponseNotFound("404: Couldn't identify {0}. NIST responded {1} to request for {2}".format(inchi, e, url))
     searcher = re.compile('<li><a href="/cgi/inchi\?GetInChI=C(\d+)')
     for line in f:
@@ -272,29 +289,31 @@ def getNISTcas(request, inchi):
     else:
         return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
     return HttpResponse(number, content_type="text/plain")
-    
+
+
 def cactusResolver(request, query):
     """
     Forwards the query to the cactus.nci.nih.gov/chemical/structure resolver.
-    
-    The reason we have to forward the request from our own server is so that we can 
+
+    The reason we have to forward the request from our own server is so that we can
     use it via ajax, avoiding cross-domain scripting security constraints.
     """
     from ssl import SSLError
 
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
-   
-    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
+
+    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.parse.quote(query))
     try:
-        f = urllib2.urlopen(url, timeout=5)
-    except urllib2.URLError, e:
+        f = urllib.request.urlopen(url, timeout=5)
+    except urllib.error.URLError as e:
         return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
     except SSLError:
         return HttpResponse('NCI resolver timed out, please try again.', status=504)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
-    
+
+
 def drawMolecule(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
@@ -304,7 +323,7 @@ def drawMolecule(request, adjlist, format='png'):
     from rmgpy.molecule.draw import MoleculeDrawer
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
-    adjlist = str(urllib.unquote(adjlist))
+    adjlist = urllib.parse.unquote(adjlist)
 
     try:
         molecule = Molecule().fromAdjacencyList(adjlist)
@@ -323,6 +342,7 @@ def drawMolecule(request, adjlist, format='png'):
 
     return response
 
+
 def drawGroup(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecular
@@ -331,7 +351,7 @@ def drawGroup(request, adjlist, format='png'):
     from rmgpy.molecule.group import Group
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
-    adjlist = str(urllib.unquote(adjlist))
+    adjlist = urllib.parse.unquote(adjlist)
 
     try:
         group = Group().fromAdjacencyList(adjlist)
@@ -352,35 +372,37 @@ def drawGroup(request, adjlist, format='png'):
 
     return response
 
+
 @login_required
 def restartWSGI(request):
     if request.META['mod_wsgi.process_group'] != '':
-        import signal, os, sys
         restart_filename = os.path.join(os.path.dirname(request.META['SCRIPT_FILENAME']), 'restart')
-        print >> sys.stderr, "Touching {0} to trigger a restart all daemon processes".format(restart_filename)
+        print("Touching {0} to trigger a restart all daemon processes".format(restart_filename), file=sys.stderr)
         with file(restart_filename, 'a'):
             os.utime(restart_filename, None)
-        #os.kill(os.getpid(), signal.SIGINT)
+        # os.kill(os.getpid(), signal.SIGINT)
     return HttpResponseRedirect('/')
 
+
 def debug(request):
-    import sys
-    import scipy, numpy
-    print >> sys.stderr, "scipy module is {0}".format(scipy)
-    print >> sys.stderr, "numpy.finfo(float) = {0}".format(numpy.finfo(float))
-    print >> sys.stderr, "Failing on purpose to trigger a debug screen"
+    import scipy
+    import numpy as np
+    print("scipy module is {0}".format(scipy), file=sys.stderr)
+    print("numpy.finfo(float) = {0}".format(np.finfo(float)), file=sys.stderr)
+    print("Failing on purpose to trigger a debug screen", file=sys.stderr)
     assert False, "Intentional failure to trigger debug screen."
+
 
 @csrf_exempt
 def rebuild(request):
-    import os
     rebuild_filename = os.path.join(os.path.dirname(request.META['DOCUMENT_ROOT']), 'trigger/rebuild')
     with file(rebuild_filename, 'a'):
-            os.utime(rebuild_filename, None)
+        os.utime(rebuild_filename, None)
     return HttpResponseRedirect('/')
 
+
 def custom500(request):
-    import sys, traceback
+    import traceback
     template = loader.get_template('500.html')
     etype, value = sys.exc_info()[:2]
     exception = ''.join(traceback.format_exception_only(etype, value)).strip()

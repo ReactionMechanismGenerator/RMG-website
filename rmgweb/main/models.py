@@ -48,7 +48,6 @@ HEATCAPACITY_UNITS = [
     ('kcal/(mol*K)', 'kcal/mol*K'),
 ]
 
-
 RATECOEFFICIENT_UNITS = [
     ('m^3,mol,s', 'm^3, mol, s'),
     ('cm^3,mol,s', 'cm^3, mol, s'),
@@ -68,6 +67,7 @@ PRESSURE_UNITS = [
 ]
 
 ################################################################################
+
 
 class UserProfile(models.Model):
     """

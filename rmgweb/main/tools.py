@@ -28,28 +28,35 @@
 #                                                                             #
 ###############################################################################
 
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.utils import old_div
+
+import urllib.request
+import urllib.parse
+import urllib.error
+
 import math
-import numpy
-import re
-import urllib
-
 from django.core.urlresolvers import reverse
-
-import rmgpy.constants as constants
-from rmgpy.molecule.molecule import Molecule
 from rmgpy.molecule.group import Group
+from rmgpy.molecule.molecule import Molecule
+from rmgpy.species import Species
 
 ################################################################################
 
+
 def moleculeToAdjlist(molecule):
     """
-    Convert a given :class:`Molecule` object `molecule` to a string 
+    Convert a given :class:`Molecule` object `molecule` to a string
     representation of its structure suitable for a URL.
     """
     mol = molecule.copy(deep=True)
     mol.clearLabeledAtoms()
     adjlist = mol.toAdjacencyList(removeH=False)
     return adjlist
+
 
 def moleculeToInfo(molecule):
     """
@@ -58,29 +65,32 @@ def moleculeToInfo(molecule):
     """
     href = reverse('database:molecule-entry', kwargs={'adjlist': molecule.toAdjacencyList()})
     structureMarkup = getStructureMarkup(molecule)
-    markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
+    markup = '<a href="' + href + '">' + structureMarkup + '</a>'
     return markup
+
 
 def moleculeFromURL(adjlist):
     """
     Convert a given adjacency list `adjlist` from a URL to the corresponding
     :class:`Molecule` object.
     """
-    adjlist = str(urllib.unquote(adjlist))
+    adjlist = urllib.parse.unquote(adjlist)
     molecule = Molecule().fromAdjacencyList(adjlist)
     return molecule
 
 ################################################################################
 
+
 def groupToURL(group):
     """
-    Convert a given :class:`Group` object `group` to a string 
+    Convert a given :class:`Group` object `group` to a string
     representation of its structure suitable for a URL.
     """
     gro = group.copy(deep=True)
     gro.clearLabeledAtoms()
     adjlist = gro.toAdjacencyList(removeH=False)
     return adjlist
+
 
 def groupToInfo(group):
     """
@@ -89,32 +99,34 @@ def groupToInfo(group):
     """
     href = reverse('database:group-entry', kwargs={'adjlist': group.toAdjacencyList()})
     structureMarkup = getStructureMarkup(group)
-    markup = '<a href="'+ href + '">' + structureMarkup + '</a>'
+    markup = '<a href="' + href + '">' + structureMarkup + '</a>'
     return markup
+
 
 def groupFromURL(adjlist):
     """
     Convert a given adjacency list `adjlist` from a URL to the corresponding
     :class:`Group` object.
-    """   
-    adjlist = str(urllib.unquote(adjlist))
+    """
+    adjlist = urllib.parse.unquote(adjlist)
     group = Group().fromAdjacencyList(adjlist)
     return group
 
 ################################################################################
 
+
 def getStructureInfo(object):
-    """ 
-    Convert either a Entry, Molecule, Species, or Group object to its html 
-    markup containing a clickable image of the group or molecule that contains 
+    """
+    Convert either a Entry, Molecule, Species, or Group object to its html
+    markup containing a clickable image of the group or molecule that contains
     a link to its information page.
     """
     from rmgpy.data.base import Entry, LogicNode, LogicOr, LogicAnd
     from rmgpy.species import Species
-    
+
     if isinstance(object, Entry):
         object = object.item
-        
+
     if isinstance(object, Molecule):
         return moleculeToInfo(object)
     elif isinstance(object, Species):
@@ -127,21 +139,25 @@ def getStructureInfo(object):
         return ''
 ################################################################################
 
+
 def getLaTeXScientificNotation(value):
     """
     Return a LaTeX-formatted string containing the provided `value` in
     scientific notation.
     """
-    if value == 0: return '0'
+    if value == 0:
+        return '0'
     negative = value < 0
     value = abs(value)
     exp = int(math.log10(abs(value)))
-    mant = value / 10**exp
+    mant = old_div(value, 10**exp)
     if abs(mant) < 1:
-        mant *= 10; exp -= 1
+        mant *= 10
+        exp -= 1
     return '{0}{1:g} \\times 10^{{{2:d}}}'.format('-' if negative else '', mant, exp)
 
 ################################################################################
+
 
 def getStructureMarkup(item):
     """
@@ -150,20 +166,15 @@ def getStructureMarkup(item):
     draw the molecule. For a :class:`Group`, the markup is the
     adjacency list, wrapped in ``<pre>`` tags.
     """
-    from rmgpy.molecule.molecule import Molecule
-    from rmgpy.molecule.group import Group
-    from rmgpy.species import Species
-    import urllib
-    
     if isinstance(item, Molecule):
         # We can draw Molecule objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList(removeH=False)
-        url = urllib.quote(adjlist)
+        url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), adjlist)
     elif isinstance(item, Species) and len(item.molecule) > 0:
         # We can draw Species objects, so use that instead of an adjacency list
         adjlist = item.molecule[0].toAdjacencyList(removeH=False)
-        url = urllib.quote(adjlist)
+        url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), item.label)
     elif isinstance(item, Species) and len(item.molecule) == 0:
         # We can draw Species objects, so use that instead of an adjacency list
@@ -171,10 +182,10 @@ def getStructureMarkup(item):
     elif isinstance(item, Group):
         # We can draw Group objects, so use that instead of an adjacency list
         adjlist = item.toAdjacencyList()
-        url = urllib.quote(adjlist)
+        url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('draw-group', kwargs={'adjlist': url}), adjlist)
-        #structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)
-    elif isinstance(item, str) or isinstance(item, unicode):
+        # structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)
+    elif isinstance(item, str) or isinstance(item, str):
         structure = item
     else:
         structure = ''
