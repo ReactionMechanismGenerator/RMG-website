@@ -96,20 +96,20 @@ def get_commits(request):
     global context
 
     if not context:
-        pyPath = os.path.dirname(rmgpy.__file__)
-        dataPath = rmgpy.settings['database.directory']
-        webPath = os.path.dirname(rmgweb.__file__)
+        py_path = os.path.dirname(rmgpy.__file__)
+        data_path = rmgpy.settings['database.directory']
+        web_path = os.path.dirname(rmgweb.__file__)
 
-        pyCommit, pyDate, pySubject, pyBody = get_git_commit(pyPath)
-        dataCommit, dataDate, dataSubject, dataBody = get_git_commit(dataPath)
-        webCommit, webDate, webSubject, webBody = get_git_commit(webPath)
+        py_commit, py_date, py_subject, py_body = get_git_commit(py_path)
+        data_commit, data_date, data_subject, data_body = get_git_commit(data_path)
+        web_commit, web_date, web_subject, web_body = get_git_commit(web_path)
 
-        pyDateShort = ' '.join(pyDate.split()[1:4])
-        dataDateShort = ' '.join(dataDate.split()[1:4])
-        webDateShort = ' '.join(webDate.split()[1:4])
+        py_date_short = ' '.join(py_date.split()[1:4])
+        data_date_short = ' '.join(data_date.split()[1:4])
+        web_date_short = ' '.join(web_date.split()[1:4])
 
-        context = {'pc': pyCommit, 'pd': pyDate, 'pds': pyDateShort, 'ps': pySubject, 'pb': pyBody,
-                   'dc': dataCommit, 'dd': dataDate, 'dds': dataDateShort, 'ds': dataSubject, 'db': dataBody,
-                   'wc': webCommit, 'wd': webDate, 'wds': webDateShort, 'ws': webSubject, 'wb': webBody}
+        context = {'pc': py_commit, 'pd': py_date, 'pds': py_date_short, 'ps': py_subject, 'pb': py_body,
+                   'dc': data_commit, 'dd': data_date, 'dds': data_date_short, 'ds': data_subject, 'db': data_body,
+                   'wc': web_commit, 'wd': web_date, 'wds': web_date_short, 'ws': web_subject, 'wb': web_body}
 
     return context

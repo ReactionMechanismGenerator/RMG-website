@@ -85,15 +85,15 @@ def resources(request):
 
     if os.path.isdir(folder):
         files = os.listdir(folder)
-        toRemove = []
+        to_remove = []
         for f in files:
             if not os.path.isfile(os.path.join(folder, f)):
                 # Remove any directories
-                toRemove.append(f)
+                to_remove.append(f)
             elif f[0] == '.':
                 # Remove any hidden files
-                toRemove.append(f)
-        for item in toRemove:
+                to_remove.append(f)
+        for item in to_remove:
             files.remove(item)
 
     # Parse file names for information to display on webpage
@@ -131,30 +131,30 @@ def signup(request):
     Called when the user wishes to sign up for an account.
     """
     if request.method == 'POST':
-        userForm = UserSignupForm(request.POST, error_class=DivErrorList)
-        userForm.fields['first_name'].required = True
-        userForm.fields['last_name'].required = True
-        userForm.fields['email'].required = True
-        profileForm = UserProfileSignupForm(request.POST, error_class=DivErrorList)
-        passwordForm = PasswordCreateForm(request.POST, username='', error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            username = userForm.cleaned_data['username']
-            password = passwordForm.cleaned_data['password']
-            userForm.save()
-            passwordForm.username = username
-            passwordForm.save()
+        user_form = UserSignupForm(request.POST, error_class=DivErrorList)
+        user_form.fields['first_name'].required = True
+        user_form.fields['last_name'].required = True
+        user_form.fields['email'].required = True
+        profile_form = UserProfileSignupForm(request.POST, error_class=DivErrorList)
+        password_form = PasswordCreateForm(request.POST, username='', error_class=DivErrorList)
+        if user_form.is_valid() and profile_form.is_valid() and password_form.is_valid():
+            username = user_form.cleaned_data['username']
+            password = password_form.cleaned_data['password']
+            user_form.save()
+            password_form.username = username
+            password_form.save()
             user = auth.authenticate(username=username, password=password)
             user_profile = UserProfile.objects.get_or_create(user=user)[0]
-            profileForm2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
-            profileForm2.save()
+            profile_form2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
+            profile_form2.save()
             auth.login(request, user)
             return HttpResponseRedirect('/')
     else:
-        userForm = UserSignupForm(error_class=DivErrorList)
-        profileForm = UserProfileSignupForm(error_class=DivErrorList)
-        passwordForm = PasswordCreateForm(error_class=DivErrorList)
+        user_form = UserSignupForm(error_class=DivErrorList)
+        profile_form = UserProfileSignupForm(error_class=DivErrorList)
+        password_form = PasswordCreateForm(error_class=DivErrorList)
 
-    return render(request, 'signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+    return render(request, 'signup.html', {'userForm': user_form, 'profileForm': profile_form, 'passwordForm': password_form})
 
 
 def viewProfile(request, username):
@@ -165,9 +165,9 @@ def viewProfile(request, username):
     """
     from rmgweb.pdep.models import Network
     user0 = User.objects.get(username=username)
-    userProfile = user0.userprofile
+    user_profile = user0.userprofile
     networks = Network.objects.filter(user=user0)
-    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks})
+    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': user_profile, 'networks': networks})
 
 
 @login_required
@@ -177,20 +177,20 @@ def editProfile(request):
     """
     user_profile = UserProfile.objects.get_or_create(user=request.user)[0]
     if request.method == 'POST':
-        userForm = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
-        profileForm = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
-        passwordForm = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            userForm.save()
-            profileForm.save()
-            passwordForm.save()
+        user_form = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
+        profile_form = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
+        password_form = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
+        if user_form.is_valid() and profile_form.is_valid() and password_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            password_form.save()
             return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username}))  # Redirect after POST
     else:
-        userForm = UserForm(instance=request.user, error_class=DivErrorList)
-        profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
-        passwordForm = PasswordChangeForm(error_class=DivErrorList)
+        user_form = UserForm(instance=request.user, error_class=DivErrorList)
+        profile_form = UserProfileForm(instance=user_profile, error_class=DivErrorList)
+        password_form = PasswordChangeForm(error_class=DivErrorList)
 
-    return render(request, 'editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+    return render(request, 'editProfile.html', {'userForm': user_form, 'profileForm': profile_form, 'passwordForm': password_form})
 
 
 def getAdjacencyList(request, identifier):
@@ -233,17 +233,17 @@ def getAdjacencyList(request, identifier):
     # Check if identifier is an InChI string
     if identifier.startswith('InChI=1'):
         try:
-            molecule.fromInChI(identifier)
+            molecule.from_inchi(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
         except KeyError as e:
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
     elif identifier.lower() in known_names:
-        molecule.fromSMILES(known_names[identifier.lower()])
+        molecule.from_smiles(known_names[identifier.lower()])
     else:
         try:
             # Try parsing as a SMILES string
-            molecule.fromSMILES(identifier)
+            molecule.from_smiles(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
         except KeyError as e:
@@ -259,7 +259,7 @@ def getAdjacencyList(request, identifier):
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
             smiles = f.read()
             try:
-                molecule.fromSMILES(smiles)
+                molecule.from_smiles(smiles)
             except AtomTypeError:
                 return HttpResponse('Invalid Molecule', status=501)
             except KeyError as e:
@@ -267,7 +267,7 @@ def getAdjacencyList(request, identifier):
             except ValueError as e:
                 return HttpResponse(str(e), status=500)
 
-    adjlist = molecule.toAdjacencyList(removeH=False)
+    adjlist = molecule.to_adjacency_list(remove_h=False)
     return HttpResponse(adjlist, content_type="text/plain")
 
 
@@ -326,7 +326,7 @@ def drawMolecule(request, adjlist, format='png'):
     adjlist = urllib.parse.unquote(adjlist)
 
     try:
-        molecule = Molecule().fromAdjacencyList(adjlist)
+        molecule = Molecule().from_adjacency_list(adjlist)
     except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
@@ -354,7 +354,7 @@ def drawGroup(request, adjlist, format='png'):
     adjlist = urllib.parse.unquote(adjlist)
 
     try:
-        group = Group().fromAdjacencyList(adjlist)
+        group = Group().from_adjacency_list(adjlist)
     except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
@@ -363,10 +363,10 @@ def drawGroup(request, adjlist, format='png'):
             response.write(group.draw('png'))
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            svgdata = group.draw('svg')
+            svg_data = group.draw('svg')
             # Remove the scale and rotate transformations applied by pydot
-            svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
-            response.write(svgdata)
+            svg_data = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svg_data)
+            response.write(svg_data)
         else:
             response = HttpResponse('Image format not implemented.', status=501)
 

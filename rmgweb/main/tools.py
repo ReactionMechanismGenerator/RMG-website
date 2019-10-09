@@ -32,7 +32,6 @@ from __future__ import division
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from past.utils import old_div
 
 import urllib.request
 import urllib.parse
@@ -53,8 +52,8 @@ def moleculeToAdjlist(molecule):
     representation of its structure suitable for a URL.
     """
     mol = molecule.copy(deep=True)
-    mol.clearLabeledAtoms()
-    adjlist = mol.toAdjacencyList(removeH=False)
+    mol.clear_labeled_atoms()
+    adjlist = mol.to_adjacency_list(remove_h=False)
     return adjlist
 
 
@@ -63,9 +62,9 @@ def moleculeToInfo(molecule):
     Creates an html rendering which includes molecule structure image but
     also allows you to click on it to enter a molecule info page.
     """
-    href = reverse('database:molecule-entry', kwargs={'adjlist': molecule.toAdjacencyList()})
-    structureMarkup = getStructureMarkup(molecule)
-    markup = '<a href="' + href + '">' + structureMarkup + '</a>'
+    href = reverse('database:molecule-entry', kwargs={'adjlist': molecule.to_adjacency_list()})
+    structure_markup = getStructureMarkup(molecule)
+    markup = '<a href="' + href + '">' + structure_markup + '</a>'
     return markup
 
 
@@ -75,7 +74,7 @@ def moleculeFromURL(adjlist):
     :class:`Molecule` object.
     """
     adjlist = urllib.parse.unquote(adjlist)
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
     return molecule
 
 ################################################################################
@@ -87,8 +86,8 @@ def groupToURL(group):
     representation of its structure suitable for a URL.
     """
     gro = group.copy(deep=True)
-    gro.clearLabeledAtoms()
-    adjlist = gro.toAdjacencyList(removeH=False)
+    gro.clear_labeled_atoms()
+    adjlist = gro.to_adjacency_list(remove_h=False)
     return adjlist
 
 
@@ -97,9 +96,9 @@ def groupToInfo(group):
     Creates an html rendering which includes group structure image but
     also allows you to click on it to enter a group info page.
     """
-    href = reverse('database:group-entry', kwargs={'adjlist': group.toAdjacencyList()})
-    structureMarkup = getStructureMarkup(group)
-    markup = '<a href="' + href + '">' + structureMarkup + '</a>'
+    href = reverse('database:group-entry', kwargs={'adjlist': group.to_adjacency_list()})
+    structure_markup = getStructureMarkup(group)
+    markup = '<a href="' + href + '">' + structure_markup + '</a>'
     return markup
 
 
@@ -109,7 +108,7 @@ def groupFromURL(adjlist):
     :class:`Group` object.
     """
     adjlist = urllib.parse.unquote(adjlist)
-    group = Group().fromAdjacencyList(adjlist)
+    group = Group().from_adjacency_list(adjlist)
     return group
 
 ################################################################################
@@ -150,7 +149,7 @@ def getLaTeXScientificNotation(value):
     negative = value < 0
     value = abs(value)
     exp = int(math.log10(abs(value)))
-    mant = old_div(value, 10**exp)
+    mant = value / 10**exp
     if abs(mant) < 1:
         mant *= 10
         exp -= 1
@@ -168,12 +167,12 @@ def getStructureMarkup(item):
     """
     if isinstance(item, Molecule):
         # We can draw Molecule objects, so use that instead of an adjacency list
-        adjlist = item.toAdjacencyList(removeH=False)
+        adjlist = item.to_adjacency_list(remove_h=False)
         url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), adjlist)
     elif isinstance(item, Species) and len(item.molecule) > 0:
         # We can draw Species objects, so use that instead of an adjacency list
-        adjlist = item.molecule[0].toAdjacencyList(removeH=False)
+        adjlist = item.molecule[0].to_adjacency_list(remove_h=False)
         url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}"/>'.format(reverse('draw-molecule', kwargs={'adjlist': url}), item.label)
     elif isinstance(item, Species) and len(item.molecule) == 0:
@@ -181,7 +180,7 @@ def getStructureMarkup(item):
         structure = item.label
     elif isinstance(item, Group):
         # We can draw Group objects, so use that instead of an adjacency list
-        adjlist = item.toAdjacencyList()
+        adjlist = item.to_adjacency_list()
         url = urllib.parse.quote(adjlist)
         structure = '<img src="{0}" alt="{1}" title="{1}" />'.format(reverse('draw-group', kwargs={'adjlist': url}), adjlist)
         # structure += '<pre style="font-size:small;" class="adjacancy_list">{0}</pre>'.format(adjlist)

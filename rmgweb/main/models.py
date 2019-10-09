@@ -80,8 +80,8 @@ class UserProfile(models.Model):
     website = models.CharField(max_length=100, blank=True)
     bio = models.TextField(blank=True)
     # Preferred units
-    energyUnits = models.CharField(verbose_name='Energy units', max_length=100, choices=ENERGY_UNITS, default='kcal/mol')
-    heatCapacityUnits = models.CharField(verbose_name='Heat capacity units', max_length=100, choices=HEATCAPACITY_UNITS, default='cal/(mol*K)')
-    rateCoefficientUnits = models.CharField(verbose_name='Rate coefficient units', max_length=100, choices=RATECOEFFICIENT_UNITS, default='cm^3,mol,s')
-    temperatureUnits = models.CharField(verbose_name='Temperature units', max_length=100, choices=TEMPERATURE_UNITS, default='K')
-    pressureUnits = models.CharField(verbose_name='Pressure units', max_length=100, choices=PRESSURE_UNITS, default='bar')
+    energy_units = models.CharField(verbose_name='Energy units', max_length=100, choices=ENERGY_UNITS, default='kcal/mol')
+    heat_capacity_units = models.CharField(verbose_name='Heat capacity units', max_length=100, choices=HEATCAPACITY_UNITS, default='cal/(mol*K)')
+    rate_coefficient_units = models.CharField(verbose_name='Rate coefficient units', max_length=100, choices=RATECOEFFICIENT_UNITS, default='cm^3,mol,s')
+    temperature_units = models.CharField(verbose_name='Temperature units', max_length=100, choices=TEMPERATURE_UNITS, default='K')
+    pressure_units = models.CharField(verbose_name='Pressure units', max_length=100, choices=PRESSURE_UNITS, default='bar')
