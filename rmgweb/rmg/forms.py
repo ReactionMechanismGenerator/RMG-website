@@ -173,7 +173,7 @@ class ReactorSpeciesForm(forms.ModelForm):
             if adjlist == '':
                 return ''
             molecule = Molecule()
-            molecule.fromAdjacencyList(adjlist)
+            molecule.from_adjacency_list(adjlist)
         except Exception as e:
             import traceback
             traceback.print_exc(e)
@@ -197,8 +197,8 @@ class NASAForm(forms.Form):
     """
     Form for entering a CHEMKIN format NASA polynomial
     """
-    from rmgpy.chemkin import readThermoEntry
-    NASA = forms.CharField(label="NASA Polynomial",
+    from rmgpy.chemkin import read_thermo_entry
+    nasa = forms.CharField(label="NASA Polynomial",
                            widget=forms.Textarea(attrs={'cols': 100, 'rows': 10}),
                            required=True)
 
@@ -208,12 +208,12 @@ class NASAForm(forms.Form):
         list has been provided.
         """
         try:
-            NASA = self.cleaned_data['NASA']
-            if NASA == '':
+            nasa = self.cleaned_data['NASA']
+            if nasa == '':
                 return ''
-            readThermoEntry(NASA)
+            read_thermo_entry(NASA)
         except Exception as e:
             import traceback
             traceback.print_exc(e)
             raise forms.ValidationError('Invalid NASA Polynomial.')
-        return NASA
+        return nasa
