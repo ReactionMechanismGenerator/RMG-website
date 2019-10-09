@@ -28,8 +28,10 @@
 #                                                                             #
 ###############################################################################
 
-from django.conf.urls import url, include
+from django.conf.urls import url
+
 from rmgweb.pdep import views
+
 
 app_name = 'pdep'
 
@@ -42,7 +44,7 @@ urlpatterns = [
 
     # URL for the main page of an individual Network
     url(r'^networks/(?P<networkKey>[^/]+)$', views.networkIndex, name='network-index'),
-    
+
     # URLs for various methods of adding/editing input parameters
     url(r'^networks/(?P<networkKey>[^/]+)/edit$', views.networkEditor, name='network-editor'),
     url(r'^networks/(?P<networkKey>[^/]+)/upload$', views.networkUpload, name='network-upload'),
@@ -52,15 +54,14 @@ urlpatterns = [
     url(r'^networks/(?P<networkKey>[^/]+)/draw/pdf$', views.networkDrawPDF, name='network-draw-pdf'),
     url(r'^networks/(?P<networkKey>[^/]+)/draw/svg$', views.networkDrawSVG, name='network-draw-svg'),
     url(r'^networks/(?P<networkKey>[^/]+)/run$', views.networkRun, name='network-run'),
-    
+
     # URLs for browsing network information
     url(r'^networks/(?P<networkKey>[^/]+)/species/(?P<species>[^/]+)$', views.networkSpecies, name='network-species'),
     url(r'^networks/(?P<networkKey>[^/]+)/pathReactions/(?P<reaction>[^/]+)$', views.networkPathReaction, name='network-path-reaction'),
     url(r'^networks/(?P<networkKey>[^/]+)/netReactions/(?P<reaction>[^/]+)$', views.networkNetReaction, name='network-net-reaction'),
     url(r'^networks/(?P<networkKey>[^/]+)/kinetics$', views.networkPlotKinetics, name='network-plot-kinetics'),
     url(r'^networks/(?P<networkKey>[^/]+)/microdata$', views.networkPlotMicro, name='network-plot-micro'),
-    
-    # Delete a network    
+
+    # Delete a network
     url(r'^networks/(?P<networkKey>[^/]+)/delete$', views.networkDelete, name='network-delete'),
-    
 ]
