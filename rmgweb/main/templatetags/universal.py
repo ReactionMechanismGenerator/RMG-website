@@ -37,12 +37,14 @@ register = template.Library()
 
 ###############################################################################
 
+
 @register.filter
 def split(str, sep):
     """
     Provides a filter to interface with the string.split() method
     """
     return str.split(sep)
+
 
 @register.filter
 def get_ref_tooltip(reference):
@@ -98,6 +100,7 @@ def get_ref_tooltip(reference):
             output += ' ({0})'.format(reference.year.encode('utf-8'))
 
     return output
+
 
 @register.simple_tag
 def settings_value(setting):

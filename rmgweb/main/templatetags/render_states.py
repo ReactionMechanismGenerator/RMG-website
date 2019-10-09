@@ -31,46 +31,42 @@
 """
 Provides template tags for rendering statmech models in various ways.
 """
+from __future__ import division, print_function
 
-# Register this module as a Django template tag library
+import math
+import numpy as np
 from django import template
-register = template.Library()
-
 from django.utils.safestring import mark_safe
-
-import numpy
-
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
 from rmgpy.quantity import Quantity, ArrayQuantity
 from rmgpy.statmech import *
 import rmgpy.constants as constants
-import math
+
+from rmgweb.main.models import UserProfile
+
+# Register this module as a Django template tag library
+register = template.Library()
 
 ################################################################################
+
 
 @register.filter
 def render_states_math(states, user=None):
     """
     Return a math representation of the given `states` using MathJax. If a
-    `user` is specified, the user's preferred units will be used; otherwise 
+    `user` is specified, the user's preferred units will be used; otherwise
     default units will be used.
     """
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = str(user_profile.temperatureUnits)
-        Eunits = str(user_profile.energyUnits)
+        Eunits = user_profile.energyUnits
     else:
-        Tunits = 'K'
         Eunits = 'kcal/mol'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
-    
+
     # The string that will be returned to the template
     result = ''
-    
+
     result += '<table class="reference">\n'
 
     hindIndex = 0
@@ -83,7 +79,7 @@ def render_states_math(states, user=None):
             result += r'    <td class="label">Mass (g/mol):</td>'
             result += r'    <td>{0:g}</td>'.format(mode.mass.value_si * 1000. * constants.Na)
             result += '</tr>\n'
-        
+
         elif isinstance(mode, LinearRotor) or isinstance(mode, NonlinearRotor):
             result += '<tr>'
             result += r'    <td colspan="2" class="section">External rotation</td>'
@@ -104,7 +100,7 @@ def render_states_math(states, user=None):
             result += r'    <td class="label">Symmetry number:</td>'
             result += r'    <td>{0:d}</td>'.format(mode.symmetry)
             result += '</tr>\n'
-        
+
         elif isinstance(mode, HarmonicOscillator):
             result += '<tr>'
             result += r'    <td colspan="2" class="section">Vibrations</td>'
@@ -114,15 +110,15 @@ def render_states_math(states, user=None):
             result += r'    <td class="label" class="section">Frequencies (cm^-1):</td>'
             result += r'    <td>{0!s}</td>'.format(frequencies)
             result += '</tr>\n'
-    
+
         elif isinstance(mode, HinderedRotor):
             hindIndex += 1
             result += '<tr>'
             result += r'    <td colspan="2" class="section">Hindered rotor #{0:d}:</td>'.format(hindIndex)
             result += '</tr>\n'
             if mode.fourier:
-                fourierA = ', '.join(['{0:g}'.format(a_k) for a_k in mode.fourier.value_si[0,:]])  
-                fourierB = ', '.join(['{0:g}'.format(b_k) for b_k in mode.fourier.value_si[1,:]])
+                fourierA = ', '.join(['{0:g}'.format(a_k) for a_k in mode.fourier.value_si[0, :]])
+                fourierB = ', '.join(['{0:g}'.format(b_k) for b_k in mode.fourier.value_si[1, :]])
                 result += '<tr>'
                 result += r'    <td colspan="2"><script type="math/tex">V(\phi) = A + \sum_k \left( a_k \cos k \phi + b_k \sin k \phi \right)</script></td>'
                 result += '</tr>\n'
@@ -165,6 +161,7 @@ def render_states_math(states, user=None):
 
 ################################################################################
 
+
 @register.filter
 def get_states_data(states, user=None):
     """
@@ -176,8 +173,8 @@ def get_states_data(states, user=None):
     # Define other units and conversion factors to use
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = str(user_profile.temperatureUnits)
-        Eunits = str(user_profile.energyUnits)
+        Tunits = user_profile.temperatureUnits
+        Eunits = user_profile.energyUnits
     else:
         Tunits = 'K'
         Eunits = 'kcal/mol'
@@ -185,37 +182,38 @@ def get_states_data(states, user=None):
     Efactor = Quantity(1, Eunits).getConversionFactorFromSI()
     Qunits = ''
     Qfactor = 1.0
-    rhounits = 'per cm^-1' 
+    rhounits = 'per cm^-1'
     rhofactor = constants.h * constants.c * 100 * constants.Na
-    phiunits = 'rad' 
+    phiunits = 'rad'
     phifactor = 1.0
     Vunits = Eunits
     Vfactor = Efactor
-        
+
     # Generate data to use for plots
-    Tdata = []; Qdata = []
-    for T in numpy.arange(10, 2001, 10):
+    Tdata = []
+    Qdata = []
+    for T in np.arange(10, 2001, 10):
         Tdata.append(T * Tfactor)
         Qdata.append(states.getPartitionFunction(T) * Qfactor)
-    
-    Edata = numpy.arange(0, 400001, 1000, numpy.float)
+
+    Edata = np.arange(0, 400001, 1000, np.float)
     rhodata = []
     try:
         rhodata = states.getDensityOfStates(Edata)
     except Exception as e:
-        print "Could not calculate density of states", e
+        print("Could not calculate density of states", e)
         pass
     Edata = list(Edata * Efactor)
     if len(rhodata) != 0:
         rhodata = list(rhodata * rhofactor)
-    
-    phidata = numpy.arange(0, 2*math.pi, math.pi/200)
+
+    phidata = np.arange(0, 2 * math.pi, math.pi / 200)
     Vdata = []
     for mode in states.modes:
         if isinstance(mode, HinderedRotor):
             Vdata.append([mode.getPotential(phi) * Vfactor for phi in phidata])
     phidata = list(phidata * phifactor)
-    
+
     return mark_safe("""
 Tlist = {0};
 Qlist = {1};
@@ -230,16 +228,16 @@ rhounits = "{9}";
 phiunits = "{10}";
 Vunits = "{11}";
     """.format(
-        Tdata, 
-        Qdata, 
-        Edata, 
-        rhodata, 
-        phidata, 
+        Tdata,
+        Qdata,
+        Edata,
+        rhodata,
+        phidata,
         Vdata,
-        Tunits, 
-        Qunits, 
-        Eunits, 
-        rhounits, 
-        phiunits, 
+        Tunits,
+        Qunits,
+        Eunits,
+        rhounits,
+        phiunits,
         Vunits,
     ))
