@@ -46,7 +46,7 @@ class EditNetworkForm(forms.ModelForm):
     """
     class Meta(object):
         model = Network
-        fields = ('inputText',)
+        fields = ('input_text',)
 
 ################################################################################
 
@@ -57,7 +57,7 @@ class UploadNetworkForm(forms.ModelForm):
     """
     class Meta(object):
         model = Network
-        fields = ('inputFile',)
+        fields = ('input_file',)
 
 ################################################################################
 

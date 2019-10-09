@@ -88,7 +88,7 @@ def convertAdjlists(request):
         form = UploadDictionaryForm(request.POST, request.FILES, instance=conversion)
         if form.is_valid():
             form.save()
-            path = 'media/rmg/tools/adjlistConversion/RMG_Dictionary.txt'
+            path = 'media/rmg/tools/adjlist_conversion/RMG_Dictionary.txt'
             # Generate the output HTML file
             conversion.createOutput()
             # Go back to the network's main page
@@ -142,7 +142,7 @@ def mergeModels(request):
         if form.is_valid():
             form.save()
             model.merge()
-            path = 'media/rmg/tools/compare'
+            path = 'media/rmg/tools/compare/'
             # [os.path.join(model.path,'chem.inp'), os.path.join(model.path,'species_dictionary.txt'), os.path.join(model.path,'merging_log.txt')]
             return render(request, 'mergeModels.html', {'form': form, 'path': path})
     else:
@@ -168,21 +168,20 @@ def generateFlux(request):
         form = FluxDiagramForm(request.POST, request.FILES, instance=flux)
         if form.is_valid():
             form.save()
-            input = os.path.join(flux.path, 'input.py')
-            chemkin = os.path.join(flux.path, 'chem.inp')
-            dict = os.path.join(flux.path, 'species_dictionary.txt')
-            chemkin_output = ''
-            if 'ChemkinOutput' in request.FILES:
-                chemkin_output = os.path.join(flux.path, 'chemkin_output.out')
-            java = form.cleaned_data['Java']
+            input_file = os.path.join(flux.path, 'input.py')
+            chem_file = os.path.join(flux.path, 'chem.inp')
+            dict_file = os.path.join(flux.path, 'species_dictionary.txt')
+            chem_output = ''
+            if 'chem_output' in request.FILES:
+                chem_output = os.path.join(flux.path, 'chemkin_output.out')
+            java = form.cleaned_data['java']
             settings = {}
-            settings['max_node_count'] = form.cleaned_data['MaxNodes']
-            settings['max_edge_count'] = form.cleaned_data['MaxEdges']
-            settings['time_step'] = form.cleaned_data['TimeStep']
-            settings['concentration_tol'] = form.cleaned_data['ConcentrationTolerance']
-            settings['species_rate_tol'] = form.cleaned_data['SpeciesRateTolerance']
-
-            create_flux_diagram(input, chemkin, dict, save_path=flux.path, java=java, settings=settings, chemkin_output=chemkin_output)
+            settings['max_node_count'] = form.cleaned_data['max_nodes']
+            settings['max_edge_count'] = form.cleaned_data['max_edges']
+            settings['time_step'] = form.cleaned_data['time_step']
+            settings['concentration_tol'] = form.cleaned_data['concentration_tol']
+            settings['species_rate_tol'] = form.cleaned_data['species_rate_tol']
+            create_flux_diagram(input_file, chem_file, dict_file, save_path=flux.path, java=java, settings=settings, chemkin_output=chem_output)
             # Look at number of subdirectories to determine where the flux diagram videos are
             subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
             subdirs.remove('species')
@@ -407,9 +406,9 @@ def evaluateNASA(request):
         initial = request.POST.copy()
 
         if posted.is_valid():
-            NASA = posted.cleaned_data['NASA']
-            if NASA != '':
-                species, thermo, formula = read_thermo_entry(str(NASA))
+            nasa = posted.cleaned_data['nasa']
+            if nasa != '':
+                species, thermo, formula = read_thermo_entry(nasa)
                 try:
                     thermo_data = thermo.to_thermo_data()
                 except:

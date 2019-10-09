@@ -120,23 +120,23 @@ class Chemkin(models.Model):
         from rmgpy.data.base import Entry
 
         kinetics_data_list = []
-        chem_path = os.path.join(self.path, 'chemkin', 'chem.inp')
-        dict_path = os.path.join(self.path, 'RMG_Dictionary.txt')
+        chem_file = os.path.join(self.path, 'chemkin', 'chem.inp')
+        dict_file = os.path.join(self.path, 'RMG_Dictionary.txt')
         if self.foreign:
             read_comments = False
         else:
             read_comments = True
-        if os.path.exists(dict_path):
-            spc_list, rxn_list = load_chemkin_file(chem_path, dict_path, read_comments=read_comments)
+        if os.path.exists(dict_file):
+            spc_list, rxn_list = load_chemkin_file(chem_file, dict_file, read_comments=read_comments)
         else:
-            spc_list, rxn_list = load_chemkin_file(chem_path, read_comments=read_comments)
+            spc_list, rxn_list = load_chemkin_file(chem_file, read_comments=read_comments)
 
         for reaction in rxn_list:
             # If the kinetics are ArrheniusEP, replace them with Arrhenius
             if isinstance(reaction.kinetics, ArrheniusEP):
                 reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
-            if os.path.exists(dict_path):
+            if os.path.exists(dict_file):
                 reactants = ' + '.join([moleculeToInfo(reactant) for reactant in reaction.reactants])
                 arrow = '&hArr;' if reaction.reversible else '&rarr;'
                 products = ' + '.join([moleculeToInfo(product) for product in reaction.products])
@@ -275,7 +275,7 @@ class AdjlistConversion(models.Model):
 
     def __init__(self, *args, **kwargs):
         super(AdjlistConversion, self).__init__(*args, **kwargs)
-        self.folder = os.path.join('rmg', 'tools', 'adjlistConversion')
+        self.folder = os.path.join('rmg', 'tools', 'adjlist_conversion')
         self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
         self.dictionary = os.path.join(self.path, 'species_dictionary.txt')
 
@@ -347,7 +347,7 @@ class FluxDiagram(models.Model):
     chem_file = models.FileField(upload_to=uploadTo('chem.inp'), verbose_name='Chemkin File')
     dict_file = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
     chem_output = models.FileField(upload_to=uploadTo('chemkin_output.out'), verbose_name='Chemkin Output File (Optional)', blank=True, null=True)
-    Java = models.BooleanField(verbose_name="From RMG-Java")
+    java = models.BooleanField(verbose_name="From RMG-Java")
     max_nodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
     max_edges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
     time_step = models.FloatField(default=1.25, verbose_name='Multiplicative Time Step Factor')

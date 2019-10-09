@@ -253,7 +253,7 @@ def getRateCoefficientUnits(kinetics, user=None):
     if user and user.is_authenticated():
         # If user is logged in, get their desired units
         user_profile = UserProfile.objects.get(user=user)
-        desired_units = user_profile.rateCoefficientUnits
+        desired_units = user_profile.rate_coefficient_units
     else:
         # Default base units
         desired_units = 'm^3,mol,s'

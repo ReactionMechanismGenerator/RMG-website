@@ -736,7 +736,7 @@ def thermoEntry(request, section, subsection, index):
 
     reference_type = ''
     reference = entry.reference
-    return render(request, 'thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string': nasa_string})
+    return render(request, 'thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': reference_type, 'thermo': thermo, 'nasa_string': nasa_string})
 
 
 def thermoData(request, adjlist):
@@ -787,7 +787,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermo_data_list, 'symmetryNumber': symmetry_number, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
+    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermo_data_list': thermo_data_list, 'symmetry_number': symmetry_number, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
 
 ################################################################################
 

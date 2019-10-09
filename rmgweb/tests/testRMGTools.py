@@ -58,7 +58,7 @@ class ChemkinTest(TestCase):
         dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
 
         with open(chem_file) as cf, open(dict_file) as df:
-            response = self.client.post('/tools/chemkin/', {'ChemkinFile': cf, 'DictionaryFile': df})
+            response = self.client.post('/tools/chemkin/', {'chem_file': cf, 'dict_file': df})
 
         self.assertEqual(response.status_code, 200)
 
@@ -102,7 +102,7 @@ class CompareTest(TestCase):
         dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
-            response = self.client.post('/tools/compare/', {'ChemkinFile1': cf1, 'DictionaryFile1': df1, 'ChemkinFile2': cf2, 'DictionaryFile2': df2})
+            response = self.client.post('/tools/compare/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
 
         self.assertEqual(response.status_code, 200)
 
@@ -146,7 +146,7 @@ class CompareTest(TestCase):
         dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
-            response = self.client.post('/tools/merge_models/', {'ChemkinFile1': cf1, 'DictionaryFile1': df1, 'ChemkinFile2': cf2, 'DictionaryFile2': df2})
+            response = self.client.post('/tools/merge_models/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
 
         self.assertEqual(response.status_code, 200)
 
@@ -196,9 +196,9 @@ class FluxDiagramTest(TestCase):
         dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'flux', 'chemkin', 'species_dictionary.txt')
 
         with open(input_file) as nf, open(chem_file) as cf, open(dict_file) as df:
-            response = self.client.post('/tools/flux/', {'InputFile': nf, 'ChemkinFile': cf, 'DictionaryFile': df,
-                                                         'MaxNodes': 50, 'MaxEdges': 50, 'TimeStep': 1.25,
-                                                         'ConcentrationTolerance': 1e-6, 'SpeciesRateTolerance': 1e-6})
+            response = self.client.post('/tools/flux/', {'input_file': nf, 'chem_file': cf, 'dict_file': df,
+                                                         'max_nodes': 50, 'max_edges': 50, 'time_step': 1.25,
+                                                         'concentration_tol': 1e-6, 'species_rate_tol': 1e-6})
 
         self.assertEqual(response.status_code, 200)
 
@@ -245,7 +245,7 @@ class PopulateReactionsTest(TestCase):
         input_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'generate', 'input.py')
 
         with open(input_file) as fp:
-            response = self.client.post('/tools/populate_reactions/',  {'InputFile': fp})
+            response = self.client.post('/tools/populate_reactions/',  {'input_file': fp})
 
         self.assertEqual(response.status_code, 200)
 
@@ -295,7 +295,7 @@ class PlotKineticsTest(TestCase):
         dict_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'species_dictionary.txt')
 
         with open(chem_file) as cf, open(dict_file) as df:
-            response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf, 'DictionaryFile': df})
+            response = self.client.post('/tools/plot_kinetics/', {'chem_file': cf, 'dict_file': df})
 
         self.assertEqual(response.status_code, 200)
 
@@ -309,7 +309,7 @@ class PlotKineticsTest(TestCase):
         chem_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'chem.inp')
 
         with open(chem_file) as cf:
-            response = self.client.post('/tools/plot_kinetics/', {'ChemkinFile': cf})
+            response = self.client.post('/tools/plot_kinetics/', {'chem_file': cf})
 
         self.assertEqual(response.status_code, 200)
 
@@ -337,7 +337,7 @@ class EvaluateNASATest(TestCase):
  1.62239622E+04 1.66040083E+00 3.91546822E+00 1.84153688E-03 3.48743616E-06    3
 -3.32749553E-09 8.49963443E-13 1.62856393E+04 3.51739246E-01                   4"""
 
-        response = self.client.post('/tools/evaluate_nasa/', {'NASA': nasa})
+        response = self.client.post('/tools/evaluate_nasa/', {'nasa': nasa})
 
         self.assertEqual(response.status_code, 200)
 
@@ -361,11 +361,11 @@ class AdjlistConversionTest(TestCase):
         dict_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'species_dictionary.txt')
 
         with open(dict_file) as df:
-            response = self.client.post('/tools/adjlist_conversion/', {'DictionaryFile': df})
+            response = self.client.post('/tools/adjlist_conversion/', {'dict_file': df})
 
         self.assertEqual(response.status_code, 200)
 
-        folder = os.path.join(settings.MEDIA_ROOT, 'rmg', 'tools', 'adjlistConversion')
+        folder = os.path.join(settings.MEDIA_ROOT, 'rmg', 'tools', 'adjlist_conversion')
 
         # Check if inputs were correctly uploaded
         dict_input = os.path.join(folder, 'species_dictionary.txt')
@@ -400,7 +400,7 @@ class JavaLibraryTest(TestCase):
         dict_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'species_dictionary.txt')
 
         with open(chem_file) as cf, open(dict_file) as df:
-            response = self.client.post('/tools/java_kinetics_library/', {'ChemkinFile': cf, 'DictionaryFile': df})
+            response = self.client.post('/tools/java_kinetics_library/', {'chem_file': cf, 'dict_file': df})
 
         self.assertEqual(response.status_code, 200)
 

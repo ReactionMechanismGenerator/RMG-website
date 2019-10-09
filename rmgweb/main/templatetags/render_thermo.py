@@ -61,9 +61,9 @@ def render_thermo_math(thermo, user=None):
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
-        Cpunits = user_profile.heatCapacity_units
+        Cpunits = user_profile.heat_capacity_units
         Hunits = user_profile.energy_units
-        Sunits = user_profile.heatCapacity_units
+        Sunits = user_profile.heat_capacity_units
     else:
         Tunits = 'K'
         Cpunits = 'cal/(mol*K)'
@@ -276,9 +276,9 @@ def get_thermo_data(thermo, user=None):
     if user and user.is_authenticated():
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
-        Cpunits = user_profile.heatCapacity_units
+        Cpunits = user_profile.heat_capacity_units
         Hunits = user_profile.energy_units
-        Sunits = user_profile.heatCapacity_units
+        Sunits = user_profile.heat_capacity_units
         Gunits = user_profile.energy_units
     else:
         Tunits = 'K'

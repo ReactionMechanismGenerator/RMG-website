@@ -61,22 +61,22 @@ $().ready(function() {
 <form enctype="multipart/form-data" action="" method="POST" id="upload">{% csrf_token %}
 
 
-<P><b>RMG Input File:</b> {{form.InputFile}}
-<P><b>Chemkin File:</b> {{form.ChemkinFile}}
-<P><b>RMG Dictionary:</b> {{form.DictionaryFile}}
-<P><b>Chemkin Output File (Optional):</b> {{form.ChemkinOutput}}
-<P><b>From RMG-Java:</b> {{form.Java}}
+<P><b>RMG Input File:</b> {{form.input_file}}
+<P><b>Chemkin File:</b> {{form.chem_file}}
+<P><b>RMG Dictionary:</b> {{form.dict_file}}
+<P><b>Chemkin Output File (Optional):</b> {{form.chem_output}}
+<P><b>From RMG-Java:</b> {{form.java}}
 
 <table width="80%" align="center"><tr><td>
 <p><h3>Advanced Options</h3>
-   <P><b>Maximum Nodes:</b>{{form.MaxNodes}}
+   <P><b>Maximum Nodes:</b>{{form.max_nodes}}
 <br>The maximum number of species desired in the flux diagram
-<P><b>Maximum Edges:</b>{{form.MaxEdges}}
+<P><b>Maximum Edges:</b>{{form.max_edges}}
 <br>The maximum number of connections desired.
-<P><b>Multiplicative Time Step Factor:</b> {{form.TimeStep}}
-<P><b>Concentration Tolerance:</b> {{form.ConcentrationTolerance}}
+<P><b>Multiplicative Time Step Factor:</b> {{form.time_step}}
+<P><b>Concentration Tolerance:</b> {{form.concentration_tol}}
 <br>The lowest fractional concentration of any species to show (species which never reach concentrations above this will not appear in the flux diagram.)  The fractional concentration = concentration / maximum concentration of any species throughout simulation.
-<P><b>Species Rate Tolerance:</b> {{form.SpeciesRateTolerance}}
+<P><b>Species Rate Tolerance:</b> {{form.species_rate_tol}}
 <br>The lowest fractional species rate to show (species which have rates of production below this value will not have flux arrows drawn.) The fractional species rate = rate of production/ maximum rate of production any species throughout simulation.
 </td></tr>
 </table>
