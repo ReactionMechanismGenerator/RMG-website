@@ -77,17 +77,17 @@ multiplicity 2
         Test whether url is only encoded once
         """
 
-        reactant1 = Species().fromSMILES('[CH3]')
-        reactant2 = Species().fromSMILES('[SH]')
-        product1 = Species().fromSMILES('CS')
+        reactant1 = Species().from_smiles('[CH3]')
+        reactant2 = Species().from_smiles('[SH]')
+        product1 = Species().from_smiles('CS')
 
         reaction = Reaction(reactants=[reactant1, reactant2], products=[product1])
 
         url = getReactionUrl(reaction, resonance=False)
 
         base_url = '/database/kinetics/reaction/reactant1={0}__reactant2={1}__product1={2}__res=False'
-        expected_url = iri_to_uri(base_url.format(reactant1.toAdjacencyList(),
-                                                  reactant2.toAdjacencyList(),
-                                                  product1.toAdjacencyList()))
+        expected_url = iri_to_uri(base_url.format(reactant1.to_adjacency_list(),
+                                                  reactant2.to_adjacency_list(),
+                                                  product1.to_adjacency_list()))
 
         self.assertEqual(url, expected_url)
