@@ -54,7 +54,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
 from rmgpy.data.reference import Article, Book
 from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
-from rmgpy.data.thermo import findCp0andCpInf
+from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
 from rmgpy.exceptions import AtomTypeError
 from rmgpy.kinetics import Arrhenius, ArrheniusEP, KineticsData
@@ -66,7 +66,7 @@ from rmgpy.quantity import Quantity
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
 from rmgpy.thermo import NASA, ThermoData, Wilhoit
-from rmgpy.thermo.thermoengine import processThermoData
+from rmgpy.thermo.thermoengine import process_thermo_data
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -183,18 +183,18 @@ def transport(request, section='', subsection=''):
             structure = getStructureInfo(entry.item)
 
             if isinstance(entry.data, CriticalPointGroupContribution):
-                dataFormat = 'CriticalPointGroupContribution'
+                data_format = 'CriticalPointGroupContribution'
             elif isinstance(entry.data, TransportData):
-                dataFormat = 'TransportData'
+                data_format = 'TransportData'
 
             elif entry.data is None:
-                dataFormat = 'None'
+                data_format = 'None'
                 entry.index = 0
 
             else:
-                dataFormat = 'Other'
+                data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, dataFormat))
+            entries.append((entry.index, entry.label, structure, data_format))
 
         return render(request, 'transportTable.html',
                       {'section': section, 'subsection': subsection,
@@ -204,13 +204,13 @@ def transport(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the transport
         # database components and sort them
-        transportLibraries = [(label, database.transport.libraries[label]) for label in database.transport.libraryOrder]
-        transportLibraries.sort()
-        transportGroups = [(label, groups) for label, groups in database.transport.groups.items()]
-        transportGroups.sort()
+        transport_libraries = [(label, database.transport.libraries[label]) for label in database.transport.library_order]
+        transport_libraries.sort()
+        transport_groups = [(label, groups) for label, groups in database.transport.groups.items()]
+        transport_groups.sort()
         return render(request, 'transport.html',
                       {'section': section, 'subsection': subsection,
-                       'transportLibraries': transportLibraries, 'transportGroups': transportGroups}
+                       'transportLibraries': transport_libraries, 'transportGroups': transport_groups}
                       )
 
 
@@ -255,7 +255,7 @@ def transportEntry(request, section, subsection, index):
     else:
         transport = entry.data
 
-    referenceType = ''
+    reference_type = ''
     reference = entry.reference
     return render(request, 'transportEntry.html',
                   {'section': section, 'subsection': subsection,
@@ -273,17 +273,17 @@ def transportData(request, adjlist):
     database.load('transport')
 
     adjlist = urllib.parse.unquote(adjlist)
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
     species = Species(molecule=[molecule])
     species.generate_resonance_structures()
 
     # Get the transport data for the molecule
-    transportDataList = []
-    for data, library, entry in database.transport.getAllTransportProperties(species):
+    transport_data_list = []
+    for data, library, entry in database.transport.get_all_transport_properties(species):
         if library is None:
             source = 'Group additivity'
             href = ''
-            symmetryNumber = species.getSymmetryNumber()
+            symmetry_number = species.get_symmetry_number()
             entry = Entry(data=data)
         elif library in database.transport.libraries.values():
             source = library.label
@@ -291,7 +291,7 @@ def transportData(request, adjlist):
                            kwargs={'section': 'libraries',
                                    'subsection': library.label,
                                    'index': entry.index})
-        transportDataList.append((
+        transport_data_list.append((
             entry,
             data,
             source,
@@ -304,8 +304,8 @@ def transportData(request, adjlist):
     return render(request, 'transportData.html',
                   {'molecule': molecule,
                    'structure': structure,
-                   'transportDataList': transportDataList,
-                   'symmetryNumber': symmetryNumber})
+                   'transportDataList': transport_data_list,
+                   'symmetryNumber': symmetry_number})
 
 #################################################################################################################################################
 
@@ -340,18 +340,18 @@ def solvation(request, section='', subsection=''):
             structure = getStructureInfo(entry.item)
 
             if isinstance(entry.data, SoluteData):
-                dataFormat = 'SoluteData'
+                data_format = 'SoluteData'
             elif isinstance(entry.data, SolventData):
-                dataFormat = 'SolventData'
+                data_format = 'SolventData'
 
             elif entry.data is None:
-                dataFormat = 'None'
+                data_format = 'None'
                 entry.index = 0
 
             else:
-                dataFormat = 'Other'
+                data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, dataFormat))
+            entries.append((entry.index, entry.label, structure, data_format))
 
         return render(request, 'solvationTable.html',
                       {'section': section,
@@ -362,17 +362,17 @@ def solvation(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the solvation
         # database components and sort them
-        solvationLibraries = []
-        solvationLibraries.append(('solvent', database.solvation.libraries['solvent']))
-        solvationLibraries.append(('solute', database.solvation.libraries['solute']))
-        solvationLibraries.sort()
-        solvationGroups = [(label, groups) for label, groups in database.solvation.groups.items()]
-        solvationGroups.sort()
+        solvation_libraries = []
+        solvation_libraries.append(('solvent', database.solvation.libraries['solvent']))
+        solvation_libraries.append(('solute', database.solvation.libraries['solute']))
+        solvation_libraries.sort()
+        solvation_groups = [(label, groups) for label, groups in database.solvation.groups.items()]
+        solvation_groups.sort()
         return render(request, 'solvation.html',
                       {'section': section,
                        'subsection': subsection,
-                       'solvationLibraries': solvationLibraries,
-                       'solvationGroups': solvationGroups})
+                       'solvationLibraries': solvation_libraries,
+                       'solvationGroups': solvation_groups})
 
 
 def solvationEntry(request, section, subsection, index):
@@ -416,7 +416,7 @@ def solvationEntry(request, section, subsection, index):
     else:
         solvation = entry.data
 
-    referenceType = ''
+    reference_type = ''
     reference = entry.reference
     return render(request, 'solvationEntry.html',
                   {'section': section, 'subsection': subsection,
@@ -437,34 +437,34 @@ def solvationData(request, solute_adjlist, solvent=''):
     database.load('solvation')
     db = database.get_solvation_database('', '')
 
-    # molecule = Molecule().fromAdjacencyList(adjlist)
+    # molecule = Molecule().from_adjacency_list(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule=[molecule])
     solute.generate_resonance_structures()
 
     # obtain solute data.
-    soluteDataList = db.getAllSoluteData(solute)    # length either 1 or 2 entries
+    solute_data_list = db.get_all_solute_data(solute)    # length either 1 or 2 entries
 
     # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
-    solventData = None
-    solventDataInfo = None
+    solvent_data = None
+    solvent_data_info = None
     if solvent != 'None':
-        solventData = db.getSolventData(solvent)  # only 1 entry for solvent data
-        solventDataInfo = (solvent, solventData)
+        solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
+        solvent_data_info = (solvent, solvent_data)
 
-    solvationDataList = []
-    for soluteDataTuple in soluteDataList:  # Solute data comes as a tuple (soluteData,library,entry) or if from groups (soluteData,None,None)
-        soluteData = soluteDataTuple[0]
-        soluteSource = soluteDataTuple[1]
-        if soluteSource:
-            soluteSource = soluteSource.name  # It is a library
+    solvation_data_list = []
+    for solute_data_tuple in solute_data_list:  # Solute data comes as a tuple (soluteData,library,entry) or if from groups (soluteData,None,None)
+        solute_data = solute_data_tuple[0]
+        solute_source = solute_data_tuple[1]
+        if solute_source:
+            solute_source = solute_source.name  # It is a library
         else:
-            soluteSource = 'Group Additivity'
+            solute_source = 'Group Additivity'
         correction = ''
-        if solventData:
-            correction = db.getSolvationCorrection(soluteData, solventData)
+        if solvent_data:
+            correction = db.get_solvation_correction(solute_data, solvent_data)
 
-        solvationDataList.append((soluteSource, soluteData, correction))  # contains solute and possible interaction data
+        solvation_data_list.append((solute_source, solute_data, correction))  # contains solute and possible interaction data
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
@@ -472,8 +472,8 @@ def solvationData(request, solute_adjlist, solvent=''):
     return render(request, 'solvationData.html',
                   {'molecule': molecule,
                    'structure': structure,
-                   'solvationDataList': solvationDataList,
-                   'solventDataInfo': solventDataInfo})
+                   'solvationDataList': solvation_data_list,
+                   'solventDataInfo': solvent_data_info})
 
 #################################################################################################################################################
 
@@ -507,11 +507,11 @@ def statmech(request, section='', subsection=''):
         for entry in entries0:
             structure = getStructureInfo(entry.item)
             if isinstance(entry.data, GroupFrequencies):
-                dataFormat = 'GroupFrequencies'
+                data_format = 'GroupFrequencies'
             else:
-                dataFormat = 'Other'
+                data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, dataFormat))
+            entries.append((entry.index, entry.label, structure, data_format))
 
         return render(request, 'statmechTable.html',
                       {'section': section,
@@ -521,13 +521,13 @@ def statmech(request, section='', subsection=''):
     else:
         # No subsection was specified, so render an outline of the statmech
         # database components and sort them
-        statmechDepository = [(label, depository) for label, depository in database.statmech.depository.items()]
-        statmechDepository.sort()
-        statmechLibraries = [(name, database.statmech.libraries[name]) for name in database.statmech.libraryOrder]
-        statmechLibraries.sort()
-        statmechGroups = [name for name in database.statmech.groups.items()]
-        statmechGroups.sort()
-        return render(request, 'statmech.html', {'section': section, 'subsection': subsection, 'statmechDepository': statmechDepository, 'statmechLibraries': statmechLibraries, 'statmechGroups': statmechGroups})
+        statmech_depository = [(label, depository) for label, depository in database.statmech.depository.items()]
+        statmech_depository.sort()
+        statmech_libraries = [(name, database.statmech.libraries[name]) for name in database.statmech.library_order]
+        statmech_libraries.sort()
+        statmech_groups = [name for name in database.statmech.groups.items()]
+        statmech_groups.sort()
+        return render(request, 'statmech.html', {'section': section, 'subsection': subsection, 'statmechDepository': statmech_depository, 'statmechLibraries': statmech_libraries, 'statmechGroups': statmech_groups})
 
 
 def statmechEntry(request, section, subsection, index):
@@ -571,7 +571,7 @@ def statmechEntry(request, section, subsection, index):
     else:
         statmech = entry.data
 
-    referenceType = ''
+    reference_type = ''
     reference = entry.reference
     return render(request, 'statmechEntry.html',
                   {'section': section, 'subsection': subsection,
@@ -590,21 +590,21 @@ def statmechData(request, adjlist):
     database.load('statmech')
 
     adjlist = urllib.parse.unquote(adjlist)
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
     species = Species(molecule=[molecule])
     species.generate_resonance_structures()
     # Get the statmech data for the molecule
 
-    symmetryNumber = species.getSymmetryNumber()
-    statmechDataList = []
+    symmetry_number = species.get_symmetry_number()
+    statmech_data_list = []
     source = 'Solute Descriptors'
     href = reverse('database:statmech-entry', kwargs={'section': 'libraries', 'subsection': source, 'index': 1})
-    statmechDataList.append((1, database.statmech.getSolventData(species.label), source, href))
+    statmech_data_list.append((1, database.statmech.get_solvent_data(species.label), source, href))
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render(request, 'statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmechDataList, 'symmetryNumber': symmetryNumber})
+    return render(request, 'statmechData.html', {'molecule': molecule, 'structure': structure, 'statmechDataList': statmech_data_list, 'symmetryNumber': symmetry_number})
 
 #################################################################################################################################################
 
@@ -641,44 +641,44 @@ def thermo(request, section='', subsection=''):
             structure = getStructureInfo(entry.item)
 
             if isinstance(entry.data, ThermoData):
-                dataFormat = 'Group additivity'
+                data_format = 'Group additivity'
             elif isinstance(entry.data, Wilhoit):
-                dataFormat = 'Wilhoit'
+                data_format = 'Wilhoit'
             elif isinstance(entry.data, NASA):
-                dataFormat = 'NASA'
+                data_format = 'NASA'
             elif isinstance(entry.data, str):
-                dataFormat = 'Link'
+                data_format = 'Link'
             elif isinstance(entry.item, (LogicNode, LogicOr, LogicAnd)):
-                dataFormat = 'Logic'
+                data_format = 'Logic'
 
             elif entry.data is None:
-                dataFormat = 'None'
+                data_format = 'None'
                 entry.index = 0
             else:
-                dataFormat = 'Other'
+                data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, dataFormat))
+            entries.append((entry.index, entry.label, structure, data_format))
 
         return render(request, 'thermoTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entries': entries})
 
     else:
         # No subsection was specified, so render an outline of the thermo
         # database components
-        thermoDepository = [(label, depository) for label, depository in database.thermo.depository.items()]
-        thermoDepository.sort()
-        thermoLibraries = [(label, database.thermo.libraries[label]) for label in database.thermo.libraryOrder]
+        thermo_depository = [(label, depository) for label, depository in database.thermo.depository.items()]
+        thermo_depository.sort()
+        thermo_libraries = [(label, database.thermo.libraries[label]) for label in database.thermo.library_order]
         # If they weren't already sorted in our preferred order, we'd call thermoLibraries.sort()
-        thermoGroups = [(label, groups) for label, groups in database.thermo.groups.items()]
-        thermoGroups.sort()
-        return render(request, 'thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermoDepository, 'thermoLibraries': thermoLibraries, 'thermoGroups': thermoGroups})
+        thermo_groups = [(label, groups) for label, groups in database.thermo.groups.items()]
+        thermo_groups.sort()
+        return render(request, 'thermo.html', {'section': section, 'subsection': subsection, 'thermoDepository': thermo_depository, 'thermoLibraries': thermo_libraries, 'thermoGroups': thermo_groups})
 
 
 def thermoEntry(request, section, subsection, index):
     """
     A view for showing an entry in a thermodynamics database.
     """
-    from rmgpy.chemkin import writeThermoEntry
-    from rmgpy.data.thermo import findCp0andCpInf
+    from rmgpy.chemkin import write_thermo_entry
+    from rmgpy.data.thermo import find_cp0_and_cpinf
 
     # Load the thermo database if necessary
     database.load('thermo', section)
@@ -721,19 +721,19 @@ def thermoEntry(request, section, subsection, index):
     if isinstance(entry.item, Molecule):
         species = Species(molecule=[entry.item])
         species.generate_resonance_structures()
-        findCp0andCpInf(species, thermo)
+        find_cp0_and_cpinf(species, thermo)
         nasa_string = ''
         try:
             if isinstance(thermo, NASA):
                 nasa = thermo
             else:
-                nasa = thermo.toNASA(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
+                nasa = thermo.to_nasa(Tmin=100.0, Tmax=5000.0, Tint=1000.0)
             species.thermo = nasa
-            nasa_string = writeThermoEntry(species)
+            nasa_string = write_thermo_entry(species)
         except:
             pass
 
-    referenceType = ''
+    reference_type = ''
     reference = entry.reference
     return render(request, 'thermoEntry.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'entry': entry, 'structure': structure, 'reference': reference, 'referenceType': referenceType, 'thermo': thermo, 'nasa_string': nasa_string})
 
@@ -746,28 +746,28 @@ def thermoData(request, adjlist):
     """
     # Load the thermo database if necessary
     database.load('thermo')
-    from rmgpy.chemkin import writeThermoEntry
+    from rmgpy.chemkin import write_thermo_entry
 
     adjlist = urllib.parse.unquote(adjlist)
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
     species = Species(molecule=[molecule])
     species.generate_resonance_structures()
 
     # Get the thermo data for the molecule
-    symmetryNumber = None
-    thermoDataList = []
-    for data, library, entry in database.thermo.getAllThermoData(species):
+    symmetry_number = None
+    thermo_data_list = []
+    for data, library, entry in database.thermo.get_all_thermo_data(species):
         # Make sure we calculate Cp0 and CpInf
-        findCp0andCpInf(species, data)
+        find_cp0_and_cpinf(species, data)
         # Round trip conversion via Wilhoit for proper fitting
-        nasa = processThermoData(species, data)
+        nasa = process_thermo_data(species, data)
         # Generate Chemkin style NASA polynomial
         species.thermo = nasa
-        nasa_string = writeThermoEntry(species)
+        nasa_string = write_thermo_entry(species)
         if library is None:
             source = 'Group additivity'
             href = ''
-            symmetryNumber = species.getSymmetryNumber()
+            symmetry_number = species.get_symmetry_number()
             entry = Entry(data=data)
         elif library in list(database.thermo.depository.values()):
             source = 'Depository'
@@ -786,7 +786,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermoDataList, 'symmetryNumber': symmetryNumber, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermoDataList)})
+    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermoDataList': thermo_data_list, 'symmetryNumber': symmetry_number, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
 
 ################################################################################
 
@@ -824,7 +824,7 @@ def getKineticsTreeHTML(database, section, subsection, entries):
         html += '<div class="kineticsData">\n'
         if entry.data is not None:
             for T in [300, 400, 500, 600, 800, 1000, 1500, 2000]:
-                html += '<span class="kineticsDatum">{0:.2f}</span> '.format(math.log10(entry.data.getRateCoefficient(T, P=1e5)))
+                html += '<span class="kineticsDatum">{0:.2f}</span> '.format(math.log10(entry.data.get_rate_coefficient(T, P=1e5)))
         html += '</div>\n'
         # Recursively descend children (depth-first)
         if len(entry.children) > 0:
@@ -849,37 +849,37 @@ def getUntrainedReactions(family):
         raise Exception('Could not find training depository in {0} family.'.format(family.label))
 
     # Load trained reactions
-    trainedReactions = []
+    trained_reactions = []
     for entry in training.entries.values():
-        for reaction in trainedReactions:
-            if reaction.isIsomorphic(entry.item):
+        for reaction in trained_reactions:
+            if reaction.is_isomorphic(entry.item):
                 break
         else:
             trainedReactions.append(entry.item)
 
     # Load untrained reactions
-    untrainedReactions = []
+    untrained_reactions = []
     for depository in family.depositories:
         if 'training' not in depository.label:
             for entry in depository.entries.values():
-                for reaction in trainedReactions:
-                    if reaction.isIsomorphic(entry.item):
+                for reaction in trained_reactions:
+                    if reaction.is_isomorphic(entry.item):
                         break
                 else:
-                    for reaction in untrainedReactions:
-                        if reaction.isIsomorphic(entry.item):
+                    for reaction in untrained_reactions:
+                        if reaction.is_isomorphic(entry.item):
                             break
                     else:
-                        untrainedReactions.append(entry.item)
+                        untrained_reactions.append(entry.item)
 
     # Sort reactions by reactant size
-    untrainedReactions.sort(key=lambda reaction: sum([1 for r in reaction.reactants for a in r.molecule[0].atoms if a.isNonHydrogen()]))
+    untrained_reactions.sort(key=lambda reaction: sum([1 for r in reaction.reactants for a in r.molecule[0].atoms if a.is_non_hydrogen()]))
 
     # Build entries
     untrained = KineticsDepository(name='{0}/untrained'.format(family.label),
                                    label='{0}/untrained'.format(family.label))
     count = 1
-    for reaction in untrainedReactions:
+    for reaction in untrained_reactions:
         untrained.entries['{0}'.format(count)] = Entry(
             item=reaction,
             index=count,
@@ -924,8 +924,8 @@ def queryNIST(entry, squib, entries, user):
 
     # Find table on page corresponding to kinetics entries
     try:
-        form = soup.findAll(name='form',
-                            attrs={'name': 'KineticsResults'})[0]
+        form = soup.find_all(name='form',
+                             attrs={'name': 'KineticsResults'})[0]
     except:
         return 'No results found for {0}.'.format(squib)
 
@@ -1076,16 +1076,16 @@ def queryNIST(entry, squib, entries, user):
     # Grab reference type
     try:
         reftype = soup.findAll('b', text='Category:')[0].parent
-        entry.referenceType = reftype.nextSibling[7:].lower()
+        entry.reference_type = reftype.nextSibling[7:].lower()
     except:
-        entry.referenceType = ''
+        entry.reference_type = ''
 
     # Grab short description
     try:
         short = soup.findAll('b', text='Data type:')[0].parent
-        entry.shortDesc = short.nextSibling[13:].replace('  ', ' ')
+        entry.short_desc = short.nextSibling[13:].replace('  ', ' ')
     except:
-        entry.shortDesc = ''
+        entry.short_desc = ''
 
     # Grab temperature range
     try:
@@ -1110,16 +1110,16 @@ def queryNIST(entry, squib, entries, user):
         entry.data.Pmax = None
 
     # Start long description with reference reaction where applicable
-    longDesc = ''
+    long_desc = ''
     try:
         ref = soup.findAll('b', text='Reference reaction:')[0].parent
-        longDesc += '\nReference Reaction: '
+        long_desc += '\nReference Reaction: '
         ref = ref.nextSibling.nextSibling
         while True:
             try:
-                longDesc += ref.text
+                long_desc += ref.text
             except:
-                longDesc += ref
+                long_desc += ref
             ref = ref.nextSibling
             try:
                 if ref.name == 'br':
@@ -1149,15 +1149,15 @@ def queryNIST(entry, squib, entries, user):
                 pass
             try:
                 if long_desc1.name == 'br':
-                    longDesc += '\n'
+                    long_desc += '\n'
                 else:
-                    longDesc += long_desc1.text
+                    long_desc += long_desc1.text
             except:
-                longDesc += long_desc1.replace('\n', '')
+                long_desc += long_desc1.replace('\n', '')
             long_desc1 = long_desc1.nextSibling
-        for line in longDesc.splitlines():
+        for line in long_desc.splitlines():
             if 'Data type:' not in line and 'Category:' not in line:
-                entry.longDesc += line + '\n'
+                entry.long_desc += line + '\n'
         swaps = [('&nbsp;&nbsp;\n', ' '),
                  ('&nbsp;', ' '),
                  ('  ', ' '),
@@ -1165,8 +1165,8 @@ def queryNIST(entry, squib, entries, user):
                  ('\n ', '\n'),
                  ('&middot;', u'·')]
         for swap in swaps:
-            entry.longDesc = entry.longDesc.replace(swap[0], swap[1])
-        entry.longDesc = entry.longDesc.strip()
+            entry.long_desc = entry.long_desc.replace(swap[0], swap[1])
+        entry.long_desc = entry.long_desc.strip()
     except:
         pass
 
@@ -1182,7 +1182,7 @@ def queryNIST(entry, squib, entries, user):
                 text = error
         if '&plusmn;' in text:
             text = text.split('&plusmn;')[1].split(' ')[0]
-            entry.data.A.uncertaintyType = '+|-'
+            entry.data.A.uncertainty_type = '+|-'
             if text.isdigit():
                 entry.data.A.uncertainty = float(text)
             elif 'x' in text:
@@ -1192,14 +1192,14 @@ def queryNIST(entry, squib, entries, user):
                 entry.data.A.uncertainty /= 1.0e6
     except:
         pass
-    for line in entry.longDesc.splitlines():
+    for line in entry.long_desc.splitlines():
         if 'Uncertainty:' in line and entry.data.A.uncertainty == 0.0:
             entry.data.A.uncertainty = float(line.split(' ')[1])
-            entry.data.A.uncertaintyType = '*|/'
-    if entry.data.A.uncertaintyType == '+|-':
+            entry.data.A.uncertainty_type = '*|/'
+    if entry.data.A.uncertainty_type == '+|-':
         if abs(entry.data.A.uncertainty) > abs(entry.data.A.value_si):
             u = entry.data.A.uncertainty
-            entry.longDesc += ('\nNote: Invalid A value uncertainty '
+            entry.long_desc += ('\nNote: Invalid A value uncertainty '
                                '({0} {1})'.format(u, entry.data.A.units)
                                + ' found and ignored')
             entry.data.A.uncertainty = 0.0
@@ -1210,32 +1210,32 @@ def queryNIST(entry, squib, entries, user):
             try:
                 error = sup.text.split('&plusmn;')[1].split(')')[0]
                 entry.data.n.uncertainty = float(error)
-                entry.data.n.uncertaintyType = '+|-'
+                entry.data.n.uncertainty_type = '+|-'
             except:
                 pass
             break
-    if entry.data.n.uncertaintyType == '+|-':
+    if entry.data.n.uncertainty_type == '+|-':
         if abs(entry.data.n.uncertainty) > abs(entry.data.n.value_si):
             u = entry.data.n.uncertainty
-            entry.longDesc += ('\nNote: Invalid n value uncertainty '
+            entry.long_desc += ('\nNote: Invalid n value uncertainty '
                                '({0}) found and ignored'.format(u))
             entry.data.n.uncertainty = 0.0
 
     # Grab uncertainty and better value for activation energy
-    for sup in soup.findAll('sup'):
+    for sup in soup.find_all('sup'):
         if 'J/mole]/RT' in sup.text:
             entry.data.Ea.value_si = -float(sup.text.split(' ')[0])
             try:
                 error = sup.text.split('&plusmn;')[1]
                 entry.data.Ea.uncertainty = float(error.split(' ')[0])
-                entry.data.Ea.uncertaintyType = '+|-'
+                entry.data.Ea.uncertainty_type = '+|-'
             except:
                 pass
             break
-    if entry.data.Ea.uncertaintyType == '+|-':
+    if entry.data.Ea.uncertainty_type == '+|-':
         if abs(entry.data.Ea.uncertainty) > abs(entry.data.Ea.value_si):
             u = entry.data.Ea.uncertainty
-            entry.longDesc += ('\nNote: Invalid Ea value uncertainty '
+            entry.long_desc += ('\nNote: Invalid Ea value uncertainty '
                                '({0} J/mol) found and ignored'.format(u))
             entry.data.Ea.uncertainty = 0.0
 
@@ -1268,7 +1268,7 @@ def kinetics(request, section='', subsection=''):
         # A subsection was specified, so render a table of the entries in
         # that part of the database
 
-        isGroupDatabase = False
+        is_group_database = False
 
         # Sort entries by index
         if db.top is not None and len(db.top) > 0:
@@ -1290,17 +1290,17 @@ def kinetics(request, section='', subsection=''):
 
         for entry0 in entries0:
             if isinstance(entry0.data, str):
-                dataFormat = 'Link'
+                data_format = 'Link'
             else:
-                dataFormat = entry0.data.__class__.__name__
+                data_format = entry0.data.__class__.__name__
 
             entry = {
                 'index': entry0.index,
                 'label': entry0.label,
-                'dataFormat': dataFormat,
+                'dataFormat': data_format,
             }
             if isinstance(db, KineticsGroups):
-                isGroupDatabase = True
+                is_group_database = True
                 entry['structure'] = getStructureInfo(entry0.item)
                 entry['parent'] = entry0.parent
                 entry['children'] = entry0.children
@@ -1322,21 +1322,21 @@ def kinetics(request, section='', subsection=''):
 
             entries.append(entry)
 
-        return render(request, 'kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'databaseDesc': db.longDesc, 'entries': entries, 'tree': tree, 'isGroupDatabase': isGroupDatabase})
+        return render(request, 'kineticsTable.html', {'section': section, 'subsection': subsection, 'databaseName': db.name, 'databaseDesc': db.long_desc, 'entries': entries, 'tree': tree, 'isGroupDatabase': is_group_database})
 
     else:
         # No subsection was specified, so render an outline of the kinetics
         # database components
-        kineticsLibraries = [(label, library) for label, library in database.kinetics.libraries.items() if subsection in label]
-        kineticsLibraries.sort()
+        kinetics_libraries = [(label, library) for label, library in database.kinetics.libraries.items() if subsection in label]
+        kinetics_libraries.sort()
         for family in database.kinetics.families.values():
             for i in range(0, len(family.depositories)):
                 if 'untrained' in family.depositories[i].name:
                     family.depositories.pop(i)
             family.depositories.append(getUntrainedReactions(family))
-        kineticsFamilies = [(label, family) for label, family in database.kinetics.families.items() if subsection in label]
-        kineticsFamilies.sort()
-        return render(request, 'kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kineticsLibraries, 'kineticsFamilies': kineticsFamilies})
+        kinetics_families = [(label, family) for label, family in database.kinetics.families.items() if subsection in label]
+        kinetics_families.sort()
+        return render(request, 'kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kinetics_libraries, 'kineticsFamilies': kinetics_families})
 
 
 def kineticsUntrained(request, family):
@@ -1384,12 +1384,12 @@ def getReactionUrl(reaction, family=None, estimator=None, resonance=True):
         if estimator:
             kwargs['family'] = family
             kwargs['estimator'] = estimator.replace(' ', '_')
-            reactionUrl = reverse('database:kinetics-group', kwargs=kwargs)
+            reaction_url = reverse('database:kinetics-group', kwargs=kwargs)
         else:
-            reactionUrl = ''
+            reaction_url = ''
     else:
-        reactionUrl = reverse('database:kinetics-data', kwargs=kwargs)
-    return reactionUrl
+        reaction_url = reverse('database:kinetics-data', kwargs=kwargs)
+    return reaction_url
 
 
 @login_required
@@ -1423,7 +1423,7 @@ def kineticsEntryNew(request, family, type):
 
             # Confirm entry does not already exist in depository
             for entry in entries:
-                if ((type == 'training' and new_entry.item.isIsomorphic(entry.item))
+                if ((type == 'training' and new_entry.item.is_isomorphic(entry.item))
                    or (type == 'NIST' and new_entry.label == entry.label)):
                     kwargs = {'section': 'families',
                               'subsection': subsection,
@@ -1463,7 +1463,7 @@ def kineticsEntryNew(request, family, type):
             # Format the new entry as a string
             entry_buffer = io.StringIO(u'')
             try:
-                rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+                rmgpy.data.kinetics.save_entry(entry_buffer, new_entry)
             except Exception as e:
                 entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
                 entry_buffer.write(str(e))
@@ -1550,7 +1550,7 @@ def kineticsEntryEdit(request, section, subsection, index):
             # Get the entry as a entry_string
             entry_buffer = io.StringIO(u'')
             try:
-                rmgpy.data.kinetics.saveEntry(entry_buffer, new_entry)
+                rmgpy.data.kinetics.save_entry(entry_buffer, new_entry)
             except Exception as e:
                 entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
                 entry_buffer.write(str(e))
@@ -1606,7 +1606,7 @@ def kineticsEntryEdit(request, section, subsection, index):
         # Get the entry as a entry_string
         entry_buffer = io.StringIO(u'')
         try:
-            rmgpy.data.kinetics.saveEntry(entry_buffer, entry)
+            rmgpy.data.kinetics.save_entry(entry_buffer, entry)
         except Exception as e:
             entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
             entry_buffer.write(str(e))
@@ -1614,7 +1614,7 @@ def kineticsEntryEdit(request, section, subsection, index):
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
 
-        # entry_string = entry.item.reactants[0].toAdjacencyList()
+        # entry_string = entry.item.reactants[0].to_adjacency_list()
         # remove leading 'entry('
         entry_string = re.sub('^entry\(\n', '', entry_string)
         # remove the 'index = 23,' line
@@ -1641,7 +1641,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
     database.load('thermo')
 
     adjlist = urllib.parse.unquote(adjlist)
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
 
     try:
         db = database.get_thermo_database(section, subsection)
@@ -1670,7 +1670,7 @@ def thermoEntryNew(request, section, subsection, adjlist):
             # Format the new entry as a string
             entry_buffer = io.StringIO(u'')
             try:
-                rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+                rmgpy.data.thermo.save_entry(entry_buffer, new_entry)
             except Exception as e:
                 entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
                 entry_buffer.write(str(e))
@@ -1722,12 +1722,12 @@ thermo = ThermoData(
     H298 = (,'kcal/mol'),
     S298 = (,'cal/(mol*K)'),
 ),\n
-shortDesc = u"\"\" "\"\",
-longDesc =
+short_desc = u"\"\" "\"\",
+long_desc =
     u"\"\"
 
     "\"\",
-        """.format(label=molecule.toSMILES(), adjlist=molecule.toAdjacencyList())
+        """.format(label=molecule.to_smiles(), adjlist=molecule.to_adjacency_list())
 
         form = ThermoEntryEditForm(initial={'entry': entry_string})
 
@@ -1775,7 +1775,7 @@ def thermoEntryEdit(request, section, subsection, index):
             # Get the entry as a entry_string
             entry_buffer = io.StringIO(u'')
             try:
-                rmgpy.data.thermo.saveEntry(entry_buffer, new_entry)
+                rmgpy.data.thermo.save_entry(entry_buffer, new_entry)
             except Exception as e:
                 entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
                 entry_buffer.write(str(e))
@@ -1831,7 +1831,7 @@ def thermoEntryEdit(request, section, subsection, index):
         # Get the entry as a entry_string
         entry_buffer = io.StringIO(u'')
         try:
-            rmgpy.data.thermo.saveEntry(entry_buffer, entry)
+            rmgpy.data.thermo.save_entry(entry_buffer, entry)
         except Exception as e:
             entry_buffer.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
             entry_buffer.write(str(e))
@@ -1839,7 +1839,7 @@ def thermoEntryEdit(request, section, subsection, index):
         entry_string = entry_buffer.getvalue()
         entry_buffer.close()
 
-        # entry_string = entry.item.reactants[0].toAdjacencyList()
+        # entry_string = entry.item.reactants[0].to_adjacency_list()
         # remove leading 'entry('
         entry_string = re.sub('^entry\(\n', '', entry_string)
         # remove the 'index = 23,' line
@@ -1894,7 +1894,7 @@ def kineticsEntry(request, section, subsection, index):
                                                     }))
 
     reference = entry.reference
-    referenceType = ''
+    reference_type = ''
 
     numReactants = 0
     degeneracy = 1
@@ -1922,7 +1922,7 @@ def kineticsEntry(request, section, subsection, index):
 
         # Searching for other instances of the reaction only valid for real reactions, not groups
         # If a Group or LogicNode shows up in the reaction, getReactionUrl will return ''
-        reactionUrl = getReactionUrl(entry.item)
+        reaction_url = getReactionUrl(entry.item)
 
         return render(request, 'kineticsEntry.html',
                       {'section': section,
@@ -1934,7 +1934,7 @@ def kineticsEntry(request, section, subsection, index):
                        'products': products,
                        'reference': reference,
                        'referenceType': referenceType,
-                       'reactionUrl': reactionUrl,
+                       'reactionUrl': reaction_url,
                        })
 
 
@@ -1954,32 +1954,32 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     except ValueError:
         raise Http404
 
-    reactantList = []
-    reactantList.append(moleculeFromURL(reactant1))
+    reactant_list = []
+    reactant_list.append(moleculeFromURL(reactant1))
     if reactant2 != '':
-        reactantList.append(moleculeFromURL(reactant2))
+        reactant_list.append(moleculeFromURL(reactant2))
     if reactant3 != '':
-        reactantList.append(moleculeFromURL(reactant3))
+        reactant_list.append(moleculeFromURL(reactant3))
 
-    productList = []
-    productList.append(moleculeFromURL(product1))
+    product_list = []
+    product_list.append(moleculeFromURL(product1))
     if product2 != '':
-        productList.append(moleculeFromURL(product2))
+        product_list.append(moleculeFromURL(product2))
     if product3 != '':
-        productList.append(moleculeFromURL(product3))
+        product_list.append(moleculeFromURL(product3))
 
     # Search for the corresponding reaction(s)
-    reactionList = generateReactions(database, reactantList, productList, only_families=[family], resonance=resonance)
+    reaction_list = generateReactions(database, reactant_list, product_list, only_families=[family], resonance=resonance)
 
-    kineticsDataList = []
+    kinetics_data_list = []
 
     # Only keep template reactions frm the selected estimation method in the forward direction
-    reactionList = [reaction for reaction in reactionList if (isinstance(reaction, TemplateReaction)
-                                                              and reaction.estimator == estimator.replace('_', ' ')
-                                                              and reactionHasReactants(reaction, reactantList))]
+    reaction_list = [reaction for reaction in reaction_list if (isinstance(reaction, TemplateReaction)
+                                                                and reaction.estimator == estimator.replace('_', ' ')
+                                                                and reactionHasReactants(reaction, reactant_list))]
 
     # Select the first reaction for initial processing
-    reaction0 = reactionList[0]
+    reaction0 = reaction_list[0]
 
     # Generate the thermo data for the species involved
     for reactant in reaction0.reactants:
@@ -1995,14 +1995,14 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
 
     entry = None
     entry_list = []
-    if len(reactionList) == 1:
+    if len(reaction_list) == 1:
         if isinstance(reaction0.kinetics, ArrheniusEP):
-            reaction0.kinetics = reaction0.kinetics.toArrhenius(reaction0.getEnthalpyOfReaction(298))
+            reaction0.kinetics = reaction0.kinetics.to_arrhenius(reaction0.get_enthalpy_of_reaction(298))
 
         entry = Entry(
             data=reaction0.kinetics,
-            shortDesc="Estimated by RMG-Py %s" % (reaction0.estimator),
-            longDesc=reaction0.kinetics.comment,
+            short_desc="Estimated by RMG-Py %s" % (reaction0.estimator),
+            long_desc=reaction0.kinetics.comment,
         )
 
         if estimator == 'group_additivity':
@@ -2015,22 +2015,22 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                 url=request.build_absolute_uri(
                     reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/rules'})),
             )
-        referenceType = ''
+        reference_type = ''
     else:
         for i, reaction in enumerate(reactionList):
-            assert reaction.isIsomorphic(reaction0, eitherDirection=False), "Multiple group estimates must be isomorphic."
+            assert reaction.is_isomorphic(reaction0, either_direction=False), "Multiple group estimates must be isomorphic."
             # Replace reactants and products with the same object instances as reaction0
             reaction.reactants = reaction0.reactants
             reaction.products = reaction0.products
 
             # If the kinetics are ArrheniusEP, replace them with Arrhenius
             if isinstance(reaction.kinetics, ArrheniusEP):
-                reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+                reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
             entry0 = Entry(
                 data=reaction.kinetics,
-                shortDesc="Estimated by RMG-Py %s" % (reaction.estimator),
-                longDesc=reaction.kinetics.comment,
+                short_desc="Estimated by RMG-Py %s" % (reaction.estimator),
+                long_desc=reaction.kinetics.comment,
             )
             entry0.result = i + 1
 
@@ -2044,11 +2044,11 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                     url=request.build_absolute_uri(
                         reverse('database:kinetics', kwargs={'section': 'families', 'subsection': family + '/rules'})),
                 )
-            referenceType = ''
+            reference_type = ''
 
             entry_list.append((entry0, reaction.template, reference))
 
-    reactionUrl = getReactionUrl(reaction0, resonance=resonance)
+    reaction_url = getReactionUrl(reaction0, resonance=resonance)
 
     assert not (entry and entry_list), 'Either `entry` or `entry_list` should have a value, not both.'
 
@@ -2060,11 +2060,11 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                    'arrow': arrow,
                    'products': products,
                    'reference': reference,
-                   'referenceType': referenceType,
+                   'referenceType': reference_type,
                    'entry': entry,
                    'entry_list': entry_list,
                    'forward': True,
-                   'reactionUrl': reactionUrl,
+                   'reactionUrl': reaction_url,
                    'reaction': reaction0,
                    'plotWidth': 500,
                    'plotHeight': 400 + 15 * len(entry_list),
@@ -2074,11 +2074,11 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
 def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
     section = ''
     subsection = ''
-    databaseName = 'RMG-Java Database'
+    database_name = 'RMG-Java Database'
     reference = ''
-    referenceType = ''
+    reference_type = ''
     arrow = '&hArr;'
-    return render(request, 'kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': databaseName, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': referenceType, 'kinetics': entry.data})
+    return render(request, 'kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database_name, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': reference_type, 'kinetics': entry.data})
 
 
 def kineticsSearch(request):
@@ -2125,53 +2125,53 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
     # Load the kinetics database if necessary
     database.load('kinetics')
 
-    reactantList = []
-    reactantList.append(moleculeFromURL(reactant1))
+    reactant_list = []
+    reactant_list.append(moleculeFromURL(reactant1))
     if reactant2 != '':
-        reactantList.append(moleculeFromURL(reactant2))
+        reactant_list.append(moleculeFromURL(reactant2))
     if reactant3 != '':
-        reactantList.append(moleculeFromURL(reactant3))
+        reactant_list.append(moleculeFromURL(reactant3))
 
     if product1 != '' or product2 != '' or product3 != '':
-        productList = []
+        product_list = []
         if product1 != '':
-            productList.append(moleculeFromURL(product1))
+            product_list.append(moleculeFromURL(product1))
         if product2 != '':
-            productList.append(moleculeFromURL(product2))
+            product_list.append(moleculeFromURL(product2))
         if product3 != '':
-            productList.append(moleculeFromURL(product3))
+            product_list.append(moleculeFromURL(product3))
     else:
-        productList = None
+        product_list = None
 
     # Search for the corresponding reaction(s)
-    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+    reaction_list = generateReactions(database, reactant_list, product_list, resonance=resonance)
 
     # Remove duplicates from the list and count the number of results
-    uniqueReactionList = []
-    uniqueReactionCount = []
-    for reaction in reactionList:
-        for i, rxn in enumerate(uniqueReactionList):
-            if reaction.isIsomorphic(rxn):
-                uniqueReactionCount[i] += 1
+    unique_reaction_list = []
+    unique_reaction_count = []
+    for reaction in reaction_list:
+        for i, rxn in enumerate(unique_reaction_list):
+            if reaction.is_isomorphic(rxn):
+                unique_reaction_count[i] += 1
                 break
         else:
-            uniqueReactionList.append(reaction)
-            uniqueReactionCount.append(1)
+            unique_reaction_list.append(reaction)
+            unique_reaction_count.append(1)
 
-    reactionDataList = []
-    for reaction, count in zip(uniqueReactionList, uniqueReactionCount):
+    reaction_data_list = []
+    for reaction, count in zip(unique_reaction_list, unique_reaction_count):
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
-        reactionUrl = getReactionUrl(reaction, resonance=resonance)
+        reaction_url = getReactionUrl(reaction, resonance=resonance)
 
         forward = reactionHasReactants(reaction, reactantList)
         if forward:
-            reactionDataList.append([reactants, arrow, products, count, reactionUrl])
+            reaction_data_list.append([reactants, arrow, products, count, reaction_url])
         else:
-            reactionDataList.append([products, arrow, reactants, count, reactionUrl])
+            reaction_data_list.append([products, arrow, reactants, count, reaction_url])
 
-    return render(request, 'kineticsResults.html', {'reactionDataList': reactionDataList})
+    return render(request, 'kineticsResults.html', {'reactionDataList': reaction_data_list})
 
 
 def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', product2='', product3='', resonance=True):
@@ -2184,39 +2184,39 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     # Also load the thermo database so we can generate reverse kinetics if necessary
     database.load('thermo')
 
-    reactantList = []
-    reactantList.append(moleculeFromURL(reactant1))
+    reactant_list = []
+    reactant_list.append(moleculeFromURL(reactant1))
     if reactant2 != '':
-        reactantList.append(moleculeFromURL(reactant2))
+        reactant_list.append(moleculeFromURL(reactant2))
     if reactant3 != '':
-        reactantList.append(moleculeFromURL(reactant3))
+        reactant_list.append(moleculeFromURL(reactant3))
 
     if product1 != '' or product2 != '' or product3 != '':
-        productList = []
+        product_list = []
         if product1 != '':
-            productList.append(moleculeFromURL(product1))
+            product_list.append(moleculeFromURL(product1))
         if product2 != '':
-            productList.append(moleculeFromURL(product2))
+            product_list.append(moleculeFromURL(product2))
         if product3 != '':
-            productList.append(moleculeFromURL(product3))
+            product_list.append(moleculeFromURL(product3))
 
-        reverseReaction = Reaction(reactants=productList, products=reactantList)
-        reverseReactionURL = getReactionUrl(reverseReaction, resonance=resonance)
+        reverse_reaction = Reaction(reactants=product_list, products=reactant_list)
+        reverse_reaction_url = getReactionUrl(reverse_reaction, resonance=resonance)
     else:
         productList = None
 
     # Search for the corresponding reaction(s)
-    reactionList = generateReactions(database, reactantList, productList, resonance=resonance)
+    reaction_list = generateReactions(database, reactant_list, product_list, resonance=resonance)
 
-    kineticsDataList = []
+    kinetics_data_list = []
     family = ''
 
     # Determine number of template matches
     num_template_rxns_forward = 0
     num_template_rxns_reverse = 0
-    for reaction in reactionList:
+    for reaction in reaction_list:
         if isinstance(reaction, TemplateReaction) and reaction.estimator == 'rate rules':
-            if reactionHasReactants(reaction, reactantList):
+            if reactionHasReactants(reaction, reactant_list):
                 num_template_rxns_forward += 1
             else:
                 num_template_rxns_reverse += 1
@@ -2225,7 +2225,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
     count_template_rxns_reverse = 0
 
     # Go through database and group additivity kinetics entries
-    for reaction in reactionList:
+    for reaction in reaction_list:
         # Generate the thermo data for the species involved
         for reactant in reaction.reactants:
             generateSpeciesThermo(reactant, database)
@@ -2234,7 +2234,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
 
         # If the kinetics are ArrheniusEP, replace them with Arrhenius
         if isinstance(reaction.kinetics, ArrheniusEP):
-            reaction.kinetics = reaction.kinetics.toArrhenius(reaction.getEnthalpyOfReaction(298))
+            reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
         is_forward = reactionHasReactants(reaction, reactantList)
 
@@ -2269,36 +2269,36 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             href = reverse('database:kinetics-entry', kwargs={'section': 'libraries', 'subsection': reaction.library.label, 'index': reaction.entry.index})
             entry = reaction.entry
 
-        forwardKinetics = reaction.kinetics
+        forward_kinetics = reaction.kinetics
 
-        entry.result = len(kineticsDataList) + 1
+        entry.result = len(kinetics_data_list) + 1
 
         if is_forward:
-            kineticsDataList.append([reactants, arrow, products, entry, forwardKinetics, source, href, is_forward])
+            kinetics_data_list.append([reactants, arrow, products, entry, forward_kinetics, source, href, is_forward])
         else:
-            if isinstance(forwardKinetics, Arrhenius) or isinstance(forwardKinetics, KineticsData):
-                reverseKinetics = reaction.generateReverseRateCoefficient()
-                reverseKinetics.Tmin = forwardKinetics.Tmin
-                reverseKinetics.Tmax = forwardKinetics.Tmax
-                reverseKinetics.Pmin = forwardKinetics.Pmin
-                reverseKinetics.Pmax = forwardKinetics.Pmax
+            if isinstance(forward_kinetics, Arrhenius) or isinstance(forward_kinetics, KineticsData):
+                reverse_kinetics = reaction.generate_reverse_rate_coefficient()
+                reverse_kinetics.Tmin = forward_kinetics.Tmin
+                reverse_kinetics.Tmax = forward_kinetics.Tmax
+                reverse_kinetics.Pmin = forward_kinetics.Pmin
+                reverse_kinetics.Pmax = forward_kinetics.Pmax
             else:
-                reverseKinetics = None
-            kineticsDataList.append([products, arrow, reactants, entry, reverseKinetics, source, href, is_forward])
+                reverse_kinetics = None
+            kinetics_data_list.append([products, arrow, reactants, entry, reverse_kinetics, source, href, is_forward])
 
     # Construct new entry form from group-additive result
     # Need to get group-additive reaction from generateReaction with only_families
     # +--> otherwise, adjacency list doesn't store reaction template properly
     if family:
-        additiveList = generateReactions(database, reactantList, productList, only_families=family, resonance=resonance)
-        additiveList = [rxn for rxn in additiveList if isinstance(rxn, TemplateReaction)]
-        reaction = additiveList[0]
+        additive_list = generateReactions(database, reactant_list, product_list, only_families=family, resonance=resonance)
+        additive_list = [rxn for rxn in additive_list if isinstance(rxn, TemplateReaction)]
+        reaction = additive_list[0]
         new_entry = io.StringIO(u'')
         try:
-            if reactionHasReactants(reaction, reactantList):
-                rmgpy.data.kinetics.saveEntry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.reactants, products=reaction.products)))
+            if reactionHasReactants(reaction, reactant_list):
+                rmgpy.data.kinetics.save_entry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.reactants, products=reaction.products)))
             else:
-                rmgpy.data.kinetics.saveEntry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.products, products=reaction.reactants)))
+                rmgpy.data.kinetics.save_entry(new_entry, Entry(label=str(reaction), item=Reaction(reactants=reaction.products, products=reaction.reactants)))
         except Exception as e:
             new_entry.write("ENTRY WAS NOT PARSED CORRECTLY.\n")
             new_entry.write(str(e))
@@ -2321,30 +2321,30 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
             eval = [temperature, pressure]
 
     # Generate InChIs here so we can catch errors
-    reactantInChIs = []
-    for reactant in reactantList:
+    reactant_inchis = []
+    for reactant in reactant_list:
         try:
-            reactantInChIs.append(reactant.InChI)
+            reactant_inchis.append(reactant.InChI)
         except ValueError:
-            reactantInChIs.append('')
+            reactant_inchIs.append('')
 
-    productInChIs = []
-    for product in productList:
+    product_inchis = []
+    for product in product_list:
         try:
-            productInChIs.append(product.InChI)
+            product_inchis.append(product.InChI)
         except ValueError:
-            productInChIs.append('')
+            product_inchis.append('')
 
     return render(request, 'kineticsData.html',
-                  {'kineticsDataList': kineticsDataList,
+                  {'kineticsDataList': kinetics_data_list,
                    'plotWidth': 500,
-                   'plotHeight': 400 + 15 * len(kineticsDataList),
-                   'reactantList': reactantList,
-                   'productList': productList,
-                   'reactantInChIs': reactantInChIs,
-                   'productInChIs': productInChIs,
-                   'reverseReactionURL': reverseReactionURL,
-                   'form': rateForm,
+                   'plotHeight': 400 + 15 * len(kinetics_data_list),
+                   'reactantList': reactant_list,
+                   'productList': product_list,
+                   'reactantInChIs': reactant_inchis,
+                   'productInChIs': product_inchis,
+                   'reverseReactionURL': reverse_reaction_url,
+                   'form': rate_form,
                    'eval': eval,
                    'new_entry_form': new_entry_form,
                    'subsection': family
@@ -2359,7 +2359,7 @@ def moleculeSearch(request):
     """
     form = MoleculeSearchForm()
     structure_markup = ''
-    oldAdjlist = ''
+    old_adjlist = ''
     molecule = Molecule()
     smiles = ''
     inchi = ''
@@ -2373,17 +2373,17 @@ def moleculeSearch(request):
         if posted.is_valid():
             adjlist = posted.cleaned_data['species']
             if adjlist != '':
-                molecule.fromAdjacencyList(adjlist)
+                molecule.from_adjacency_list(adjlist)
                 structure_markup = getStructureInfo(molecule)
-                adjlist = molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+                adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
 
         try:
-            smiles = molecule.toSMILES()
+            smiles = molecule.to_smiles()
         except ValueError:
             pass
 
         try:
-            inchi = molecule.toInChI()
+            inchi = molecule.to_inchi()
         except ValueError:
             pass
 
@@ -2405,8 +2405,8 @@ def moleculeSearch(request):
                 molecule = Molecule()
 
             try:
-                oldAdjlist = molecule.toAdjacencyList(removeH=True, oldStyle=True)
-                print(oldAdjlist)
+                old_adjlist = molecule.to_adjacency_list(remove_h=True, old_style=True)
+                print(old_adjlist)
             except Exception:
                 pass
 
@@ -2416,7 +2416,7 @@ def moleculeSearch(request):
                    'smiles': smiles,
                    'inchi': inchi,
                    'form': form,
-                   'oldAdjlist': oldAdjlist,
+                   'oldAdjlist': old_adjlist,
                    })
 
 
@@ -2436,9 +2436,9 @@ def solvationSearch(request):
         if posted.is_valid():
             adjlist = posted.cleaned_data['adjlist']
             if adjlist != '':
-                molecule.fromAdjacencyList(adjlist)
+                molecule.from_adjacency_list(adjlist)
                 structure_markup = getStructureInfo(molecule)
-                solute_adjlist = molecule.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+                solute_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
                 solvent = posted.cleaned_data['solvent']
                 if solvent == '':
                     solvent = 'None'
@@ -2469,9 +2469,9 @@ def groupDraw(request):
         if posted.is_valid():
             adjlist = posted.cleaned_data['group']
             if adjlist != '':
-                group.fromAdjacencyList(adjlist)
+                group.from_adjacency_list(adjlist)
                 structure_markup = groupToInfo(group)
-                adjlist = group.toAdjacencyList()  # obtain full adjlist, in case hydrogens were non-explicit
+                adjlist = group.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
 
         form = GroupDrawForm(initial, error_class=DivErrorList)
 
@@ -2496,22 +2496,22 @@ def EniSearch(request):
             deposit_adjlist = form.cleaned_data['deposit']
 
             detergent = Molecule()
-            detergent.fromAdjacencyList(detergent_adjlist)
-            detergent_smiles = detergent.toSMILES()
+            detergent.from_adjacency_list(detergent_adjlist)
+            detergent_smiles = detergent.to_smiles()
             detergent_structure = getStructureInfo(detergent)
 
             deposit = Molecule()
-            deposit.fromAdjacencyList(deposit_adjlist)
-            deposit_smiles = deposit.toSMILES()
+            deposit.from_adjacency_list(deposit_adjlist)
+            deposit_smiles = deposit.to_smiles()
             deposit_structure = getStructureInfo(deposit)
 
             detergentA, detergentB = getAbrahamAB(detergent_smiles)
             depositA, depositB = getAbrahamAB(deposit_smiles)
 
             # Estimating the binding strength assuming the the detergent to be the donor and dirt to be acceptor
-            logK_AB = 7.354*detergentA*depositB
+            logK_AB = 7.354 * detergentA * depositB
             # Estimating the binding strength assuming the the detergent to be the acceptor and dirt to be donor
-            logK_BA = 7.354*detergentB*depositA
+            logK_BA = 7.354 * detergentB * depositA
 
     else:
         detergentA = 0
@@ -2535,16 +2535,16 @@ def moleculeEntry(request, adjlist):
     """
     adjlist = urllib.parse.unquote(adjlist)
     try:
-        molecule = Molecule().fromAdjacencyList(adjlist)
+        molecule = Molecule().from_adjacency_list(adjlist)
     except:
         return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(molecule)
-    oldAdjlist = ''
+    old_adjlist = ''
     try:
-        oldAdjlist = molecule.toAdjacencyList(removeH=True, oldStyle=True)
+        old_adjlist = molecule.to_adjacency_list(remove_h=True, old_style=True)
     except:
         pass
-    return render(request, 'moleculeEntry.html', {'structure': structure, 'molecule': molecule, 'oldAdjlist': oldAdjlist})
+    return render(request, 'moleculeEntry.html', {'structure': structure, 'molecule': molecule, 'oldAdjlist': old_adjlist})
 
 
 def groupEntry(request, adjlist):
@@ -2555,7 +2555,7 @@ def groupEntry(request, adjlist):
     """
     adjlist = urllib.parse.unquote(adjlist)
     try:
-        group = Group().fromAdjacencyList(adjlist)
+        group = Group().from_adjacency_list(adjlist)
     except:
         return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(group)
@@ -2579,14 +2579,14 @@ def json_to_adjlist(request):
                 atoms.append(Atom(
                     element=str(a['l']) if 'l' in a else 'C',
                     charge=a['c'] if 'c' in a else 0,
-                    radicalElectrons=a['r'] if 'r' in a else 0,
-                    lonePairs=a['p'] if 'p' in a else 0,
+                    radical_electrons=a['r'] if 'r' in a else 0,
+                    lone_pairs=a['p'] if 'p' in a else 0,
                 ))
             # Initialize molecule with atoms
             mol = Molecule(atoms=atoms)
             # Parse bonds in json dictionary
             for b in cd_json['b']:
-                mol.addBond(Bond(
+                mol.add_bond(Bond(
                     atom1=atoms[b['b']],
                     atom2=atoms[b['e']],
                     order=b['o'] if 'o' in b else 1,
@@ -2595,7 +2595,7 @@ def json_to_adjlist(request):
             Saturator.saturate(mol.atoms)
             mol.update()
             # Generate adjacency list
-            adjlist = mol.toAdjacencyList()
+            adjlist = mol.to_adjacency_list()
         except AtomTypeError:
             adjlist = 'Invalid Molecule'
         except:
@@ -2613,7 +2613,7 @@ def generateResonanceStructure(request, adjlist):
     adjlist = urllib.parse.unquote(adjlist)
 
     # Obtain the molecule structure
-    molecule = Molecule().fromAdjacencyList(adjlist)
+    molecule = Molecule().from_adjacency_list(adjlist)
     features = analyze_molecule(molecule)
 
     # Generate unfiltered resonance structure for the molecule
@@ -2638,7 +2638,7 @@ def generateResonanceStructure(request, adjlist):
         else:
             content = [getStructureInfo(item), 'unre']
 
-        if molecule.isIsomorphic(item):
+        if molecule.is_isomorphic(item):
             content[1] = content[1] + ' origin'
 
         output.append(tuple(content))
