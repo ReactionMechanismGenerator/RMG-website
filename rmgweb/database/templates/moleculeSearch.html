@@ -192,11 +192,11 @@ converted to an adjacency list. In particular, lone pairs must be drawn explicit
 </tr>
 <tr class ="result">
     <th>Molecular Formula:</th>
-    <td>{{ molecule.getFormula|renderMF }}</td>
+    <td>{{ molecule.get_formula|renderMF }}</td>
 </tr>
 <tr class ="result">
     <th>Molecular Weight:</th>
-    <td>{{ molecule.getMolecularWeight|renderMW }}</td>
+    <td>{{ molecule.get_molecular_weight|renderMW }}</td>
 </tr>
 <tr class="result">
 <th>InChI:</th>
@@ -216,7 +216,7 @@ converted to an adjacency list. In particular, lone pairs must be drawn explicit
 </tr>
 <tr class="result">
 <th valign="top">Adjacency List:</th>
-<td>{{ molecule.toAdjacencyList|renderAdjlist }}</td>
+<td>{{ molecule.to_adjacency_list|renderAdjlist }}</td>
 </tr>
 <tr class="result">
 <th valign="top">Old Adjacency List:</th>

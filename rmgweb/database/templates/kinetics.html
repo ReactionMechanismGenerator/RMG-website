@@ -49,7 +49,7 @@ RMG Kinetics Database
     <tr>
         <td><a href="{% url 'database:kinetics' section='libraries' subsection=subsection %}">{{ library.label }}</a></td>
         <td>({{ library.entries|length }} entries)</td>
-        <td>{{ library.shortDesc}}</td>
+        <td>{{ library.short_desc}}</td>
     </tr>
 {% endfor %}
 </table>

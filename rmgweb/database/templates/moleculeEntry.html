@@ -33,9 +33,9 @@ $(document).ready(function() {
     }
    });
 
-{% if molecule.toSMILES %}
+{% if molecule.to_smiles %}
 // Update list of names
-var url = '/cactus/{{ molecule.toSMILES|urlencode:"" }}/names'
+var url = '/cactus/{{ molecule.to_smiles|urlencode:"" }}/names'
 var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
                .on('error', function(j,t,e) { $('#species_names').html(t+'\n'+e) })
 {% endif %}
@@ -59,40 +59,40 @@ var jqxhr = $.get(url,function(names) { $('#species_names').html(names);})
 </tr>
 <tr>
     <th>SVG File:</th>
-    <td><a href="{% url 'draw-molecule' molecule.toAdjacencyList 'svg' %}">Click to download</a></td>
+    <td><a href="{% url 'draw-molecule' molecule.to_adjacency_list 'svg' %}">Click to download</a></td>
 </tr>
 
 <tr class ="result">
     <th>Molecular Weight:</th>
-    <td>{{ molecule.getMolecularWeight|renderMW }}</td>
+    <td>{{ molecule.get_molecular_weight|renderMW }}</td>
 </tr>
 <tr class ="result">
     <th>Thermochemistry:</th>
     <td>
-<a href="{% url 'database:thermo-data' molecule.toAdjacencyList %}">Click here</a></td>
+<a href="{% url 'database:thermo-data' molecule.to_adjacency_list %}">Click here</a></td>
 </tr>
 <tr class ="result">
     <th>Transport:</th>
     <td>
-<a href="{% url 'database:transport-data' molecule.toAdjacencyList %}">Click here</a></td>
+<a href="{% url 'database:transport-data' molecule.to_adjacency_list %}">Click here</a></td>
 </tr>
 
 <tr class="result">
 <th>InChI:</th>
-<td>{{ molecule.toInChI }}</td>
+<td>{{ molecule.to_inchi }}</td>
 </tr>
 
 
 <tr class="result">
 <th>SMILES:</th>
-<td>{{ molecule.toSMILES }}</td>
+<td>{{ molecule.to_smiles }}</td>
 </tr>
 
 
 
 <tr class="result">
 <th valign="top">Adjacency List:</th>
-<td>{{ molecule.toAdjacencyList|renderAdjlist }}</td>
+<td>{{ molecule.to_adjacency_list|renderAdjlist }}</td>
 </tr>
 
 <tr class="result">
