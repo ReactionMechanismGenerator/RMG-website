@@ -856,9 +856,8 @@ class ThermoLibrary(models.Model):
     input = models.ForeignKey(Input, related_name='thermo_libraries')
     thermo_lib = models.CharField(choices=thermo_libraries, max_length=200, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.thermo_lib
-
 
 
 class ReactionLibrary(models.Model):
@@ -867,7 +866,7 @@ class ReactionLibrary(models.Model):
     edge = models.BooleanField()
     seed_mech = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.reaction_lib
 
 ################################################################################
@@ -883,7 +882,7 @@ class ReactorSpecies(models.Model):
     mole_frac = models.FloatField()
     inert = models.BooleanField()
 
-    def __unicode__(self):
+    def __str_(self):
         return self.name
 
 ################################################################################
