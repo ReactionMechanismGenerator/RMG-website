@@ -44,9 +44,6 @@ where `email` is the email address you wish to fetch the gravatar for, and
 `size` is the (optional) size of the fetched avatar.
 """
 
-from future import standard_library
-standard_library.install_aliases()
-
 import re
 import hashlib
 import urllib

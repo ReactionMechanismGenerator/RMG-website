@@ -31,7 +31,6 @@
 """
 This module defines the Django forms used by the pdep app.
 """
-from builtins import object
 
 from django import forms
 

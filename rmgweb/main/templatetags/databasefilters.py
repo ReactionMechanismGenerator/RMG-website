@@ -31,6 +31,7 @@
 """
 Provides template tags for rendering kinetics models in various ways.
 """
+
 import re
 
 from django import template

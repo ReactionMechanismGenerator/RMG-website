@@ -32,9 +32,6 @@
 This module contains additional classes and functions used by the database
 app that don't belong to any other module.
 """
-from __future__ import print_function
-from builtins import zip
-from builtins import object
 
 import os
 import socket

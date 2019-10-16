@@ -31,7 +31,6 @@
 """
 Provides template tags for rendering statmech models in various ways.
 """
-from __future__ import division, print_function
 
 import math
 import numpy as np

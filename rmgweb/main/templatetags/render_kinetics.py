@@ -32,9 +32,6 @@
 Provides template tags for rendering kinetics models in various ways.
 """
 
-from builtins import zip
-from builtins import range
-
 import math
 import numpy as np
 from django import template

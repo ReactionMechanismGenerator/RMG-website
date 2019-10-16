@@ -16,7 +16,6 @@ Because this script makes assumptions regarding the contents at the
 start of each file, be sure to double-check the results to make sure
 important lines aren't accidentally overwritten.
 """
-from __future__ import print_function
 
 import os
 

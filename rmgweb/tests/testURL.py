@@ -28,12 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-from future import standard_library
-standard_library.install_aliases()
-
-import urllib.error
-import urllib.parse
-import urllib.request
+import urllib
 
 from django.test import TestCase
 from django.utils.encoding import iri_to_uri

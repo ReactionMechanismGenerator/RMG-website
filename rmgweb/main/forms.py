@@ -28,8 +28,6 @@
 #                                                                             #
 ###############################################################################
 
-from builtins import object
-
 import re
 
 from django import forms

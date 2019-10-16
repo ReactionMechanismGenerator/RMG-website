@@ -28,9 +28,6 @@
 #                                                                             #
 ###############################################################################
 
-from builtins import zip
-from builtins import str
-
 import os
 
 from django.forms.models import BaseInlineFormSet, inlineformset_factory

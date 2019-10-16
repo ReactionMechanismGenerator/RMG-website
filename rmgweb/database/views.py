@@ -28,17 +28,8 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import zip
-from builtins import str
-from builtins import range
-
-from functools import reduce
-import io  # cStringIO is faster, but can't do Unicode
 import http.cookiejar
+import io
 import json
 import math
 import os
@@ -46,6 +37,7 @@ import re
 import shutil
 import subprocess
 import urllib
+from functools import reduce
 
 import rmgpy
 from rmgpy.data.base import Entry, LogicAnd, LogicNode, LogicOr

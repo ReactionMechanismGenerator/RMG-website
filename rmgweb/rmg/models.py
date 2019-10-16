@@ -28,8 +28,6 @@
 #                                                                             #
 ###############################################################################
 
-from builtins import object
-
 import os
 
 from arkane.pdep import PressureDependenceJob

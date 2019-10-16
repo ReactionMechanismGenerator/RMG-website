@@ -28,8 +28,6 @@
 #                                                                             #
 ###############################################################################
 
-from builtins import object
-
 from django import forms
 from django.forms.utils import ErrorList
 from django.utils.safestring import mark_safe

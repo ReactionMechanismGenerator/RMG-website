@@ -41,10 +41,6 @@
 # Example code for such an automatic restart mechanism which is compatible with
 # how mod_wsgi works is shown below.
 
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-
 import atexit
 import os
 import queue

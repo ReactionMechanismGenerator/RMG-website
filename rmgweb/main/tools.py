@@ -28,14 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-
-import urllib.request
-import urllib.parse
-import urllib.error
+import urllib
 
 import math
 from django.core.urlresolvers import reverse

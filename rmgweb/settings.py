@@ -31,7 +31,6 @@
 """
 The Django settings for the RMG website.
 """
-from __future__ import absolute_import
 
 import os.path
 

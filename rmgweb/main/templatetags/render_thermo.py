@@ -32,8 +32,6 @@
 Provides template tags for rendering thermodynamics models in various ways.
 """
 
-from builtins import zip
-
 import numpy as np
 from django import template
 from django.utils.safestring import mark_safe

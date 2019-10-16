@@ -28,16 +28,10 @@
 #                                                                             #
 ###############################################################################
 
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-
 import re
 import os
 import sys
-import urllib.request
-import urllib.parse
-import urllib.error
+import urllib
 
 import django.contrib.auth.views
 from django.conf import settings
