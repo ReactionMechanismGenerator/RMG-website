@@ -28,7 +28,7 @@
 #                                                                             #
 ###############################################################################
 
-from django.conf.urls import url
+from django.urls import re_path
 
 import rmgweb.database.views
 from rmgweb.rmg import views
@@ -38,34 +38,34 @@ app_name = 'rmg'
 
 urlpatterns = [
     # RMG Simulation Homepage
-    url(r'^$', views.index, name='index'),
+    re_path(r'^$', views.index, name='index'),
 
-    url(r'^group_draw', rmgweb.database.views.groupDraw, name='group-draw'),
+    re_path(r'^group_draw', rmgweb.database.views.groupDraw, name='group-draw'),
 
     # Convert Chemkin File to Output File
-    url(r'^chemkin', views.convertChemkin, name='convert-chemkin'),
+    re_path(r'^chemkin', views.convertChemkin, name='convert-chemkin'),
 
     # Compare 2 RMG Models
-    url(r'^compare', views.compareModels, name='compare-models'),
+    re_path(r'^compare', views.compareModels, name='compare-models'),
 
     # Compare 2 RMG Models
-    url(r'^adjlist_conversion', views.convertAdjlists, name='convert-adjlists'),
+    re_path(r'^adjlist_conversion', views.convertAdjlists, name='convert-adjlists'),
 
     # Merge 2 RMG Models
-    url(r'^merge_models', views.mergeModels, name='merge-models'),
+    re_path(r'^merge_models', views.mergeModels, name='merge-models'),
 
     # Generate Flux Diagram
-    url(r'^flux', views.generateFlux, name='generate-flux'),
+    re_path(r'^flux', views.generateFlux, name='generate-flux'),
 
     # Populate Reactions with an Input File
-    url(r'^populate_reactions', views.runPopulateReactions, name='run-populate-reactions'),
+    re_path(r'^populate_reactions', views.runPopulateReactions, name='run-populate-reactions'),
 
     # Plot Kinetics
-    url(r'^plot_kinetics', views.plotKinetics, name='plot-kinetics'),
+    re_path(r'^plot_kinetics', views.plotKinetics, name='plot-kinetics'),
 
     # Generate RMG-Java Kinetics Library
-    url(r'^java_kinetics_library', views.javaKineticsLibrary, name='java-kinetics-library'),
+    re_path(r'^java_kinetics_library', views.javaKineticsLibrary, name='java-kinetics-library'),
 
     # Evaluate NASA Polynomial
-    url(r'^evaluate_nasa', views.evaluateNASA, name='evaluate-nasa'),
+    re_path(r'^evaluate_nasa', views.evaluateNASA, name='evaluate-nasa'),
 ]
