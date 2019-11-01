@@ -33,7 +33,6 @@ import os
 import sys
 import urllib
 
-import django.contrib.auth.views
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
@@ -104,20 +103,6 @@ def resources(request):
             presentations.append((title, date, f))
 
     return render(request, 'resources.html', {'presentations': presentations})
-
-
-def login(request):
-    """
-    Called when the user wishes to log in to his/her account.
-    """
-    return django.contrib.auth.views.login(request, template_name='login.html')
-
-
-def logout(request):
-    """
-    Called when the user wishes to log out of his/her account.
-    """
-    return django.contrib.auth.views.logout(request, template_name='logout.html')
 
 
 def signup(request):

@@ -34,6 +34,7 @@ import django
 import django.views.defaults
 import django.views.static
 from django.conf import settings
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, re_path
 
 import rmgweb
@@ -73,8 +74,8 @@ urlpatterns = [
     re_path(r'^resources$', rmgweb.main.views.resources, name='resources'),
 
     # User account management
-    re_path(r'^login$', rmgweb.main.views.login, name='login'),
-    re_path(r'^logout$', rmgweb.main.views.logout, name='logout'),
+    re_path(r'^login$', LoginView.as_view(template_name='login.html'), name='login'),
+    re_path(r'^logout$', LogoutView.as_view(template_name='logout.html'), name='logout'),
     re_path(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
     re_path(r'^signup', rmgweb.main.views.signup, name='signup'),
 
