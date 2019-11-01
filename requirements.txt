@@ -4,9 +4,8 @@
 # You will first need RMG-Py installed and working
 
 # These are the additional dependencies
-Django>=1.11
+Django>=2.2
 beautifulsoup4
 xlrd
 pydot
 cairocffi
-
