@@ -31,7 +31,7 @@
 import urllib
 
 import math
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rmgpy.molecule.group import Group
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.species import Species

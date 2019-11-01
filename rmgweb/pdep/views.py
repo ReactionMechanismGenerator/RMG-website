@@ -33,10 +33,10 @@ import time
 
 import numpy as np
 import rmgpy.constants as constants
-from django.shortcuts import render, get_object_or_404
-from django.http import Http404, HttpResponseRedirect
-from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from rmgpy.statmech import *
 
 

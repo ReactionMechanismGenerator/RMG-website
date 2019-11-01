@@ -38,11 +38,11 @@ from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render
 from django.template import loader
 from django.templatetags.static import static
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from rmgweb.main.forms import *

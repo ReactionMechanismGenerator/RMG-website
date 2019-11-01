@@ -63,9 +63,9 @@ from rmgpy.thermo.thermoengine import process_thermo_data
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
+from django.urls import reverse
 
 try:
     from bs4 import BeautifulSoup

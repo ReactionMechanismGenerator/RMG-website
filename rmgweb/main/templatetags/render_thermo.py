@@ -35,7 +35,7 @@ Provides template tags for rendering thermodynamics models in various ways.
 import numpy as np
 from django import template
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rmgpy.quantity import Quantity
 from rmgpy.thermo import *
 
