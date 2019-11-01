@@ -28,8 +28,8 @@
 #                                                                             #
 ###############################################################################
 
-import re
 import os
+import re
 import sys
 import urllib
 
@@ -298,6 +298,7 @@ def drawMolecule(request, adjlist, format='png'):
     Returns an image of the provided adjacency list `adjlist` for a molecule.
     urllib is used to quote/unquote the adjacency list.
     """
+    import io
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
@@ -312,10 +313,12 @@ def drawMolecule(request, adjlist, format='png'):
         if format == 'png':
             response = HttpResponse(content_type="image/png")
             surface, _, _ = MoleculeDrawer().draw(molecule, file_format='png')
-            surface.write_to_png(response)
+            response.write(surface.write_to_png())
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            MoleculeDrawer().draw(molecule, file_format='svg', target=response)
+            svg_data = io.BytesIO()
+            MoleculeDrawer().draw(molecule, file_format='svg', target=svg_data)
+            response.write(svg_data.getvalue())
         else:
             response = HttpResponse('Image format not implemented.', status=501)
 
