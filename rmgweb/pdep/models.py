@@ -61,7 +61,7 @@ class Network(models.Model):
     title = models.CharField(max_length=50)
     input_file = models.FileField(upload_to=uploadTo, verbose_name='Input file')
     input_text = models.TextField(blank=True, verbose_name='')
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __init__(self, *args, **kwargs):
         super(Network, self).__init__(*args, **kwargs)

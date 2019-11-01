@@ -853,7 +853,7 @@ kinetics_libraries = [(label, label) for label in kinetics_libs]
 
 
 class ThermoLibrary(models.Model):
-    input = models.ForeignKey(Input, related_name='thermo_libraries')
+    input = models.ForeignKey(Input, on_delete=models.CASCADE, related_name='thermo_libraries')
     thermo_lib = models.CharField(choices=thermo_libraries, max_length=200, blank=True)
 
     def __str__(self):
@@ -861,7 +861,7 @@ class ThermoLibrary(models.Model):
 
 
 class ReactionLibrary(models.Model):
-    input = models.ForeignKey(Input, related_name='reaction_libraries')
+    input = models.ForeignKey(Input, on_delete=models.CASCADE, related_name='reaction_libraries')
     reaction_lib = models.CharField(choices=kinetics_libraries, max_length=200, blank=True)
     edge = models.BooleanField()
     seed_mech = models.BooleanField()
@@ -875,7 +875,7 @@ class ReactionLibrary(models.Model):
 
 
 class ReactorSpecies(models.Model):
-    input = models.ForeignKey(Input, related_name='reactor_species')
+    input = models.ForeignKey(Input, on_delete=models.CASCADE, related_name='reactor_species')
     name = models.CharField(max_length=200)
     identifier = models.CharField(max_length=200, blank=True)
     adjlist = models.TextField()
@@ -891,7 +891,7 @@ class ReactorSpecies(models.Model):
 
 
 class Reactor(models.Model):
-    input = models.ForeignKey(Input, related_name='reactor_systems')
+    input = models.ForeignKey(Input, on_delete=models.CASCADE, related_name='reactor_systems')
     temperature = models.FloatField()
     temperature_units = models.CharField(max_length=50, default='K', choices=temp_units)
     pressure = models.FloatField()

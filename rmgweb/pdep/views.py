@@ -278,7 +278,7 @@ def networkRun(request, networkKey):
     network_model.pdep.execute(
         output_file=network_model.getOutputFilename(),
         plot=False,
-        format='png'
+        file_format='png'
     )
 
     # Go back to the network's main page
