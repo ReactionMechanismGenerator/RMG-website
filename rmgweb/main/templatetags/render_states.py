@@ -56,7 +56,7 @@ def render_states_math(states, user=None):
     default units will be used.
     """
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Eunits = user_profile.energy_units
     else:
@@ -170,7 +170,7 @@ def get_states_data(states, user=None):
     """
     import rmgpy.constants as constants
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
         Eunits = user_profile.energy_units

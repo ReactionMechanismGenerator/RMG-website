@@ -56,7 +56,7 @@ def render_thermo_math(thermo, user=None):
     default units will be used.
     """
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
         Cpunits = user_profile.heat_capacity_units
@@ -271,7 +271,7 @@ def get_thermo_data(thermo, user=None):
         return ''
 
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
         Cpunits = user_profile.heat_capacity_units

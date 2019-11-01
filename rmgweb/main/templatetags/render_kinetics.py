@@ -247,7 +247,7 @@ def getRateCoefficientUnits(kinetics, user=None):
     else:
         raise NotImplementedError('Cannot get units for {0} class.'.format(kinetics.__class__.__name__))
 
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         # If user is logged in, get their desired units
         user_profile = UserProfile.objects.get(user=user)
         desired_units = user_profile.rate_coefficient_units
@@ -279,7 +279,7 @@ def render_kinetics_math(kinetics, user=None):
     if kinetics is None:
         return mark_safe("<p>There are no kinetics for this entry.</p>")
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
         Punits = user_profile.pressure_units
@@ -505,7 +505,7 @@ def get_rate_coefficients(kinetics, user=None):
         return_A_n_Ea = False
 
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
         Tunits = user_profile.temperature_units
         Punits = user_profile.pressure_units

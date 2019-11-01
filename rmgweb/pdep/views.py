@@ -51,7 +51,7 @@ def index(request):
     """
     The Pressure Dependent Networks homepage.
     """
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         networks = Network.objects.filter(user=request.user)
     else:
         networks = []
