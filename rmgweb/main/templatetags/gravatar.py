@@ -50,6 +50,7 @@ import urllib
 
 from django import template
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -71,11 +72,7 @@ def gravatar(username, size=48):
         # this may fail badly if the username is not in the database
         email = User.objects.get(username=username).email
 
-    url = "http://www.gravatar.com/avatar.php?"
-    url += urllib.parse.urlencode({
-        'gravatar_id': hashlib.md5(email.encode('utf-8')).hexdigest(),
-        'size': size,
-        'default': 'wavatar',
-    })
+    url = "http://www.gravatar.com/avatar/"
+    url += hashlib.md5(email.encode('utf-8')).hexdigest()
 
-    return """<img src="%s" width="%s" height="%s" alt="gravatar" class="gravatar" border="0" />""" % (url, size, size)
+    return mark_safe("""<img src="%s" width="%s" height="%s" alt="gravatar" class="gravatar" border="0" />""" % (url, size, size))
