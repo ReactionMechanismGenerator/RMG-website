@@ -165,23 +165,19 @@ def generateFlux(request):
         form = FluxDiagramForm(request.POST, request.FILES, instance=flux)
         if form.is_valid():
             form.save()
-            input_file = os.path.join(flux.path, 'input.py')
-            chem_file = os.path.join(flux.path, 'chem.inp')
-            dict_file = os.path.join(flux.path, 'species_dictionary.txt')
-            chem_output = ''
+            arguments = {}
+            arguments["chem_output"] = ''
             if 'chem_output' in request.FILES:
-                chem_output = os.path.join(flux.path, 'chemkin_output.out')
-            java = form.cleaned_data['java']
-            settings = {}
-            settings['max_node_count'] = form.cleaned_data['max_nodes']
-            settings['max_edge_count'] = form.cleaned_data['max_edges']
-            settings['time_step'] = form.cleaned_data['time_step']
-            settings['concentration_tol'] = form.cleaned_data['concentration_tol']
-            settings['species_rate_tol'] = form.cleaned_data['species_rate_tol']
-            create_flux_diagram(input_file, chem_file, dict_file, save_path=flux.path, java=java, settings=settings, chemkin_output=chem_output)
+                arguments["chem_output"] = os.path.join(flux.path, 'chemkin_output.out')
+            arguments['java'] = form.cleaned_data['java']
+            arguments['max_nodes'] = form.cleaned_data['max_nodes']
+            arguments['max_edges'] = form.cleaned_data['max_edges']
+            arguments['time_step'] = form.cleaned_data['time_step']
+            arguments['concentration_tol'] = form.cleaned_data['concentration_tol']
+            arguments['species_rate_tol'] = form.cleaned_data['species_rate_tol']
+            flux.createOutput(arguments)
             # Look at number of subdirectories to determine where the flux diagram videos are
-            subdirs = [name for name in os.listdir(flux.path) if os.path.isdir(os.path.join(flux.path, name))]
-            subdirs.remove('species')
+            subdirs = [name for name in os.listdir(os.path.join(flux.path, 'flux')) if os.path.isdir(os.path.join(flux.path, 'flux', name))]
             return render(request, 'fluxDiagram.html', {'form': form, 'path': subdirs})
 
     else:

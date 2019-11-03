@@ -214,7 +214,7 @@ class FluxDiagramTest(TestCase):
         self.assertTrue(os.path.isfile(dict_input), 'Dictionary file was not uploaded')
 
         # Check if outputs were correctly generated
-        video_output = os.path.join(folder, '1', 'flux_diagram.avi')
+        video_output = os.path.join(folder, 'flux', '1', 'flux_diagram.avi')
         species = os.path.join(folder, 'species')
 
         self.assertTrue(os.path.isfile(video_output), 'Video output was not generated')

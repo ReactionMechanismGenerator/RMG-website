@@ -345,13 +345,44 @@ class FluxDiagram(models.Model):
     chem_file = models.FileField(upload_to=uploadTo('chem.inp'), verbose_name='Chemkin File')
     dict_file = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
     chem_output = models.FileField(upload_to=uploadTo('chemkin_output.out'), verbose_name='Chemkin Output File (Optional)', blank=True, null=True)
-    java = models.BooleanField(verbose_name="From RMG-Java")
+    java = models.BooleanField(default=False, verbose_name='From RMG-Java')
     max_nodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
     max_edges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
     time_step = models.FloatField(default=1.25, verbose_name='Multiplicative Time Step Factor')
     concentration_tol = models.FloatField(default=1e-6, verbose_name='Concentration Tolerance')   # The lowest fractional concentration to show (values below this will appear as zero)
     species_rate_tol = models.FloatField(default=1e-6, verbose_name='Species Rate Tolerance')   # The lowest fractional species rate to show (values below this will appear as zero)
 
+    def createOutput(self, arguments):
+        """
+        Generate flux diagram output from the path containing input file, chemkin and 
+        species dictionary, and the arguments of flux diagram module.
+        """
+
+        import subprocess
+        import rmgpy
+
+        input_file = os.path.join(self.path, 'input.py')
+        chem_file = os.path.join(self.path, 'chem.inp')
+        dict_file = os.path.join(self.path, 'species_dictionary.txt')
+
+        command = ['python',
+                    os.path.join(os.path.dirname(rmgpy.get_path()),
+                                'scripts', 'generateFluxDiagram.py'),
+                    input_file, chem_file, dict_file,
+                    '-n', str(arguments['max_nodes']),
+                    '-e', str(arguments['max_edges']),
+                    '-c', str(arguments['concentration_tol']),
+                    '-r', str(arguments['species_rate_tol']),
+                    '-t', str(arguments['time_step']),
+                    ]
+        if arguments['chem_output']:
+            command.insert(5, arguments['chem_output'])
+        if arguments['java']:
+            command.append('--java')
+
+        subprocess.check_call(command, cwd=self.path)
+    
+    
     def createDir(self):
         """
         Create the directory (and any other needed parent directories) that
