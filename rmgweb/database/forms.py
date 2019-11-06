@@ -63,9 +63,9 @@ class ThermoSearchForm(forms.Form):
         try:
             molecule = Molecule()
             molecule.from_adjacency_list(self.cleaned_data['species'])
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return self.cleaned_data['species']
 
@@ -102,9 +102,9 @@ class KineticsSearchForm(forms.Form):
         try:
             molecule = Molecule()
             molecule.from_adjacency_list(self.cleaned_data['reactant1'])
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return self.cleaned_data['reactant1']
 
@@ -119,9 +119,9 @@ class KineticsSearchForm(forms.Form):
                 return ''
             molecule = Molecule()
             molecule.from_adjacency_list(adjlist)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return self.cleaned_data['reactant2']
 
@@ -136,9 +136,9 @@ class KineticsSearchForm(forms.Form):
                 return ''
             molecule = Molecule()
             molecule.from_adjacency_list(adjlist)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return self.cleaned_data['product1']
 
@@ -153,9 +153,9 @@ class KineticsSearchForm(forms.Form):
                 return ''
             molecule = Molecule()
             molecule.from_adjacency_list(adjlist)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return self.cleaned_data['product2']
 
@@ -183,10 +183,10 @@ class MoleculeSearchForm(forms.Form):
             if adjlist == '':
                 return ''
             molecule = Molecule()
-            molecule.from_adjacency_list(self.cleaned_data['species'])
-        except Exception as e:
+            molecule.from_adjacency_list(adjlist)
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return adjlist
 
@@ -217,9 +217,9 @@ class SolvationSearchForm(forms.ModelForm):
                 return ''
             molecule = Molecule()
             molecule.from_adjacency_list(adjlist)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return adjlist
 
@@ -245,9 +245,9 @@ class GroupDrawForm(forms.Form):
                 return ''
             group = Group()
             group.from_adjacency_list(self.cleaned_data['group'])
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return adjlist
 
@@ -279,9 +279,9 @@ class EniSearchForm(forms.Form):
         try:
             detergent = Molecule()
             detergent.from_adjacency_list(self.cleaned_data['detergent'])
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid SMILES entry.')
         return self.cleaned_data['detergent']
 
@@ -292,9 +292,9 @@ class EniSearchForm(forms.Form):
         try:
             deposit = Molecule()
             deposit.from_adjacency_list(self.cleaned_data['deposit'])
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid SMILES entry.')
         return self.cleaned_data['deposit']
 
@@ -328,11 +328,11 @@ class ThermoEntryEditForm(forms.Form):
         entry_string = self.cleaned_data['entry']
         try:
             entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
-        except Exception as e:
+        except Exception:
             print("Invalid entry from ThermoEntryEditForm.")
             print(repr(entry_string))
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid entry.' + sys.exc_info()[1])
         return entry
 
@@ -366,11 +366,11 @@ class KineticsEntryEditForm(forms.Form):
         entry_string = self.cleaned_data['entry']
         try:
             entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
-        except Exception as e:
+        except Exception:
             print("Invalid entry from KineticsEntryEditForm.")
             print(repr(entry_string))
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid entry.' + sys.exc_info()[1])
         return entry
 

@@ -172,9 +172,9 @@ class ReactorSpeciesForm(forms.ModelForm):
                 return ''
             molecule = Molecule()
             molecule.from_adjacency_list(adjlist)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return adjlist
 
@@ -210,8 +210,8 @@ class NASAForm(forms.Form):
             if nasa == '':
                 return ''
             read_thermo_entry(nasa)
-        except Exception as e:
+        except Exception:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             raise forms.ValidationError('Invalid NASA Polynomial.')
         return nasa

@@ -255,19 +255,17 @@ def getNISTcas(request, inchi):
     Get the CAS number as used by NIST, from an InChI
     """
     url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.parse.quote(inchi))
+    searcher = re.compile('<li><a href="/cgi/inchi\?GetInChI=C(\d+)')
     try:
-        f = urllib.request.urlopen(url, timeout=5)
+        with urllib.request.urlopen(url, timeout=5) as f:
+            for line in f:
+                m = searcher.match(line.decode('utf-8'))
+                if m:
+                    number = m.group(1)
+                    return HttpResponse(number, content_type="text/plain")
+            return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
     except urllib.error.URLError as e:
         return HttpResponseNotFound("404: Couldn't identify {0}. NIST responded {1} to request for {2}".format(inchi, e, url))
-    searcher = re.compile('<li><a href="/cgi/inchi\?GetInChI=C(\d+)')
-    for line in f:
-        m = searcher.match(line)
-        if m:
-            number = m.group(1)
-            break
-    else:
-        return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
-    return HttpResponse(number, content_type="text/plain")
 
 
 def cactusResolver(request, query):

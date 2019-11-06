@@ -427,7 +427,7 @@ def generateReactions(database, reactants, products=None, only_families=None, re
                 # We're done with the "reverse" attribute, so delete it to save a bit of memory
                 delattr(reaction, 'reverse')
             # Make a new reaction object for each kinetics result
-            for kinetics, source, entry, isForward in kinetics_list:
+            for kinetics, source, entry, is_forward in kinetics_list:
                 if duplicate and source != 'rate rules':
                     # We've already processed this reaction with a different template,
                     # so we only need the new rate rule estimates

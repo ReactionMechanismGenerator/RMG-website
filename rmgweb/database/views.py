@@ -2196,7 +2196,7 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         reverse_reaction = Reaction(reactants=product_list, products=reactant_list)
         reverse_reaction_url = getReactionUrl(reverse_reaction, resonance=resonance)
     else:
-        productList = None
+        product_list = None
 
     # Search for the corresponding reaction(s)
     reaction_list = generateReactions(database, reactant_list, product_list, resonance=resonance)
