@@ -230,7 +230,9 @@ def getRateCoefficientUnits(kinetics, user=None):
     will be used.
     """
     # Get units from based on the kinetics type
-    if isinstance(kinetics, (Arrhenius, ArrheniusEP, SurfaceArrhenius, SurfaceArrheniusBEP, StickingCoefficient, StickingCoefficientBEP)):
+    if isinstance(kinetics, (Arrhenius, ArrheniusEP, ArrheniusBM,
+                             SurfaceArrhenius, SurfaceArrheniusBEP,
+                             StickingCoefficient, StickingCoefficientBEP)):
         units = kinetics.A.units
     elif isinstance(kinetics, KineticsData):
         units = kinetics.kdata.units
@@ -315,6 +317,21 @@ def render_kinetics_math(kinetics, user=None):
         result += r' \exp \left( - \, \frac{{ {0:.2f} \ \mathrm{{ {1!s} }} + {2:.2f} \Delta H_\mathrm{{rxn}}^\circ }}{{ R T }} \right)'.format(kinetics.E0.value_si * Efactor, Eunits, kinetics.alpha.value_si)
         result += r' \ \mathrm{{ {0!s} }}</script>'.format(kunits)
 
+    elif isinstance(kinetics, ArrheniusBM):
+        # The kinetics is in ArrheniusBM format
+        result += r'<script type="math/tex; mode=display">\begin{{split}}k(T) &= {0!s}'.format(getLaTeXScientificNotation(kinetics.A.value_si * kfactor))
+        if kinetics.n.value_si != 0:
+            result += r' T^{{ {0:.2f} }}' .format(kinetics.n.value_si)
+        result += r' \exp \left(- \, \frac{{ E_\mathrm{{a}} }}{{RT}} \right) \ \mathrm{{ {0!s} }} \\'.format(kunits)
+        result += r'''
+E_\mathrm{{a}} &= \frac{{ \left( w_{{0}} + 0.5 \Delta H_\mathrm{{rxn}} \right)
+\left( V_\mathrm{{p}} - 2 w_{{0}} + \Delta H_\mathrm{{rxn}} \right) ^ {{2}} }}
+{{ V_\mathrm{{p}} ^ {{2}} - \left( 2 w_{{0}} \right) ^ {{2}} + \Delta H_\mathrm{{rxn}} ^ {{2}} }} \\
+V_\mathrm{{p}} &= 2 w_{{0}} \left( \frac{{ w_{{0}} + E_{{0}} }} {{ w_{{0}} - E_{{0}} }} \right) \\
+w_{{0}} &= {0:.2f}\ \mathrm{{ {1!s} }} \\
+E_{{0}} &= {2:.2f}\ \mathrm{{ {1!s} }} \end{{split}}</script>
+'''.format(kinetics.w0.value_si * Efactor, Eunits, kinetics.E0.value_si * Efactor)
+        
     elif isinstance(kinetics, KineticsData):
         # The kinetics is in KineticsData format
         result += r'<table class="KineticsData">'
@@ -553,7 +570,7 @@ def get_rate_coefficients(kinetics, user=None):
             for T in Tdata:
                 klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
             kdata.append(klist)
-    elif isinstance(kinetics, ArrheniusEP):
+    elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
         for T in Tdata:
             kdata.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
     elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
@@ -576,7 +593,7 @@ def get_rate_coefficients(kinetics, user=None):
             for T in Tdata2:
                 klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
             kdata2.append(klist)
-    elif isinstance(kinetics, ArrheniusEP):
+    elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
         for T in Tdata2:
             kdata2.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
     elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):

@@ -50,7 +50,7 @@ from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
 from rmgpy.exceptions import AtomTypeError
-from rmgpy.kinetics import Arrhenius, ArrheniusEP, KineticsData
+from rmgpy.kinetics import Arrhenius, ArrheniusEP, ArrheniusBM, KineticsData
 from rmgpy.molecule import Group, Molecule, Atom, Bond
 from rmgpy.molecule.adjlist import Saturator
 from rmgpy.molecule.resonance import analyze_molecule, generate_resonance_structures
@@ -1989,7 +1989,7 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
     entry = None
     entry_list = []
     if len(reaction_list) == 1:
-        if isinstance(reaction0.kinetics, ArrheniusEP):
+        if isinstance(reaction0.kinetics, (ArrheniusEP, ArrheniusBM)):
             reaction0.kinetics = reaction0.kinetics.to_arrhenius(reaction0.get_enthalpy_of_reaction(298))
 
         entry = Entry(
@@ -2016,8 +2016,8 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
             reaction.reactants = reaction0.reactants
             reaction.products = reaction0.products
 
-            # If the kinetics are ArrheniusEP, replace them with Arrhenius
-            if isinstance(reaction.kinetics, ArrheniusEP):
+            # If the kinetics are ArrheniusEP and ArrheniusBM, replace them with Arrhenius
+            if isinstance(reaction.kinetics, (ArrheniusEP, ArrheniusBM)):
                 reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
             entry0 = Entry(
@@ -2225,8 +2225,8 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         for product in reaction.products:
             generateSpeciesThermo(product, database)
 
-        # If the kinetics are ArrheniusEP, replace them with Arrhenius
-        if isinstance(reaction.kinetics, ArrheniusEP):
+        # If the kinetics are ArrheniusEP and ArrheniusBM, replace them with Arrhenius
+        if isinstance(reaction.kinetics, (ArrheniusEP, ArrheniusBM)):
             reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
         is_forward = reactionHasReactants(reaction, reactant_list)

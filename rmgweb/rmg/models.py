@@ -113,7 +113,7 @@ class Chemkin(models.Model):
         Extracts the kinetic data from the chemkin file for plotting purposes.
         """
         from rmgpy.chemkin import load_chemkin_file
-        from rmgpy.kinetics import ArrheniusEP
+        from rmgpy.kinetics import ArrheniusEP, ArrheniusBM
         from rmgpy.reaction import Reaction
         from rmgpy.data.base import Entry
 
@@ -130,8 +130,8 @@ class Chemkin(models.Model):
             spc_list, rxn_list = load_chemkin_file(chem_file, read_comments=read_comments)
 
         for reaction in rxn_list:
-            # If the kinetics are ArrheniusEP, replace them with Arrhenius
-            if isinstance(reaction.kinetics, ArrheniusEP):
+            # If the kinetics are ArrheniusEP and ArrheniusBM, replace them with Arrhenius
+            if isinstance(reaction.kinetics, (ArrheniusEP, ArrheniusBM)):
                 reaction.kinetics = reaction.kinetics.to_arrhenius(reaction.get_enthalpy_of_reaction(298))
 
             if os.path.exists(dict_file):
@@ -354,7 +354,7 @@ class FluxDiagram(models.Model):
 
     def createOutput(self, arguments):
         """
-        Generate flux diagram output from the path containing input file, chemkin and 
+        Generate flux diagram output from the path containing input file, chemkin and
         species dictionary, and the arguments of flux diagram module.
         """
 
@@ -381,8 +381,8 @@ class FluxDiagram(models.Model):
             command.append('--java')
 
         subprocess.check_call(command, cwd=self.path)
-    
-    
+
+
     def createDir(self):
         """
         Create the directory (and any other needed parent directories) that
