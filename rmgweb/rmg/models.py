@@ -200,7 +200,7 @@ class Diff(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        import rmgpy.tools.diff_models as diff_models
+        import rmgpy.tools.diffmodels as diff_models
 
         kwargs = {
                 'web': True,
@@ -217,7 +217,7 @@ class Diff(models.Model):
         Merge the two models together to generate both chemkin and dictionary files.
         """
 
-        import rmgpy.tools.merge_models as merge_models
+        import rmgpy.tools.mergemodels as merge_models
         import sys
 
         input_model_files = []
