@@ -32,67 +32,60 @@
 Provides template tags for rendering thermodynamics models in various ways.
 """
 
-# Register this module as a Django template tag library
+import numpy as np
 from django import template
-register = template.Library()
-
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
-
-import numpy
-
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
+from django.urls import reverse
 from rmgpy.quantity import Quantity
 from rmgpy.thermo import *
 
+from rmgweb.main.tools import getLaTeXScientificNotation
+from rmgweb.main.models import UserProfile
+
+# Register this module as a Django template tag library
+register = template.Library()
+
 ################################################################################
+
 
 @register.filter
 def render_thermo_math(thermo, user=None):
     """
     Return a math representation of the given `thermo` using MathJax. If a
-    `user` is specified, the user's preferred units will be used; otherwise 
+    `user` is specified, the user's preferred units will be used; otherwise
     default units will be used.
     """
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = str(user_profile.temperatureUnits)
-        Punits = str(user_profile.pressureUnits)
-        Cpunits = str(user_profile.heatCapacityUnits)
-        Hunits = str(user_profile.energyUnits)
-        Sunits = str(user_profile.heatCapacityUnits)
-        Gunits = str(user_profile.energyUnits)
+        Tunits = user_profile.temperature_units
+        Cpunits = user_profile.heat_capacity_units
+        Hunits = user_profile.energy_units
+        Sunits = user_profile.heat_capacity_units
     else:
         Tunits = 'K'
-        Punits = 'bar'
         Cpunits = 'cal/(mol*K)'
         Hunits = 'kcal/mol'
         Sunits = 'cal/(mol*K)'
-        Gunits = 'kcal/mol'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    Cpfactor = Quantity(1, Cpunits).getConversionFactorFromSI()
-    Hfactor = Quantity(1, Hunits).getConversionFactorFromSI()
-    Sfactor = Quantity(1, Sunits).getConversionFactorFromSI()
-    Gfactor = Quantity(1, Gunits).getConversionFactorFromSI()
-    
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Cpfactor = Quantity(1, Cpunits).get_conversion_factor_from_si()
+    Hfactor = Quantity(1, Hunits).get_conversion_factor_from_si()
+    Sfactor = Quantity(1, Sunits).get_conversion_factor_from_si()
+
     # The string that will be returned to the template
     result = ''
-    
+
     if isinstance(thermo, ThermoData):
         # The thermo is in ThermoData format
         result += '<table class="thermoEntryData">\n'
-        
+
         if thermo.H298 is not None:
             result += '<tr>'
             result += r'    <td class="key"><script type="math/tex">\Delta H_\mathrm{f}^\circ(298 \ \mathrm{K})</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.H298.value_si * Hfactor, Hunits)
             result += '</tr>\n'
-        
+
         if thermo.S298 is not None:
             result += '<tr>'
             result += r'    <td class="key"><script type="math/tex">S^\circ(298 \ \mathrm{K})</script></td>'
@@ -107,7 +100,7 @@ def render_thermo_math(thermo, user=None):
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(Cp * Cpfactor, Cpunits)
                 result += '</tr>\n'
         result += '</table>\n'
-    
+
     elif isinstance(thermo, Wilhoit):
         # The thermo is in Wilhoit format
         result += '<script type="math/tex; mode=display">\n'
@@ -167,7 +160,7 @@ def render_thermo_math(thermo, user=None):
         result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.B.value_si * Tfactor, Tunits)
         result += '</tr>\n'
         result += '</table>\n'
-    
+
     elif isinstance(thermo, NASA):
         # The thermo is in NASA format
         result += '<script type="math/tex; mode=display">\n'
@@ -242,7 +235,7 @@ def render_thermo_math(thermo, user=None):
             result += r'    <td class="value"><script type="math/tex">{0!s}</script></td>'.format(getLaTeXScientificNotation(polynomial.c6))
         result += '</tr>\n'
         result += '</table>\n'
-    
+
     elif isinstance(thermo, list):
         # The thermo is a link
         index = thermo[1]
@@ -253,7 +246,7 @@ def render_thermo_math(thermo, user=None):
         result += r'    <td class="value"><a href="{0!s}">{1}</a></td>'.format(url, index)
         result += '</tr>\n'
         result += '<\table>\n'
-    
+
     # Temperature range
     if isinstance(thermo, (ThermoData, Wilhoit, NASA)):
         result += '<table class="thermoEntryData">'
@@ -265,6 +258,7 @@ def render_thermo_math(thermo, user=None):
 
 ################################################################################
 
+
 @register.filter
 def get_thermo_data(thermo, user=None):
     """
@@ -272,33 +266,30 @@ def get_thermo_data(thermo, user=None):
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
     """
-    
+
     if not isinstance(thermo, (ThermoData, Wilhoit, NASA)):
         return ''
-    
+
     # Define other units and conversion factors to use
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         user_profile = UserProfile.objects.get(user=user)
-        Tunits = str(user_profile.temperatureUnits)
-        Punits = str(user_profile.pressureUnits)
-        Cpunits = str(user_profile.heatCapacityUnits)
-        Hunits = str(user_profile.energyUnits)
-        Sunits = str(user_profile.heatCapacityUnits)
-        Gunits = str(user_profile.energyUnits)
+        Tunits = user_profile.temperature_units
+        Cpunits = user_profile.heat_capacity_units
+        Hunits = user_profile.energy_units
+        Sunits = user_profile.heat_capacity_units
+        Gunits = user_profile.energy_units
     else:
         Tunits = 'K'
-        Punits = 'bar'
         Cpunits = 'cal/(mol*K)'
         Hunits = 'kcal/mol'
         Sunits = 'cal/(mol*K)'
         Gunits = 'kcal/mol'
-    Tfactor = Quantity(1, Tunits).getConversionFactorFromSI()
-    Pfactor = Quantity(1, Punits).getConversionFactorFromSI()
-    Cpfactor = Quantity(1, Cpunits).getConversionFactorFromSI()
-    Hfactor = Quantity(1, Hunits).getConversionFactorFromSI()
-    Sfactor = Quantity(1, Sunits).getConversionFactorFromSI()
-    Gfactor = Quantity(1, Gunits).getConversionFactorFromSI()
-        
+    Tfactor = Quantity(1, Tunits).get_conversion_factor_from_si()
+    Cpfactor = Quantity(1, Cpunits).get_conversion_factor_from_si()
+    Hfactor = Quantity(1, Hunits).get_conversion_factor_from_si()
+    Sfactor = Quantity(1, Sunits).get_conversion_factor_from_si()
+    Gfactor = Quantity(1, Gunits).get_conversion_factor_from_si()
+
     if thermo.Tmin is not None and thermo.Tmax is not None:
         Tmin = thermo.Tmin.value_si
         Tmax = thermo.Tmax.value_si
@@ -308,16 +299,20 @@ def get_thermo_data(thermo, user=None):
     else:
         Tmin = 300
         Tmax = 2000
-    Tdata = []; Cpdata = []; Hdata = []; Sdata = []; Gdata = []
-    
+    Tdata = []
+    Cpdata = []
+    Hdata = []
+    Sdata = []
+    Gdata = []
+
     try:
-        for T in numpy.arange(Tmin, Tmax+1, 10):
+        for T in np.arange(Tmin, Tmax+1, 10):
             Tdata.append(T * Tfactor)
-            Cpdata.append(thermo.getHeatCapacity(T) * Cpfactor)
-            Hdata.append(thermo.getEnthalpy(T) * Hfactor)
-            Sdata.append(thermo.getEntropy(T) * Sfactor)
-            Gdata.append(thermo.getFreeEnergy(T) * Gfactor)
-    
+            Cpdata.append(thermo.get_heat_capacity(T) * Cpfactor)
+            Hdata.append(thermo.get_enthalpy(T) * Hfactor)
+            Sdata.append(thermo.get_entropy(T) * Sfactor)
+            Gdata.append(thermo.get_free_energy(T) * Gfactor)
+
         return mark_safe("""
     Tlist = {0};
     Cplist = {1};
@@ -331,16 +326,16 @@ def get_thermo_data(thermo, user=None):
     Gunits = "{9!s}";
         """.format(
             Tdata,
-            Cpdata, 
+            Cpdata,
             Hdata,
-            Sdata, 
-            Gdata, 
-            Tunits, 
-            Cpunits, 
+            Sdata,
+            Gdata,
+            Tunits,
+            Cpunits,
             Hunits,
             Sunits,
             Gunits,
-    ))
+            ))
     except:
         # don't fail completely if thermo data is incomplete
         return ''

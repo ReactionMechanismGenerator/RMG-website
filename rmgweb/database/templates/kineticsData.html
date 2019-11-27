@@ -116,9 +116,9 @@ function calculateAverage() {
             '\n        T0 = (1,\"K\"),' +
             '\n    ),' +
             '\n    reference = None,' +
-            '\n    referenceType = \"\",' +
-            '\n    shortDesc = u\"\"\"User-generated average\"\"\",' +
-            '\n    longDesc = ' +
+            '\n    reference_type = \"\",' +
+            '\n    short_desc = u\"\"\"User-generated average\"\"\",' +
+            '\n    long_desc = ' +
             '\nu\"\"\"' +
             '\nAverage of ' + count + ' results:' +
             '\n' + refList + '\"\"\",';
@@ -142,9 +142,9 @@ function insertSquib() {
     output = '    label = "' + squib + '",\n' + input +
              '    kinetics = None,\n' +
              '    reference = None,\n' +
-             '    referenceType = \"\",\n' +
-             '    shortDesc = u\"\"\"\"\"\",\n' +
-             '    longDesc = \n' +
+             '    reference_type = \"\",\n' +
+             '    short_desc = u\"\"\"\"\"\",\n' +
+             '    long_desc = \n' +
              'u\"\"\"\n\n\"\"\",';
     document.getElementById("id_new_squib_entry").value = output;
 }
@@ -259,7 +259,7 @@ Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.i
 {{ kinetics|render_kinetics_math:user }}
 
 {% if source == 'RMG-Java' %}
-<P>Comments: {{ entry.longDesc }}
+<P>Comments: {{ entry.long_desc }}
 {% endif %}
 
 {% if not forward %}<p>* Kinetics fitted from reverse direction</p>{% else %}<br/>{% endif %}

@@ -28,24 +28,24 @@
 #                                                                             #
 ###############################################################################
 
-import re
 import os
+import re
+import sys
 import urllib
-import urllib2
 
-import django.contrib.auth.views
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import render
-from django.template import RequestContext, loader
+from django.template import loader
 from django.templatetags.static import static
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import *
+from rmgweb.main.forms import *
+
 
 def index(request):
     """
@@ -54,17 +54,20 @@ def index(request):
     from rmgpy import __version__
     return render(request, 'index.html', {'version': __version__})
 
+
 def privacy(request):
     """
     The RMG privacy policy.
     """
     return render(request, 'privacy.html', {'admins': settings.ADMINS})
 
+
 def version(request):
     """
     Version information for RMG-website, RMG-Py, and RMG-database
     """
     return render(request, 'version.html')
+
 
 def resources(request):
     """
@@ -75,15 +78,15 @@ def resources(request):
 
     if os.path.isdir(folder):
         files = os.listdir(folder)
-        toRemove = []
+        to_remove = []
         for f in files:
             if not os.path.isfile(os.path.join(folder, f)):
                 # Remove any directories
-                toRemove.append(f)
+                to_remove.append(f)
             elif f[0] == '.':
                 # Remove any hidden files
-                toRemove.append(f)
-        for item in toRemove:
+                to_remove.append(f)
+        for item in to_remove:
             files.remove(item)
 
     # Parse file names for information to display on webpage
@@ -101,47 +104,37 @@ def resources(request):
 
     return render(request, 'resources.html', {'presentations': presentations})
 
-def login(request):
-    """
-    Called when the user wishes to log in to his/her account.
-    """
-    return django.contrib.auth.views.login(request, template_name='login.html')
-
-def logout(request):
-    """
-    Called when the user wishes to log out of his/her account.
-    """
-    return django.contrib.auth.views.logout(request, template_name='logout.html')
 
 def signup(request):
     """
     Called when the user wishes to sign up for an account.
     """
     if request.method == 'POST':
-        userForm = UserSignupForm(request.POST, error_class=DivErrorList)
-        userForm.fields['first_name'].required = True
-        userForm.fields['last_name'].required = True
-        userForm.fields['email'].required = True
-        profileForm = UserProfileSignupForm(request.POST, error_class=DivErrorList)
-        passwordForm = PasswordCreateForm(request.POST, username='', error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            username = userForm.cleaned_data['username']
-            password = passwordForm.cleaned_data['password']
-            userForm.save()
-            passwordForm.username = username
-            passwordForm.save()
+        user_form = UserSignupForm(request.POST, error_class=DivErrorList)
+        user_form.fields['first_name'].required = True
+        user_form.fields['last_name'].required = True
+        user_form.fields['email'].required = True
+        profile_form = UserProfileSignupForm(request.POST, error_class=DivErrorList)
+        password_form = PasswordCreateForm(request.POST, username='', error_class=DivErrorList)
+        if user_form.is_valid() and profile_form.is_valid() and password_form.is_valid():
+            username = user_form.cleaned_data['username']
+            password = password_form.cleaned_data['password']
+            user_form.save()
+            password_form.username = username
+            password_form.save()
             user = auth.authenticate(username=username, password=password)
             user_profile = UserProfile.objects.get_or_create(user=user)[0]
-            profileForm2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
-            profileForm2.save()
+            profile_form2 = UserProfileSignupForm(request.POST, instance=user_profile, error_class=DivErrorList)
+            profile_form2.save()
             auth.login(request, user)
             return HttpResponseRedirect('/')
     else:
-        userForm = UserSignupForm(error_class=DivErrorList)
-        profileForm = UserProfileSignupForm(error_class=DivErrorList)
-        passwordForm = PasswordCreateForm(error_class=DivErrorList)
-        
-    return render(request, 'signup.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+        user_form = UserSignupForm(error_class=DivErrorList)
+        profile_form = UserProfileSignupForm(error_class=DivErrorList)
+        password_form = PasswordCreateForm(error_class=DivErrorList)
+
+    return render(request, 'signup.html', {'userForm': user_form, 'profileForm': profile_form, 'passwordForm': password_form})
+
 
 def viewProfile(request, username):
     """
@@ -151,9 +144,10 @@ def viewProfile(request, username):
     """
     from rmgweb.pdep.models import Network
     user0 = User.objects.get(username=username)
-    userProfile = user0.userprofile
+    user_profile = user0.userprofile
     networks = Network.objects.filter(user=user0)
-    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': userProfile, 'networks': networks})
+    return render(request, 'viewProfile.html', {'user0': user0, 'userProfile': user_profile, 'networks': networks})
+
 
 @login_required
 def editProfile(request):
@@ -162,33 +156,34 @@ def editProfile(request):
     """
     user_profile = UserProfile.objects.get_or_create(user=request.user)[0]
     if request.method == 'POST':
-        userForm = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
-        profileForm = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
-        passwordForm = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
-        if userForm.is_valid() and profileForm.is_valid() and passwordForm.is_valid():
-            userForm.save()
-            profileForm.save()
-            passwordForm.save()
-            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username})) # Redirect after POST
+        user_form = UserForm(request.POST, instance=request.user, error_class=DivErrorList)
+        profile_form = UserProfileForm(request.POST, instance=user_profile, error_class=DivErrorList)
+        password_form = PasswordChangeForm(request.POST, username=request.user.username, error_class=DivErrorList)
+        if user_form.is_valid() and profile_form.is_valid() and password_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            password_form.save()
+            return HttpResponseRedirect(reverse('view-profile', kwargs={'username': request.user.username}))  # Redirect after POST
     else:
-        userForm = UserForm(instance=request.user, error_class=DivErrorList)
-        profileForm = UserProfileForm(instance=user_profile, error_class=DivErrorList)
-        passwordForm = PasswordChangeForm(error_class=DivErrorList)
-        
-    return render(request, 'editProfile.html', {'userForm': userForm, 'profileForm': profileForm, 'passwordForm': passwordForm})
+        user_form = UserForm(instance=request.user, error_class=DivErrorList)
+        profile_form = UserProfileForm(instance=user_profile, error_class=DivErrorList)
+        password_form = PasswordChangeForm(error_class=DivErrorList)
+
+    return render(request, 'editProfile.html', {'userForm': user_form, 'profileForm': profile_form, 'passwordForm': password_form})
+
 
 def getAdjacencyList(request, identifier):
     """
     Returns an adjacency list of the species corresponding to `identifier`.
-    
+
     `identifier` should be something recognized by NCI resolver, eg.
     SMILES, InChI, CACTVS, chemical name, etc.
-    
+
     The NCI resolver has some bugs regarding reading SMILES of radicals.
     E.g. it thinks CC[CH] is CCC, so we first try to use the identifier
     directly as a SMILES string, and only pass it through the resolver
-    if that does not work. 
-    
+    if that does not work.
+
     For specific problematic cases, the NCI resolver is bypassed and the SMILES
     is returned from a dictionary of values. For O2, the resolver returns the singlet
     form which is inert in RMG. For oxygen, the resolver returns 'O' as the SMILES, which
@@ -206,122 +201,127 @@ def getAdjacencyList(request, identifier):
     }
 
     # Ensure that input is a string
-    identifier = str(identifier).strip()
+    identifier = identifier.strip()
 
     # Return empty string for empty input
-    if identifier == '':
-        return HttpResponse('', content_type="text/plain")
+    if identifier == "":
+        return HttpResponse("", content_type="text/plain", charset='utf-8')
 
     molecule = Molecule()
 
     # Check if identifier is an InChI string
     if identifier.startswith('InChI=1'):
         try:
-            molecule.fromInChI(identifier)
+            molecule.from_inchi(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
+        except KeyError as e:
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
     elif identifier.lower() in known_names:
-        molecule.fromSMILES(known_names[identifier.lower()])
+        molecule.from_smiles(known_names[identifier.lower()])
     else:
         try:
             # Try parsing as a SMILES string
-            molecule.fromSMILES(identifier)
+            molecule.from_smiles(identifier)
         except AtomTypeError:
             return HttpResponse('Invalid Molecule', status=501)
-        except KeyError, e:
+        except KeyError as e:
             return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
         except (IOError, ValueError):
             # Try converting it to a SMILES using the NCI chemical resolver
-            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.quote(identifier))
+            url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.parse.quote(identifier))
             try:
-                f = urllib2.urlopen(url, timeout=5)
-            except urllib2.URLError, e:
+                f = urllib.request.urlopen(url, timeout=5)
+            except urllib.error.URLError as e:
                 return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
-            smiles = f.read()
+            smiles = f.read().decode('utf-8')
             try:
-                molecule.fromSMILES(smiles)
+                molecule.from_smiles(smiles)
             except AtomTypeError:
                 return HttpResponse('Invalid Molecule', status=501)
-            except KeyError, e:
+            except KeyError as e:
                 return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
-            except ValueError, e:
+            except ValueError as e:
                 return HttpResponse(str(e), status=500)
-    
-    adjlist = molecule.toAdjacencyList(removeH=False)
+
+    adjlist = molecule.to_adjacency_list(remove_h=False)
     return HttpResponse(adjlist, content_type="text/plain")
+
 
 def getNISTcas(request, inchi):
     """
     Get the CAS number as used by NIST, from an InChI
     """
-    url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.quote(inchi))
-    try:
-        f = urllib2.urlopen(url, timeout=5)
-    except urllib2.URLError, e:
-        return HttpResponseNotFound("404: Couldn't identify {0}. NIST responded {1} to request for {2}".format(inchi, e, url))
+    url = "http://webbook.nist.gov/cgi/inchi/{0}".format(urllib.parse.quote(inchi))
     searcher = re.compile('<li><a href="/cgi/inchi\?GetInChI=C(\d+)')
-    for line in f:
-        m = searcher.match(line)
-        if m:
-            number = m.group(1)
-            break
-    else:
-        return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
-    return HttpResponse(number, content_type="text/plain")
-    
+    try:
+        with urllib.request.urlopen(url, timeout=5) as f:
+            for line in f:
+                m = searcher.match(line.decode('utf-8'))
+                if m:
+                    number = m.group(1)
+                    return HttpResponse(number, content_type="text/plain")
+            return HttpResponseNotFound("404: Couldn't identify {0}. Couldn't locate CAS number in page at {1}".format(inchi, url))
+    except urllib.error.URLError as e:
+        return HttpResponseNotFound("404: Couldn't identify {0}. NIST responded {1} to request for {2}".format(inchi, e, url))
+
+
 def cactusResolver(request, query):
     """
     Forwards the query to the cactus.nci.nih.gov/chemical/structure resolver.
-    
-    The reason we have to forward the request from our own server is so that we can 
+
+    The reason we have to forward the request from our own server is so that we can
     use it via ajax, avoiding cross-domain scripting security constraints.
     """
     from ssl import SSLError
 
     if query.strip() == '':
         return HttpResponse('', content_type="text/plain")
-   
-    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.quote(query))
+
+    url = "https://cactus.nci.nih.gov/chemical/structure/{0}".format(urllib.parse.quote(query))
     try:
-        f = urllib2.urlopen(url, timeout=5)
-    except urllib2.URLError, e:
+        f = urllib.request.urlopen(url, timeout=5)
+    except urllib.error.URLError as e:
         return HttpResponse("Could not process request. NCI resolver responded with {0}.".format(e), status=404)
     except SSLError:
         return HttpResponse('NCI resolver timed out, please try again.', status=504)
     response = f.read()
     return HttpResponse(response, content_type="text/plain")
-    
+
+
 def drawMolecule(request, adjlist, format='png'):
     """
     Returns an image of the provided adjacency list `adjlist` for a molecule.
     urllib is used to quote/unquote the adjacency list.
     """
+    import io
     from rmgpy.molecule import Molecule
     from rmgpy.molecule.draw import MoleculeDrawer
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
-    adjlist = str(urllib.unquote(adjlist))
+    adjlist = urllib.parse.unquote(adjlist)
 
     try:
-        molecule = Molecule().fromAdjacencyList(adjlist)
+        molecule = Molecule().from_adjacency_list(adjlist)
     except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
         if format == 'png':
             response = HttpResponse(content_type="image/png")
-            surface, _, _ = MoleculeDrawer().draw(molecule, format='png')
-            surface.write_to_png(response)
+            surface, _, _ = MoleculeDrawer().draw(molecule, file_format='png')
+            response.write(surface.write_to_png())
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            MoleculeDrawer().draw(molecule, format='svg', target=response)
+            svg_data = io.BytesIO()
+            MoleculeDrawer().draw(molecule, file_format='svg', target=svg_data)
+            response.write(svg_data.getvalue())
         else:
             response = HttpResponse('Image format not implemented.', status=501)
 
     return response
+
 
 def drawGroup(request, adjlist, format='png'):
     """
@@ -331,10 +331,10 @@ def drawGroup(request, adjlist, format='png'):
     from rmgpy.molecule.group import Group
     from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
-    adjlist = str(urllib.unquote(adjlist))
+    adjlist = urllib.parse.unquote(adjlist)
 
     try:
-        group = Group().fromAdjacencyList(adjlist)
+        group = Group().from_adjacency_list(adjlist)
     except (InvalidAdjacencyListError, ValueError):
         response = HttpResponseRedirect(static('img/invalid_icon.png'))
     else:
@@ -343,44 +343,46 @@ def drawGroup(request, adjlist, format='png'):
             response.write(group.draw('png'))
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            svgdata = group.draw('svg')
+            svg_data = group.draw('svg')
             # Remove the scale and rotate transformations applied by pydot
-            svgdata = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svgdata)
-            response.write(svgdata)
+            svg_data = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svg_data)
+            response.write(svg_data)
         else:
             response = HttpResponse('Image format not implemented.', status=501)
 
     return response
 
+
 @login_required
 def restartWSGI(request):
     if request.META['mod_wsgi.process_group'] != '':
-        import signal, os, sys
         restart_filename = os.path.join(os.path.dirname(request.META['SCRIPT_FILENAME']), 'restart')
-        print >> sys.stderr, "Touching {0} to trigger a restart all daemon processes".format(restart_filename)
+        print("Touching {0} to trigger a restart all daemon processes".format(restart_filename), file=sys.stderr)
         with file(restart_filename, 'a'):
             os.utime(restart_filename, None)
-        #os.kill(os.getpid(), signal.SIGINT)
+        # os.kill(os.getpid(), signal.SIGINT)
     return HttpResponseRedirect('/')
 
+
 def debug(request):
-    import sys
-    import scipy, numpy
-    print >> sys.stderr, "scipy module is {0}".format(scipy)
-    print >> sys.stderr, "numpy.finfo(float) = {0}".format(numpy.finfo(float))
-    print >> sys.stderr, "Failing on purpose to trigger a debug screen"
+    import scipy
+    import numpy as np
+    print("scipy module is {0}".format(scipy), file=sys.stderr)
+    print("numpy.finfo(float) = {0}".format(np.finfo(float)), file=sys.stderr)
+    print("Failing on purpose to trigger a debug screen", file=sys.stderr)
     assert False, "Intentional failure to trigger debug screen."
+
 
 @csrf_exempt
 def rebuild(request):
-    import os
     rebuild_filename = os.path.join(os.path.dirname(request.META['DOCUMENT_ROOT']), 'trigger/rebuild')
     with file(rebuild_filename, 'a'):
-            os.utime(rebuild_filename, None)
+        os.utime(rebuild_filename, None)
     return HttpResponseRedirect('/')
 
+
 def custom500(request):
-    import sys, traceback
+    import traceback
     template = loader.get_template('500.html')
     etype, value = sys.exc_info()[:2]
     exception = ''.join(traceback.format_exception_only(etype, value)).strip()

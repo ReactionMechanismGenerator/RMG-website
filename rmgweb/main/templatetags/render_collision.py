@@ -34,20 +34,11 @@ Provides template tags for rendering collision parameters in various ways.
 
 # Register this module as a Django template tag library
 from django import template
-register = template.Library()
-
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
 
-import numpy
-
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
-from rmgpy.quantity import Quantity
-import rmgpy.constants as constants
-
+register = template.Library()
 ################################################################################
+
 
 @register.filter
 def render_collision_math(species, user=None):
@@ -56,22 +47,22 @@ def render_collision_math(species, user=None):
     using MathJax. If a `user` is specified, the user's preferred units will be
     used; otherwise default units will be used.
     """
-    
+
     result = ''
-    
+
     result += '<table class="reference">\n'
     result += '<tr>'
     result += r'    <td class="label">Molecular weight:</td>'
-    result += r'        <td>{0:.2f} g/mol</td>'.format(species.molecularWeight.value_si * 1000.)
+    result += r'        <td>{0:.2f} g/mol</td>'.format(species.molecular_weight.value_si * 1000.)
     result += '</tr>\n'
     result += '<tr>'
     result += r'        <td class="label">Lennard-Jones sigma:</td>'
-    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transportData.sigma.value, species.transportData.sigma.units)
+    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transport_data.sigma.value, species.transport_data.sigma.units)
     result += '</tr>\n'
     result += '<tr>'
     result += r'        <td class="label">Lennard-Jones epsilon:</td>'
-    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transportData.epsilon.value, species.transportData.epsilon.units)
+    result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(species.transport_data.epsilon.value, species.transport_data.epsilon.units)
     result += '</tr>\n'
     result += '</table>\n'
-    
+
     return mark_safe(result)

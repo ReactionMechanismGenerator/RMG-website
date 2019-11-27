@@ -44,20 +44,24 @@ where `email` is the email address you wish to fetch the gravatar for, and
 `size` is the (optional) size of the fetched avatar.
 """
 
-import urllib
+import re
 import hashlib
+import urllib
+
 from django import template
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-import re
 email_search = re.compile('(\w+\@[^> ]+)')
+
+
 @register.simple_tag
 def gravatar(username, size=48):
     """
     Return an <img> tag with the Gravatar for the given `username`. The image
-    `size` defaults to 48 x 48 when not specified. To use, add 
+    `size` defaults to 48 x 48 when not specified. To use, add
     ``{% load gravatar %}`` to the top of the template, then use the syntax
     ``{% gravatar <email> [size] %}``.
     """
@@ -68,11 +72,7 @@ def gravatar(username, size=48):
         # this may fail badly if the username is not in the database
         email = User.objects.get(username=username).email
 
-    url = "http://www.gravatar.com/avatar.php?"
-    url += urllib.urlencode({
-        'gravatar_id': hashlib.md5(email).hexdigest(),
-        'size': str(size),
-        'default': 'wavatar',
-    })
+    url = "http://www.gravatar.com/avatar/"
+    url += hashlib.md5(email.encode('utf-8')).hexdigest()
 
-    return """<img src="%s" width="%s" height="%s" alt="gravatar" class="gravatar" border="0" />""" % (url, size, size)
+    return mark_safe("""<img src="%s" width="%s" height="%s" alt="gravatar" class="gravatar" border="0" />""" % (url, size, size))

@@ -79,7 +79,7 @@ jQuery(document).ready(function() {
 <p>{{ E0 }} kcal/mol</p>
 {% endif %}
 
-{% if species.transportData %}
+{% if species.transport_data %}
 <h2>Collision Parameters</h2>
 {{ species|render_collision_math:user }}
 

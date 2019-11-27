@@ -52,12 +52,12 @@ $(document).ready(function() {
 </tr>
 <tr>
     <th>SVG File:</th>
-    <td><a href="{% url 'draw-group' group.toAdjacencyList 'svg' %}">Click to download</a></td>
+    <td><a href="{% url 'draw-group' group.to_adjacency_list 'svg' %}">Click to download</a></td>
 </tr>
 
 <tr class="result">
 <th valign="top">Adjacency List:</th>
-<td>{{ group.toAdjacencyList|renderAdjlist }}</td>
+<td>{{ group.to_adjacency_list|renderAdjlist }}</td>
 </tr>
 
 </table>

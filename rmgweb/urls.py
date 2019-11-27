@@ -28,18 +28,19 @@
 #                                                                             #
 ###############################################################################
 
-from django.conf.urls import url, include
-from django.conf import settings
-import django
-import django.views.static
-import django.views.defaults
 import os
 
-import rmgweb
-import rmgweb.main.views
-import rmgweb.database.views
-import rmgweb.rmg.views
+import django
+import django.views.defaults
+import django.views.static
+from django.conf import settings
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import include, re_path
 
+import rmgweb
+import rmgweb.database.views
+import rmgweb.main.views
+import rmgweb.rmg.views
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -47,69 +48,66 @@ admin.autodiscover()
 
 urlpatterns = [
     # Example:
-    # url(r'^website/', include('website.foo.urls')),
+    # url(r'^website/', 'website.foo.urls'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    # url(r'^admin/doc/', 'django.contrib.admindocs.urls'),
     # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-    
+    re_path(r'^admin/', admin.site.urls),
+
     # Restart the django processes in the webserver
-    url(r'^restart$', rmgweb.main.views.restartWSGI, name='restart-wsgi'),
+    re_path(r'^restart$', rmgweb.main.views.restartWSGI, name='restart-wsgi'),
+
     # Show debug info
-    url(r'^debug$', rmgweb.main.views.debug, name='debug'),
-    
+    re_path(r'^debug$', rmgweb.main.views.debug, name='debug'),
+
     # The RMG website homepage
-    url(r'^$', rmgweb.main.views.index, name='index'),
-    
+    re_path(r'^$', rmgweb.main.views.index, name='index'),
+
     # The privacy policy
-    url(r'^privacy$', rmgweb.main.views.privacy, name='privacy'),
-    
+    re_path(r'^privacy$', rmgweb.main.views.privacy, name='privacy'),
+
     # Version information
-    url(r'^version$', rmgweb.main.views.version, name='version'),
-    
+    re_path(r'^version$', rmgweb.main.views.version, name='version'),
+
     # Additional resources page
-    url(r'^resources$', rmgweb.main.views.resources, name='resources'),
+    re_path(r'^resources$', rmgweb.main.views.resources, name='resources'),
 
     # User account management
-    url(r'^login$', rmgweb.main.views.login, name='login'),
-    url(r'^logout$', rmgweb.main.views.logout, name='logout'),
-    url(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
-    url(r'^signup', rmgweb.main.views.signup, name='signup'),
-    
-    url(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile, name='view-profile'),
+    re_path(r'^login$', LoginView.as_view(template_name='login.html'), name='login'),
+    re_path(r'^logout$', LogoutView.as_view(template_name='logout.html'), name='logout'),
+    re_path(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
+    re_path(r'^signup', rmgweb.main.views.signup, name='signup'),
+
+    re_path(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile, name='view-profile'),
 
     # Database
-    url(r'^database/', include('rmgweb.database.urls')),
+    re_path(r'^database/', include("rmgweb.database.urls")),
 
     # Pressure dependence
-    url(r'^pdep/', include('rmgweb.pdep.urls')),
+    re_path(r'^pdep/', include("rmgweb.pdep.urls")),
 
     # Molecule drawing
-    url(r'^molecule/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
-    url(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
-    url(r'^group/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawGroup, name='draw-group'),
-    url(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup, name='draw-group'),
+    re_path(r'^molecule/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
+    re_path(r'^molecule/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawMolecule, name='draw-molecule'),
+    re_path(r'^group/(?P<adjlist>[\S\s]+)/(?P<format>\w+)$', rmgweb.main.views.drawGroup, name='draw-group'),
+    re_path(r'^group/(?P<adjlist>[\S\s]+)$', rmgweb.main.views.drawGroup, name='draw-group'),
 
-    url(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList, name='get-adjacency-list'),
-    url(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver, name='cactus-resolver'),
-    url(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas, name='get-nist-cas'),
+    re_path(r'^adjacencylist/(?P<identifier>.*)$', rmgweb.main.views.getAdjacencyList, name='get-adjacency-list'),
+    re_path(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver, name='cactus-resolver'),
+    re_path(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas, name='get-nist-cas'),
 
     # Molecule and solvation search,  group drawing webpages
-    url(r'^molecule_search$', rmgweb.database.views.moleculeSearch, name='molecule-search'),
-    url(r'^solvation_search', rmgweb.database.views.solvationSearch, name='solvation-search'),
+    re_path(r'^molecule_search$', rmgweb.database.views.moleculeSearch, name='molecule-search'),
+    re_path(r'^solvation_search', rmgweb.database.views.solvationSearch, name='solvation-search'),
 
     # RMG-Py Stuff
-    url(r'^tools/', include('rmgweb.rmg.urls')),
-    
-    # RMG Input Form
-    # url(r'^input', rmgweb.rmg.views.input, name='input'),
-    
+    re_path(r'^tools/', include("rmgweb.rmg.urls")),
+
     # Documentation auto-rebuild
-    url(r'^rebuild$', rmgweb.main.views.rebuild, name='rebuild'),
+    re_path(r'^rebuild$', rmgweb.main.views.rebuild, name='rebuild'),
 
     # Remember to update the /media/robots.txt file to keep web-crawlers out of pages you don't want indexed.
-    
 ]
 
 # Set custom 500 handler
@@ -120,24 +118,24 @@ handler500 = 'rmgweb.main.views.custom500'
 # DO NOT USE in a production environment!
 if settings.DEBUG:
     urlpatterns += [
-        url(r'^media/(.*)$', django.views.static.serve,
+        re_path(r'^media/(.*)$', django.views.static.serve,
             {'document_root': settings.MEDIA_ROOT,
              'show_indexes': True, }
             ),
-        url(r'^static/(.*)$', django.views.static.serve,
+        re_path(r'^static/(.*)$', django.views.static.serve,
             {'document_root': settings.STATIC_ROOT,
              'show_indexes': True, }
             ),
-        url(r'^database/export/(.*)$', django.views.static.serve,
+        re_path(r'^database/export/(.*)$', django.views.static.serve,
             {'document_root': os.path.join(settings.PROJECT_PATH,
                                            '..',
                                            'database',
                                            'export'),
              'show_indexes': True, },
             ),
-        url(r'^(robots\.txt)$', django.views.static.serve,
+        re_path(r'^(robots\.txt)$', django.views.static.serve,
             {'document_root': settings.STATIC_ROOT}
             ),
-        url(r'^500/$', django.views.defaults.server_error),
-        url(r'^404/$', django.views.defaults.page_not_found),
+        re_path(r'^500/$', django.views.defaults.server_error),
+        re_path(r'^404/$', django.views.defaults.page_not_found),
     ]

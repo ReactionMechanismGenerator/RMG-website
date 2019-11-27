@@ -29,9 +29,9 @@
 <hr/>
 
 <form enctype="multipart/form-data" action="" method="POST">{% csrf_token %}
-<P><b>Chemkin File:</b> {{form.ChemkinFile}}
-<P><b>Dictionary File:</b> {{form.DictionaryFile}}
-<P><b>Not an RMG-generated Chemkin file:</b> {{form.Foreign}}
+<P><b>Chemkin File:</b> {{form.chem_file}}
+<P><b>Dictionary File:</b> {{form.dict_file}}
+<P><b>Not an RMG-generated Chemkin file:</b> {{form.foreign}}
 <p><input type="submit" value="Submit" id="submit"/></p>
 </form>
 

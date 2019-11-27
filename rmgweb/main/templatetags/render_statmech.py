@@ -32,54 +32,46 @@
 Provides template tags for rendering transport  models in various ways.
 """
 
-# Register this module as a Django template tag library
 from django import template
-register = template.Library()
-
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
-
-import numpy
-
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
-from rmgpy.quantity import Quantity
 from rmgpy.data.statmech import *
 
+# Register this module as a Django template tag library
+register = template.Library()
+
 ################################################################################
+
 
 @register.filter
 def render_statmech_math(statmech, user=None):
     """
     Return a math representation of the given `transport` using MathJax. If a
-    `user` is specified, the user's preferred units will be used; otherwise 
+    `user` is specified, the user's preferred units will be used; otherwise
     default units will be used.
     """
-    
     # The string that will be returned to the template
     result = ''
-    
+
     if isinstance(statmech, GroupFrequencies):
-        
+
         result += '<table class="statmechEntryData">\n'
-                
+
         if statmech.frequencies is not None:
             result += r'    <td class = "key"><span>Group Frequencies</span>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class = "key"><span>Lower Bound</span>'
             result += r'    <td class = "key"><span>Upper Bound</span>'
             result += r'    <td class = "key"><span>Degeneracy</span>'
-            for row in statmech.frequencies:  
-                result += '<tr>\n'    
+            for row in statmech.frequencies:
+                result += '<tr>\n'
                 result += r'    <td class = "key"><span></span>'
-                result += r'    <td class = "key"><span></span>'                
+                result += r'    <td class = "key"><span></span>'
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[0], '')
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[1], '')
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(row[2], '')
                 result += '</tr>'
             result += '</td>\n'
-        
+
         if statmech.symmetry is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Symmetry</span></td>'

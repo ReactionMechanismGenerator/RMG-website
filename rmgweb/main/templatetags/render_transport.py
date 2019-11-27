@@ -32,130 +32,122 @@
 Provides template tags for rendering transport  models in various ways.
 """
 
-# Register this module as a Django template tag library
 from django import template
-register = template.Library()
-
 from django.utils.safestring import mark_safe
-from django.core.urlresolvers import reverse
-
-import numpy
-
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
-from rmgpy.quantity import Quantity
 from rmgpy.transport import *
 from rmgpy.data.transport import *
 
+# Register this module as a Django template tag library
+register = template.Library()
+
 ################################################################################
+
 
 @register.filter
 def render_transport_math(transport, user=None):
     """
     Return a math representation of the given `transport` using MathJax. If a
-    `user` is specified, the user's preferred units will be used; otherwise 
+    `user` is specified, the user's preferred units will be used; otherwise
     default units will be used.
     """
-    
+
     # The string that will be returned to the template
     result = ''
-    
+
     if isinstance(transport, TransportData):
-        
+
         result += '<table class="transportEntryData">\n'
-        
+
         if transport.shapeIndex is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Shape Index</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.shapeIndex, '')
             result += '</tr>\n'
-        
+
         if transport.epsilon is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Epsilon</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.epsilon.value, transport.epsilon.units)
             result += '</tr>\n'
-            
+
         if transport.sigma is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Sigma</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.sigma.value, transport.sigma.units)
             result += '</tr>\n'
-            
+
         if transport.dipoleMoment is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Dipole Moment</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.dipoleMoment.value, transport.dipoleMoment.units)
             result += '</tr>\n'
-            
+
         if transport.polarizability is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Polarizability</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.polarizability.value, transport.polarizability.units)
-            result += '</tr>\n'  
-            
+            result += '</tr>\n'
+
         if transport.rotrelaxcollnum is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Rotational Relaxation Collision Number</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.rotrelaxcollnum, '')
-            result += '</tr>\n'   
+            result += '</tr>\n'
 
         result += '</table>\n'
-    
+
     elif isinstance(transport, CriticalPointGroupContribution):
-         
-#         All unitless, no need for or user inputted units or conversions. 
-#         Tc = ''
-#         Pc = ''
-#         Vc = ''
-#         Tb = ''
-#         structureIndex = ''
-                 
+
+        #         All unitless, no need for or user inputted units or conversions.
+        #         Tc = ''
+        #         Pc = ''
+        #         Vc = ''
+        #         Tb = ''
+        #         structureIndex = ''
+
         result += '<table class="transportEntryData">\n'
-         
+
         if transport.Tc is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Tc</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.Tc, '')
             result += '</tr>\n'
-         
+
         if transport.Pc is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Pc</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.Pc, '')
             result += '</tr>\n'
-             
+
         if transport.Vc is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Vc</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.Vc, '')
             result += '</tr>\n'
-             
+
         if transport.Tb is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Tb</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.Tb, '')
             result += '</tr>\n'
-             
+
         if transport.structureIndex is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Structure Index</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(transport.structureIndex, '')
-            result += '</tr>\n'  
-             
- 
+            result += '</tr>\n'
+
         result += '</table>\n'
 
     if isinstance(transport, (TransportData, CriticalPointGroupContribution)):
@@ -166,7 +158,5 @@ def render_transport_math(transport, user=None):
 
     return mark_safe(result)
 
-
-
-#def get_transport_data(transport, user=None):
+# def get_transport_data(transport, user=None):
 #    Potentially a function for preparing the transport data for plotting

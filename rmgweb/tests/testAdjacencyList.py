@@ -30,11 +30,12 @@
 
 from django.test import TestCase
 
+
 class AdjacencyListViewTests(TestCase):
     def test_getAdjacencyList_Empty(self):
         identifier = ''
         response = self.client.get('/adjacencylist/' + identifier)
-        self.assertEquals(response.content, "")
+        self.assertContains(response, "")
         self.assertEqual(response.status_code, 200)
 
     def test_getAdjacencyList_SMILES(self):

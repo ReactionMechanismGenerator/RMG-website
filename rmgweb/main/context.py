@@ -35,9 +35,10 @@ These are activated in the `context_processors` block of `settings.py`.
 
 import os.path
 import subprocess
-import rmgpy
-import rmgweb
 
+import rmgpy
+
+import rmgweb
 from rmgweb.settings import PROJECT_PATH
 
 context = None
@@ -65,50 +66,50 @@ def get_git_commit(modulePath):
     """
     Get git commit hash for given repository path.
     """
-    commit =''
+    commit = ''
     date = ''
     subject = ''
     body = ''
-    
-    if os.path.exists(os.path.join(modulePath,'..','.git')):
+
+    if os.path.exists(os.path.join(modulePath, '..', '.git')):
         try:
-            lines = subprocess.check_output(['git', 'log',
-                                            '--format=%H%n%cD%n%s%n%b', '-1'],
-                                            cwd=modulePath).splitlines()
+            lines = subprocess.check_output(['git',
+                                             'log',
+                                             '--format=%H%n%cD%n%s%n%b', '-1'],
+                                            cwd=modulePath).decode('utf-8').splitlines()
             commit = lines[0]
             date = lines[1]
             subject = lines[2]
             body = '\n'.join(lines[3:])
         except:
             pass
-        
+
     return commit, date, subject, body
 
 
 def get_commits(request):
     """
-    Context processor to return git commits for RMG-Py, 
+    Context processor to return git commits for RMG-Py,
     RMG-database, and RMG-website.
     """
-    
-    global context
-    
-    if not context:
-        pyPath = os.path.dirname(rmgpy.__file__)
-        dataPath = rmgpy.settings['database.directory']
-        webPath = os.path.dirname(rmgweb.__file__)
-        
-        pyCommit, pyDate, pySubject, pyBody = get_git_commit(pyPath)
-        dataCommit, dataDate, dataSubject, dataBody = get_git_commit(dataPath)
-        webCommit, webDate, webSubject, webBody = get_git_commit(webPath)
-        
-        pyDateShort = ' '.join(pyDate.split()[1:4])
-        dataDateShort = ' '.join(dataDate.split()[1:4])
-        webDateShort = ' '.join(webDate.split()[1:4])
-        
-        context = {'pc':pyCommit, 'pd':pyDate, 'pds':pyDateShort, 'ps':pySubject, 'pb':pyBody,
-                   'dc':dataCommit, 'dd':dataDate, 'dds':dataDateShort, 'ds':dataSubject, 'db':dataBody,
-                   'wc':webCommit, 'wd':webDate, 'wds':webDateShort, 'ws':webSubject, 'wb':webBody}
-        
-    return context
 
+    global context
+
+    if not context:
+        py_path = os.path.dirname(rmgpy.__file__)
+        data_path = rmgpy.settings['database.directory']
+        web_path = os.path.dirname(rmgweb.__file__)
+
+        py_commit, py_date, py_subject, py_body = get_git_commit(py_path)
+        data_commit, data_date, data_subject, data_body = get_git_commit(data_path)
+        web_commit, web_date, web_subject, web_body = get_git_commit(web_path)
+
+        py_date_short = ' '.join(py_date.split()[1:4])
+        data_date_short = ' '.join(data_date.split()[1:4])
+        web_date_short = ' '.join(web_date.split()[1:4])
+
+        context = {'pc': py_commit, 'pd': py_date, 'pds': py_date_short, 'ps': py_subject, 'pb': py_body,
+                   'dc': data_commit, 'dd': data_date, 'dds': data_date_short, 'ds': data_subject, 'db': data_body,
+                   'wc': web_commit, 'wd': web_date, 'wds': web_date_short, 'ws': web_subject, 'wb': web_body}
+
+    return context

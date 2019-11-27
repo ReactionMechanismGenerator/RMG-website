@@ -34,29 +34,32 @@ This module defines the Django forms used by the pdep app.
 
 from django import forms
 
-from models import *
+from rmgweb.pdep.models import *
 
 ################################################################################
+
 
 class EditNetworkForm(forms.ModelForm):
     """
     A Django form for editing a Arkane pressure dependent input file.
     """
-    class Meta:
+    class Meta(object):
         model = Network
-        fields = ('inputText',)
+        fields = ('input_text',)
 
 ################################################################################
+
 
 class UploadNetworkForm(forms.ModelForm):
     """
     A Django form for uploading a Arkane pressure dependent input file.
     """
-    class Meta:
+    class Meta(object):
         model = Network
-        fields = ('inputFile',)
+        fields = ('input_file',)
 
 ################################################################################
+
 
 class PlotKineticsForm(forms.Form):
     """

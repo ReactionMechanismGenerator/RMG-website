@@ -35,7 +35,7 @@ The Django settings for the RMG website.
 import os.path
 
 # Secret and per-configuration settings
-from secretsettings import (
+from rmgweb.secretsettings import (
     ADMINS,
     ALLOWED_HOSTS,
     DATABASE_PATH,
@@ -72,7 +72,7 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = os.path.join(PROJECT_PATH,'media')
+MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
 
 # URL that handles the media served from MEDIA_ROOT.
 # Examples: "http://example.com/media/", "http://media.example.com/"
@@ -134,7 +134,7 @@ TEMPLATES = [
 ]
 
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

@@ -32,19 +32,14 @@
 Provides template tags for rendering kinetics models in various ways.
 """
 
-# Register this module as a Django template tag library
-from django import template
-register = template.Library()
-
-from django.utils.safestring import mark_safe
-
 import re
-import numpy
 
-from rmgweb.main.tools import getLaTeXScientificNotation, getStructureMarkup
-from rmgweb.main.models import UserProfile
-
+from django import template
+from django.utils.safestring import mark_safe
 from rmgpy.quantity import Quantity
+
+# Register this module as a Django template tag library
+register = template.Library()
 
 ################################################################################
 @register.filter
@@ -52,9 +47,10 @@ def renderMW(MW):
     """
     Renders molecular weight from SI units to the regular g/mol units we are used to.
     """
-    mass = Quantity(MW,'kg/mol').value
-    multfactor = Quantity(1,'g/mol').getConversionFactorFromSI()
+    mass = Quantity(MW, 'kg/mol').value
+    multfactor = Quantity(1, 'g/mol').get_conversion_factor_from_si()
     return mark_safe("{0:.2f}".format(mass*multfactor))
+
 
 @register.filter
 def renderMF(formula):
@@ -63,12 +59,14 @@ def renderMF(formula):
     """
     return mark_safe(re.sub(r'([A-Z])(\d+)', r'\1<sub>\2</sub>', formula))
 
+
 @register.filter
 def renderAdjlist(adjlist):
     """
     Renders adjacency list line by line in html rather than in one wrapped long line.
     """
     return mark_safe(adjlist.replace('\n', '<br/>'))
+
 
 @register.filter
 def renderNASA(nasa_string):
