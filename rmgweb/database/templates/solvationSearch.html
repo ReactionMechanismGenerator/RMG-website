@@ -107,6 +107,11 @@ properties using the Abraham parameters to perform group estimation.
       <th><b>Temperature (K):</b></th>
    <td>{{form.temp}}</td>
    </tr>
+   {% if form.errors.temp %}
+      <tr>
+         <td colspan="2", align="center"><b style="color:red;">{{ form.errors.temp }}</b></td>
+      </tr>
+   {% endif %}
    <tr>
       <th>{% csrf_token %}</th>
       <td>
