@@ -54,10 +54,12 @@ def get_solvent_temp_list():
     """
     database.load('solvation', '')
     solvent_temp_list = []
-    for index, entry in database.solvation.libraries['solvent'].entries.items():
-        if entry.data.name_in_coolprop != None:
-            Tc = "%.2f" % entry.data.get_solvent_critical_temperature()
-            solvent_temp_list.append((entry.label, index + ": 280 K - " + str(Tc) + " K"))
+    solvent_list = getSolventList()
+    for label, index in solvent_list:
+        solvent_data = database.solvation.get_solvent_data(label)
+        if solvent_data.name_in_coolprop != None:
+            Tc = "%.2f" % (solvent_data.get_solvent_critical_temperature() - 0.01) # 0.01 is subtracted because Tc is not inclusive
+            solvent_temp_list.append((label, index + ": 280 K - " + str(Tc) + " K"))
     return solvent_temp_list
 
 solvent_list = getSolventList()
