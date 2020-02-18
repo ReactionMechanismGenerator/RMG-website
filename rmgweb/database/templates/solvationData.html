@@ -37,7 +37,7 @@
 {{ structure|safe }}
 </p>
 
-{% for soluteSource, soluteData, correction in solvationDataList %}
+{% for soluteSource, soluteData, correction, correction_temp in solvationDataList %}
 <h3>Result #{{ forloop.counter }} &ndash; {{ soluteSource }}</h3>
 <h4>Solute Data</h4>
 <table class="solvationEntryData">
@@ -45,11 +45,16 @@
 </table>
 <P>
 {% if correction %}
-<h4>Solvation Data</h4>
+<h4>Solvation Data at 298 K</h4>
 <table class="solvationEntryData">
 {{ correction|render_solvation_math:user }}
 {% endif %}
 </table>
+{% if correction_temp %}
+<h4>Solvation Data at the Input Temperature</h4>
+<table class="solvationEntryData">
+{{ correction_temp|render_solvation_math:user }}
+{% endif %}
 <P>
 Comments: {{ correction.comment }} 
 <P>

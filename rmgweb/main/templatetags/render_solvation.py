@@ -265,23 +265,48 @@ def render_solvation_math(solvation, user=None):
 
         if solvation.enthalpy is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Enthalpy</span></td>'
+            result += r'    <td class = "key"><span>Enthalpy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy, 'J/mol')
             result += '</tr>\n'
 
         if solvation.gibbs is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Gibbs Free Energy</span></td>'
+            result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs, 'J/mol')
             result += '</tr>\n'
 
         if solvation.entropy is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Entropy</span></td>'
+            result += r'    <td class = "key"><span>Entropy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy, 'J/mol/K')
+            result += '</tr>\n'
+
+        result += '</table>\n'
+
+    elif isinstance(solvation, list) and len(solvation) == 3:
+
+        if solvation[2] is not None: # temperature
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Temperature</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[2], 'K')
+            result += '</tr>\n'
+
+        if solvation[0] is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Vapor-Liquid Equilibrium Ratio of a Solute (y2/x2)</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.3f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[0], '')
+            result += '</tr>\n'
+
+        if solvation[1] is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[1], 'J/mol')
             result += '</tr>\n'
 
         result += '</table>\n'
