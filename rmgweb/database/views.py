@@ -418,7 +418,7 @@ def solvationEntry(request, section, subsection, index):
                    'referenceType': reference_type, 'solvation': solvation})
 
 
-def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=298.0):
+def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=''):
     """
     Returns an entry with the solute data for a given molecule
     when the solute_adjlist is provided. If solvent is provided,

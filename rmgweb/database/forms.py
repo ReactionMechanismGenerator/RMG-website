@@ -36,6 +36,7 @@ from django import forms
 from django.forms.utils import ErrorList
 from django.utils.safestring import mark_safe
 from rmgpy.molecule.molecule import Molecule
+from rmgweb.database.tools import database
 
 
 class DivErrorList(ErrorList):
@@ -222,6 +223,27 @@ class SolvationSearchForm(forms.ModelForm):
             traceback.print_exc()
             raise forms.ValidationError('Invalid adjacency list.')
         return adjlist
+
+    def clean_temp(self):
+        """
+        Custom validation for the temperature field to ensure that a valid temperature has been provided
+        """
+        try:
+            temp = float(self.cleaned_data['temp'])
+            database.load('solvation')
+            db = database.get_solvation_database('', '')
+            solvent_temp = self.cleaned_data['solvent_temp']
+            Tc = db.get_solvent_data(solvent_temp).get_solvent_critical_temperature()
+            temp = float(temp)
+            if temp < 280 or temp >= Tc:
+                import traceback
+                traceback.print_exc()
+                raise forms.ValidationError('Temperature is out of the valid range.')
+        except:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('Invalid temperature.')
+        return temp
 
 
 class GroupDrawForm(forms.Form):
