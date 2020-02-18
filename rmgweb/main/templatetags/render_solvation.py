@@ -265,21 +265,21 @@ def render_solvation_math(solvation, user=None):
 
         if solvation.gibbs is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(298 {\rm K})</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         if solvation.enthalpy is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Enthalpy of Solvation</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta H^{*}_{\rm solv}(298 {\rm K})</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         if solvation.entropy is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Entropy of Solvation</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta S^{*}_{\rm solv}(298 {\rm K})</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.4f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy / 1000, 'kJ/mol/K')
             result += '</tr>\n'
@@ -297,14 +297,14 @@ def render_solvation_math(solvation, user=None):
 
         if solvation[0] is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Vapor-Liquid Equilibrium Ratio of a Solute (y2/x2)</span></td>'
+            result += r'    <td class = "key"><span>VLE ratio </span><script type="math/tex">(y_{2}/x_{2})</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.3f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[0], '')
             result += '</tr>\n'
 
         if solvation[1] is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(T)</script></td>'
             result += r'    <td class="equals">=</td>'
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[1] / 1000, 'kJ/mol')
             result += '</tr>\n'
