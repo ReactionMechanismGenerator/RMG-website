@@ -263,25 +263,25 @@ def render_solvation_math(solvation, user=None):
 
     elif isinstance(solvation, SolvationCorrection):
 
-        if solvation.enthalpy is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>Enthalpy of Solvation</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy, 'J/mol')
-            result += '</tr>\n'
-
         if solvation.gibbs is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs, 'J/mol')
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs / 1000, 'kJ/mol')
+            result += '</tr>\n'
+
+        if solvation.enthalpy is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Enthalpy of Solvation</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         if solvation.entropy is not None:
             result += '<tr>'
             result += r'    <td class = "key"><span>Entropy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy, 'J/mol/K')
+            result += r'    <td class="value"><script type="math/tex">{0:.4f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy / 1000, 'kJ/mol/K')
             result += '</tr>\n'
 
         result += '</table>\n'
@@ -306,7 +306,7 @@ def render_solvation_math(solvation, user=None):
             result += '<tr>'
             result += r'    <td class = "key"><span>Gibbs Free Energy of Solvation</span></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[1], 'J/mol')
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[1] / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         result += '</table>\n'
