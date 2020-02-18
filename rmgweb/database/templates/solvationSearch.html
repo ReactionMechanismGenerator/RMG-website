@@ -78,14 +78,42 @@ in your solvation estimation in the drop down menu.
 properties using the Abraham parameters to perform group estimation.  
 <form method="post" id="species_form">
 <table>
- {{form.as_table}}
-<tr>
-   <th>{% csrf_token %}</th>
-   <td>
-      <input type="submit" value="Search Solvation" name="solvation" />
-      <input type="submit" value="Reset Form" name="reset" />
-   </td>
-</tr>
+   <tr>
+      <th><b>Solute Species Identifier:</b></th>
+      <td>{{form.species_identifier}}</td>
+   </tr>
+   <tr>
+      <th><b>Solute Adjacency List:	</b></th>
+      <td>{{form.adjlist}}</td>
+   </tr>
+   <tr>
+      <th colspan="2", style="font-weight:normal", align="left", ><p>Below are optional solvation free energy calculations:</p></th>
+   </tr>
+   <tr>
+      <th colspan="2", align="left"><p>Option 1. 298 K prediction</p></th>
+   </tr>
+   <tr>
+      <th><b>Solvent:</b></th>
+      <td>{{form.solvent}}</td>
+   </tr>
+   <tr>
+      <th colspan="2", align="left"><p>Option 2. Temperature-dependent prediction</p></th>
+   </tr>
+   <tr>
+      <th><b>Solvent:</b></th>
+      <td>{{form.solvent_temp}}</td>
+   </tr>
+   <tr>
+      <th><b>Temperature (K):</b></th>
+   <td>{{form.temp}}</td>
+   </tr>
+   <tr>
+      <th>{% csrf_token %}</th>
+      <td>
+         <input type="submit" value="Search Solvation" name="solvation" />
+         <input type="submit" value="Reset Form" name="reset" />
+      </td>
+   </tr>
 </table>
 </form>
 
