@@ -418,7 +418,7 @@ def solvationEntry(request, section, subsection, index):
                    'referenceType': reference_type, 'solvation': solvation})
 
 
-def solvationData(request, solute_adjlist, solvent=''):
+def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=298.0):
     """
     Returns an entry with the solute data for a given molecule
     when the solute_adjlist is provided. If solvent is provided,
@@ -2433,11 +2433,16 @@ def solvationSearch(request):
                 structure_markup = getStructureInfo(molecule)
                 solute_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
                 solvent = posted.cleaned_data['solvent']
+                solvent_temp = posted.cleaned_data['solvent_temp']
+                temp = posted.cleaned_data['temp']
                 if solvent == '':
                     solvent = 'None'
+                if solvent_temp == '':
+                    solvent_temp = 'None'
 
             if 'solvation' in request.POST:
-                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
+                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent,
+                                                                                       'solvent_temp': solvent_temp, 'temp': temp}))
 
             if 'reset' in request.POST:
                 form = SolvationSearchForm()
