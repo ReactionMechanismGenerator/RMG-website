@@ -74,8 +74,13 @@ in your solvation estimation in the drop down menu.
 <P>You can browse the available solute molecules here: <a href="{% url 'database:solvation' section='libraries' subsection='solute' %}" target="_blank">Solute Molecules</a>
 <P>You can browse the available solvent molecules here: <a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}" target="_blank">Solvent Molecules</a>
 
+<p>For details on the solvation property estimation method, please refer to <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html?highlight=solvation">
+   Solvation Thermochemistry</a> in documentation. Please cite our work if you wish to use the temperature-dependent method in your publication: <br>
+   <ol> <li>Chung, Y. & Gillis R. & Green W. H. (2020). <i>Temperature dependent vapor-liquid equilibria and solvation free energy estimation from minimal data.</i>
+   Manuscript submitted for publication.</li> </ol></p>
+
 <P>Any solute can be used in this search form.  The search will pull the solute data if it exists in the library, otherwise it will estimate the solvation
-properties using the Abraham parameters to perform group estimation.  
+properties using the Abraham parameters to perform group estimation.
 <form method="post" id="species_form">
 <table>
    <tr>
@@ -97,7 +102,8 @@ properties using the Abraham parameters to perform group estimation.
       <td>{{form.solvent}}</td>
    </tr>
    <tr>
-      <th colspan="2", align="left"><p>Option 2. Temperature-dependent prediction</p></th>
+      <th colspan="2", align="left"><p> <br>
+         Option 2. Temperature-dependent prediction</p></th>
    </tr>
    <tr>
       <th><b>Solvent:</b></th>
