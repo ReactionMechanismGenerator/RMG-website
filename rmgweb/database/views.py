@@ -418,7 +418,7 @@ def solvationEntry(request, section, subsection, index):
                    'referenceType': reference_type, 'solvation': solvation})
 
 
-def solvationData(request, solute_adjlist, solvent=''):
+def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=''):
     """
     Returns an entry with the solute data for a given molecule
     when the solute_adjlist is provided. If solvent is provided,
@@ -439,9 +439,14 @@ def solvationData(request, solute_adjlist, solvent=''):
     solute_data_list = db.get_all_solute_data(solute)    # length either 1 or 2 entries
 
     # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
+    # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
+    # obtain solvent data for solvent_temp and solvation data at the specified temperature
     solvent_data = None
     solvent_data_info = None
-    if solvent != 'None':
+    if solvent_temp != 'None':
+        solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
+        solvent_data_info = (solvent_temp, solvent_data)
+    elif solvent != 'None':
         solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
         solvent_data_info = (solvent, solvent_data)
 
@@ -454,10 +459,20 @@ def solvationData(request, solute_adjlist, solvent=''):
         else:
             solute_source = 'Group Additivity'
         correction = ''
+        correction_temp = ''
         if solvent_data:
+            if solvent_temp != 'None':
+                temp = float(temp)
+                Kfactor = db.get_Kfactor(solute_data, solvent_data, temp)
+                dGsolv = db.get_T_dep_solvation_energy(solute_data, solvent_data, temp)
+                correction_temp = [Kfactor, dGsolv, temp]
             correction = db.get_solvation_correction(solute_data, solvent_data)
 
-        solvation_data_list.append((solute_source, solute_data, correction))  # contains solute and possible interaction data
+        solvation_data_list.append((solute_source, solute_data, correction, correction_temp))  # contains solute and possible interaction data
+
+    # if the temperature-dependent option is selected, obtain solvent data and solvation data at the specified temperature
+    solvent_temp_data = None
+
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
@@ -2433,11 +2448,16 @@ def solvationSearch(request):
                 structure_markup = getStructureInfo(molecule)
                 solute_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
                 solvent = posted.cleaned_data['solvent']
+                solvent_temp = posted.cleaned_data['solvent_temp']
+                temp = posted.cleaned_data['temp']
                 if solvent == '':
                     solvent = 'None'
+                if solvent_temp == '':
+                    solvent_temp = 'None'
 
             if 'solvation' in request.POST:
-                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent}))
+                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent,
+                                                                                       'solvent_temp': solvent_temp, 'temp': temp}))
 
             if 'reset' in request.POST:
                 form = SolvationSearchForm()

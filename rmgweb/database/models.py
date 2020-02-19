@@ -36,14 +36,34 @@ from rmgweb.database.tools import database
 def getSolventList():
     """
     Return list of solvent molecules for initializing solvation search form.
+    If any of the Mintz parameters are None, that solvent is not shown in the list since it will cause error.
     """
     database.load('solvation', '')
-    SolventList = [(entry.label, index) for index, entry in database.solvation.libraries['solvent'].entries.items()]
-    return SolventList
+    solvent_list = []
+    for index, entry in database.solvation.libraries['solvent'].entries.items():
+        mintz_parameter_list = [entry.data.s_h, entry.data.b_h, entry.data.e_h, entry.data.l_h, entry.data.a_h,
+                                entry.data.c_h]
+        if not any(h is None for h in mintz_parameter_list):
+            solvent_list.append((entry.label, index))
+    return solvent_list
 
+def get_solvent_temp_list():
+    """
+    Return list of solvent molecules for initializing solvation temperature-dependent search form
+    and its correct temperature range. e.g. "water: 280 K - 647.10 K"
+    """
+    database.load('solvation', '')
+    solvent_temp_list = []
+    solvent_list = getSolventList()
+    for label, index in solvent_list:
+        solvent_data = database.solvation.get_solvent_data(label)
+        if solvent_data.name_in_coolprop != None:
+            Tc = "%.2f" % (solvent_data.get_solvent_critical_temperature() - 0.01) # 0.01 is subtracted because Tc is not inclusive
+            solvent_temp_list.append((label, index + ": 280 K - " + str(Tc) + " K"))
+    return solvent_temp_list
 
-SolventList = getSolventList()
-
+solvent_list = getSolventList()
+solvent_temp_list = get_solvent_temp_list()
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):
@@ -51,4 +71,6 @@ class SolventSelection(models.Model):
 
     species_identifier = models.CharField(verbose_name="Solute Species Identifier", max_length=200, blank=True)
     adjlist = models.TextField(verbose_name="Solute Adjacency List")
-    solvent = models.CharField(verbose_name="Solvent (Optional)", choices=SolventList, max_length=200, blank=True)
+    solvent = models.CharField(verbose_name="Solvent (Optional)", choices=solvent_list, max_length=200, blank=True)
+    solvent_temp = models.CharField(verbose_name="Solvent", choices=solvent_temp_list, max_length=200, blank=True)
+    temp = models.FloatField(default=298.0, verbose_name='Temperature in K (Optional)', blank=True)

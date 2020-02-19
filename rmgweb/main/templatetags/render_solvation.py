@@ -263,25 +263,50 @@ def render_solvation_math(solvation, user=None):
 
     elif isinstance(solvation, SolvationCorrection):
 
-        if solvation.enthalpy is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>Enthalpy</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy, 'J/mol')
-            result += '</tr>\n'
-
         if solvation.gibbs is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Gibbs Free Energy</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(298 {\rm K})</script></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs, 'J/mol')
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs / 1000, 'kJ/mol')
+            result += '</tr>\n'
+
+        if solvation.enthalpy is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta H^{*}_{\rm solv}(298 {\rm K})</script></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         if solvation.entropy is not None:
             result += '<tr>'
-            result += r'    <td class = "key"><span>Entropy</span></td>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta S^{*}_{\rm solv}(298 {\rm K})</script></td>'
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy, 'J/mol/K')
+            result += r'    <td class="value"><script type="math/tex">{0:.4f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy / 1000, 'kJ/mol/K')
+            result += '</tr>\n'
+
+        result += '</table>\n'
+
+    elif isinstance(solvation, list) and len(solvation) == 3:
+
+        if solvation[2] is not None: # temperature
+            result += '<tr>'
+            result += r'    <td class = "key"><span>Temperature</span></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[2], 'K')
+            result += '</tr>\n'
+
+        if solvation[0] is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><span>VLE ratio </span><script type="math/tex">(y_{2}/x_{2})</script></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.3f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[0], '')
+            result += '</tr>\n'
+
+        if solvation[1] is not None:
+            result += '<tr>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(T)</script></td>'
+            result += r'    <td class="equals">=</td>'
+            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[1] / 1000, 'kJ/mol')
             result += '</tr>\n'
 
         result += '</table>\n'
