@@ -2552,12 +2552,33 @@ def moleculeEntry(request, adjlist):
     except:
         return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(molecule)
+    
+    mol_weight = molecule.get_molecular_weight()
+
     old_adjlist = ''
     try:
         old_adjlist = molecule.to_adjacency_list(remove_h=True, old_style=True)
     except:
         pass
-    return render(request, 'moleculeEntry.html', {'structure': structure, 'molecule': molecule, 'oldAdjlist': old_adjlist})
+    
+    smiles = ''
+    try:
+        smiles = molecule.to_smiles()
+    except ValueError:
+        pass
+    
+    inchi = ''
+    try:
+        inchi = molecule.to_inchi()
+    except ValueError:
+        pass
+
+    return render(request, 'moleculeEntry.html', 
+                  {'structure': structure,
+                   'smiles': smiles,
+                   'adjlist': adjlist,
+                   'mol_weight': mol_weight,
+                   'old_adjlist': old_adjlist})
 
 
 def groupEntry(request, adjlist):
