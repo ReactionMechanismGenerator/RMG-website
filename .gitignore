@@ -46,3 +46,13 @@ rmgweb/media/rmg/tools/*
 
 # WSGI
 apache/django.wsgi
+
+# VS Code related files
+.history/*
+
+# PyCharm project files
+.idea/*
+venv/
+
+# MacOS files
+.DS_Store
