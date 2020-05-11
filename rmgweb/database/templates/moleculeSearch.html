@@ -136,7 +136,7 @@ function submitMolecule() {
 {% block page_body %}
 
 <p>
-Use this form to find a species from its adjacency list. 
+Use this form to find a species from its adjacency list.
 You can quickly fill in the adjacency list part of the form by entering any species identifier,
 such as a 
 <a href="javascript:$('#id_species_identifier').val('CCC=CC(=O)O');resolve();">SMILES</a>,
@@ -152,6 +152,11 @@ Do not submit the form until the adjacency list has loaded.
 You may use the "Structure Input" function to draw a molecular structure which will be converted to an adjacency list.
 Please note that this functionality is currently in beta, so there may be structures which cannot be correctly
 converted to an adjacency list. In particular, lone pairs must be drawn explicitly for the time being.
+</p>
+
+<p>
+Currently, we only support searches for electrically neutral species containing H, He, C, N, O, F, Ne, Si, S, Cl, Ar, Br, I, and surface site (X).
+Species like ions and salts are not supported.
 </p>
 
 <div class="overlay" id="editor">
