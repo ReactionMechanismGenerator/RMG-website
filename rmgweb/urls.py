@@ -95,6 +95,10 @@ urlpatterns = [
     re_path(r'^password_reset/confirm/(?P<uidb64>\S+)/(?P<token>\S+)/$',
             auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'),
             name='password_reset_confirm'),
+    re_path(r'^password_reset/complete$',
+            auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'),
+            name='password_reset_complete'),
+
     # Database
     re_path(r'^database/', include("rmgweb.database.urls")),
 
