@@ -44,7 +44,29 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
+from rmgpy.molecule.atomtype import allElements as SUPPORTED_ELEMENTS
+
 from rmgweb.main.forms import *
+
+
+ELEMENTS = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+            'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br',
+            'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',
+            'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm',
+            'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn',
+            'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
+            'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og', 'X']
+
+VAL_ELEC = {'H': 1, 'He': 2, 'C': 4, 'N': 5, 'O': 6, 'F': 7, 'Ne': 8,
+            'Si': 4, 'S': 6, 'Cl': 7, 'Ar': 8, 'Br': 7, 'I': 7, }
+
+SUPPORTED_ELEMENTS_ONE_LETTER, SUPPORTED_ELEMENTS_TWO_LETTERS = [], []
+
+for element in SUPPORTED_ELEMENTS:
+    if len(element) == 1:
+        SUPPORTED_ELEMENTS_ONE_LETTER.append(element)
+    elif len(element) == 2:
+        SUPPORTED_ELEMENTS_TWO_LETTERS.append(element)
 
 
 def index(request):
@@ -213,38 +235,39 @@ def getAdjacencyList(request, identifier):
     if identifier.startswith('InChI=1'):
         try:
             molecule.from_inchi(identifier)
-        except AtomTypeError:
-            return HttpResponse('Invalid Molecule', status=501)
+        except AtomTypeError as e:
+            return analyze_atomtype_error(f'{e}')
         except KeyError as e:
-            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+            return analyze_element_error(f'{e}')
     elif identifier.lower() in known_names:
         molecule.from_smiles(known_names[identifier.lower()])
     else:
         try:
             # Try parsing as a SMILES string
             molecule.from_smiles(identifier)
-        except AtomTypeError:
-            return HttpResponse('Invalid Molecule', status=501)
+        except AtomTypeError as e:
+            return analyze_atomtype_error(f'{e}')
         except KeyError as e:
-            return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+            return analyze_element_error(f'{e}')
         except (IOError, ValueError):
             # Try converting it to a SMILES using the NCI chemical resolver
             url = "https://cactus.nci.nih.gov/chemical/structure/{0}/smiles".format(urllib.parse.quote(identifier))
             try:
                 f = urllib.request.urlopen(url, timeout=5)
             except urllib.error.URLError as e:
-                return HttpResponse("Could not identify {0}. NCI resolver responded with {1}.".format(identifier, e), status=404)
+                return HttpResponse(f'Could not identify {identifier}. NCI resolver responded with {e}.', status=404)
             except SSLError:
                 return HttpResponse('NCI resolver timed out, please try again.', status=504)
             smiles = f.read().decode('utf-8')
             try:
                 molecule.from_smiles(smiles)
-            except AtomTypeError:
-                return HttpResponse('Invalid Molecule', status=501)
+            except AtomTypeError as e:
+                return analyze_atomtype_error(f'{e}')
             except KeyError as e:
-                return HttpResponse('Invalid Element: {0!s}'.format(e), status=501)
+                return analyze_element_error(f'{e}')
             except ValueError as e:
-                return HttpResponse(str(e), status=500)
+                return HttpResponse(f'{e}. This can be due to a bad target returned from backend searching engine'
+                                    f'(https://cactus.nci.nih.gov) or a bad structure input.', status=500)
 
     adjlist = molecule.to_adjacency_list(remove_h=False)
     return HttpResponse(adjlist, content_type="text/plain")
@@ -387,3 +410,55 @@ def custom500(request):
     etype, value = sys.exc_info()[:2]
     exception = ''.join(traceback.format_exception_only(etype, value)).strip()
     return HttpResponseServerError(template.render(context={'exception': exception}))
+
+
+def analyze_element_error(error_message):
+    # This should be a KeyError, the symbol of the element
+    # is the only message it contains
+    element = error_message.strip("'")
+    if element in ELEMENTS:
+        return HttpResponse(f'Element {element} has not been implemented in RMG-Py', status=501)
+    else:
+        return HttpResponse(f'Invalid element {error_message}, which cannot be found in the periodic table', status=400)
+
+
+def analyze_atomtype_error(error_message):
+    # This should be a AtomTypeError, which is raised during constructing the molecule instance
+    # It could be either the AtomType is truly missing from RMG-database or the molecule information is fake
+    # An Example of the error message:
+    # Unable to determine atom type for atom O., which has 0 single bonds, 1 double bonds to C, 0 double bonds
+    # to O, 0 double bonds to S, 0 triple bonds, 0 benzene bonds, 0 lone pairs, and 1 charge.
+    # Example: Unable to determine atom type for atom N
+    atom_type = error_message.split(',')[0].split()[7]
+    for element in SUPPORTED_ELEMENTS_TWO_LETTERS + SUPPORTED_ELEMENTS_ONE_LETTER:
+        if element.title() in atom_type:
+            break
+    if element not in VAL_ELEC:
+        # May be worth to add the new atom type
+        return HttpResponse('Invalid molecule with an unsupported atomtype', status=501)
+
+    val_elec = VAL_ELEC[element]
+    # Example: which has 4 single bonds, 0 double bonds to C, 0 double bonds to O,
+    # 0 double bonds to S, 0 triple bonds, 0 quadruple bonds, 0 benzene bonds, 0
+    # lone pairs, and 0 charge.
+    single, r_double, o_double, s_double, triple, quadruple, benzene, lone_pairs, charge \
+        = [int(item) for item in re.findall('\s-?\d\s', ','.join(error_message.split(',')[1:]))]
+    orbital_num = single + 2 * (r_double + o_double + s_double) + 3 * triple + 4 * quadruple \
+        + 1.5 * benzene + lone_pairs
+    if element in ['C', 'N', 'O', 'F', 'Ne'] and orbital_num > 4:
+        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which does '
+                            f'not satisfy the Octet rule. Please check input identifier.',
+                            status=400)
+    elif orbital_num > 6:
+        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which does '
+                            f'not satisfy the expanded-octet rule. Please check input identifier.',
+                            status=400)
+
+    elec_balance = val_elec - orbital_num - lone_pairs - charge  # lone_pairs need to subtract twice
+
+    if elec_balance != 0:
+        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which has '
+                            f'unbalanced valence electrons. Please check input identifier.',
+                            status=400)
+
+    return HttpResponse('Invalid Molecule with an unsupported atomtype', status=501)
