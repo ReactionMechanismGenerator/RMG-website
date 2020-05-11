@@ -15,8 +15,6 @@
 
 {% block page_body %}
 
-<p>Don't have an account yet? <a href="{% url 'signup' %}?next={{ request.path }}">Create one now!</a></p>
-
 {% if form.errors %}
 <p>Your username and password did not match. Please try again.</p>
 {% endif %}
@@ -38,6 +36,9 @@
 
 <p><input type="submit" value="Login" id="submit"/></p>
 <input type="hidden" name="next" value="{{ next }}"/>
+
+<p>Don't have an account yet? <a href="{% url 'signup' %}">Create one now!</a></p>
+<p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
 
 </form>
 {% endblock %}
