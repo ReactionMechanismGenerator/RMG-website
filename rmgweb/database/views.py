@@ -2168,13 +2168,15 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
 
     reaction_data_list = []
     for reaction, count in zip(unique_reaction_list, unique_reaction_count):
+        forward = reactionHasReactants(reaction, reactant_list)
+        if not forward:
+            reaction = Reaction(reactants=reaction.products,
+                                products=reaction.reactants)
         reactants = ' + '.join([getStructureInfo(reactant) for reactant in reaction.reactants])
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
-        products = ' + '.join([getStructureInfo(reactant) for reactant in reaction.products])
+        products = ' + '.join([getStructureInfo(product) for product in reaction.products])
         reaction_url = getReactionUrl(reaction, resonance=resonance)
-
-        forward = reactionHasReactants(reaction, reactant_list)
-        if forward:
+        if not forward:
             reaction_data_list.append([reactants, arrow, products, count, reaction_url])
         else:
             reaction_data_list.append([products, arrow, reactants, count, reaction_url])
