@@ -220,6 +220,8 @@ def getAdjacencyList(request, identifier):
         'oxygen': '[O][O]',
         'benzyl': '[CH2]c1ccccc1',
         'phenyl': '[c]1ccccc1',
+        'carbon monoxide': '[C-]#[O+]',
+        'co': '[C-]#[O+]',
     }
 
     # Ensure that input is a string
