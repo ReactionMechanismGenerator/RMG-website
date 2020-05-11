@@ -34,8 +34,8 @@ import django
 import django.views.defaults
 import django.views.static
 from django.conf import settings
-from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import include, re_path
+from django.contrib.auth import views as auth_views
+from django.urls import include, reverse_lazy, re_path
 
 import rmgweb
 import rmgweb.database.views
@@ -74,13 +74,27 @@ urlpatterns = [
     re_path(r'^resources$', rmgweb.main.views.resources, name='resources'),
 
     # User account management
-    re_path(r'^login$', LoginView.as_view(template_name='login.html'), name='login'),
-    re_path(r'^logout$', LogoutView.as_view(template_name='logout.html'), name='logout'),
+    re_path(r'^login$', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    re_path(r'^logout$', auth_views.LogoutView.as_view(template_name='logout.html'),
+            name='logout'),
     re_path(r'^profile$', rmgweb.main.views.editProfile, name='edit-profile'),
     re_path(r'^signup', rmgweb.main.views.signup, name='signup'),
 
     re_path(r'^user/(?P<username>\w+)$', rmgweb.main.views.viewProfile, name='view-profile'),
 
+    # User password reset
+    re_path(r'^password_reset$',
+            auth_views.PasswordResetView.as_view(template_name='password_reset_form.html',
+                                                 email_template_name='password_reset_email.html',
+                                                 subject_template_name='password_reset_subject.txt',
+                                                 success_url=reverse_lazy('password_reset_done')),
+            name='password_reset'),
+    re_path(r'^password_reset/done$',
+            auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'),
+            name='password_reset_done'),
+    re_path(r'^password_reset/confirm/(?P<uidb64>\S+)/(?P<token>\S+)/$',
+            auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'),
+            name='password_reset_confirm'),
     # Database
     re_path(r'^database/', include("rmgweb.database.urls")),
 
