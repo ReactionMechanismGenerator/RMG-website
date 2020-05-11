@@ -262,12 +262,13 @@ def getAdjacencyList(request, identifier):
             try:
                 molecule.from_smiles(smiles)
             except AtomTypeError as e:
-                return analyze_atomtype_error(f'{e}')
+                return analyze_atomtype_error(f'{e}', cactus_result=smiles)
             except KeyError as e:
-                return analyze_element_error(f'{e}')
+                return analyze_element_error(f'{e}', cactus_result=smiles)
             except ValueError as e:
-                return HttpResponse(f'{e}. This can be due to a bad target returned from backend searching engine'
-                                    f'(https://cactus.nci.nih.gov) or a bad structure input.', status=500)
+                return HttpResponse(f'Identifier was resolved by NCI resolver (https://cactus.nci.nih.gov). '
+                                    f'The resolved SMILES is {smiles}, but RMG has trouble parsing this smiles. '
+                                    f'This can be due to a bad resolution or a bad identifier input.', status=500)
 
     adjlist = molecule.to_adjacency_list(remove_h=False)
     return HttpResponse(adjlist, content_type="text/plain")
@@ -412,30 +413,44 @@ def custom500(request):
     return HttpResponseServerError(template.render(context={'exception': exception}))
 
 
-def analyze_element_error(error_message):
+def analyze_element_error(error_message, cactus_result=None):
     # This should be a KeyError, the symbol of the element
     # is the only message it contains
+    cactus_result = f'Input identifier was parsed by NCI resolver (https://cactus.nci.nih.gov). ' \
+                    f'The resolved SMILES is {cactus_result}. ' if cactus_result else ''
+
     element = error_message.strip("'")
     if element in ELEMENTS:
-        return HttpResponse(f'Element {element} has not been implemented in RMG-Py', status=501)
+        return HttpResponse(f'{cactus_result}Element {element} has not been implemented in RMG-Py.', status=501)
     else:
-        return HttpResponse(f'Invalid element {error_message}, which cannot be found in the periodic table', status=400)
+        return HttpResponse(f'{cactus_result}Invalid element {error_message}, which cannot be found in the periodic table.', status=400)
 
 
-def analyze_atomtype_error(error_message):
+def analyze_atomtype_error(error_message, cactus_result=None):
     # This should be a AtomTypeError, which is raised during constructing the molecule instance
     # It could be either the AtomType is truly missing from RMG-database or the molecule information is fake
     # An Example of the error message:
     # Unable to determine atom type for atom O., which has 0 single bonds, 1 double bonds to C, 0 double bonds
     # to O, 0 double bonds to S, 0 triple bonds, 0 benzene bonds, 0 lone pairs, and 1 charge.
     # Example: Unable to determine atom type for atom N
+    cactus_result = f'Input identifier was parsed by NCI resolver (https://cactus.nci.nih.gov). ' \
+                    f'The resolved SMILES is {cactus_result}. ' if cactus_result else ''
+
     atom_type = error_message.split(',')[0].split()[7]
     for element in SUPPORTED_ELEMENTS_TWO_LETTERS + SUPPORTED_ELEMENTS_ONE_LETTER:
         if element.title() in atom_type:
+            # The atomtype belong to current element
             break
+    else:
+        # Overwrite the value of element which was set in the `for` loop
+        element = ''
+
     if element not in VAL_ELEC:
-        # May be worth to add the new atom type
-        return HttpResponse('Invalid molecule with an unsupported atomtype', status=501)
+        # Either VAL_ELEC needs to be extended or issues with X which cannot be analyzed
+        # by electron balance.
+        return HttpResponse(f'Molecule with an unsupported atomtype {atom_type}. '
+                            f'Detailed error message: {error_message}',
+                            status=501)
 
     val_elec = VAL_ELEC[element]
     # Example: which has 4 single bonds, 0 double bonds to C, 0 double bonds to O,
@@ -446,19 +461,27 @@ def analyze_atomtype_error(error_message):
     orbital_num = single + 2 * (r_double + o_double + s_double) + 3 * triple + 4 * quadruple \
         + 1.5 * benzene + lone_pairs
     if element in ['C', 'N', 'O', 'F', 'Ne'] and orbital_num > 4:
-        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which does '
-                            f'not satisfy the Octet rule. Please check input identifier.',
+        # Second row atoms can only forms 4 bonds
+        return HttpResponse(f'{cactus_result}Invalid molecule with a bad {element} atom assignment '
+                            f'which does not satisfy the octet rule. Please check input identifier. '
+                            f'Detailed error message: {error_message}',
                             status=400)
     elif orbital_num > 6:
-        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which does '
-                            f'not satisfy the expanded-octet rule. Please check input identifier.',
+        # Since RMG-website does not support any transition metal, the maximum number of orbitals
+        # to use is 6 (sp3d2)
+        return HttpResponse(f'{cactus_result}Invalid molecule with a bad {element} atom assignment '
+                            f'which does not satisfy the expanded-octet rule. Please check input '
+                            f'identifier. Detailed error message: {error_message}',
                             status=400)
 
     elec_balance = val_elec - orbital_num - lone_pairs - charge  # lone_pairs need to subtract twice
-
     if elec_balance != 0:
-        return HttpResponse(f'Invalid molecule with an invalid atomtype of {element} which has '
-                            f'unbalanced valence electrons. Please check input identifier.',
+        return HttpResponse(f'{cactus_result}Invalid molecule with a bad {element} atom assignment '
+                            f'which has unbalanced valence electrons. Please check input identifier. '
+                            f'Detailed error message: {error_message}',
                             status=400)
 
-    return HttpResponse('Invalid Molecule with an unsupported atomtype', status=501)
+    # If the balance is hold, then it is possible that RMG is missing an atomtype
+    return HttpResponse(f'Molecule with an unsupported atomtype {atom_type}. '
+                        f'Detailed error message: {error_message}',
+                        status=501)
