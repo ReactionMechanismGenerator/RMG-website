@@ -45,6 +45,7 @@ from rmgweb.secretsettings import (
     PROJECT_PATH,
     SECRET_KEY,
     SERVER_EMAIL,
+    DEFAULT_FROM_EMAIL,
 )
 
 # Local time zone for this installation. Choices can be found here:
