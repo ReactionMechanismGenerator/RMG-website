@@ -358,6 +358,7 @@ class FluxDiagram(models.Model):
         species dictionary, and the arguments of flux diagram module.
         """
 
+        import re
         import subprocess
         import rmgpy
 
@@ -380,7 +381,22 @@ class FluxDiagram(models.Model):
         if arguments['java']:
             command.append('--java')
 
-        subprocess.check_call(command, cwd=self.path)
+        # It is important to learn why flux diagram generation fails
+        try:
+            subprocess.check_output(command, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            error_message = e.output.splitlines()[-1].decode()
+            bad_library = re.search(r'Library \S+ not found', error_message)
+            if bad_library:
+                error_message = f'{bad_library.group()}. It seems like you are using a non-built-in ' \
+                                f'library. Since flux diagram module does not need library ' \
+                                f'information. Please remove this libary from RMG input file and try again.'
+            else:
+                error_message += '. It is likely that your inputs are invalid.'
+        else:
+            error_message = ''
+
+        return error_message
 
 
     def createDir(self):
