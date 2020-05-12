@@ -438,15 +438,29 @@ class PopulateReactions(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-
+        import re
         import subprocess
         import rmgpy
+
         command = ('python',
                    os.path.join(os.path.dirname(rmgpy.get_path()), 'scripts', 'generateReactions.py'),
                    self.input,
-                   '-q',
                    )
-        subprocess.check_call(command, cwd=self.path)
+        try:
+            subprocess.check_output(command, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            error_message = e.output.splitlines()[-1].decode()
+            bad_library = re.search(r'Library \S+ not found', error_message)
+            if bad_library:
+                error_message = f'{bad_library.group()}. It seems like you are using a non-built-in ' \
+                                f'library. RMG-website populating reactions module does not support ' \
+                                f'third-party library. Please try this module on your local machine.'
+            else:
+                error_message += '. It is likely that your inputs are invalid.'
+        else:
+            error_message = ''
+        return error_message
+
 
     def createDir(self):
         """

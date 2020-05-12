@@ -204,12 +204,14 @@ def runPopulateReactions(request):
         form = PopulateReactionsForm(request.POST, request.FILES, instance=populate_reactions)
         if form.is_valid():
             form.save()
-            output_path = 'media/rmg/tools/populateReactions/output.html'
-            chemkin_path = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
             # Generate the output HTML file
-            populate_reactions.createOutput()
+            error_message = populate_reactions.createOutput()
             # Go back to the network's main page
-            return render(request, 'populateReactionsUpload.html', {'form': form, 'output': output_path, 'chemkin': chemkin_path})
+            if not error_message:
+                output_path = 'media/rmg/tools/populateReactions/output.html'
+                chemkin_path = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
+            return render(request, 'populateReactionsUpload.html', {'form': form, 'output': output_path, 'chemkin': chemkin_path,
+                                                                    'error_message': error_message})
 
     # Otherwise create the form
     else:
