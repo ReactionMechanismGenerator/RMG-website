@@ -13,6 +13,7 @@ $().ready(function() {
         $('[id$=submit]').click(function() {
             $('#loading_image').show();
             $('#videos').hide();
+            $('.error').hide();
         });
 });
 </script>
@@ -46,6 +47,16 @@ $().ready(function() {
 <hr/>
 <img src="{% static 'img/loading.gif' %}" alt="Loading..." style="display:none" id="loading_image">
 <P>
+{% if error_message %}
+<div>
+    <p>
+        <div class="error">
+            <strong>Got an error while generating flux diagram:</strong><br>
+            {{ error_message | safe }}
+        </div>
+    </p>
+</div>
+{% endif %}
 {% if path %}
 <div id="videos">
 <b>Generated Videos for Reaction Systems</b>

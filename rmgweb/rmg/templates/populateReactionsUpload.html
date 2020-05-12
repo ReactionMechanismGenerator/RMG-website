@@ -13,6 +13,7 @@ $().ready(function() {
         $('[id$=submit]').click(function() {
             $('#loading_image').show();
             $('#files').hide();
+            $('.error').hide();
         });
 });
 </script>
@@ -33,12 +34,23 @@ $().ready(function() {
 
 <p>
 Upload an RMG input file and generate a list of all reactions which occur between initial species in both
-HTML and chemkin format.  
+HTML and chemkin format.
 </p>
 <hr/>
 
 <img src="{% static 'img/loading.gif' %}" alt="Loading..." style="display:none" id="loading_image">
 <P>
+
+{% if error_message %}
+<div>
+    <p>
+        <div class="error">
+            <strong>Got an error while populating reactions:</strong><br>
+            {{ error_message | safe }}
+        </div>
+    </p>
+</div>
+{% endif %}
 
 {% if output %}
 <div id = "files">

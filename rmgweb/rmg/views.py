@@ -175,15 +175,19 @@ def generateFlux(request):
             arguments['time_step'] = form.cleaned_data['time_step']
             arguments['concentration_tol'] = form.cleaned_data['concentration_tol']
             arguments['species_rate_tol'] = form.cleaned_data['species_rate_tol']
-            flux.createOutput(arguments)
+            error_message = flux.createOutput(arguments)
             # Look at number of subdirectories to determine where the flux diagram videos are
-            subdirs = [name for name in os.listdir(os.path.join(flux.path, 'flux')) if os.path.isdir(os.path.join(flux.path, 'flux', name))]
-            return render(request, 'fluxDiagram.html', {'form': form, 'path': subdirs})
+            if not error_message:
+                subdirs = [name for name in os.listdir(os.path.join(flux.path, 'flux'))
+                           if os.path.isdir(os.path.join(flux.path, 'flux', name))]
+                return render(request, 'fluxDiagram.html', {'form': form, 'path': subdirs, 'error_message': error_message})
+            else:
+                return render(request, 'fluxDiagram.html', {'form': form, 'path': path, 'error_message': error_message})
 
     else:
         form = FluxDiagramForm(instance=flux)
 
-    return render(request, 'fluxDiagram.html', {'form': form, 'path': path})
+    return render(request, 'fluxDiagram.html', {'form': form, 'path': path, 'error_message': ''})
 
 
 def runPopulateReactions(request):
@@ -200,12 +204,14 @@ def runPopulateReactions(request):
         form = PopulateReactionsForm(request.POST, request.FILES, instance=populate_reactions)
         if form.is_valid():
             form.save()
-            output_path = 'media/rmg/tools/populateReactions/output.html'
-            chemkin_path = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
             # Generate the output HTML file
-            populate_reactions.createOutput()
+            error_message = populate_reactions.createOutput()
             # Go back to the network's main page
-            return render(request, 'populateReactionsUpload.html', {'form': form, 'output': output_path, 'chemkin': chemkin_path})
+            if not error_message:
+                output_path = 'media/rmg/tools/populateReactions/output.html'
+                chemkin_path = 'media/rmg/tools/populateReactions/chemkin/chem.inp'
+            return render(request, 'populateReactionsUpload.html', {'form': form, 'output': output_path, 'chemkin': chemkin_path,
+                                                                    'error_message': error_message})
 
     # Otherwise create the form
     else:
