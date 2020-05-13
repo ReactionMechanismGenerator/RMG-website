@@ -2176,10 +2176,7 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         arrow = '&hArr;' if reaction.reversible else '&rarr;'
         products = ' + '.join([getStructureInfo(product) for product in reaction.products])
         reaction_url = getReactionUrl(reaction, resonance=resonance)
-        if not forward:
-            reaction_data_list.append([reactants, arrow, products, count, reaction_url])
-        else:
-            reaction_data_list.append([products, arrow, reactants, count, reaction_url])
+        reaction_data_list.append([reactants, arrow, products, count, reaction_url])
 
     return render(request, 'kineticsResults.html', {'reactionDataList': reaction_data_list})
 
