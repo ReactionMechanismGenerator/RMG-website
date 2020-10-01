@@ -1,3 +1,4 @@
+Updated docs
 # RMG Website - A Django-powered website for RMG
 
 This repository contains the source code that powers the RMG website, which 
