@@ -1,4 +1,5 @@
 # RMG Website - A Django-powered website for RMG
+#It uses the Web framework
 
 This repository contains the source code that powers the RMG website, which 
 runs at http://rmg.mit.edu/. The RMG website itself uses the 
