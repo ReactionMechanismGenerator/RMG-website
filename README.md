@@ -1,13 +1,13 @@
 # RMG Website - A Django-powered website for RMG
 
 This repository contains the source code that powers the RMG website, which 
-runs at http://rmg.mit.edu/. The RMG website itself uses the 
+runs at [RMG - Reaction Mechanism Generator](http://rmg.mit.edu/). The RMG website itself uses the 
 [Django](http://www.djangoproject.com/) web framework.
 
 ## User Setup
 
 If you only wish to *use* the RMG website, no setup is required! Simply point
-your favorite web browser to http://rmg.mit.edu/ to get started. Some parts of
+your favorite web browser to [RMG - Reaction Mechanism Generator](http://rmg.mit.edu/) to get started. Some parts of
 the web site require that Javascript be enabled.
 
 ## Developer Setup
