@@ -32,6 +32,7 @@ import http.cookiejar
 import io
 import json
 import math
+import multiprocessing
 import os
 import re
 import shutil
@@ -2152,7 +2153,27 @@ def kineticsResults(request, reactant1, reactant2='', reactant3='', product1='',
         product_list = None
 
     # Search for the corresponding reaction(s)
-    reaction_list = generateReactions(database, reactant_list, product_list, resonance=resonance)
+    # A multipocessing approach is applied to kill searches that take extremely long time
+    def aug_func(result, func, *arg, **kwargs):
+        result.append(func(*arg, **kwargs))
+    manager = multiprocessing.Manager()
+    result = manager.list()
+    p = multiprocessing.Process(target=aug_func, kwargs={
+        'result': result,
+        'func': generateReactions,
+        'database': database,
+        'reactants': reactant_list,
+        'products': product_list,
+        'resonance': True})
+    p.start()
+    p.join(timeout=300)
+    if p.is_alive():
+        p.kill()
+        # Actually, information will not be returned to user. With the current settings,
+        # the connection between client and server will be disconnected after 300s.
+        return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Searching time exceeds the limit.</p>')
+    else:
+        reaction_list = result[0]
 
     # Remove duplicates from the list and count the number of results
     unique_reaction_list = []
