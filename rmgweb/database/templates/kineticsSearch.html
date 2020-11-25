@@ -54,6 +54,13 @@ $(document).ready(function() {
       })
 // end of $(document).ready(function() {
 })
+// Show a loading animation when after hitting the submit button.
+$().ready(function(){
+   $('[name$=submit]').click(function() {
+      if ($('[name$=reactant1]').val()){
+         $('#searching').show(); }
+      });
+});
 </script>
 
 {% endblock %}
@@ -74,6 +81,15 @@ $(document).ready(function() {
 <p>You can search either by reactants only or by both reactants and products.</p>
 <p>Use the identifier fields to quickly fill the adjacency list boxes; they accept SMILES, InChI, species name
  <a href="http://cactus.nci.nih.gov/chemical/structure/documentation" title="Chemical identifier resolver documentation.">etc.</a></p>
+
+
+<div style="display:none" id="searching">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." id='loading_image'>
+   <p>Due to our server capacity,</p>
+   <p><strong>- Please wait patiently after submitting your search request. It may takes a few minutes.</strong></p>
+   <p><strong>- Please do not submit multiple kinetics searches simultaneously.</strong></p>
+   <p>If you keep receiving 'Gateway Timeout' error, it indicates your search takes longer time than the limit. Please contact <a href="mailto:rmg_dev@mit.edu">the RMG Development Team</a> for help.</p>
+</div>
 
 <form action="" method="POST">{% csrf_token %}
 <table>
