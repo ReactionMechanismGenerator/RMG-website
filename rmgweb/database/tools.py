@@ -198,6 +198,12 @@ class RMGWebDatabase(object):
                 if self.is_dir_modified(dirpath):
                     self.database.thermo.load_groups(dirpath)
                     self.reset_dir_timestamps(dirpath)
+            # Load metal database if necessary
+            if section in ['surface', '']:
+                dirpath = os.path.join(rmgweb.settings.DATABASE_PATH, 'surface')
+                if self.is_dir_modified(dirpath):
+                    self.database.thermo.load_surface()
+                    self.reset_dir_timestamps(dirpath)
 
         if component in ['transport', '']:
             if section in ['libraries', '']:
