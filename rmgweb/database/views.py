@@ -49,7 +49,7 @@ from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
-from rmgpy.exceptions import AtomTypeError
+from rmgpy.exceptions import AtomTypeError, ReactionError
 from rmgpy.kinetics import Arrhenius, ArrheniusEP, ArrheniusBM, KineticsData
 from rmgpy.molecule import Group, Molecule, Atom, Bond
 from rmgpy.molecule.adjlist import Saturator
@@ -2283,15 +2283,18 @@ def kineticsData(request, reactant1, reactant2='', reactant3='', product1='', pr
         if is_forward:
             kinetics_data_list.append([reactants, arrow, products, entry, forward_kinetics, source, href, is_forward])
         else:
-            if isinstance(forward_kinetics, Arrhenius) or isinstance(forward_kinetics, KineticsData):
+            try:
                 reverse_kinetics = reaction.generate_reverse_rate_coefficient()
+            except ReactionError:
+                # The method does not support `generate_reverse_rate_coefficient`
+                reverse_kinetics = None
+            else:
                 reverse_kinetics.Tmin = forward_kinetics.Tmin
                 reverse_kinetics.Tmax = forward_kinetics.Tmax
                 reverse_kinetics.Pmin = forward_kinetics.Pmin
                 reverse_kinetics.Pmax = forward_kinetics.Pmax
-            else:
-                reverse_kinetics = None
-            kinetics_data_list.append([products, arrow, reactants, entry, reverse_kinetics, source, href, is_forward])
+            finally:
+                kinetics_data_list.append([products, arrow, reactants, entry, reverse_kinetics, source, href, is_forward])
 
     # Construct new entry form from group-additive result
     # Need to get group-additive reaction from generateReaction with only_families
