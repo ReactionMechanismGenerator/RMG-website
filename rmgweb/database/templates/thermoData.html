@@ -79,6 +79,14 @@ Comments: {{ thermo.comment }}
 <P>
 Symmetry number: {{ symmetry_number }}
 <p>
+{{species.}}
+<p>  
+{% if href != '' %}<a href="{{ href }}">{% endif %} 
+Lib Test: {{ library_info }}
+{% if href != '' %}</a>{% endif %}
+<p>
+Groups test: {{ group_info }}
+<p>
 {% endif %}
 {{ thermo|render_thermo_math:user }}
 <br/>

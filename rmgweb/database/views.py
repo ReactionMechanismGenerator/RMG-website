@@ -775,8 +775,56 @@ def thermoData(request, adjlist):
         if library is None:
             source = 'Group additivity'
             href = ''
+            library_info = {}
+            group_info = {}
+            groupref = {}
+
             symmetry_number = species.get_symmetry_number()
             entry = Entry(data=data)
+
+            # Parse string to find library and group additivities.
+            if data.comment is not None:
+                # Search for thermo library substrings
+                library_split_string  = data.comment.split("Thermo library: ")
+                gas_phase_substring = library_split_string[0].split()
+                if len(library_split_string) > 1: # if a match is found
+                    if library_split_string[0] != '': 
+                        try:
+                            gas_phase_species = gas_phase_substring[-2]
+                        except:
+                            gas_phase_species = '' 
+                    else:
+                        gas_phase_species = ''
+                    library_substring = library_split_string[1].split()
+                    library_source = library_substring[0].strip(".")
+                    library_info[gas_phase_species] = library_source
+                    
+                    if gas_phase_species == '': 
+                        href = reverse('database:thermo', kwargs={'section': 'libraries', 'subsection': library_source})
+                    else:
+                        try:
+                            lib_index = database.thermo.libraries[library_source].entries[gas_phase_species].index
+                            href = reverse('database:thermo-entry', kwargs={'section': 'libraries', 'subsection': library_source, 'index': lib_index})
+                        except:
+                            pass
+  
+                # Search for group additivity substrings
+                groups_split_string  = data.comment.split("Thermo group additivity estimation: ")
+                if len(groups_split_string) > 1:
+                    groups_substrings = groups_split_string[1].split('+')
+                    groups_substrings = [entry.strip() for entry in groups_substrings] # sanitize string
+                    groups_substrings = [entry for entry in groups_substrings if "missing" not in entry]
+                    for entry in groups_substrings: # further sanitize strings if it matches pattern of allowed strings
+                        if '(' and ')' in entry: 
+                            groupname = entry.split('(',1)[0]
+                            entry = entry.split('(',1)[1]
+                            entry = entry[::-1].replace(')','',1)[::-1]
+                            try:
+                                group_index = database.thermo.groups[groupname].entries[entry].index
+                                group_info[group_index] = entry
+                                groupref[group_index] = reverse('database:thermo-entry', kwargs={'section': 'groups', 'subsection': groupname, 'index': group_index})
+                            except:
+                                pass
         elif library in list(database.thermo.depository.values()):
             source = 'Depository'
             href = reverse('database:thermo-entry', kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
@@ -794,7 +842,7 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermo_data_list': thermo_data_list, 'symmetry_number': symmetry_number, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
+    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermo_data_list': thermo_data_list, 'symmetry_number': symmetry_number, 'library_info' : library_info, 'group_info': group_info, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
 
 ################################################################################
 
