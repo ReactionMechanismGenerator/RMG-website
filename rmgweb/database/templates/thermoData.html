@@ -75,17 +75,23 @@ You must <a href="{% url 'login' %}?next={{ request.path }}">log in first.</a>
 <p>Species label: {{ entry.label }}</p>
 {% endif %}
 {% if source == 'Group additivity' %}
-Comments: {{ thermo.comment }} 
+<p>
+Comments: 
+
+{% for word in word_list %}
+
+{% if word in ref_dict %}
+<a href="{{ref_dict|get_items:word}}"> {{word}} </a>
+
+{% else %}
+{{word}}
+{% endif %}
+{% endfor %}
 <P>
 Symmetry number: {{ symmetry_number }}
 <p>
-{{species.}}
-<p>  
 {% if href != '' %}<a href="{{ href }}">{% endif %} 
-Lib Test: {{ library_info }}
 {% if href != '' %}</a>{% endif %}
-<p>
-Groups test: {{ group_info }}
 <p>
 {% endif %}
 {{ thermo|render_thermo_math:user }}
