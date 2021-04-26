@@ -846,20 +846,19 @@ def parseThermoComment(comment):
                 pass
 
     # Search for group additivity substrings
-    groups_substrings = [word for word in comment.split() if "missing" not in word]
+    groups_substrings = [word for word in comment.split() if "missing" not in word and '(' and ')' in word]
     for word in groups_substrings: # further sanitize strings 
-        if '(' and ')' in word: 
-            full_entry = word
-            group_name = word.split('(',1)[0]
-            word = word.split('(',1)[1]
-            word = word[::-1].replace(')','',1)[::-1]
-            if word.endswith('.'):
-                word = word[::-1].replace('.','',1)[::-1] 
-            try: 
-                group_index = database.thermo.groups[group_name].entries[word].index
-                ref_dict[full_entry] = reverse('database:thermo-entry', kwargs={'section': 'groups', 'subsection': group_name, 'index': group_index})
-            except:
-                pass                            
+        full_entry = word
+        group_name = word.split('(',1)[0]
+        word = word.split('(',1)[1]
+        word = word[::-1].replace(')','',1)[::-1]
+        if word.endswith('.'):
+            word = word[::-1].replace('.','',1)[::-1] 
+        try: 
+            group_index = database.thermo.groups[group_name].entries[word].index
+            ref_dict[full_entry] = reverse('database:thermo-entry', kwargs={'section': 'groups', 'subsection': group_name, 'index': group_index})
+        except:
+            pass                            
 
     return ref_dict
 
