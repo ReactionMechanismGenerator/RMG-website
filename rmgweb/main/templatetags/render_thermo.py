@@ -347,6 +347,6 @@ def get_thermo_data(thermo, user=None):
 def get_items(dictionary, key):
     '''
     By default, Django does not let the user lookup a dictionary value if the key is the loop variable.
-    This filter is a workaround to enable using loop variable as a key.
+    This filter is a workaround to enable using loop variable as a key in a view.
     '''
     return dictionary.get(key)
