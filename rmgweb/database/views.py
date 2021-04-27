@@ -764,6 +764,9 @@ def thermoData(request, adjlist):
     # Get the thermo data for the molecule
     symmetry_number = None
     thermo_data_list = []
+    word_list = []
+    ref_dict = {}
+
     for data, library, entry in database.thermo.get_all_thermo_data(species):
         # Make sure we calculate Cp0 and CpInf
         find_cp0_and_cpinf(species, data)
@@ -772,11 +775,17 @@ def thermoData(request, adjlist):
         # Generate Chemkin style NASA polynomial
         species.thermo = nasa
         nasa_string = write_thermo_entry(species)
+
         if library is None:
             source = 'Group additivity'
             href = ''
+            ref_dict = parseThermoComment(data.comment)
             symmetry_number = species.get_symmetry_number()
             entry = Entry(data=data)
+        
+            if data.comment is not None:
+                word_list = data.comment.split()
+                            
         elif library in list(database.thermo.depository.values()):
             source = 'Depository'
             href = reverse('database:thermo-entry', kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
@@ -794,7 +803,64 @@ def thermoData(request, adjlist):
     # Get the structure of the item we are viewing
     structure = getStructureInfo(molecule)
 
-    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermo_data_list': thermo_data_list, 'symmetry_number': symmetry_number, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
+    return render(request, 'thermoData.html', {'molecule': molecule, 'structure': structure, 'thermo_data_list': thermo_data_list, 'symmetry_number': symmetry_number, 'ref_dict': ref_dict, 'word_list': word_list, 'plotWidth': 500, 'plotHeight': 400 + 15 * len(thermo_data_list)})
+
+
+def parseThermoComment(comment):
+    """
+    Takes a thermo comment (or any string) as input. Returns a dictionary whose keys 
+    correspond to groups or libraries exactly as they appear in the string, and whose values 
+    correspond to href links that direct to the specific library or group's database page.
+    """
+    
+    ref_dict = {}
+
+    # Search for library strings.
+    library_split_string  = comment.split("Thermo library: ")
+    gas_phase_substring = library_split_string[0].split()
+    if len(library_split_string) > 1: # if a match is found
+        if library_split_string[0] != '': 
+            try:
+                gas_phase_species = gas_phase_substring[-2]
+            except:
+                gas_phase_species = '' 
+        else:
+            gas_phase_species = ''
+        library_substring = library_split_string[1].split()
+        library_source_full = library_substring[0]
+        
+        if library_source_full.endswith('.'):
+            library_source = library_source_full[::-1].replace('.','',1)[::-1] 
+        else:
+            library_source = library_source_full
+
+        try:
+            lib_index = database.thermo.libraries[library_source].entries[gas_phase_species].index
+            href = reverse('database:thermo-entry', kwargs={'section': 'libraries', 'subsection': library_source, 'index': lib_index})
+            ref_dict[library_source_full] = href
+        except:
+            try:
+                href = reverse('database:thermo', kwargs={'section': 'libraries', 'subsection': library_source})
+                ref_dict[library_source_full] = href
+            except:
+                pass
+
+    # Search for group additivity substrings
+    groups_substrings = [word for word in comment.split() if "missing" not in word and '(' and ')' in word]
+    for word in groups_substrings: # further sanitize strings 
+        full_entry = word
+        group_name = word.split('(',1)[0]
+        word = word.split('(',1)[1]
+        word = word[::-1].replace(')','',1)[::-1]
+        if word.endswith('.'):
+            word = word[::-1].replace('.','',1)[::-1] 
+        try: 
+            group_index = database.thermo.groups[group_name].entries[word].index
+            ref_dict[full_entry] = reverse('database:thermo-entry', kwargs={'section': 'groups', 'subsection': group_name, 'index': group_index})
+        except:
+            pass                            
+
+    return ref_dict
 
 ################################################################################
 
