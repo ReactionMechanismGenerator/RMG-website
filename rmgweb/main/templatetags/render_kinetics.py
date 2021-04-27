@@ -120,7 +120,9 @@ def get_rate_unit_dimensionality(units):
         # Remove any parentheses and split by *
         parts = frac.replace('(', '').replace(')', '').split('*')
         for part in parts:
-            if '^' in part:
+            if '1' == part:
+                continue
+            elif '^' in part:
                 unit, power = part.split('^')
                 power = int(power)
             else:

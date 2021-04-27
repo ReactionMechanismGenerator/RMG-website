@@ -38,7 +38,7 @@ import socket
 import sys
 
 import openbabel as ob
-import pybel
+from openbabel import pybel
 import xlrd
 from rmgpy.data.base import Entry
 from rmgpy.data.kinetics import KineticsDatabase, TemplateReaction

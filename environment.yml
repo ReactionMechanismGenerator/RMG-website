@@ -21,7 +21,7 @@ dependencies:
   - mopac
   - nose
   - numpy >=1.10.0
-  - openbabel
+  - conda-forge::openbabel >= 3
   - psutil
   - pydas >=1.0.1
   - pydot
