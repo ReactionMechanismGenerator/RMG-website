@@ -103,161 +103,106 @@ def render_solvation_math(solvation, user=None):
 
         result += '<table class="solvationEntryData">\n'
 
-        result += r'<td class = "key"><span>Mintz Parameters: </span></td>'
+        abraham_param_list = [(solvation.s_g, 's_g'),
+                              (solvation.b_g, 'b_g'),
+                              (solvation.e_g, 'e_g'),
+                              (solvation.l_g, 'l_g'),
+                              (solvation.a_g, 'a_g'),
+                              (solvation.c_g, 'c_g')]
 
-        if solvation.s_h is not None:
+        result += r'<td class = "key"><span>Abraham Parameters (for solvation free energy): </span></td>'
+
+        for param_value, param_name in abraham_param_list:
             result += '<tr>'
-            result += r'    <td class = "key"><span>s_h</span></td>'
+            result += r'    <td class = "key"><span>{0}</span></td>'.format(param_name)
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.s_h, '')
+            if param_value is None:
+                result += r'    <td class="value">N/A</td>'
+            else:
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(
+                    param_value, '')
             result += '</tr>\n'
 
-        if solvation.b_h is not None:
+
+        mintz_param_list = [(solvation.s_h, 's_h'),
+                              (solvation.b_h, 'b_h'),
+                              (solvation.e_h, 'e_h'),
+                              (solvation.l_h, 'l_h'),
+                              (solvation.a_h, 'a_h'),
+                              (solvation.c_h, 'c_h')]
+
+        result += r'<td class = "key"><span>Mintz Parameters (for solvation enthalpy): </span></td>'
+
+        for param_value, param_name in mintz_param_list:
             result += '<tr>'
-            result += r'    <td class = "key"><span>b_h</span></td>'
+            result += r'    <td class = "key"><span>{0}</span></td>'.format(param_name)
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.b_h, '')
+            if param_value is None:
+                result += r'    <td class="value">N/A</td>'
+            else:
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(
+                    param_value, '')
             result += '</tr>\n'
 
-        if solvation.e_h is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>e_h</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.e_h, '')
-            result += '</tr>\n'
 
-        if solvation.l_h is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>l_h</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.l_h, '')
-            result += '</tr>\n'
+        viscosity_param_list = [(solvation.A, 'A'),
+                            (solvation.B, 'B'),
+                            (solvation.C, 'C'),
+                            (solvation.D, 'D'),
+                            (solvation.E, 'E')]
 
-        if solvation.a_h is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>a_h</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.a_h, '')
-            result += '</tr>\n'
-
-        if solvation.c_h is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>c_h</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.c_h, '')
-            result += '</tr>\n'
-
-        result += r'<td class = "key"><span>Abraham Parameters: </span></td>'
-
-        if solvation.s_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>s_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.s_g, '')
-            result += '</tr>\n'
-
-        if solvation.b_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>b_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.b_g, '')
-            result += '</tr>\n'
-
-        if solvation.e_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>e_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.e_g, '')
-            result += '</tr>\n'
-
-        if solvation.l_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>l_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.l_g, '')
-            result += '</tr>\n'
-
-        if solvation.a_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>a_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.a_g, '')
-            result += '</tr>\n'
-
-        if solvation.c_g is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>c_g</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.c_g, '')
-            result += '</tr>\n'
+        param_found_list = [value is not None for value, key in viscosity_param_list]
 
         result += r'<td class = "key"><span>Viscosity Parameters: </span></td>'
 
         result += '<tr>'
         result += r'    <td class = "key"><span>Solvent Viscosity μ at 298 K</span></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }} cP</script></td>'.format(solvation.get_solvent_viscosity(298)*1000, '')
+        if all(param_found_list):
+            result += r'    <td class="value"><script type="math/tex">{0:.4f} \ \mathrm{{ {1!s} }} cP</script></td>'.format(solvation.get_solvent_viscosity(298)*1000, '')
+        else:
+            result += r'    <td class="value">N/A</td>'
         result += '</tr>\n'
 
-        if solvation.A is not None:
+        for param_value, param_name in viscosity_param_list:
             result += '<tr>'
-            result += r'    <td class = "key"><span>A</span></td>'
+            result += r'    <td class = "key"><span>{0}</span></td>'.format(param_name)
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.A, '')
+            if param_value is None:
+                result += r'    <td class="value">N/A</td>'
+            else:
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(
+                    param_value, '')
             result += '</tr>\n'
 
-        if solvation.B is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>B</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.B, '')
-            result += '</tr>\n'
 
-        if solvation.C is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>C</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.C, '')
-            result += '</tr>\n'
-
-        if solvation.D is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>D</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.D, '')
-            result += '</tr>\n'
-
-        if solvation.E is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><span>E</span></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.E, '')
-            result += '</tr>\n'
+        solute_param_param_list = [(solvation.alpha, 'α'),
+                            (solvation.beta, 'β')]
 
         result += r'<td class = "key"><span>Solute Parameters of Solvent: </span></td>'
 
-        if solvation.alpha is not None:
+        for param_value, param_name in solute_param_param_list:
             result += '<tr>'
-            result += r'    <td class = "key"><script type="math/tex">α</script></td>'
+            result += r'    <td class = "key"><span>{0}</span></td>'.format(param_name)
             result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.alpha, '')
+            if param_value is None:
+                result += r'    <td class="value">N/A</td>'
+            else:
+                result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(
+                    param_value, '')
             result += '</tr>\n'
 
-        if solvation.beta is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><script type="math/tex">β</script></td>'
-            result += r'    <td class="equals">=</td>'
-            result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.beta, '')
-            result += '</tr>\n'
 
         result += r'<td class = "key"><span>Dielectric Constant: </span></td>'
 
-        if solvation.eps is not None:
-            result += '<tr>'
-            result += r'    <td class = "key"><script type="math/tex">ε</script></td>'
-            result += r'    <td class="equals">=</td>'
+        result += '<tr>'
+        result += r'    <td class = "key"><script type="math/tex">ε</script></td>'
+        result += r'    <td class="equals">=</td>'
+        if solvation.eps is None:
+            result += r'    <td class="value">N/A</td>'
+        else:
             result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.eps, '')
-            result += '</tr>\n'
+        result += '</tr>\n'
 
         result += '</table>\n'
 
