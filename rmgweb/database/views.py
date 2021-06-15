@@ -1399,7 +1399,15 @@ def kinetics(request, section='', subsection=''):
         # database components
         kinetics_libraries = [(label, library) for label, library in database.kinetics.libraries.items() if subsection in label]
         kinetics_libraries.sort()
-        for family in database.kinetics.families.values():
+        
+        # If this is a subsection, but not the main kinetics page,
+        # we don't need to iterate through the entire database, as this takes a long time to load.
+        try:
+            families_to_process = [database.kinetics.families[subsection]]
+        except KeyError: # if main kinetics page, or some other error
+            families_to_process = database.kinetics.families.values()
+
+        for family in families_to_process:
             for i in range(0, len(family.depositories)):
                 if 'untrained' in family.depositories[i].name:
                     family.depositories.pop(i)
