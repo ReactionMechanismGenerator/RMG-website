@@ -59,11 +59,13 @@ table.solvationEntryData td.reference p {
 {% block page_body %}
 <h2>Structure</h2>
 <p>
-{% if structure == '' %}
-No structure given.
-{% else %}
-{{ structure|safe }}
-{% endif %}
+{% for structure in structures %}
+    {% if structure == '' %}
+        No structure given.
+    {% else %}
+        {{ structure|safe }}
+    {% endif %}
+{% endfor %} 
 </p>
 
 <h2>Solvation Data</h2>

@@ -329,8 +329,13 @@ def solvation(request, section='', subsection=''):
 
         entries = []
         for entry in entries0:
+            structures = []
 
-            structure = getStructureInfo(entry.item)
+            if type(entry.item) is list: # the case for solvents
+                for structure in entry.item:
+                    structures.append(getStructureInfo(structure))
+            else: # single values for solutes
+                structures.append(getStructureInfo(entry.item))
 
             if isinstance(entry.data, SoluteData):
                 data_format = 'SoluteData'
@@ -344,7 +349,7 @@ def solvation(request, section='', subsection=''):
             else:
                 data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, data_format))
+            entries.append((entry.index, entry.label, structures, data_format))
 
         return render(request, 'solvationTable.html',
                       {'section': section,
@@ -399,8 +404,14 @@ def solvationEntry(request, section, subsection, index):
                                                     'index': index,
                                                     }))
 
-    # Get the structure of the item we are viewing
-    structure = getStructureInfo(entry.item)
+    # Get the structures of the item we are viewing
+    structures = []
+
+    if type(entry.item) is list: # the case for solvents
+        for structure in entry.item:
+            structures.append(getStructureInfo(structure))
+    else: # single values for solutes
+        structures.append(getStructureInfo(entry.item))
 
     # Prepare the solvation data for passing to the template
     # This includes all string formatting, since we can't do that in the template
@@ -414,7 +425,7 @@ def solvationEntry(request, section, subsection, index):
     return render(request, 'solvationEntry.html',
                   {'section': section, 'subsection': subsection,
                    'databaseName': db.name, 'entry': entry,
-                   'structure': structure, 'reference': reference,
+                   'structures': structures, 'reference': reference,
                    'referenceType': reference_type, 'solvation': solvation})
 
 
@@ -475,11 +486,21 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
 
 
     # Get the structure of the item we are viewing
-    structure = getStructureInfo(molecule)
+    solvent_structures = []
+    if solvent_temp is None or solvent_temp == 'None':
+        structures = db.libraries['solvent'].entries[solvent].item
+    else:
+        structures = db.libraries['solvent'].entries[solvent_temp].item
+    for structure in structures: # we expect this to always be a list, as we are parsing solvents
+        solvent_structures.append(getStructureInfo(structure))
+
+    solute_structure = getStructureInfo(molecule)
+    
 
     return render(request, 'solvationData.html',
                   {'molecule': molecule,
-                   'structure': structure,
+                   'solventStructures': solvent_structures,
+                   'soluteStructure': solute_structure,
                    'solvationDataList': solvation_data_list,
                    'solventDataInfo': solvent_data_info})
 

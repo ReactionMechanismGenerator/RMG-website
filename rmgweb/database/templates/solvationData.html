@@ -24,6 +24,21 @@
 
 {% block page_body %}
 {% if solventDataInfo %}
+
+<h2>Solvent Info</h2>
+
+<h3>Solvent Structure</h3>
+<p>
+{% for solventStructure in solventStructures %}
+    {% if solventStructure == '' %}
+        No structure given.
+    {% else %}
+        {{ solventStructure|safe }}
+    {% endif %}
+{% endfor %} 
+
+</p>
+
 <h3>Solvent Name: {{ solventDataInfo.0 }}</h3>
 <P>
 <table class="solvationEntryData">
@@ -32,9 +47,16 @@
 <P>
 {% endif %}
 
-<h2>Solute Structure</h2>
+<h2>Solute Info</h2>
+
+<h3>Solute Structure</h3>
 <p>
-{{ structure|safe }}
+{% if soluteStructure == '' %}
+No structure given.
+{% else %}
+{{ soluteStructure|safe }}
+{% endif %}
+
 </p>
 
 {% for soluteSource, soluteData, correction, correction_temp in solvationDataList %}
