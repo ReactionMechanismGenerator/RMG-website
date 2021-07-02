@@ -68,6 +68,8 @@ table.solvationEntryData td.reference p {
 {% endfor %} 
 </p>
 
+{{ entry.item|render_solvation_molecule }}
+
 <h2>Solvation Data</h2>
 <table class="solvationEntryData">
 {{ solvation|render_solvation_math:user }}

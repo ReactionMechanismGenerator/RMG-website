@@ -418,7 +418,7 @@ def solvationEntry(request, section, subsection, index):
     if isinstance(entry.data, str):
         solvation = ['Link', db.entries[entry.data].index]
     else:
-        solvation = entry.data
+        solvation = entry
 
     reference_type = ''
     reference = entry.reference
@@ -466,7 +466,7 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
         solute_data = solute_data_tuple[0]
         solute_source = solute_data_tuple[1]
         if solute_source:
-            solute_source = solute_source.name  # It is a library
+            solute_source = solute_source.name + ' Library'  # It is a library
         else:
             solute_source = 'Group Additivity'
         correction = ''
