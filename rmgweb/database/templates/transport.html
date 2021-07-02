@@ -57,9 +57,7 @@ RMG Transport Database
 <ul>
     {# <li><a href="{% url 'database:transport' section='groups' subsection='group' %}">{{ transportDatabase.groups.group.name }}</a> ({{ transportDatabase.groups.group.entries|length }} entries)</li> #}
 {% for subsection, groups in transportGroups %}
-    {% if subsection != 'group' %}
-        <li><a href="{% url 'database:transport' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
-    {% endif %}
+    <li><a href="{% url 'database:transport' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
 {% endfor %}
 
 </ul>

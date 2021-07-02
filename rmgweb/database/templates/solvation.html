@@ -57,9 +57,7 @@ RMG Solvation Database
 <ul>
     {# <li><a href="{% url 'database:solvation' section='groups' subsection='group' %}">{{ solvationDatabase.groups.group.name }}</a> ({{ solvationDatabase.groups.group.entries|length }} entries)</li> #}
 {% for subsection, groups in solvationGroups %}
-    {% if subsection != 'group' %}
-        <li><a href="{% url 'database:solvation' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
-    {% endif %}
+    <li><a href="{% url 'database:solvation' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
 {% endfor %}
 
 </ul>
