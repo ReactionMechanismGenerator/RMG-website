@@ -344,7 +344,7 @@ def solvation(request, section='', subsection=''):
 
             elif entry.data is None:
                 data_format = 'None'
-                entry.index = 0
+                # entry.index = 0
 
             else:
                 data_format = 'Other'
@@ -387,22 +387,11 @@ def solvationEntry(request, section, subsection, index):
         raise Http404
 
     index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
+    for entry in db.entries.values():
+        if entry.index == index:
+            break
     else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:solvation-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+        raise Http404
 
     # Get the structures of the item we are viewing
     structures = []
@@ -413,10 +402,19 @@ def solvationEntry(request, section, subsection, index):
     else: # single values for solutes
         structures.append(getStructureInfo(entry.item))
 
-    # Prepare the solvation data for passing to the template
-    # This includes all string formatting, since we can't do that in the template
+    # Prepare the solvation data for passing to the template. This includes all string formatting,
+    # since we can't do that in the template.
+    # Case 1. A solvation group uses the values of other group. In this case, get the href link of that group.
     if isinstance(entry.data, str):
-        solvation = ['Link', db.entries[entry.data].index]
+        lib_index = db.entries[entry.data].index
+        href = reverse('database:solvation-entry',
+                       kwargs={'section': section, 'subsection': subsection, 'index': lib_index})
+        solvation = ['Link', href, entry.data]
+    # Case 2. A solvation group has empty data because it is a general group that doesn't need the group value.
+    # Returns None for this
+    elif entry.data is None:
+        solvation = None
+    # Case 3. The entry has an actual solute or solvent data. Returns the entry.
     else:
         solvation = entry
 

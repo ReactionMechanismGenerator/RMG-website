@@ -223,6 +223,13 @@ def render_solvation_math(solvation, user=None):
             result = print_param_list(solute_param_list, result, decimal_place=2)
             result += '</table>\n'
 
+        elif isinstance(solvation, list) and solvation[0] == 'Link':
+            result += r'<p>This group uses the group values of '
+            result += r'<a href="{0}"> {1} </a>'.format(solvation[1], solvation[2])
+            result += '</p>'
+
+        elif solvation is None:
+            result += r'<p>This group is one of the top nodes or general parent groups that do not need the group values.</p>'
 
         elif isinstance(solvation, SolvationCorrection):
 
