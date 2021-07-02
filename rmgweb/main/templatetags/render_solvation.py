@@ -269,7 +269,7 @@ def render_solvation_math(solvation, user=None):
                 result += '<tr>'
                 result += r'    <td class = "key"><span>VLE ratio </span><script type="math/tex">(y_{2}/x_{2})</script></td>'
                 result += r'    <td class="equals">=</td>'
-                result += r'    <td class="value"><script type="math/tex">{0:.3f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[0], '')
+                result += r'    <td class="value"><script type="math/tex">{0:.3e} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation[0], '')
                 result += '</tr>\n'
 
             if solvation[1] is not None:
