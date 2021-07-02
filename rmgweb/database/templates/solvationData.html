@@ -58,6 +58,7 @@ No structure given.
 {% endif %}
 
 </p>
+<br />
 
 {% for soluteSource, soluteData, correction, correction_temp in solvationDataList %}
 <h3>Result #{{ forloop.counter }} &ndash; {{ soluteSource }}</h3>
@@ -78,8 +79,7 @@ No structure given.
 {{ correction_temp|render_solvation_math:user }}
 {% endif %}
 <P>
-Comments: {{ correction.comment }} 
-<P>
+<br />
 {% endfor %}
 
 
