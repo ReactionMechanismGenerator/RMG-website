@@ -220,7 +220,7 @@ def render_solvation_math(solvation, user=None):
                                   (solvation.A, 'A'),
                                   (solvation.V, 'V')]
 
-            result = print_param_list(solute_param_list, result, decimal_place=2)
+            result = print_param_list(solute_param_list, result, decimal_place=5)
             result += '</table>\n'
 
         elif isinstance(solvation, list) and solvation[0] == 'Link':
@@ -319,3 +319,12 @@ def render_solvation_molecule(item):
         result += item.to_adjacency_list()
         result += r'</pre></p>'
     return mark_safe(result)
+
+
+@register.filter
+def get_items(dictionary, key):
+    '''
+    By default, Django does not let the user lookup a dictionary value if the key is the loop variable.
+    This filter is a workaround to enable using loop variable as a key in a view.
+    '''
+    return dictionary.get(key)

@@ -60,11 +60,33 @@ No structure given.
 </p>
 <br />
 
-{% for soluteSource, soluteData, correction, correction_temp in solvationDataList %}
-<h3>Result #{{ forloop.counter }} &ndash; {{ soluteSource }}</h3>
+{% for solute_entry, solute_data, solute_source, href, correction, correction_temp in solvationDataList %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ solute_source }}</h3>
+
 <h4>Solute Data</h4>
+
+{% if solute_entry.label != '' %}
+<p>Solute label:
+{% if href != '' %}<a href="{{ href }}">{% endif %}
+{{ solute_entry.label }}
+{% if href != '' %}</a>{% endif %}
+</p>
+{% endif %}
+
+{% if solute_source == 'Group additivity' %}
+<p>
+Comments:
+{% for word in word_list %}
+{% if word in ref_dict %}
+<a href="{{ref_dict|get_items:word}}"> {{word}} </a>
+{% else %}
+{{word}}
+{% endif %}
+{% endfor %}
+{% endif %}
+
 <table class="solvationEntryData">
-{{ soluteData|render_solvation_math:user }}
+{{ solute_data|render_solvation_math:user }}
 </table>
 <P>
 {% if correction %}
