@@ -302,6 +302,12 @@ def transportData(request, adjlist):
 
 #################################################################################################################################################
 
+def solvationIndex(request):
+    """
+    The solvation tools homepage.
+    """
+    return render(request, 'solvationTools.html')
+
 
 def solvation(request, section='', subsection=''):
     """
