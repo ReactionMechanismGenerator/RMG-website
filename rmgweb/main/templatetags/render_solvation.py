@@ -233,26 +233,32 @@ def render_solvation_math(solvation, user=None):
 
         elif isinstance(solvation, SolvationCorrection):
 
+            result += '<tr>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(298 {\rm K})</script></td>'
+            result += r'    <td class="equals">=</td>'
             if solvation.gibbs is not None:
-                result += '<tr>'
-                result += r'    <td class = "key"><script type="math/tex">\Delta G^{*}_{\rm solv}(298 {\rm K})</script></td>'
-                result += r'    <td class="equals">=</td>'
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.gibbs / 1000, 'kJ/mol')
-                result += '</tr>\n'
+            else:
+                result += r'    <td class="value">N/A</td>'
+            result += '</tr>\n'
 
+            result += '<tr>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta H^{*}_{\rm solv}(298 {\rm K})</script></td>'
+            result += r'    <td class="equals">=</td>'
             if solvation.enthalpy is not None:
-                result += '<tr>'
-                result += r'    <td class = "key"><script type="math/tex">\Delta H^{*}_{\rm solv}(298 {\rm K})</script></td>'
-                result += r'    <td class="equals">=</td>'
                 result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.enthalpy / 1000, 'kJ/mol')
-                result += '</tr>\n'
+            else:
+                result += r'    <td class="value">N/A</td>'
+            result += '</tr>\n'
 
+            result += '<tr>'
+            result += r'    <td class = "key"><script type="math/tex">\Delta S^{*}_{\rm solv}(298 {\rm K})</script></td>'
+            result += r'    <td class="equals">=</td>'
             if solvation.entropy is not None:
-                result += '<tr>'
-                result += r'    <td class = "key"><script type="math/tex">\Delta S^{*}_{\rm solv}(298 {\rm K})</script></td>'
-                result += r'    <td class="equals">=</td>'
                 result += r'    <td class="value"><script type="math/tex">{0:.4f} \ \mathrm{{ {1!s} }}</script></td>'.format(solvation.entropy / 1000, 'kJ/mol/K')
-                result += '</tr>\n'
+            else:
+                result += r'    <td class="value">N/A</td>'
+            result += '</tr>\n'
 
             result += '</table>\n'
 

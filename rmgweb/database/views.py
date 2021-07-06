@@ -45,7 +45,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, LibraryReaction
 from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.reference import Article, Book
-from rmgpy.data.solvation import SoluteData, SolventData
+from rmgpy.data.solvation import SoluteData, SolventData, SolvationCorrection
 from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
@@ -487,7 +487,21 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
                 Kfactor = db.get_Kfactor(data, solvent_data, temp)
                 dGsolv = db.get_T_dep_solvation_energy(data, solvent_data, temp)
                 correction_temp = [Kfactor, dGsolv, temp]
-            correction = db.get_solvation_correction(data, solvent_data)
+            # get the available solvation corrections
+            abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
+                                      solvent_data.a_g, solvent_data.c_g]
+            mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
+                                    solvent_data.a_h, solvent_data.c_h]
+            dGsolv298 = None
+            dHsolv298 = None
+            dSsolv298 = None
+            if not any(param is None for param in abraham_parameter_list):
+                dGsolv298 = db.calc_g(data, solvent_data)
+            if not any(param is None for param in mintz_parameter_list):
+                dHsolv298 = db.calc_h(data, solvent_data)
+            if dGsolv298 is not None and dHsolv298 is not None:
+                dSsolv298 = db.calc_s(dGsolv298, dHsolv298)
+            correction = SolvationCorrection(enthalpy=dHsolv298, gibbs=dGsolv298, entropy=dSsolv298)
 
         solvation_data_list.append((
             entry,

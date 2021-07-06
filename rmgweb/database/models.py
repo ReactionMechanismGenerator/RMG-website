@@ -33,18 +33,19 @@ from django.db import models
 from rmgweb.database.tools import database
 
 
-def getSolventList():
+def get_solvent_list():
     """
     Return list of solvent molecules for initializing solvation search form.
-    If any of the Mintz parameters are None, that solvent is not shown in the list since it will cause error.
     """
     database.load('solvation', '')
     solvent_list = []
-    for index, entry in database.solvation.libraries['solvent'].entries.items():
+    for label, entry in database.solvation.libraries['solvent'].entries.items():
+        abraham_parameter_list = [entry.data.s_g, entry.data.b_g, entry.data.e_g, entry.data.l_g, entry.data.a_g,
+                                  entry.data.c_g]
         mintz_parameter_list = [entry.data.s_h, entry.data.b_h, entry.data.e_h, entry.data.l_h, entry.data.a_h,
                                 entry.data.c_h]
-        if not any(h is None for h in mintz_parameter_list):
-            solvent_list.append((entry.label, index))
+        if not any(param is None for param in abraham_parameter_list) or not any(param is None for param in mintz_parameter_list):
+            solvent_list.append((entry.label, f'{entry.index}. {label}'))
     return solvent_list
 
 def get_solvent_temp_list():
@@ -54,7 +55,7 @@ def get_solvent_temp_list():
     """
     database.load('solvation', '')
     solvent_temp_list = []
-    solvent_list = getSolventList()
+    solvent_list = get_solvent_list()
     for label, index in solvent_list:
         solvent_data = database.solvation.get_solvent_data(label)
         if solvent_data.name_in_coolprop != None:
@@ -62,7 +63,7 @@ def get_solvent_temp_list():
             solvent_temp_list.append((label, index + ": 280 K - " + str(Tc) + " K"))
     return solvent_temp_list
 
-solvent_list = getSolventList()
+solvent_list = get_solvent_list()
 solvent_temp_list = get_solvent_temp_list()
 
 class SolventSelection(models.Model):
