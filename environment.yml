@@ -4,10 +4,12 @@ channels:
   - rmg
   - rdkit
   - conda-forge
+  - fhvermei
 dependencies:
   - beautifulsoup4
   - cairo
   - cairocffi
+  - chemprop_solvation
   - coverage
   - cython >=0.25.2
   - docutils
