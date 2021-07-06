@@ -443,13 +443,21 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
     # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
     # obtain solvent data for solvent_temp and solvation data at the specified temperature
     solvent_data = None
-    solvent_data_info = None
+    solvent_label = None
     if solvent_temp != 'None':
         solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
-        solvent_data_info = (solvent_temp, solvent_data)
+        solvent_label = solvent_temp
     elif solvent != 'None':
         solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
-        solvent_data_info = (solvent, solvent_data)
+        solvent_label = solvent
+
+    solvent_data_info = None
+    if not solvent_label is None:
+        lib_index = database.solvation.libraries['solvent'].entries[solvent_label].index
+        solvent_href = reverse('database:solvation-entry',
+                               kwargs={'section': 'libraries', 'subsection': 'solvent',
+                                       'index': lib_index})
+        solvent_data_info = (solvent_label, solvent_data, solvent_href)
 
     # molecule = Molecule().from_adjacency_list(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
