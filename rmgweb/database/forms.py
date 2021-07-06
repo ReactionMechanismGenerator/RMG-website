@@ -243,6 +243,39 @@ class SolvationSearchForm(forms.ModelForm):
         return temp
 
 
+class SolventSearchForm(forms.ModelForm):
+    """
+    Form for searching for solvent data.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolventSelection
+        model = SolventSelection
+        fields = '__all__'
+        widgets = {'species_identifier': forms.TextInput(
+            attrs={'onchange': 'resolve("adjlist");', 'class': 'identifier', 'style': 'width:100%;'}
+            ),
+            'adjlist': forms.Textarea(attrs={'cols': 50, 'rows': 10}),
+        }
+
+    def clean_adjlist(self):
+        """
+        Custom validation for the adjlist field to ensure that a valid adjacency
+        list has been provided.
+        """
+        try:
+            adjlist = self.cleaned_data['adjlist']
+            if adjlist == '':
+                return ''
+            molecule = Molecule()
+            molecule.from_adjacency_list(adjlist)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('Invalid adjacency list.')
+        return adjlist
+
+
 class GroupDrawForm(forms.Form):
     """
     Form for drawing group from adjacency list

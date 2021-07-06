@@ -19,8 +19,10 @@
 
 
     <ol>
-        <li><a href ="{% url 'database:solvation-search' %}">Solvent Search</a>: search Abraham and Mintz solvent
-            parameters and other solvent-specific parameters (e.g. viscosity) by entering species identifiers.<P>
+        <li><a href ="{% url 'database:solvation-solventSearch' %}">Solvent Search</a>: search Abraham and Mintz solvent
+        parameters and other solvent-specific parameters (e.g. viscosity) from RMG-database by entering species
+        identifiers. Use this tool to check whether a solvent of your interest is available for RMG liquid
+        reactor simulation.<P>
         <li><a href ="{% url 'database:solvation-search' %}">Solute Parameter Search & Prediction (optional
         solvation free energy, enthalpy, and entropy prediction at 298 K using the LSER)</a>: search for Abraham
         solute parameters (E, S, A, B, L, V) from RMG-database or get the prediction from a group additivity model

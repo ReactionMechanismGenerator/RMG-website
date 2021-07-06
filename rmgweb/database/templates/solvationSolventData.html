@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load gravatar %}
+{% load render_solvation %}
+{% load databasefilters %}
+
+
+
+{% block title %}Solvation Data{% endblock %}
+
+{% block extrahead %}
+
+{% endblock %}
+<h2>3. <a href="{% url 'database:statmech' section='libraries' %}">Statmech Libraries</a></h2>
+{% block navbar_items %}
+<li><a href="{% url 'database:index' %}">Database</a></li>
+<li><a href="{% url 'database:solvation' %}">Solvation</a></li>
+<li><a href="{% url 'database:solvation' section='libraries' %}">Libraries</a></li>
+<li><a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}">Solvent Descriptors</a></li>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Solvent Data{% endblock %}
+
+{% block page_body %}
+
+<h2>Solvent Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+<br />
+
+{% if solventInfoList|length < 1 %}
+<h3>The given solvent is not found in the RMG solvent library.</h3>
+{% else %}
+{% for solventLabel, solventEntry, href in solventInfoList %}
+<h3>Result #{{ forloop.counter }} &ndash; <a href="{{ href }}">{{ solventEntry.index }}. {{ solventLabel }}</a></h3>
+{{ solventEntry.item|render_solvation_molecule }}
+<h4>Solvent Data</h4>
+<table class="solvationEntryData">
+{{ solventEntry|render_solvation_math:user }}
+</table>
+<P>
+
+</P>
+<br />
+{% endfor %}
+{% endif %}
+
+{% endblock %}

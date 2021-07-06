@@ -596,6 +596,42 @@ def parseSoluteDataComment(comment):
     return ref_dict, word_list
 
 
+
+def solvationSolventData(request, solvent_adjlist):
+    """
+    Returns an entry with the solvent data for a given molecule
+    when the solvent_adjlist is provided. If the given solvent
+    molecule is not available in the RMG-database, then nothing
+    is displayed.
+    """
+    # Load the solvation database if necessary
+    database.load('solvation')
+    db = database.get_solvation_database('', '')
+
+    molecule = moleculeFromURL(solvent_adjlist)
+    solvent = Species(molecule=[molecule])
+    solvent.generate_resonance_structures()
+
+    # obtain solvent data.
+    solvent_data_list = db.get_all_solvent_data(solvent)    # this gives a list of tuple (solvent_label, solvent_entry)
+    # get the href for each solvent
+    solvent_info_list = []
+    for solvent_label, solvent_entry in solvent_data_list:
+        lib_index = database.solvation.libraries['solvent'].entries[solvent_label].index
+        solvent_href = reverse('database:solvation-entry',
+                               kwargs={'section': 'libraries', 'subsection': 'solvent',
+                                       'index': lib_index})
+        solvent_info_list.append((solvent_label, solvent_entry, solvent_href))
+
+    # Get the structure of the item we are viewing
+    structure = getStructureInfo(molecule)
+
+    return render(request, 'solvationSolventData.html',
+                  {'molecule': molecule,
+                   'structure': structure,
+                   'solventInfoList': solvent_info_list})
+
+
 #################################################################################################################################################
 
 
@@ -2650,6 +2686,37 @@ def solvationSearch(request):
                 molecule = Molecule()
 
     return render(request, 'solvationSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
+
+
+def solvationSolventSearch(request):
+    """
+    Creates webpage form to display solvent data upon choosing a solvent species.
+    """
+    from rmgweb.database.forms import SolventSearchForm
+    form = SolventSearchForm()
+    structure_markup = ''
+    molecule = Molecule()
+    if request.method == 'POST':
+        posted = SolventSearchForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        form = SolventSearchForm(initial, error_class=DivErrorList)
+        if posted.is_valid():
+            adjlist = posted.cleaned_data['adjlist']
+            if adjlist != '':
+                molecule.from_adjacency_list(adjlist)
+                structure_markup = getStructureInfo(molecule)
+                solvent_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
+
+            if 'solventSearch' in request.POST:
+                return HttpResponseRedirect(reverse('database:solvation-solventData', kwargs={'solvent_adjlist': solvent_adjlist}))
+
+            if 'reset' in request.POST:
+                form = SolventSearchForm()
+                structure_markup = ''
+                molecule = Molecule()
+
+    return render(request, 'solvationSolventSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
 
 
 def groupDraw(request):
