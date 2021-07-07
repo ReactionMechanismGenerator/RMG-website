@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+{% load render_solvation %}
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-soluteSearch' %}">Solute and Solvation LSER Search</a></li>
+{% endblock %}
+
+{% block page_title %}Solute and Solvation LSER Search{% endblock %}
+
+{% block page_body %}
+
+{% if solventInfo %}
+<h3>Solvent Name: <a href="{{ solventInfo.2 }}">{{ solventInfo.3 }}. {{ solventInfo.0 }}</a></h3>
+{{ solventInfo.1|render_solvation_molecule:True }}
+{% endif %}
+
+{% if additionalInfoList %}
+<P><br></P>
+<h3>Additional information:</h3>
+{% for additionalInfo in additionalInfoList %}
+<p>{{ additionalInfo }}</p>
+{% endfor %}
+{% endif %}
+
+<P><br>
+{% autoescape off %}
+   {{ html_table }}
+{% endautoescape %}
+</P>
+
+
+{% endblock %}s

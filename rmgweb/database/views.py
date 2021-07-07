@@ -37,7 +37,10 @@ import re
 import shutil
 import subprocess
 import urllib
+import pandas as pd
 from functools import reduce
+
+from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 
 import rmgpy
 from rmgpy.data.base import Entry, LogicAnd, LogicNode, LogicOr
@@ -631,6 +634,183 @@ def solvationSolventData(request, solvent_adjlist):
                    'structure': structure,
                    'solventInfoList': solvent_info_list})
 
+
+def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'):
+    """
+    Returns a pandas data frame with solute parameter data for a given list of solute SMILES.
+    If a solvent is selected, solvation properties are also given.
+    """
+
+    solute_smiles_list = solute_smiles.split()
+
+    solute_data_results = {'Input SMILES': [],
+                           'Error': [],
+                           'E': [],
+                           'S': [],
+                           'A': [],
+                           'B': [],
+                           'L': [],
+                           'V': [],
+                           'Comment': []}
+
+    solute_data_list = []
+    solute_data_found_list = [] # a list of Boolean for whether the solute parameters E, S, A, B, L are all found. (not V)
+    additional_info_list = [] # a list of strings containing additional information to display in the result page
+
+    database.load('solvation')
+    db = database.get_solvation_database('', '')
+
+    # load the SoluteML estimator model if necessary. Add epistemic uncertainty columns for SoluteML model
+    if solute_estimator == 'SoluteML':
+        SoluteML_estimator = load_SoluteML_estimator()
+        for solute_param_name in ['E', 'S', 'A', 'B', 'L']:
+            solute_data_results[f'{solute_param_name} epi. unc.'] = []
+        additional_info_list.append('epi. unc.: epistemic uncertainty of the SoluteML model.')
+    elif solute_estimator == 'SoluteGC':
+        additional_info_list.append('Comment: functional groups used to estimate the solute parameters')
+
+    # get predictions for each given SMILES
+    for smiles in solute_smiles_list:
+        # initialize the parameter values
+        Error = '-'
+        Comment = '-'
+        solute_data = SoluteData()
+        try:
+            solute_spc = Species().from_smiles(smiles)
+            solute_spc.generate_resonance_structures()
+        except:
+            solute_spc = None
+            Error = 'Unable to parse the SMILES'
+        # Get predictions using the selected method
+        if solute_estimator == 'expt':
+            if solute_spc is not None:
+                data = db.get_solute_data_from_library(solute_spc, db.libraries['solute'])
+                if data is not None:
+                    solute_data = data[0]
+                    Comment = f'From RMG-database solute library: {data[2].index}. {data[2].label}'
+                else:
+                    Comment = 'Not found in RMG-database'
+        elif solute_estimator == 'SoluteGC':
+            if solute_spc is not None:
+                try:
+                    solute_data = db.get_solute_data(solute_spc, skip_library=True)
+                    Comment = solute_data.comment
+                except:
+                    Error = 'Unable to get the prediction from the SoluteGC method'
+        elif solute_estimator == 'SoluteML':
+            solute_epi_unc_dict = {}
+            try:
+                avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
+                solute_data.E = avg_pre[0][0]
+                solute_data.S = avg_pre[0][1]
+                solute_data.A = avg_pre[0][2]
+                solute_data.B = avg_pre[0][3]
+                solute_data.L = avg_pre[0][4]
+                Error = '-'
+                Comment = 'SoluteML prediction'
+                solute_epi_unc_dict['E epi. unc.'] = epi_unc[0][0]
+                solute_epi_unc_dict['S epi. unc.'] = epi_unc[0][1]
+                solute_epi_unc_dict['A epi. unc.'] = epi_unc[0][2]
+                solute_epi_unc_dict['B epi. unc.'] = epi_unc[0][3]
+                solute_epi_unc_dict['L epi. unc.'] = epi_unc[0][4]
+            except:
+                Error = 'Unable to parse the SMILES'
+            # get V value using RMG
+            if solute_spc is not None:
+                try:
+                    solute_data.set_mcgowan_volume(solute_spc)
+                except:
+                    pass
+            # add error message if V value could not be obtained
+            if solute_data.V is None and Error == '-':
+                Error = 'Unable to get V value'
+        else:
+            # unknown estimator is given
+            raise Http404
+
+        # append the results
+        solute_data_results['Input SMILES'].append(smiles)
+        solute_data_results['Error'].append(Error)
+        solute_data_results['Comment'].append(Comment)
+        solute_param_dict = {'E': solute_data.E, 'S': solute_data.S, 'A': solute_data.A, 'B': solute_data.B,
+                             'L': solute_data.L, 'V': solute_data.V}
+        found = True  # whether the solute parameters E, S, A, B, L are found. (not V)
+        for key, value in solute_param_dict.items():
+            if value is None:
+                value = '-'
+                if key != 'V':
+                    found = False
+            solute_data_results[key].append(value)
+            if solute_estimator == 'SoluteML' and key != 'V':
+                key_epi_unc = f'{key} epi. unc.'
+                if key_epi_unc in solute_epi_unc_dict:
+                    solute_data_results[key_epi_unc].append(solute_epi_unc_dict[key_epi_unc])
+                else:
+                    solute_data_results[key_epi_unc].append('-')
+
+        solute_data_list.append(solute_data)
+        solute_data_found_list.append(found)
+
+    # get the solvation properties if the input solvent was given
+    solvent_info = None
+    if solvent != 'None':
+        solute_data_results['dGsolv298(kJ/mol)'] = []  # solvation free energy
+        solute_data_results['dHsolv298(kJ/mol)'] = []  # solvation enthalpy
+        solute_data_results['dSsolv298(kJ/mol/K)'] = []  # solvation entropy
+
+        additional_info_list.append('dGsolv298: solvation free energy at 298 K.')
+        additional_info_list.append('dHsolv298: solvation enthalpy at 298 K.')
+        additional_info_list.append('dSsolv298: solvation entropy at 298 K.')
+
+        # get the solvent data and href
+        solvent_entry = database.solvation.libraries['solvent'].entries[solvent]
+        solvent_data = solvent_entry.data
+        solvent_item = solvent_entry.item
+        solvent_index = solvent_entry.index
+        solvent_href = reverse('database:solvation-entry',
+                               kwargs={'section': 'libraries', 'subsection': 'solvent',
+                                       'index': solvent_index})
+        solvent_info = (solvent, solvent_item, solvent_href, solvent_index)
+
+        # check whether we have all solvent parameters to calculate dGsolv and dHsolv
+        abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
+                                  solvent_data.a_g, solvent_data.c_g]
+        dGsolv_availble = not any(param is None for param in abraham_parameter_list)
+        mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
+                                solvent_data.a_h, solvent_data.c_h]
+        dHsolv_availble = not any(param is None for param in mintz_parameter_list)
+
+        for solute_data, solute_data_found in zip(solute_data_list, solute_data_found_list):
+            dGsolv298 = '-'
+            dHsolv298 = '-'
+            dSsolv298 = '-'
+            if solute_data_found:
+                if dGsolv_availble:
+                    dGsolv298 = db.calc_g(solute_data, solvent_data) / 1000  # convert to kJ/mol
+                else:
+                    dGsolv298 = 'not available'
+                if dHsolv_availble:
+                    dHsolv298 = db.calc_h(solute_data, solvent_data) / 1000  # convert to kJ/mol
+                else:
+                    dHsolv298 = 'not available'
+                if dGsolv_availble and dHsolv_availble:
+                    dSsolv298 = (dHsolv298 - dGsolv298) / 298  # already in kJ/mol/K
+                else:
+                    dSsolv298 = 'not available'
+            # append the results
+            solute_data_results['dGsolv298(kJ/mol)'].append(dGsolv298)
+            solute_data_results['dHsolv298(kJ/mol)'].append(dHsolv298)
+            solute_data_results['dSsolv298(kJ/mol/K)'].append(dSsolv298)
+
+    # convert the results to pandas data frame
+    df_results = pd.DataFrame(solute_data_results)
+    html_table = df_results.to_html(index=False)
+
+    return render(request, 'solvationSoluteData.html',
+                  {'html_table': html_table,
+                   'solventInfo': solvent_info,
+                   'additionalInfoList': additional_info_list},
+                  )
 
 #################################################################################################################################################
 
@@ -2717,6 +2897,38 @@ def solvationSolventSearch(request):
                 molecule = Molecule()
 
     return render(request, 'solvationSolventSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
+
+
+def solvationSoluteSearch(request):
+    """
+    Creates webpage form to display solute data upon choosing a solute species.
+    Optionally display solvation data calculated using the LSER if a solvent species is chosen.
+    """
+    from rmgweb.database.forms import SoluteSearchForm
+    form = SoluteSearchForm()
+    if request.method == 'POST':
+        posted = SoluteSearchForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        form = SoluteSearchForm(initial, error_class=DivErrorList)
+
+        print(posted.errors)
+        if posted.is_valid():
+            solute_smiles = posted.cleaned_data['solute_smiles']
+            solute_estimator = posted.cleaned_data['solute_estimator']
+            solvent = posted.cleaned_data['solvent']
+            if solvent == '':
+                solvent = 'None'
+
+            if 'submit' in request.POST:
+                return HttpResponseRedirect(reverse('database:solvation-soluteData',
+                                                    kwargs={'solute_smiles': solute_smiles,
+                                                            'solute_estimator': solute_estimator,
+                                                            'solvent': solvent}))
+
+            if 'reset' in request.POST:
+                form = SoluteSearchForm()
+    return render(request, 'solvationSoluteSearch.html', {'form': form})
 
 
 def groupDraw(request):

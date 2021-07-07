@@ -23,12 +23,12 @@
         parameters and other solvent-specific parameters (e.g. viscosity) from RMG-database by entering species
         identifiers. Use this tool to check whether a solvent of your interest is available for RMG liquid
         reactor simulation.<P>
-        <li><a href ="{% url 'database:solvation-search' %}">Solute Parameter Search & Prediction (optional
-        solvation free energy, enthalpy, and entropy prediction at 298 K using the LSER)</a>: search for Abraham
+        <li><a href ="{% url 'database:solvation-soluteSearch' %}">Solute Parameter Search & Prediction (optional
+        solvation free energy, enthalpy, and entropy prediction using the LSER)</a>: search for Abraham
         solute parameters (E, S, A, B, L, V) from RMG-database or get the prediction from a group additivity model
-        (SoluteGC) or a machine learning model (SoluteML) by entering species identifiers. Optionally, get solvation
+        (SoluteGC) and a machine learning model (SoluteML) by entering a solute SMILES(s). Optionally, get solvation
         free energy, enthalpy, and entropy prediction at 298 K from the solute and solvent parameters using the
-        LSER (Linear Solvation Energy Relationship).<P>
+        LSER (Linear Solvation Energy Relationship) approach.<P>
         <li><a href ="{% url 'database:solvation-search' %}">Solvation Free Energy, Enthalpy, and Entropy Prediction at 298 K
         Using a Machine Learning Model</a>:
         get solvation free energy, enthalpy, and entropy prediction at 298 K from a machine learning model (DirectML)

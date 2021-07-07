@@ -65,6 +65,9 @@ def get_solvent_temp_list():
 
 solvent_list = get_solvent_list()
 solvent_temp_list = get_solvent_temp_list()
+solute_estimator_method_list = [('expt', 'Experimental (RMG-database)'),
+                                ('SoluteGC', 'Group Contribution Prediction (SoluteGC)'),
+                                ('SoluteML', 'Machine Learning Prediction (SoluteML)')]
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):
@@ -75,3 +78,13 @@ class SolventSelection(models.Model):
     solvent = models.CharField(verbose_name="Solvent (Optional)", choices=solvent_list, max_length=200, blank=True)
     solvent_temp = models.CharField(verbose_name="Solvent", choices=solvent_temp_list, max_length=200, blank=True)
     temp = models.FloatField(default=298.0, verbose_name='Temperature in K (Optional)', blank=True)
+
+
+class SoluteSearch(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(SoluteSearch, self).__init__(*args, **kwargs)
+
+    solute_smiles = models.TextField(verbose_name="Solute SMILES(s)", null=True)
+    solute_estimator = models.CharField(verbose_name="Solute Parameter Search Method",
+                                        choices=solute_estimator_method_list, max_length=200, blank=True)
+    solvent = models.CharField(verbose_name="Solvent (Optional)", choices=solvent_list, max_length=200, blank=True)

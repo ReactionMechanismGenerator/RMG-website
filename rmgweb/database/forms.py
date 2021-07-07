@@ -243,6 +243,46 @@ class SolvationSearchForm(forms.ModelForm):
         return temp
 
 
+class SoluteSearchForm(forms.ModelForm):
+    """
+    Form for searching for the Abraham solute parameters for a solute species and optionally search for
+    solvation properties if a solvent species is also chosen.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SoluteSearch
+        model = SoluteSearch
+        fields = '__all__'
+        widgets = {'solute_smiles': forms.Textarea(attrs={'cols': 50, 'rows': 10,
+                                                            'placeholder': "CCCC CCO C1=CC=CC=C1 ..."}),
+        }
+
+    def clean_solute_smiles(self):
+        """
+        Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
+        does not exceed 100.
+        """
+        solute_smiles = self.cleaned_data['solute_smiles']
+        solute_smiles_list = solute_smiles.split()
+        if len(solute_smiles_list) > 100:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of input solute SMILESs cannot exceed 100.')
+        return solute_smiles
+
+    def clean_solute_estimator(self):
+        """
+        Custom validation for the solute_estimator field to ensure that the user select a method for solute parameter
+        estimation.
+        """
+        solute_estimator = self.cleaned_data['solute_estimator']
+        if solute_estimator == '':
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('You must select an estimation method for the solute parameters.')
+        return solute_estimator
+
+
 class SolventSearchForm(forms.ModelForm):
     """
     Form for searching for solvent data.
