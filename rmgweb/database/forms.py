@@ -243,6 +243,52 @@ class SolvationSearchForm(forms.ModelForm):
         return temp
 
 
+class SolvationSearchMLForm(forms.ModelForm):
+    """
+    Form for searching for the solvation properties for a given solvent-solute pair(s) using an ML model.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolvationSearchML
+        model = SolvationSearchML
+        fields = '__all__'
+        widgets = {'solvent_solute_smiles': forms.Textarea(attrs={'cols': 80, 'rows': 10,
+                                                            'placeholder': "solventSMILES_soluteSMILES \n"
+                                                                           "CC#N_CCCC \nO_CCO \nO_C1=CC=CC=C1 ..."}),
+        }
+
+    def clean_solvent_solute_smiles(self):
+        """
+        Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
+        does not exceed 100.
+        """
+        solvent_solute_smiles = self.cleaned_data['solvent_solute_smiles']
+        solvent_solute_smiles_list = solvent_solute_smiles.split()
+        if len(solvent_solute_smiles_list) > 200:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of input solvent-solute pairs cannot exceed 200.')
+        return solvent_solute_smiles
+
+    def clean_option_selected(self):
+        """
+        Custom validation for the option_selected to ensure at least one calculation option is selected.
+        """
+        calc_dGsolv = self.cleaned_data['calc_dGsolv']
+        calc_dHsolv = self.cleaned_data['calc_dHsolv']
+        calc_dSsolv = self.cleaned_data['calc_dSsolv']
+        calc_logK = self.cleaned_data['calc_logK']
+        calc_logP = self.cleaned_data['calc_logP']
+
+        option_selected = any([calc_dGsolv, calc_dHsolv, calc_dSsolv, calc_logK, calc_logP])
+
+        if option_selected is False:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('At least one option must be selected.')
+        return option_selected
+
+
 class SoluteSearchForm(forms.ModelForm):
     """
     Form for searching for the Abraham solute parameters for a solute species and optionally search for

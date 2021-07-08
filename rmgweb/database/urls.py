@@ -69,10 +69,15 @@ urlpatterns = [
     re_path(r'^solvation/$', views.solvation, name='solvation'),
     re_path(r'^solvation/index/$', views.solvationIndex, name='solvation-index'),
     re_path(r'^solvation/search/$', views.solvationSearch, name='solvation-search'),
+    re_path(r'^solvation/searchML/$', views.solvationSearchML, name='solvation-searchML'),
     re_path(r'^solvation/solventSearch/$', views.solvationSolventSearch, name='solvation-solventSearch'),
     re_path(r'^solvation/soluteSearch/$', views.solvationSoluteSearch, name='solvation-soluteSearch'),
     re_path(r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)__'
             r'solventTemp=(?P<solvent_temp>[\S\s]+)__temp=(?P<temp>\d+\.\d+)$', views.solvationData, name='solvation-data'),
+    re_path(r'^solvation/results/solvent_solute=(?P<solvent_solute_smiles>[\S\s]+)__dGsolv=(?P<calc_dGsolv>[\S\s]+)__'
+            r'dHsolv=(?P<calc_dHsolv>[\S\s]+)__dSsolv=(?P<calc_dSsolv>[\S\s]+)__logK=(?P<calc_logK>[\S\s]+)__'
+            r'logP=(?P<calc_logP>[\S\s]+)__energyUnit=(?P<energy_unit>[\S\s]+)$',
+            views.solvationDataML, name='solvation-dataML'),
     re_path(r'^solvation/results/solvent=(?P<solvent_adjlist>[\S\s]+)$', views.solvationSolventData, name='solvation-solventData'),
     re_path(r'^solvation/results/solute=(?P<solute_smiles>[\S\s]+)__soluteEstimator=(?P<solute_estimator>[\S\s]+)__'
             r'solvent=(?P<solvent>[\S\s]+)$', views.solvationSoluteData, name='solvation-soluteData'),

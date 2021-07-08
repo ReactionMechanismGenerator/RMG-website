@@ -68,6 +68,8 @@ solvent_temp_list = get_solvent_temp_list()
 solute_estimator_method_list = [('expt', 'Experimental (RMG-database)'),
                                 ('SoluteGC', 'Group Contribution Prediction (SoluteGC)'),
                                 ('SoluteML', 'Machine Learning Prediction (SoluteML)')]
+energy_unit_list = [('kcal/mol', 'kcal/mol'),
+                    ('kJ/mol', 'kJ/mol')]
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):
@@ -88,3 +90,18 @@ class SoluteSearch(models.Model):
     solute_estimator = models.CharField(verbose_name="Solute Parameter Search Method",
                                         choices=solute_estimator_method_list, max_length=200, blank=True)
     solvent = models.CharField(verbose_name="Solvent (Optional)", choices=solvent_list, max_length=200, blank=True)
+
+
+class SolvationSearchML(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(SolvationSearchML, self).__init__(*args, **kwargs)
+
+    solvent_solute_smiles = models.TextField(verbose_name="Solvent_Solute SMILES(s)", null=True)
+    calc_dGsolv = models.BooleanField(default=False, verbose_name='dGsolv')
+    calc_dHsolv = models.BooleanField(default=False, verbose_name='dHsolv')
+    calc_dSsolv = models.BooleanField(default=False, verbose_name='dSsolv')
+    calc_logK = models.BooleanField(default=False, verbose_name='logK')
+    calc_logP = models.BooleanField(default=False, verbose_name='logP')
+    option_selected = models.BooleanField(default=False, verbose_name='at least one option selected')
+    energy_unit = models.CharField(verbose_name="Preferred unit", choices=energy_unit_list, max_length=200, blank=False,
+                                   default='kcal/mol')

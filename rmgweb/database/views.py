@@ -546,6 +546,159 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
                    'word_list': word_list})
 
 
+def solvationDataML(request, solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_dSsolv,
+                    calc_logK, calc_logP, energy_unit):
+    """
+    Returns a pandas data frame with solvation property data for a given list of solvent-solute SMILES.
+    """
+
+    solvent_solute_smiles_list = solvent_solute_smiles.split()
+
+    # convert the string booleans to actual booleans for convenience
+    calc_dGsolv = calc_dGsolv=='True'
+    calc_dHsolv = calc_dHsolv == 'True'
+    calc_dSsolv = calc_dSsolv == 'True'
+    calc_logK = calc_logK == 'True'
+    calc_logP = calc_logP == 'True'
+
+    dGsolv_required = any([calc_dGsolv, calc_dSsolv, calc_logK, calc_logP]) # whether or not dGsolv calculation is needed
+    dHsolv_requied = any([calc_dHsolv, calc_dSsolv]) # whether or not dHsolv calculation is needed
+
+    # load the needed ML estimators. Loading takes a few seconds
+    if dGsolv_required:
+        dGsolv_estimator = load_DirectML_Gsolv_estimator()
+    if dHsolv_requied:
+        dHsolv_estimator = load_DirectML_Hsolv_estimator()
+
+    solvation_data_results = {'Input': [],
+                              'solvent SMILES': [],
+                              'solute SMILES': [],
+                              'Error': [],
+                              f'dGsolv298({energy_unit})': [],
+                              f'dHsolv298({energy_unit})': [],
+                              f'dSsolv298({energy_unit}/K)': [],
+                              'logK': [],
+                              'logP': [],
+                              f'dGsolv298 epi.unc.({energy_unit})': [],
+                              f'dHsolv298 epi.unc.({energy_unit})': [],
+                              }
+
+    # get predictions for each given solvent_solute SMILES
+    for solvent_solute in solvent_solute_smiles_list:
+        # initialization
+        solvent_smiles = '-'
+        solute_smiles = '-'
+        Error = '-'
+        dGsolv298 = '-'
+        dGsolv298_epi_unc = '-'
+        dHsolv298 = '-'
+        dHsolv298_epi_unc = '-'
+        dSsolv298 = '-'
+        logK = '-'
+        logP = '-'
+
+        pair_list = solvent_solute.split('_')
+        if not len(pair_list) == 2:
+            Error = 'Unable to process the input'
+        else:
+            solvent_smiles = pair_list[0]
+            solute_smiles = pair_list[1]
+            pair_smiles = [[solvent_smiles, solute_smiles]]
+            if dGsolv_required:
+                try:
+                    avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles) # default is in kcal/mol
+                    dGsolv298 = avg_pre[0]
+                    dGsolv298_epi_unc = epi_unc[0]
+                except:
+                    Error = 'Unable to parse the SMILES'
+            if dHsolv_requied:
+                try:
+                    avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles) # default is in kcal/mol
+                    dHsolv298 = avg_pre[0]
+                    dHsolv298_epi_unc = epi_unc[0]
+                except:
+                    Error = 'Unable to parse the SMILES'
+            if calc_dSsolv and dGsolv298 != '-' and dHsolv298 != '-':
+                dSsolv298 = (dHsolv298 - dGsolv298) / 298 # default is in kcal/mol/K
+            if calc_logK and dGsolv298 != '-':
+                logK = -dGsolv298*4184 / (math.log(10)*8.314472*298) # 4184 is a conversion factor for kcal/mol -> J/mol
+                logK = "{:.2f}".format(logK)  # round to 2 decimal places
+            if calc_logP and dGsolv298 != '-':
+                if solvent_smiles == 'O':
+                    logP = 0
+                else:
+                    try:
+                        avg_pre, epi_unc, valid_indices = dGsolv_estimator([['O', solute_smiles]])
+                        dGsolv298_water = avg_pre[0]
+                        logP = -(dGsolv298 - dGsolv298_water)*4184 / (math.log(10)*8.314472*298)
+                        logP = "{:.2f}".format(logP)  # round to 2 decimal places
+                    except:
+                        # this error is very unlikely to happen if dGsolv298 is already calculated, but it's added
+                        # as a safety net,
+                        Error = 'Unable to parse the SMILES'
+
+        # Round all values to appropriate decimal places. Convert the energy unit if needed.
+        if dGsolv298 != '-':
+            if energy_unit == 'kJ/mol':
+                dGsolv298 = dGsolv298 * 4.184
+                dGsolv298_epi_unc = dGsolv298_epi_unc * 4.184
+            dGsolv298 = "{:.2f}".format(dGsolv298)  # round to 2 decimal places
+            dGsolv298_epi_unc = "{:.2f}".format(dGsolv298_epi_unc)  # round to 3 decimal places
+        if dHsolv298 != '-':
+            if energy_unit == 'kJ/mol':
+                dHsolv298 = dHsolv298 * 4.184
+                dHsolv298_epi_unc = dHsolv298_epi_unc * 4.184
+            dHsolv298 = "{:.2f}".format(dHsolv298)  # round to 2 decimal places
+            dHsolv298_epi_unc = "{:.2f}".format(dHsolv298_epi_unc)  # round to 2 decimal places
+        if dSsolv298 != '-':
+            if energy_unit == 'kJ/mol':
+                dSsolv298 = dSsolv298 * 4.184
+            dSsolv298 = "{:.5f}".format(dSsolv298)  # round to 5 decimal places for solvation entropy
+
+        # append the results
+        solvation_data_results['Input'].append(solvent_solute)
+        solvation_data_results['solvent SMILES'].append(solvent_smiles)
+        solvation_data_results['solute SMILES'].append(solute_smiles)
+        solvation_data_results['Error'].append(Error)
+        solvation_data_results[f'dGsolv298({energy_unit})'].append(dGsolv298)
+        solvation_data_results[f'dHsolv298({energy_unit})'].append(dHsolv298)
+        solvation_data_results[f'dSsolv298({energy_unit}/K)'].append(dSsolv298)
+        solvation_data_results['logK'].append(logK)
+        solvation_data_results['logP'].append(logP)
+        solvation_data_results[f'dGsolv298 epi.unc.({energy_unit})'].append(dGsolv298_epi_unc)
+        solvation_data_results[f'dHsolv298 epi.unc.({energy_unit})'].append(dHsolv298_epi_unc)
+
+
+    # convert the results to pandas data frame
+    df_results = pd.DataFrame(solvation_data_results)
+
+    # add explanation about epistemic error if needed.
+    additional_info_list = []
+    if calc_dGsolv or calc_dHsolv:
+        additional_info_list += ['epi. unc.: epistemic uncertainty of the DirectML model.']
+
+    # drop unncessary columns.
+    drop_column_list = []
+    if calc_dGsolv is False:
+        drop_column_list += [f'dGsolv298({energy_unit})', f'dGsolv298 epi.unc.({energy_unit})']
+    if calc_dHsolv is False:
+        drop_column_list += [f'dHsolv298({energy_unit})', f'dHsolv298 epi.unc.({energy_unit})']
+    if calc_dSsolv is False:
+        drop_column_list += [f'dSsolv298({energy_unit}/K)']
+    if calc_logK is False:
+        drop_column_list += ['logK']
+    if calc_logP is False:
+        drop_column_list += ['logP']
+
+    df_results = df_results.drop(columns=drop_column_list)
+    html_table = df_results.to_html(index=False)
+
+    return render(request, 'solvationDataML.html',
+                  {'html_table': html_table,
+                   'additionalInfoList': additional_info_list},
+                  )
+
+
 def parseSoluteDataComment(comment):
     """
     Takes a SoluteData comment (or any string) as input. Returns a dictionary whose keys
@@ -2866,6 +3019,43 @@ def solvationSearch(request):
                 molecule = Molecule()
 
     return render(request, 'solvationSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
+
+
+def solvationSearchML(request):
+    """
+    Creates webpage form to display solvation data upon choosing a solvent and a solute using a machine learning model.
+    """
+    from rmgweb.database.forms import SolvationSearchMLForm
+    form = SolvationSearchMLForm()
+
+    if request.method == 'POST':
+        posted = SolvationSearchMLForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        form = SolvationSearchMLForm(initial, error_class=DivErrorList)
+        if posted.is_valid():
+            solvent_solute_smiles = posted.cleaned_data['solvent_solute_smiles']
+            calc_dGsolv = posted.cleaned_data['calc_dGsolv']
+            calc_dHsolv = posted.cleaned_data['calc_dHsolv']
+            calc_dSsolv = posted.cleaned_data['calc_dSsolv']
+            calc_logK = posted.cleaned_data['calc_logK']
+            calc_logP = posted.cleaned_data['calc_logP']
+            energy_unit = posted.cleaned_data['energy_unit']
+
+            if 'submit' in request.POST:
+                return HttpResponseRedirect(reverse('database:solvation-dataML',
+                                                    kwargs={'solvent_solute_smiles': solvent_solute_smiles,
+                                                            'calc_dGsolv': calc_dGsolv,
+                                                            'calc_dHsolv': calc_dHsolv,
+                                                            'calc_dSsolv': calc_dSsolv,
+                                                            'calc_logK': calc_logK,
+                                                            'calc_logP': calc_logP,
+                                                            'energy_unit': energy_unit}))
+
+            if 'reset' in request.POST:
+                form = SolvationSearchMLForm()
+
+    return render(request, 'solvationSearchML.html', {'form': form})
 
 
 def solvationSolventSearch(request):
