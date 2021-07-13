@@ -82,7 +82,8 @@ urlpatterns = [
             views.solvationDataTempDep, name='solvation-dataTempDep'),
     re_path(r'^solvation/results/solvent=(?P<solvent_adjlist>[\S\s]+)$', views.solvationSolventData, name='solvation-solventData'),
     re_path(r'^solvation/results/solute=(?P<solute_smiles>[\S\s]+)__soluteEstimator=(?P<solute_estimator>[\S\s]+)__'
-            r'solvent=(?P<solvent>[\S\s]+)$', views.solvationSoluteData, name='solvation-soluteData'),
+            r'solvent=(?P<solvent>[\S\s]+)__energyUnit=(?P<energy_unit>[\S\s]+)$',
+            views.solvationSoluteData, name='solvation-soluteData'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry, name='solvation-entry'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation, name='solvation'),
     re_path(r'^solvation/(?P<section>\w+)/$', views.solvation, name='solvation'),

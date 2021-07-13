@@ -94,6 +94,8 @@ class SoluteSearch(models.Model):
     solute_estimator = models.CharField(verbose_name="Solute Parameter Search Method",
                                         choices=solute_estimator_method_list, max_length=200, blank=True)
     solvent = models.CharField(verbose_name="Solvent (Optional)", choices=solvent_list, max_length=200, blank=True)
+    energy_unit = models.CharField(verbose_name="Preferred unit", choices=energy_unit_list, max_length=200, blank=False,
+                                   default='kcal/mol')
 
 
 class SolvationSearchML(models.Model):

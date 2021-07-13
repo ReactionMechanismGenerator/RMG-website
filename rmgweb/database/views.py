@@ -1041,7 +1041,7 @@ def solvationSolventData(request, solvent_adjlist):
                    'solventInfoList': solvent_info_list})
 
 
-def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'):
+def solvationSoluteData(request, solute_smiles, solute_estimator, solvent, energy_unit):
     """
     Returns a pandas data frame with solute parameter data for a given list of solute SMILES.
     If a solvent is selected, solvation properties are also given.
@@ -1060,8 +1060,8 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'
                            'Comment': []}
 
     solute_data_list = []
-    solute_data_found_list = [] # a list of Boolean for whether the solute parameters E, S, A, B, L are all found. (not V)
-    additional_info_list = [] # a list of strings containing additional information to display in the result page
+    solute_data_found_list = []  # a list of Boolean for whether the solute parameters E, S, A, B, L are all found. (not V)
+    additional_info_list = []  # a list of strings containing additional information to display in the result page
 
     database.load('solvation')
     db = database.get_solvation_database('', '')
@@ -1145,12 +1145,24 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'
             if value is None:
                 value = '-'
                 if key != 'V':
-                    found = False
+                    found = False # if any of the solute parameters, E, S, A, B, L are not found, set this to False
+            else:
+                # rounding is not needed for experimental values from RMG-database
+                if solute_estimator != 'expt':
+                    if abs(value) < 1000:
+                        value = "{:.4f}".format(value)  # round to 4 decimal places
+                    else:
+                        value = "{:.2e}".format(value)  # display in scientific notation if the value is big
             solute_data_results[key].append(value)
             if solute_estimator == 'SoluteML' and key != 'V':
                 key_epi_unc = f'{key} epi. unc.'
                 if key_epi_unc in solute_epi_unc_dict:
-                    solute_data_results[key_epi_unc].append(solute_epi_unc_dict[key_epi_unc])
+                    epi_unc_value = solute_epi_unc_dict[key_epi_unc]
+                    if abs(epi_unc_value) < 1000:
+                        epi_unc_value = "{:.4f}".format(epi_unc_value)  # round to 4 decimal places
+                    else:
+                        epi_unc_value = "{:.2e}".format(epi_unc_value)  # display in scientific notation if the value is big
+                    solute_data_results[key_epi_unc].append(epi_unc_value)
                 else:
                     solute_data_results[key_epi_unc].append('-')
 
@@ -1160,9 +1172,9 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'
     # get the solvation properties if the input solvent was given
     solvent_info = None
     if solvent != 'None':
-        solute_data_results['dGsolv298(kJ/mol)'] = []  # solvation free energy
-        solute_data_results['dHsolv298(kJ/mol)'] = []  # solvation enthalpy
-        solute_data_results['dSsolv298(kJ/mol/K)'] = []  # solvation entropy
+        solute_data_results[f'dGsolv298({energy_unit})'] = []  # solvation free energy
+        solute_data_results[f'dHsolv298({energy_unit})'] = []  # solvation enthalpy
+        solute_data_results[f'dSsolv298({energy_unit}/K'] = []  # solvation entropy
 
         additional_info_list.append('dGsolv298: solvation free energy at 298 K.')
         additional_info_list.append('dHsolv298: solvation enthalpy at 298 K.')
@@ -1192,21 +1204,43 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent='None'
             dSsolv298 = '-'
             if solute_data_found:
                 if dGsolv_availble:
-                    dGsolv298 = db.calc_g(solute_data, solvent_data) / 1000  # convert to kJ/mol
+                    dGsolv298 = db.calc_g(solute_data, solvent_data) / 4184  # convert to kcal/mol
+                    if energy_unit == 'kJ/mol':
+                        dGsolv298 = dGsolv298 * 4.184  # convert to kJ/mol
                 else:
                     dGsolv298 = 'not available'
                 if dHsolv_availble:
-                    dHsolv298 = db.calc_h(solute_data, solvent_data) / 1000  # convert to kJ/mol
+                    dHsolv298 = db.calc_h(solute_data, solvent_data) / 4184  # convert to kJ/mol
+                    if energy_unit == 'kJ/mol':
+                        dHsolv298 = dHsolv298 * 4.184  # convert to kJ/mol
                 else:
                     dHsolv298 = 'not available'
                 if dGsolv_availble and dHsolv_availble:
-                    dSsolv298 = (dHsolv298 - dGsolv298) / 298  # already in kJ/mol/K
+                    dSsolv298 = (dHsolv298 - dGsolv298) / 298  # has the unit of dGsolv298 divided by Kelvin
+                    if abs(dSsolv298) < 1000:
+                        dSsolv298 = "{:.5f}".format(dSsolv298)  # round to 5 decimal places
+                    else:
+                        dSsolv298 = "{:.2e}".format(dSsolv298)  # display in scientific notation if the value is big
                 else:
                     dSsolv298 = 'not available'
+
+                # round the dGsolv298 and dHsolv298 values to appropriate decimal places after they are used
+                # for dSsolv298 calculation.
+                if dGsolv_availble:
+                    if abs(dGsolv298) < 1000:
+                        dGsolv298 = "{:.2f}".format(dGsolv298)  # round to 2 decimal places
+                    else:
+                        dGsolv298 = "{:.2e}".format(dGsolv298)  # display in scientific notation if the value is big
+                if dHsolv_availble:
+                    if abs(dHsolv298) < 1000:
+                        dHsolv298 = "{:.2f}".format(dHsolv298)  # round to 2 decimal places
+                    else:
+                        dHsolv298 = "{:.2e}".format(dHsolv298)  # display in scientific notation if the value is big
+
             # append the results
-            solute_data_results['dGsolv298(kJ/mol)'].append(dGsolv298)
-            solute_data_results['dHsolv298(kJ/mol)'].append(dHsolv298)
-            solute_data_results['dSsolv298(kJ/mol/K)'].append(dSsolv298)
+            solute_data_results[f'dGsolv298({energy_unit})'].append(dGsolv298)
+            solute_data_results[f'dHsolv298({energy_unit})'].append(dHsolv298)
+            solute_data_results[f'dSsolv298({energy_unit}/K'].append(dSsolv298)
 
     # convert the results to pandas data frame
     df_results = pd.DataFrame(solute_data_results)
@@ -3412,6 +3446,7 @@ def solvationSoluteSearch(request):
             solute_smiles = posted.cleaned_data['solute_smiles']
             solute_estimator = posted.cleaned_data['solute_estimator']
             solvent = posted.cleaned_data['solvent']
+            energy_unit = posted.cleaned_data['energy_unit']
             if solvent == '':
                 solvent = 'None'
 
@@ -3419,7 +3454,8 @@ def solvationSoluteSearch(request):
                 return HttpResponseRedirect(reverse('database:solvation-soluteData',
                                                     kwargs={'solute_smiles': solute_smiles,
                                                             'solute_estimator': solute_estimator,
-                                                            'solvent': solvent}))
+                                                            'solvent': solvent,
+                                                            'energy_unit': energy_unit}))
 
             if 'reset' in request.POST:
                 form = SoluteSearchForm()
