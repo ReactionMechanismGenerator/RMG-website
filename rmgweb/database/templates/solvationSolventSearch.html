@@ -57,6 +57,7 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
 <li><a href="{% url 'database:solvation-solventSearch' %}">Solvent Search</a></li>
 {% endblock %}
 

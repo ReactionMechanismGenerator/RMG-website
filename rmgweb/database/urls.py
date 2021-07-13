@@ -67,7 +67,7 @@ urlpatterns = [
 
     # solvation database
     re_path(r'^solvation/$', views.solvation, name='solvation'),
-    re_path(r'^solvation/index/$', views.solvationIndex, name='solvation-index'),
+    re_path(r'^solvation/search/$', views.solvationIndex, name='solvation-search'),
     re_path(r'^solvation/searchML/$', views.solvationSearchML, name='solvation-searchML'),
     re_path(r'^solvation/searchTempDep/$', views.solvationSearchTempDep, name='solvation-searchTempDep'),
     re_path(r'^solvation/solventSearch/$', views.solvationSolventSearch, name='solvation-solventSearch'),
