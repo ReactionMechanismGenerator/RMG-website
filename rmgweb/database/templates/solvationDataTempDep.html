@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+{% load render_solvation %}
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-searchTempDep' %}">Temperature-Dependent Solvation Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Temperature-Dependent Solvation Prediction{% endblock %}
+
+{% block page_body %}
+
+<P><br>
+{% autoescape off %}
+   {{ html_table }}
+{% endautoescape %}
+</P>
+
+
+
+{% endblock %}s

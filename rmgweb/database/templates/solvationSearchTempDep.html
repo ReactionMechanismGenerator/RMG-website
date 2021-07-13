@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-searchTempDep' %}">Temperature-Dependent Solvation Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Temperature-Dependent Solvation Prediction{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to get temperature-dependent solvation free energy prediction for a
+  solvent-solute pair of your interest.
+  Currently, we only support prediction for electrically neutral solute
+  compounds containing H, C, N, O, S, P, F, Cl, Br, and I and selected solvents listed below.
+  Solvation free energy is calculated using the standard state of an ideal gas at a concentration of 1 mol/L
+  dissolving as an ideal solution at a concentration of 1 mol/L.
+</p>
+
+<p>
+Our method predicts temperature-dependent solvation free energy based on solvation free energy and enthalpy
+  values at 298 K and a solvent's temperature-dependent density. The prediction is made along the solvent's saturation
+  curve and thus independent of pressure. The solvation free energy and enthalpy at 298 K are predicted from
+  the <a href="{% url 'database:solvation-searchML' %}">DirectML model</a> and temperature-dependent solvent densities
+  are obtained from <a href="http://www.coolprop.org/">CoolProp</a>.
+  Details on our methods can be found in the publication shown below or in the documentation
+  <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html#estimation-of-delta-g-rm-solv-at-other-temperatures-temperature-dependent-model">
+   here</a>.
+  Please cite all of our work listed below if you wish to use any results.
+<ul>
+  <li><b>T-dependent Method</b>: Chung, Y, Gillis, RJ, Green, WH. Temperature‐dependent vapor–liquid equilibria and
+    solvation free energy estimation from minimal data. <i>AIChE J</i>. 2020; 66:e16976.
+    <a href="https://aiche.onlinelibrary.wiley.com/doi/abs/10.1002/aic.16976">Link</a> </li>
+  <li><b>DirectML Model</b>: Chung, Y, Vermeire, FH, Wu, H, Walker, PJ, Abraham, MH, Green, WH. Group contribution and machine learning
+   approaches to predict Abraham solute parameters, solvation free energy, and solvation enthalpy.
+   <i>Manuscript in Preparation</i>. 2021.</li>
+</ul>
+</p>
+
+<p>
+  In addition to solvation free energy, K-factor at infinite dilution (<span class="math notranslate nohighlight">\(K_{i}^{\infty}\)</span>),
+    Henry's law constant (<span class="math notranslate nohighlight">\(k_{\rm H}\)</span>), and
+    partition coefficients (log<script type="math/tex">K</script> and dry log<script type="math/tex">P</script>) are
+    calculable for any temperature of interest.
+    K-factor is defined as the ratio of the mole fraction of a solute in a vapor phase
+    (<span class="math notranslate nohighlight">\(y_{i}\)</span>)
+    to the mole fraction of a solute in a liquid phase (<span class="math notranslate nohighlight">\(x_{i}\)</span>)
+    and is also known as the vapor-liquid equilibrium ratio.
+    Henry's law constant is defined as the ratio of the partial pressure of a solute in a gas phase
+    (<span class="math notranslate nohighlight">\(P_{i}\)</span>) to the mole fraction
+    of a solute in a liquid phase.
+</p>
+<div class="math notranslate nohighlight" id="equation-abmodeleqn">
+    \[K_{i}^{\infty} = \frac{y_{i}}{x_{i}}, \quad \quad k_{\rm H} = \frac{P_{i}}{x_{i}} \]</div>
+<p>
+    Details on partition coefficients, log<script type="math/tex">K</script> and dry log<script type="math/tex">P</script>,
+    can be found <a href="{% url 'database:solvation-searchML' %}">here</a>.
+</p>
+
+<p>
+  Currently, the temperature-dependent solvation free energy prediction is limited to the following solvents
+    up to their critical temperatures shown in parentheses. Click each solvent to view its molecular structure
+    and SMILES.
+</p>
+
+<style>
+ul.multicolumn {
+    -webkit-column-count: 3;
+    -moz-column-count: 3;
+    column-count: 3;
+}
+</style>
+
+<div>
+<ul class="multicolumn">
+{% for label, solvent_href, entry.item, Tc in solvent_info_list %}
+<li><a href="{{ solvent_href }}">{{ label }}</a> ({{ Tc }} K)</li>
+{% endfor %}
+</ul>
+</div>
+
+
+<P>Enter a solvent's SMILES, a solute's SMILES, and temperature, each separated by the underscore ( _ ),
+    in the field below to search.
+    (e.g. for a solvent water (O), a solute ethanol (CCO), and temperature 350 K, the input should be O_CCO_350)
+    Do not put any empty space between the solvent SMILES, solute SMILES, and temperature.
+    For multiple solvent-solute-temperature inputs, separate each input by line or empty space.
+    A maximum of 200 solvent-solute-temperature inputs are allowed for each calculation.
+    It takes roughly 2 minute to calculate solvation free energies for 200 inputs and could take
+    more time if more options are selected.
+<form method="post" id="species_form">
+<table>
+   <tr>
+      <th><b>Input Solvent & Solute & Temp:</b></th>
+      <td>{{form.solvent_solute_temp}}</td>
+   </tr>
+   {% if form.errors.solvent_solute_temp %}
+      <tr>
+         <td colspan="2", align="center"><b style="color:red;">{{ form.errors.solvent_solute_temp }}</b></td>
+      </tr>
+   {% endif %}
+   </tr>
+   <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+       <th><b>Input Temperature Unit:</b></th>
+       <td>{{form.temp_unit}}</td>
+   </tr>
+  <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+       <th><b>Select all that you want:</b></th>
+       <td>
+           solvation free energy {{form.calc_dGsolv}} &nbsp; &nbsp; K-factor {{form.calc_Kfactor}} &nbsp; &nbsp;
+           Henry's constant {{form.calc_henry}}
+       </td>
+   </tr>
+   <tr>
+       <th>&nbsp;</th>
+       <td>
+           logK {{form.calc_logK}} &nbsp; &nbsp; logP{{form.calc_logP}}
+       </td>
+   </tr>
+   {% if form.errors.option_selected %}
+      <tr>
+         <td colspan="2", align="center"><b style="color:red;">{{ form.errors.option_selected }}</b></td>
+      </tr>
+   {% endif %}
+   <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+       <th><b>Preferred unit:</b></th>
+       <td>{{form.energy_unit}}</td>
+   </tr>
+   <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+      <th>{% csrf_token %}</th>
+      <td>
+         <input type="submit" value="Submit" name="submit" />
+         <input type="submit" value="Reset Form" name="reset" />
+      </td>
+   </tr>
+</table>
+</form>
+
+{% endblock %}s

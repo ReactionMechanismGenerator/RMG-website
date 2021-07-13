@@ -31,6 +31,7 @@
 from django.db import models
 
 from rmgweb.database.tools import database
+from rmgpy.data.solvation import get_critical_temperature
 
 
 def get_solvent_list():
@@ -58,9 +59,10 @@ def get_solvent_temp_list():
     solvent_list = get_solvent_list()
     for label, index in solvent_list:
         solvent_data = database.solvation.get_solvent_data(label)
-        if solvent_data.name_in_coolprop != None:
-            Tc = "%.2f" % (solvent_data.get_solvent_critical_temperature() - 0.01) # 0.01 is subtracted because Tc is not inclusive
-            solvent_temp_list.append((label, index + ": 280 K - " + str(Tc) + " K"))
+        coolprop_name = solvent_data.name_in_coolprop
+        if coolprop_name != None:
+            Tc = "%.2f" % (get_critical_temperature(coolprop_name) - 0.01) # 0.01 is subtracted because Tc is not inclusive
+            solvent_temp_list.append((label, index + ": ~298 K - " + str(Tc) + " K"))
     return solvent_temp_list
 
 solvent_list = get_solvent_list()
@@ -70,6 +72,8 @@ solute_estimator_method_list = [('expt', 'Experimental (RMG-database)'),
                                 ('SoluteML', 'Machine Learning Prediction (SoluteML)')]
 energy_unit_list = [('kcal/mol', 'kcal/mol'),
                     ('kJ/mol', 'kJ/mol')]
+temp_unit_list = [('K', 'K'),
+                  (u"\N{DEGREE SIGN}" + 'C', u"\N{DEGREE SIGN}" + 'C')]
 
 class SolventSelection(models.Model):
     def __init__(self, *args, **kwargs):
@@ -103,5 +107,21 @@ class SolvationSearchML(models.Model):
     calc_logK = models.BooleanField(default=False, verbose_name='logK')
     calc_logP = models.BooleanField(default=False, verbose_name='logP')
     option_selected = models.BooleanField(default=False, verbose_name='at least one option selected')
+    energy_unit = models.CharField(verbose_name="Preferred unit", choices=energy_unit_list, max_length=200, blank=False,
+                                   default='kcal/mol')
+
+class SolvationSearchTempDep(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(SolvationSearchTempDep, self).__init__(*args, **kwargs)
+
+    solvent_solute_temp = models.TextField(verbose_name="Solvent SMILES & Solute SMILES & Temperature", null=True)
+    calc_dGsolv = models.BooleanField(default=False, verbose_name='dGsolv')
+    calc_Kfactor = models.BooleanField(default=False, verbose_name='K-factor')
+    calc_henry = models.BooleanField(default=False, verbose_name="Henry's law constant")
+    calc_logK = models.BooleanField(default=False, verbose_name='logK')
+    calc_logP = models.BooleanField(default=False, verbose_name='logP')
+    option_selected = models.BooleanField(default=False, verbose_name='at least one option selected')
+    temp_unit = models.CharField(verbose_name="Input temperature unit", choices=temp_unit_list, max_length=200, blank=False,
+                                   default='Kelvin')
     energy_unit = models.CharField(verbose_name="Preferred unit", choices=energy_unit_list, max_length=200, blank=False,
                                    default='kcal/mol')

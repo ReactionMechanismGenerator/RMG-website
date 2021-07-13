@@ -289,6 +289,53 @@ class SolvationSearchMLForm(forms.ModelForm):
         return option_selected
 
 
+class SolvationSearchTempDepForm(forms.ModelForm):
+    """
+    Form for searching for temperature-dependent solvation properties for a given solvent-solute pair(s) at a
+    an input temperature(s).
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolvationSearchTempDep
+        model = SolvationSearchTempDep
+        fields = '__all__'
+        widgets = {'solvent_solute_temp': forms.Textarea(attrs={'cols': 80, 'rows': 10,
+                                                                'placeholder': "solventSMILES_soluteSMILES_Temperature \n"
+                                                                               "CCO_CCCCCCCC_298 \nO_CCCO_300 \nC1CCCCC1_C1=CC=CC=C1_400 ..."}),
+        }
+
+    def clean_solvent_solute_temp(self):
+        """
+        Custom validation for the solvent_solute_temp field to ensure that the number of solvent-solute-temperature
+        pairs do not exceed 200.
+        """
+        solvent_solute_temp = self.cleaned_data['solvent_solute_temp']
+        solvent_solute_temp_list = solvent_solute_temp.split()
+        if len(solvent_solute_temp_list) > 200:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of solvent-solute-temperature inputs cannot exceed 200.')
+        return solvent_solute_temp
+
+    def clean_option_selected(self):
+        """
+        Custom validation for the option_selected to ensure at least one calculation option is selected.
+        """
+        calc_dGsolv = self.cleaned_data['calc_dGsolv']
+        calc_Kfactor = self.cleaned_data['calc_Kfactor']
+        calc_henry = self.cleaned_data['calc_henry']
+        calc_logK = self.cleaned_data['calc_logK']
+        calc_logP = self.cleaned_data['calc_logP']
+
+        option_selected = any([calc_dGsolv, calc_Kfactor, calc_henry, calc_logK, calc_logP])
+
+        if option_selected is False:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('At least one option must be selected.')
+        return option_selected
+
+
 class SoluteSearchForm(forms.ModelForm):
     """
     Form for searching for the Abraham solute parameters for a solute species and optionally search for

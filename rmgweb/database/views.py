@@ -39,6 +39,8 @@ import subprocess
 import urllib
 import pandas as pd
 from functools import reduce
+from rdkit import Chem
+from CoolProp.CoolProp import PropsSI
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 
@@ -80,6 +82,7 @@ from rmgweb.database.forms import DivErrorList, EniSearchForm, KineticsEntryEdit
                                   KineticsSearchForm, MoleculeSearchForm, RateEvaluationForm
 from rmgweb.database.tools import database, generateReactions, generateSpeciesThermo, reactionHasReactants
 from rmgweb.main.tools import getStructureInfo, groupToInfo, moleculeFromURL, moleculeToAdjlist
+from rmgpy.data.solvation import get_critical_temperature
 
 # from rmgweb.main.tools import moleculeToURL, moleculeFromURL
 
@@ -436,114 +439,114 @@ def solvationEntry(request, section, subsection, index):
                    'referenceType': reference_type, 'solvation': solvation})
 
 
-def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=''):
-    """
-    Returns an entry with the solute data for a given molecule
-    when the solute_adjlist is provided. If solvent is provided,
-    the interaction solvation quantities are also displayed.
-    The solvation data is estimated by RMG.
-    """
-    # from rmgpy.data.solvation import getAllSoluteData
-    # Load the solvation database if necessary
-    database.load('solvation')
-    db = database.get_solvation_database('', '')
-
-    # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
-    # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
-    # obtain solvent data for solvent_temp and solvation data at the specified temperature
-    solvent_data = None
-    solvent_label = None
-    if solvent_temp != 'None':
-        solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
-        solvent_label = solvent_temp
-    elif solvent != 'None':
-        solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
-        solvent_label = solvent
-
-    solvent_data_info = None
-    if not solvent_label is None:
-        lib_index = database.solvation.libraries['solvent'].entries[solvent_label].index
-        solvent_href = reverse('database:solvation-entry',
-                               kwargs={'section': 'libraries', 'subsection': 'solvent',
-                                       'index': lib_index})
-        solvent_data_info = (solvent_label, solvent_data, solvent_href)
-
-    # molecule = Molecule().from_adjacency_list(adjlist)
-    molecule = moleculeFromURL(solute_adjlist)
-    solute = Species(molecule=[molecule])
-    solute.generate_resonance_structures()
-
-    # obtain solute data.
-    solvation_data_list = []
-    word_list = []
-    ref_dict = {}
-    for data, library, entry in db.get_all_solute_data(solute):    # length either 1 or 2 entries
-        if library is None:
-            source = 'Group additivity'
-            href = ''
-            ref_dict, word_list = parseSoluteDataComment(data.comment)
-            entry = Entry(data=data)
-        else:
-            source = 'Solute Descriptors Library'
-            href = reverse('database:solvation-entry',
-                           kwargs={'section': 'libraries', 'subsection': 'solute', 'index': entry.index})
-        # get solvation correction if solvent_data is not None
-        correction = ''
-        correction_temp = ''
-        if solvent_data:
-            if solvent_temp != 'None':
-                temp = float(temp)
-                Kfactor = db.get_Kfactor(data, solvent_data, temp)
-                dGsolv = db.get_T_dep_solvation_energy(data, solvent_data, temp)
-                correction_temp = [Kfactor, dGsolv, temp]
-            # get the available solvation corrections
-            abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
-                                      solvent_data.a_g, solvent_data.c_g]
-            mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
-                                    solvent_data.a_h, solvent_data.c_h]
-            dGsolv298 = None
-            dHsolv298 = None
-            dSsolv298 = None
-            if not any(param is None for param in abraham_parameter_list):
-                dGsolv298 = db.calc_g(data, solvent_data)
-            if not any(param is None for param in mintz_parameter_list):
-                dHsolv298 = db.calc_h(data, solvent_data)
-            if dGsolv298 is not None and dHsolv298 is not None:
-                dSsolv298 = db.calc_s(dGsolv298, dHsolv298)
-            correction = SolvationCorrection(enthalpy=dHsolv298, gibbs=dGsolv298, entropy=dSsolv298)
-
-        solvation_data_list.append((
-            entry,
-            data,
-            source,
-            href,
-            correction,
-            correction_temp,
-        ))
-
-
-    # Get the structure of the item we are viewing. Get the solvent structures if the input solvent is passed in.
-    solvent_structures = []
-    structures = None
-    if solvent_temp != 'None':
-        structures = db.libraries['solvent'].entries[solvent_temp].item
-    elif solvent != 'None':
-        structures = db.libraries['solvent'].entries[solvent].item
-    if structures:
-        for structure in structures: # we expect this to always be a list, as we are parsing solvents
-            solvent_structures.append(getStructureInfo(structure))
-
-    solute_structure = getStructureInfo(molecule)
-    
-
-    return render(request, 'solvationData.html',
-                  {'molecule': molecule,
-                   'solventStructures': solvent_structures,
-                   'soluteStructure': solute_structure,
-                   'solvationDataList': solvation_data_list,
-                   'solventDataInfo': solvent_data_info,
-                   'ref_dict': ref_dict,
-                   'word_list': word_list})
+# def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp=''):
+#     """
+#     Returns an entry with the solute data for a given molecule
+#     when the solute_adjlist is provided. If solvent is provided,
+#     the interaction solvation quantities are also displayed.
+#     The solvation data is estimated by RMG.
+#     """
+#     # from rmgpy.data.solvation import getAllSoluteData
+#     # Load the solvation database if necessary
+#     database.load('solvation')
+#     db = database.get_solvation_database('', '')
+#
+#     # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
+#     # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
+#     # obtain solvent data for solvent_temp and solvation data at the specified temperature
+#     solvent_data = None
+#     solvent_label = None
+#     if solvent_temp != 'None':
+#         solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
+#         solvent_label = solvent_temp
+#     elif solvent != 'None':
+#         solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
+#         solvent_label = solvent
+#
+#     solvent_data_info = None
+#     if not solvent_label is None:
+#         lib_index = database.solvation.libraries['solvent'].entries[solvent_label].index
+#         solvent_href = reverse('database:solvation-entry',
+#                                kwargs={'section': 'libraries', 'subsection': 'solvent',
+#                                        'index': lib_index})
+#         solvent_data_info = (solvent_label, solvent_data, solvent_href)
+#
+#     # molecule = Molecule().from_adjacency_list(adjlist)
+#     molecule = moleculeFromURL(solute_adjlist)
+#     solute = Species(molecule=[molecule])
+#     solute.generate_resonance_structures()
+#
+#     # obtain solute data.
+#     solvation_data_list = []
+#     word_list = []
+#     ref_dict = {}
+#     for data, library, entry in db.get_all_solute_data(solute):    # length either 1 or 2 entries
+#         if library is None:
+#             source = 'Group additivity'
+#             href = ''
+#             ref_dict, word_list = parseSoluteDataComment(data.comment)
+#             entry = Entry(data=data)
+#         else:
+#             source = 'Solute Descriptors Library'
+#             href = reverse('database:solvation-entry',
+#                            kwargs={'section': 'libraries', 'subsection': 'solute', 'index': entry.index})
+#         # get solvation correction if solvent_data is not None
+#         correction = ''
+#         correction_temp = ''
+#         if solvent_data:
+#             if solvent_temp != 'None':
+#                 temp = float(temp)
+#                 Kfactor = db.get_Kfactor(data, solvent_data, temp)
+#                 dGsolv = db.get_T_dep_solvation_energy(data, solvent_data, temp)
+#                 correction_temp = [Kfactor, dGsolv, temp]
+#             # get the available solvation corrections
+#             abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
+#                                       solvent_data.a_g, solvent_data.c_g]
+#             mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
+#                                     solvent_data.a_h, solvent_data.c_h]
+#             dGsolv298 = None
+#             dHsolv298 = None
+#             dSsolv298 = None
+#             if not any(param is None for param in abraham_parameter_list):
+#                 dGsolv298 = db.calc_g(data, solvent_data)
+#             if not any(param is None for param in mintz_parameter_list):
+#                 dHsolv298 = db.calc_h(data, solvent_data)
+#             if dGsolv298 is not None and dHsolv298 is not None:
+#                 dSsolv298 = db.calc_s(dGsolv298, dHsolv298)
+#             correction = SolvationCorrection(enthalpy=dHsolv298, gibbs=dGsolv298, entropy=dSsolv298)
+#
+#         solvation_data_list.append((
+#             entry,
+#             data,
+#             source,
+#             href,
+#             correction,
+#             correction_temp,
+#         ))
+#
+#
+#     # Get the structure of the item we are viewing. Get the solvent structures if the input solvent is passed in.
+#     solvent_structures = []
+#     structures = None
+#     if solvent_temp != 'None':
+#         structures = db.libraries['solvent'].entries[solvent_temp].item
+#     elif solvent != 'None':
+#         structures = db.libraries['solvent'].entries[solvent].item
+#     if structures:
+#         for structure in structures: # we expect this to always be a list, as we are parsing solvents
+#             solvent_structures.append(getStructureInfo(structure))
+#
+#     solute_structure = getStructureInfo(molecule)
+#
+#
+#     return render(request, 'solvationData.html',
+#                   {'molecule': molecule,
+#                    'solventStructures': solvent_structures,
+#                    'soluteStructure': solute_structure,
+#                    'solvationDataList': solvation_data_list,
+#                    'solventDataInfo': solvent_data_info,
+#                    'ref_dict': ref_dict,
+#                    'word_list': word_list})
 
 
 def solvationDataML(request, solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_dSsolv,
@@ -696,6 +699,256 @@ def solvationDataML(request, solvent_solute_smiles, calc_dGsolv, calc_dHsolv, ca
     return render(request, 'solvationDataML.html',
                   {'html_table': html_table,
                    'additionalInfoList': additional_info_list},
+                  )
+
+
+def solvationDataTempDep(request, solvent_solute_temp, calc_dGsolv, calc_Kfactor, calc_henry,
+                    calc_logK, calc_logP, temp_unit, energy_unit):
+    """
+    Returns a pandas data frame with T-dep solvation property data for a given list of solvent-solute SMILES and
+    temperature.
+    """
+
+    solvent_solute_temp_list = solvent_solute_temp.split()
+
+    # convert the string booleans to actual booleans for convenience
+    calc_dGsolv = calc_dGsolv=='True'
+    calc_Kfactor = calc_Kfactor == 'True'
+    calc_henry = calc_henry == 'True'
+    calc_logK = calc_logK == 'True'
+    calc_logP = calc_logP == 'True'
+
+    # Load the solvation database
+    database.load('solvation')
+    db = database.get_solvation_database('', '')
+
+    # initialize the ML estimators. Load it later when needed because loading takes some time.
+    dGsolv_estimator = None
+    dHsolv_estimator = None
+
+    # get the dictionary of allowed solvents list
+    allowed_solvent_dict = {}
+    for label, entry in db.libraries['solvent'].entries.items():
+        coolprop_name = entry.data.name_in_coolprop
+        if coolprop_name:
+            smiles = Chem.CanonSmiles(entry.item[0].smiles)
+            allowed_solvent_dict[smiles] = coolprop_name
+
+    # dictionary for storing the dGsolv and dHsolv at 298 K predictions. These are stored so we don't have to
+    # repeat the ML prediction.
+    solvation_298_results = {}
+
+    solvation_data_results = {'Input': [],
+                              'solvent SMILES': [],
+                              'solute SMILES': [],
+                              f'T ({temp_unit})': [],
+                              'Error': [],
+                              f'dGsolv({energy_unit})': [],
+                              'K-factor': [],
+                              "Henry's const (bar)": [],
+                              'logK': [],
+                              'logP': [],
+                              }
+
+    # get predictions for each given solvent_solute SMILES
+    for solvent_solute_temp_str in solvent_solute_temp_list:
+        # initialization
+        solvent_smiles_input = '-'
+        solute_smiles_input = '-'
+        temp = '-'
+        Error = '-'
+        dGsolv = '-'
+        Kfactor = '-'
+        henry = '-'
+        logK = '-'
+        logP = '-'
+        solvent_name = None
+        solvent_supported = False
+        solute_supported = False
+        temp_supported = False
+        Pvap = None
+        dGsolv298 = None
+        temp_SI = None
+
+        input_list = solvent_solute_temp_str.split('_')
+        if not len(input_list) == 3:
+            Error = 'Unable to process the input'
+        else:
+            solvent_smiles_input = input_list[0]
+            solute_smiles_input = input_list[1]
+            temp = input_list[2]
+
+            # check whether the solvent is supported.
+            try:
+                solvent_smiles = Chem.CanonSmiles(solvent_smiles_input)
+                if solvent_smiles in allowed_solvent_dict:
+                    solvent_supported = True
+                    solvent_name = allowed_solvent_dict[solvent_smiles]
+                else:
+                    Error = 'Unsupported solvent'
+            except:
+                Error = 'Unable to parse the solvent SMILES'
+
+            # check whether the solute SMILES can be parsed correctly
+            try:
+                solute_smiles = Chem.CanonSmiles(solute_smiles_input)
+                solute_supported = True
+            except:
+                if Error == '-':
+                    Error = 'Unable to parse the solvent SMILES'
+                else:
+                    Error += ' and solute SMILES'
+
+            # check whether the temperature is float and then convert to Kelvin.
+            try:
+                temp = float(temp)
+                if temp_unit == 'K':
+                    temp_SI = temp
+                else:  # then it's in degree Celcius
+                    temp_SI = temp + 273.15
+            except:
+                if Error == '-':
+                    Error = 'Incorrect input type for temperature'
+                else:
+                    Error += ', Incorrect input type for temperature'
+
+            # Check that the temperature is within valid range for CoolProp
+            if solvent_supported and temp_SI is not None:
+                try:
+                    rho_g = PropsSI('Dmolar', 'T', temp_SI, 'Q', 1,
+                                    solvent_name)  # molar density of the vapor, in mol/m^3
+                    rho_l = PropsSI('Dmolar', 'T', temp_SI, 'Q', 0,
+                                    solvent_name)  # molar density of the solvent, in mol/m^3
+                    Pvap = PropsSI('P', 'T', temp_SI, 'Q', 0,
+                                   solvent_name)  # vapor pressure of the solvent in Pa
+                    temp_supported = True
+                except:
+                    if Error == '-':
+                        Error = 'Temperature is out of range'
+                    else:
+                        Error += ', Temperature is out of range'
+
+            # Now perform calculations
+            if solvent_supported and solute_supported and temp_supported:
+
+                # load the needed ML estimators if they are not loaded yet. Loading takes a few seconds.
+                if dGsolv_estimator is None:
+                    dGsolv_estimator = load_DirectML_Gsolv_estimator()
+                    dHsolv_estimator = load_DirectML_Hsolv_estimator()
+
+                pair_smiles = [[solvent_smiles, solute_smiles]]
+                pair_key = solvent_smiles + '_' + solute_smiles
+
+                # get the dGsolv, dHsolv, and dSsolv predictions at 298 K
+                if pair_key in solvation_298_results:
+                    dGsolv298, dHsolv298, dSsolv298 = solvation_298_results[pair_key] # in J/mol, J/mol, J/mol/K
+                else:
+                    try:
+                        avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
+                        dGsolv298 = avg_pre[0] * 4184 # convert to J/mol
+                        avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
+                        dHsolv298 = avg_pre[0] * 4184 # convert to J/mol
+                        dSsolv298 = (dHsolv298 - dGsolv298) / 298  # in J/mol/K
+                        solvation_298_results[pair_key] = (dGsolv298, dHsolv298, dSsolv298) # in J/mol, J/mol, J/mol/K
+                    except:
+                        Error = 'Unable to parse the SMILES'
+
+                # get T-dep calculations
+                if dGsolv298:
+                    # dGsolv in J/mol
+                    dGsolv, Kfactor = db.get_T_dep_solvation_energy_from_input_298(dGsolv298, dHsolv298, dSsolv298,
+                                                                                   solvent_name, temp_SI)
+
+                if calc_henry and dGsolv != '-':
+                    henry = Kfactor * Pvap / 100000  # Pvap is in Pa, so convert it to bar
+
+                if calc_logK and dGsolv != '-':
+                    logK = -dGsolv / (math.log(10) * 8.314472 * temp_SI)
+                    logK = "{:.2f}".format(logK)  # round to 2 decimal places
+
+                if calc_logP and dGsolv != '-':
+                    dGsolv298water = None
+                    if solvent_smiles == 'O':
+                        logP = 0
+                    # Check that the temperature is within valid range for CoolProp for water
+                    elif 647 >= temp_SI >= 273.15:
+                        pair_smiles_water = [['O', solute_smiles]]
+                        pair_key_water = 'O' + '_' + solute_smiles
+
+                        # get 298 K predictions for the water-solute pair
+                        if pair_key_water in solvation_298_results:
+                            dGsolv298water, dHsolv298water, dSsolv298water = solvation_298_results[pair_key_water]
+                        else:
+                            try:
+                                avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles_water)  # default is in kcal/mol
+                                dGsolv298water = avg_pre[0] * 4184  # convert to J/mol
+                                avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles_water)  # default is in kcal/mol
+                                dHsolv298water = avg_pre[0] * 4184  # convert to J/mol
+                                dSsolv298water = (dHsolv298water - dGsolv298water) / 298  # in J/mol/K
+                                solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
+                            except:
+                                Error = 'Unable to parse the SMILES'
+
+                        if dGsolv298water:
+                            dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
+                                dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
+                            logP = -(dGsolv - dGsolv_water) / (math.log(10) * 8.314472 * temp_SI)
+                            logP = "{:.2f}".format(logP)  # round to 2 decimal places
+                    else:
+                        if Error == '-':
+                            Error = 'Temperature is out of range for logP'
+                        else:
+                            Error += ', Temperature is out of range for logP'
+
+
+        # Round all values to appropriate decimal places. Convert the energy unit if needed.
+        if dGsolv != '-':
+            if energy_unit == 'kJ/mol':
+                dGsolv = dGsolv / 1000  # from J/mol to kJ/mol
+            else:
+                dGsolv = dGsolv / 4184  # from J/mol to kcal/mol
+            dGsolv = "{:.2f}".format(dGsolv)  # round to 2 decimal places
+            Kfactor = "{:.2e}".format(Kfactor)  # change to scientific notation
+
+        if henry != '-':
+            if 1000 > henry > 1:
+                henry = "{:.2f}".format(henry)  # round to 2 decimal places
+            else:
+                henry = "{:.2e}".format(henry)  # change to scientific notation
+
+        # append the results
+        solvation_data_results['Input'].append(solvent_solute_temp_str)
+        solvation_data_results['solvent SMILES'].append(solvent_smiles_input)
+        solvation_data_results['solute SMILES'].append(solute_smiles_input)
+        solvation_data_results[f'T ({temp_unit})'].append(temp)
+        solvation_data_results['Error'].append(Error)
+        solvation_data_results[f'dGsolv({energy_unit})'].append(dGsolv)
+        solvation_data_results['K-factor'].append(Kfactor)
+        solvation_data_results["Henry's const (bar)"].append(henry)
+        solvation_data_results['logK'].append(logK)
+        solvation_data_results['logP'].append(logP)
+
+    # convert the results to pandas data frame
+    df_results = pd.DataFrame(solvation_data_results)
+
+    # drop unnecessary columns.
+    drop_column_list = []
+    if calc_dGsolv is False:
+        drop_column_list.append(f'dGsolv({energy_unit})')
+    if calc_Kfactor is False:
+        drop_column_list.append('K-factor')
+    if calc_henry is False:
+        drop_column_list.append("Henry's const (bar)")
+    if calc_logK is False:
+        drop_column_list.append('logK')
+    if calc_logP is False:
+        drop_column_list.append('logP')
+
+    df_results = df_results.drop(columns=drop_column_list)
+    html_table = df_results.to_html(index=False)
+
+    return render(request, 'solvationDataTempDep.html',
+                  {'html_table': html_table},
                   )
 
 
@@ -1266,7 +1519,7 @@ def thermoData(request, adjlist):
             entry = Entry(data=data)
             if data.comment is not None:
                 word_list = data.comment.split()
-                            
+
         elif library in list(database.thermo.depository.values()):
             source = 'Depository'
             href = reverse('database:thermo-entry', kwargs={'section': 'depository', 'subsection': library.label, 'index': entry.index})
@@ -1289,30 +1542,30 @@ def thermoData(request, adjlist):
 
 def parseThermoComment(comment):
     """
-    Takes a thermo comment (or any string) as input. Returns a dictionary whose keys 
-    correspond to groups or libraries exactly as they appear in the string, and whose values 
+    Takes a thermo comment (or any string) as input. Returns a dictionary whose keys
+    correspond to groups or libraries exactly as they appear in the string, and whose values
     correspond to href links that direct to the specific library or group's database page.
     """
-    
+
     ref_dict = {}
 
     # Search for library strings.
-    # Example: Gas phase thermo for [C]=O from Thermo library: DFT_QCI_thermo + radical(CdCdJ2_triplet). Adsorption correction: + Thermo group additivity estimation: adsorptionPt111(C=*(=R))    
+    # Example: Gas phase thermo for [C]=O from Thermo library: DFT_QCI_thermo + radical(CdCdJ2_triplet). Adsorption correction: + Thermo group additivity estimation: adsorptionPt111(C=*(=R))
     library_split_string  = comment.split("Thermo library: ")
     gas_phase_substring = library_split_string[0].split() # Example: ['Gas', 'phase', 'thermo', 'for', '[C]=O', 'from']
     if len(library_split_string) > 1: # if a match was found for "Thermo library: "
-        if library_split_string[0] != '': 
+        if library_split_string[0] != '':
             try:
                 gas_phase_species = gas_phase_substring[-2] # Example: '[C]=O'
             except IndexError:
-                gas_phase_species = '' 
+                gas_phase_species = ''
         else:
             gas_phase_species = ''
         library_substring = library_split_string[1].split() #Example: ['DFT_QCI_thermo', '+', 'radical(CdCdJ2_triplet).', 'Adsorption', 'correction:', '+', 'Thermo', 'group', 'additivity', 'estimation:', 'adsorptionPt111(C=*(=R))']
         library_source_full = library_substring[0] # Example: 'DFT_QCI_thermo'
 
         if library_source_full.endswith('.'): # if the library ends with a period, make sure we get the correct library so we can get its link properly
-            library_source = library_source_full[::-1].replace('.','',1)[::-1] 
+            library_source = library_source_full[::-1].replace('.','',1)[::-1]
         else:
             library_source = library_source_full
 
@@ -1323,20 +1576,20 @@ def parseThermoComment(comment):
             ref_dict[library_source_full] = reverse('database:thermo', kwargs={'section': 'libraries', 'subsection': library_source})
 
     # Search for group additivity substrings
-    # Example: Gas phase thermo for [C]=O from Thermo library: DFT_QCI_thermo + radical(CdCdJ2_triplet). Adsorption correction: + Thermo group additivity estimation: adsorptionPt111(C=*(=R))    
+    # Example: Gas phase thermo for [C]=O from Thermo library: DFT_QCI_thermo + radical(CdCdJ2_triplet). Adsorption correction: + Thermo group additivity estimation: adsorptionPt111(C=*(=R))
     groups_substrings = [word for word in comment.split() if "missing" not in word and '(' and ')' in word] # Example: ['radical(CdCdJ2_triplet).', 'adsorptionPt111(C=*(=R))']
-    for word in groups_substrings:  
+    for word in groups_substrings:
         group_source_full = word  # Example: 'adsorptionPt111(C=*(=R))'
         group_name = word.split('(',1)[0] # Example: 'adsorptionPt111'
         word = word.split('(',1)[1] # Example: 'C=*(=R))'
         word = word[::-1].replace(')','',1)[::-1] # Example: 'C=*(=R)'
         if word.endswith('.'): # e.g. in the case of 'CdCdJ2_triplet.'
-            word = word[::-1].replace('.','',1)[::-1] 
-        try: 
+            word = word[::-1].replace('.','',1)[::-1]
+        try:
             group_index = database.thermo.groups[group_name].entries[word].index
             ref_dict[group_source_full] = reverse('database:thermo-entry', kwargs={'section': 'groups', 'subsection': group_name, 'index': group_index})
         except KeyError:
-            pass                            
+            pass
 
     return ref_dict
 
@@ -1881,7 +2134,7 @@ def kinetics(request, section='', subsection=''):
         # database components
         kinetics_libraries = [(label, library) for label, library in database.kinetics.libraries.items() if subsection in label]
         kinetics_libraries.sort()
-        
+
         # If this is a subsection, but not the main kinetics page,
         # we don't need to iterate through the entire database, as this takes a long time to load.
         try:
@@ -2982,43 +3235,43 @@ def moleculeSearch(request):
                    })
 
 
-def solvationSearch(request):
-    """
-    Creates webpage form to display solvation data upon choosing a solvent and a solute.
-    """
-    from rmgweb.database.forms import SolvationSearchForm
-    form = SolvationSearchForm()
-    structure_markup = ''
-    molecule = Molecule()
-    if request.method == 'POST':
-        posted = SolvationSearchForm(request.POST, error_class=DivErrorList)
-        initial = request.POST.copy()
-
-        form = SolvationSearchForm(initial, error_class=DivErrorList)
-        if posted.is_valid():
-            adjlist = posted.cleaned_data['adjlist']
-            if adjlist != '':
-                molecule.from_adjacency_list(adjlist)
-                structure_markup = getStructureInfo(molecule)
-                solute_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
-                solvent = posted.cleaned_data['solvent']
-                solvent_temp = posted.cleaned_data['solvent_temp']
-                temp = posted.cleaned_data['temp']
-                if solvent == '':
-                    solvent = 'None'
-                if solvent_temp == '':
-                    solvent_temp = 'None'
-
-            if 'solvation' in request.POST:
-                return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent,
-                                                                                       'solvent_temp': solvent_temp, 'temp': temp}))
-
-            if 'reset' in request.POST:
-                form = SolvationSearchForm()
-                structure_markup = ''
-                molecule = Molecule()
-
-    return render(request, 'solvationSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
+# def solvationSearch(request):
+#     """
+#     Creates webpage form to display solvation data upon choosing a solvent and a solute.
+#     """
+#     from rmgweb.database.forms import SolvationSearchForm
+#     form = SolvationSearchForm()
+#     structure_markup = ''
+#     molecule = Molecule()
+#     if request.method == 'POST':
+#         posted = SolvationSearchForm(request.POST, error_class=DivErrorList)
+#         initial = request.POST.copy()
+#
+#         form = SolvationSearchForm(initial, error_class=DivErrorList)
+#         if posted.is_valid():
+#             adjlist = posted.cleaned_data['adjlist']
+#             if adjlist != '':
+#                 molecule.from_adjacency_list(adjlist)
+#                 structure_markup = getStructureInfo(molecule)
+#                 solute_adjlist = molecule.to_adjacency_list()  # obtain full adjlist, in case hydrogens were non-explicit
+#                 solvent = posted.cleaned_data['solvent']
+#                 solvent_temp = posted.cleaned_data['solvent_temp']
+#                 temp = posted.cleaned_data['temp']
+#                 if solvent == '':
+#                     solvent = 'None'
+#                 if solvent_temp == '':
+#                     solvent_temp = 'None'
+#
+#             if 'solvation' in request.POST:
+#                 return HttpResponseRedirect(reverse('database:solvation-data', kwargs={'solute_adjlist': solute_adjlist, 'solvent': solvent,
+#                                                                                        'solvent_temp': solvent_temp, 'temp': temp}))
+#
+#             if 'reset' in request.POST:
+#                 form = SolvationSearchForm()
+#                 structure_markup = ''
+#                 molecule = Molecule()
+#
+#     return render(request, 'solvationSearch.html', {'structure_markup': structure_markup, 'molecule': molecule, 'form': form})
 
 
 def solvationSearchML(request):
@@ -3056,6 +3309,58 @@ def solvationSearchML(request):
                 form = SolvationSearchMLForm()
 
     return render(request, 'solvationSearchML.html', {'form': form})
+
+
+def solvationSearchTempDep(request):
+    """
+    Creates webpage form to display temperature-dependent solvation data upon choosing a solvent,
+    solvent, and temperature.
+    """
+    from rmgweb.database.forms import SolvationSearchTempDepForm
+    form = SolvationSearchTempDepForm()
+
+    # get information on available solvents to display
+    database.load('solvation')
+    db = database.get_solvation_database('', '')
+    solvent_info_list = []
+    for label, entry in db.libraries['solvent'].entries.items():
+        coolprop_name = entry.data.name_in_coolprop
+        if coolprop_name:
+            Tc = math.floor(get_critical_temperature(coolprop_name) - 0.01)  # 0.01 is subtracted because Tc is not inclusive
+            solvent_href = reverse('database:solvation-entry',
+                                   kwargs={'section': 'libraries', 'subsection': 'solvent', 'index': entry.index})
+            solvent_info_list.append((label, solvent_href, entry, Tc))
+
+    if request.method == 'POST':
+        posted = SolvationSearchTempDepForm(request.POST, error_class=DivErrorList)
+        initial = request.POST.copy()
+
+        form = SolvationSearchTempDepForm(initial, error_class=DivErrorList)
+        if posted.is_valid():
+            solvent_solute_temp = posted.cleaned_data['solvent_solute_temp']
+            calc_dGsolv = posted.cleaned_data['calc_dGsolv']
+            calc_Kfactor = posted.cleaned_data['calc_Kfactor']
+            calc_henry = posted.cleaned_data['calc_henry']
+            calc_logK = posted.cleaned_data['calc_logK']
+            calc_logP = posted.cleaned_data['calc_logP']
+            temp_unit = posted.cleaned_data['temp_unit']
+            energy_unit = posted.cleaned_data['energy_unit']
+
+            if 'submit' in request.POST:
+                return HttpResponseRedirect(reverse('database:solvation-dataTempDep',
+                                                    kwargs={'solvent_solute_temp': solvent_solute_temp,
+                                                            'calc_dGsolv': calc_dGsolv,
+                                                            'calc_Kfactor': calc_Kfactor,
+                                                            'calc_henry': calc_henry,
+                                                            'calc_logK': calc_logK,
+                                                            'calc_logP': calc_logP,
+                                                            'temp_unit': temp_unit,
+                                                            'energy_unit': energy_unit}))
+
+            if 'reset' in request.POST:
+                form = SolvationSearchTempDepForm()
+
+    return render(request, 'solvationSearchTempDep.html', {'form': form, 'solvent_info_list': solvent_info_list})
 
 
 def solvationSolventSearch(request):
@@ -3206,7 +3511,7 @@ def moleculeEntry(request, adjlist):
     except:
         return HttpResponseBadRequest('<h1>Bad Request (400)</h1><p>Invalid adjacency list.</p>')
     structure = getStructureInfo(molecule)
-    
+
     mol_weight = molecule.get_molecular_weight()
 
     old_adjlist = ''
@@ -3214,20 +3519,20 @@ def moleculeEntry(request, adjlist):
         old_adjlist = molecule.to_adjacency_list(remove_h=True, old_style=True)
     except:
         pass
-    
+
     smiles = ''
     try:
         smiles = molecule.to_smiles()
     except ValueError:
         pass
-    
+
     inchi = ''
     try:
         inchi = molecule.to_inchi()
     except ValueError:
         pass
 
-    return render(request, 'moleculeEntry.html', 
+    return render(request, 'moleculeEntry.html',
                   {'structure': structure,
                    'smiles': smiles,
                    'adjlist': adjlist,
