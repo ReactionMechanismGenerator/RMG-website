@@ -88,6 +88,13 @@ from rmgpy.data.solvation import get_critical_temperature
 
 ################################################################################
 
+# Loading these ML estimators takes around 10 seconds.
+# Therefore, instead of loading these each time these estimators are used, let's
+# load them in the beginning only once and use them as needed.
+global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator
+dGsolv_estimator = load_DirectML_Gsolv_estimator()
+dHsolv_estimator = load_DirectML_Hsolv_estimator()
+SoluteML_estimator = load_SoluteML_estimator()
 
 def load(request):
     """
@@ -567,12 +574,6 @@ def solvationDataML(request, solvent_solute_smiles, calc_dGsolv, calc_dHsolv, ca
     dGsolv_required = any([calc_dGsolv, calc_dSsolv, calc_logK, calc_logP]) # whether or not dGsolv calculation is needed
     dHsolv_requied = any([calc_dHsolv, calc_dSsolv]) # whether or not dHsolv calculation is needed
 
-    # load the needed ML estimators. Loading takes a few seconds
-    if dGsolv_required:
-        dGsolv_estimator = load_DirectML_Gsolv_estimator()
-    if dHsolv_requied:
-        dHsolv_estimator = load_DirectML_Hsolv_estimator()
-
     solvation_data_results = {'Input': [],
                               'solvent SMILES': [],
                               'solute SMILES': [],
@@ -722,10 +723,6 @@ def solvationDataTempDep(request, solvent_solute_temp, calc_dGsolv, calc_Kfactor
     database.load('solvation')
     db = database.get_solvation_database('', '')
 
-    # initialize the ML estimators. Load it later when needed because loading takes some time.
-    dGsolv_estimator = None
-    dHsolv_estimator = None
-
     # get the dictionary of allowed solvents list
     allowed_solvent_dict = {}
     for label, entry in db.libraries['solvent'].entries.items():
@@ -830,11 +827,6 @@ def solvationDataTempDep(request, solvent_solute_temp, calc_dGsolv, calc_Kfactor
 
             # Now perform calculations
             if solvent_supported and solute_supported and temp_supported:
-
-                # load the needed ML estimators if they are not loaded yet. Loading takes a few seconds.
-                if dGsolv_estimator is None:
-                    dGsolv_estimator = load_DirectML_Gsolv_estimator()
-                    dHsolv_estimator = load_DirectML_Hsolv_estimator()
 
                 pair_smiles = [[solvent_smiles, solute_smiles]]
                 pair_key = solvent_smiles + '_' + solute_smiles
@@ -1066,9 +1058,8 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent, energ
     database.load('solvation')
     db = database.get_solvation_database('', '')
 
-    # load the SoluteML estimator model if necessary. Add epistemic uncertainty columns for SoluteML model
+    # Add epistemic uncertainty columns for SoluteML model
     if solute_estimator == 'SoluteML':
-        SoluteML_estimator = load_SoluteML_estimator()
         for solute_param_name in ['E', 'S', 'A', 'B', 'L']:
             solute_data_results[f'{solute_param_name} epi. unc.'] = []
         additional_info_list.append('epi. unc.: epistemic uncertainty of the SoluteML model.')
