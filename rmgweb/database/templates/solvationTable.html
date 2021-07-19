@@ -33,10 +33,14 @@ RMG Solvation Database
     <th>Data&nbsp;Format</th>
 </tr>
 
-{% for index, label, structure, dataFormat in entries %}
+{% for index, label, structures, dataFormat in entries %}
 <tr>
     <td><a href="{% url 'database:solvation-entry' section=section subsection=subsection index=index %}">{{ index }}. {{ label }}</a></td>
-    <td>{{ structure|safe }}</td>
+    <td>
+    {% for structure in structures %}
+        {{ structure|safe }}
+    {% endfor %} 
+    </td>
     <td>{{ dataFormat }}</td>
 </tr>
 {% endfor %}

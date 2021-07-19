@@ -65,10 +65,15 @@ $(document).ready(function() {
 {% block page_body %}
 
 <p>
-Use this form to find solvation properties of a solute and solvent combination. 
-Choose a solute molecule by entering its species or adjacency list. 
+Use this form to find solvation properties of a solute and solvent combination.
+Solvation free energy is calculated using the standard state of an ideal gas at a concentration of 1 mol/L
+dissolving as an ideal solution at a concentration of 1 mol/L.
+</p>
+
+<p>
+Choose a solute molecule by entering its species or adjacency list.
 Select the solvent molecule you would like to be included
-in your solvation estimation in the drop down menu. 
+in your solvation estimation in the drop down menu.
 </p>
 
 <P>You can browse the available solute molecules here: <a href="{% url 'database:solvation' section='libraries' subsection='solute' %}" target="_blank">Solute Molecules</a>

@@ -45,7 +45,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, LibraryReaction
 from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.reference import Article, Book
-from rmgpy.data.solvation import SoluteData, SolventData
+from rmgpy.data.solvation import SoluteData, SolventData, SolvationCorrection
 from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
@@ -329,8 +329,13 @@ def solvation(request, section='', subsection=''):
 
         entries = []
         for entry in entries0:
+            structures = []
 
-            structure = getStructureInfo(entry.item)
+            if type(entry.item) is list: # the case for solvents
+                for structure in entry.item:
+                    structures.append(getStructureInfo(structure))
+            else: # single values for solutes
+                structures.append(getStructureInfo(entry.item))
 
             if isinstance(entry.data, SoluteData):
                 data_format = 'SoluteData'
@@ -339,12 +344,12 @@ def solvation(request, section='', subsection=''):
 
             elif entry.data is None:
                 data_format = 'None'
-                entry.index = 0
+                # entry.index = 0
 
             else:
                 data_format = 'Other'
 
-            entries.append((entry.index, entry.label, structure, data_format))
+            entries.append((entry.index, entry.label, structures, data_format))
 
         return render(request, 'solvationTable.html',
                       {'section': section,
@@ -382,39 +387,43 @@ def solvationEntry(request, section, subsection, index):
         raise Http404
 
     index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
+    for entry in db.entries.values():
+        if entry.index == index:
+            break
     else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:solvation-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+        raise Http404
 
-    # Get the structure of the item we are viewing
-    structure = getStructureInfo(entry.item)
+    # Get the structures of the item we are viewing
+    structures = []
 
-    # Prepare the solvation data for passing to the template
-    # This includes all string formatting, since we can't do that in the template
+    if type(entry.item) is list: # the case for solvents
+        for structure in entry.item:
+            structures.append(getStructureInfo(structure))
+    else: # single values for solutes
+        structures.append(getStructureInfo(entry.item))
+
+    # Prepare the solvation data for passing to the template. This includes all string formatting,
+    # since we can't do that in the template.
+    # Case 1. A solvation group uses the values of other group. In this case, get the href link of that group.
     if isinstance(entry.data, str):
-        solvation = ['Link', db.entries[entry.data].index]
+        lib_index = db.entries[entry.data].index
+        href = reverse('database:solvation-entry',
+                       kwargs={'section': section, 'subsection': subsection, 'index': lib_index})
+        solvation = ['Link', href, entry.data]
+    # Case 2. A solvation group has empty data because it is a general group that doesn't need the group value.
+    # Returns None for this
+    elif entry.data is None:
+        solvation = None
+    # Case 3. The entry has an actual solute or solvent data. Returns the entry.
     else:
-        solvation = entry.data
+        solvation = entry
 
     reference_type = ''
     reference = entry.reference
     return render(request, 'solvationEntry.html',
                   {'section': section, 'subsection': subsection,
                    'databaseName': db.name, 'entry': entry,
-                   'structure': structure, 'reference': reference,
+                   'structures': structures, 'reference': reference,
                    'referenceType': reference_type, 'solvation': solvation})
 
 
@@ -430,58 +439,156 @@ def solvationData(request, solute_adjlist, solvent='', solvent_temp='', temp='')
     database.load('solvation')
     db = database.get_solvation_database('', '')
 
+    # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
+    # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
+    # obtain solvent data for solvent_temp and solvation data at the specified temperature
+    solvent_data = None
+    solvent_label = None
+    if solvent_temp != 'None':
+        solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
+        solvent_label = solvent_temp
+    elif solvent != 'None':
+        solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
+        solvent_label = solvent
+
+    solvent_data_info = None
+    if not solvent_label is None:
+        lib_index = database.solvation.libraries['solvent'].entries[solvent_label].index
+        solvent_href = reverse('database:solvation-entry',
+                               kwargs={'section': 'libraries', 'subsection': 'solvent',
+                                       'index': lib_index})
+        solvent_data_info = (solvent_label, solvent_data, solvent_href)
+
     # molecule = Molecule().from_adjacency_list(adjlist)
     molecule = moleculeFromURL(solute_adjlist)
     solute = Species(molecule=[molecule])
     solute.generate_resonance_structures()
 
     # obtain solute data.
-    solute_data_list = db.get_all_solute_data(solute)    # length either 1 or 2 entries
-
-    # obtain solvent data if it's specified.  Then get the interaction solvation properties and store them in solvationDataList
-    # if the temperature-dependent option is selected, temperature-dependent option overrides the first option and
-    # obtain solvent data for solvent_temp and solvation data at the specified temperature
-    solvent_data = None
-    solvent_data_info = None
-    if solvent_temp != 'None':
-        solvent_data = db.get_solvent_data(solvent_temp)  # only 1 entry for solvent data
-        solvent_data_info = (solvent_temp, solvent_data)
-    elif solvent != 'None':
-        solvent_data = db.get_solvent_data(solvent)  # only 1 entry for solvent data
-        solvent_data_info = (solvent, solvent_data)
-
     solvation_data_list = []
-    for solute_data_tuple in solute_data_list:  # Solute data comes as a tuple (soluteData,library,entry) or if from groups (soluteData,None,None)
-        solute_data = solute_data_tuple[0]
-        solute_source = solute_data_tuple[1]
-        if solute_source:
-            solute_source = solute_source.name  # It is a library
+    word_list = []
+    ref_dict = {}
+    for data, library, entry in db.get_all_solute_data(solute):    # length either 1 or 2 entries
+        if library is None:
+            source = 'Group additivity'
+            href = ''
+            ref_dict, word_list = parseSoluteDataComment(data.comment)
+            entry = Entry(data=data)
         else:
-            solute_source = 'Group Additivity'
+            source = 'Solute Descriptors Library'
+            href = reverse('database:solvation-entry',
+                           kwargs={'section': 'libraries', 'subsection': 'solute', 'index': entry.index})
+        # get solvation correction if solvent_data is not None
         correction = ''
         correction_temp = ''
         if solvent_data:
             if solvent_temp != 'None':
                 temp = float(temp)
-                Kfactor = db.get_Kfactor(solute_data, solvent_data, temp)
-                dGsolv = db.get_T_dep_solvation_energy(solute_data, solvent_data, temp)
+                Kfactor = db.get_Kfactor(data, solvent_data, temp)
+                dGsolv = db.get_T_dep_solvation_energy(data, solvent_data, temp)
                 correction_temp = [Kfactor, dGsolv, temp]
-            correction = db.get_solvation_correction(solute_data, solvent_data)
+            # get the available solvation corrections
+            abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
+                                      solvent_data.a_g, solvent_data.c_g]
+            mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
+                                    solvent_data.a_h, solvent_data.c_h]
+            dGsolv298 = None
+            dHsolv298 = None
+            dSsolv298 = None
+            if not any(param is None for param in abraham_parameter_list):
+                dGsolv298 = db.calc_g(data, solvent_data)
+            if not any(param is None for param in mintz_parameter_list):
+                dHsolv298 = db.calc_h(data, solvent_data)
+            if dGsolv298 is not None and dHsolv298 is not None:
+                dSsolv298 = db.calc_s(dGsolv298, dHsolv298)
+            correction = SolvationCorrection(enthalpy=dHsolv298, gibbs=dGsolv298, entropy=dSsolv298)
 
-        solvation_data_list.append((solute_source, solute_data, correction, correction_temp))  # contains solute and possible interaction data
+        solvation_data_list.append((
+            entry,
+            data,
+            source,
+            href,
+            correction,
+            correction_temp,
+        ))
 
-    # if the temperature-dependent option is selected, obtain solvent data and solvation data at the specified temperature
-    solvent_temp_data = None
 
+    # Get the structure of the item we are viewing. Get the solvent structures if the input solvent is passed in.
+    solvent_structures = []
+    structures = None
+    if solvent_temp != 'None':
+        structures = db.libraries['solvent'].entries[solvent_temp].item
+    elif solvent != 'None':
+        structures = db.libraries['solvent'].entries[solvent].item
+    if structures:
+        for structure in structures: # we expect this to always be a list, as we are parsing solvents
+            solvent_structures.append(getStructureInfo(structure))
 
-    # Get the structure of the item we are viewing
-    structure = getStructureInfo(molecule)
+    solute_structure = getStructureInfo(molecule)
+    
 
     return render(request, 'solvationData.html',
                   {'molecule': molecule,
-                   'structure': structure,
+                   'solventStructures': solvent_structures,
+                   'soluteStructure': solute_structure,
                    'solvationDataList': solvation_data_list,
-                   'solventDataInfo': solvent_data_info})
+                   'solventDataInfo': solvent_data_info,
+                   'ref_dict': ref_dict,
+                   'word_list': word_list})
+
+
+def parseSoluteDataComment(comment):
+    """
+    Takes a SoluteData comment (or any string) as input. Returns a dictionary whose keys
+    correspond to groups or libraries exactly as they appear in the string, and whose values
+    correspond to href links that direct to the specific library or group's database page.
+    """
+
+    ref_dict = {}
+    word_list = []
+
+    # Search for library strings.
+    # Example: Solvation thermo for [O]CCCCl from Solute library: Solute library: butan-1-ol + halogen(Cl-(Cs-CsHH)) + radical(ROJ)
+    library_split_string = comment.split("Solute library: ")
+    if len(library_split_string) > 1:  # if a match was found for "Solute library: "
+        library_substring = library_split_string[1].split('+')
+        lib_solute_species = library_substring[0].strip() # Example: 'butan-1-ol'
+        lib_source_full = comment.split('+')[0].strip()
+        word_list.append(lib_source_full)
+        try:
+            lib_index = database.solvation.libraries['solute'].entries[lib_solute_species].index
+            ref_dict[lib_source_full] = reverse('database:solvation-entry',
+                                                    kwargs={'section': 'libraries', 'subsection': 'solute',
+                                                            'index': lib_index})
+        except KeyError:
+            ref_dict[lib_source_full] = reverse('database:solvation',
+                                                    kwargs={'section': 'libraries', 'subsection': 'solute'})
+
+        # remove the library string after we process it
+        comment = comment.replace(lib_source_full, '')
+
+    # Search for group additivity substrings
+    word_list += comment.split()
+    groups_substrings = [word for word in comment.split() if
+                         "missing" not in word and '(' and ')' in word]  # Example: ['halogen(Cl-(Cs-CsHH))', 'radical(ROJ)']
+
+    for word in groups_substrings:
+        group_source_full = word  # Example: 'halogen(Cl-(Cs-CsHH))'
+        group_name = word.split('(', 1)[0]  # Example: 'halogen'
+        word = word.split('(', 1)[1]  # Example: 'Cl-(Cs-CsHH))'
+        word = word[::-1].replace(')', '', 1)[::-1]  # Example: 'Cl-(Cs-CsHH)'
+        if word.endswith('.'):
+            word = word[::-1].replace('.', '', 1)[::-1]
+        try:
+            group_index = database.solvation.groups[group_name].entries[word].index
+            ref_dict[group_source_full] = reverse('database:solvation-entry',
+                                                  kwargs={'section': 'groups', 'subsection': group_name,
+                                                          'index': group_index})
+        except KeyError:
+            pass
+
+    return ref_dict, word_list
+
 
 #################################################################################################################################################
 

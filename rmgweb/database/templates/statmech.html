@@ -80,9 +80,7 @@ No statmech libraries found.
 {% if section == 'groups' or section == '' %}
 <ul>
    {% for subsection, groups in statmechGroups %}
-    {% if subsection != 'group' %}
-        <li><a href="{% url 'database:statmech' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
-    {% endif %}
+    <li><a href="{% url 'database:statmech' section='groups' subsection=subsection %}">{{ groups.name }}</a> ({{ groups.entries|length }} entries)</li>
     {% empty %}
     No statmech groups found.
     <P />

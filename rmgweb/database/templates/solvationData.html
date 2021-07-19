@@ -24,7 +24,22 @@
 
 {% block page_body %}
 {% if solventDataInfo %}
-<h3>Solvent Name: {{ solventDataInfo.0 }}</h3>
+
+<h2>Solvent Info</h2>
+
+<h3>Solvent Structure</h3>
+<p>
+{% for solventStructure in solventStructures %}
+    {% if solventStructure == '' %}
+        No structure given.
+    {% else %}
+        {{ solventStructure|safe }}
+    {% endif %}
+{% endfor %} 
+
+</p>
+
+<h3>Solvent Name: <a href="{{ solventDataInfo.2 }}">{{ solventDataInfo.0 }}</a></h3>
 <P>
 <table class="solvationEntryData">
 {{ solventDataInfo.1|render_solvation_math:user }}
@@ -32,16 +47,46 @@
 <P>
 {% endif %}
 
-<h2>Solute Structure</h2>
-<p>
-{{ structure|safe }}
-</p>
+<h2>Solute Info</h2>
 
-{% for soluteSource, soluteData, correction, correction_temp in solvationDataList %}
-<h3>Result #{{ forloop.counter }} &ndash; {{ soluteSource }}</h3>
+<h3>Solute Structure</h3>
+<p>
+{% if soluteStructure == '' %}
+No structure given.
+{% else %}
+{{ soluteStructure|safe }}
+{% endif %}
+
+</p>
+<br />
+
+{% for solute_entry, solute_data, solute_source, href, correction, correction_temp in solvationDataList %}
+<h3>Result #{{ forloop.counter }} &ndash; {{ solute_source }}</h3>
+
 <h4>Solute Data</h4>
+
+{% if solute_entry.label != '' %}
+<p>Solute label:
+{% if href != '' %}<a href="{{ href }}">{% endif %}
+{{ solute_entry.label }}
+{% if href != '' %}</a>{% endif %}
+</p>
+{% endif %}
+
+{% if solute_source == 'Group additivity' %}
+<p>
+Comments:
+{% for word in word_list %}
+{% if word in ref_dict %}
+<a href="{{ref_dict|get_items:word}}"> {{word}} </a>
+{% else %}
+{{word}}
+{% endif %}
+{% endfor %}
+{% endif %}
+
 <table class="solvationEntryData">
-{{ soluteData|render_solvation_math:user }}
+{{ solute_data|render_solvation_math:user }}
 </table>
 <P>
 {% if correction %}
@@ -56,8 +101,7 @@
 {{ correction_temp|render_solvation_math:user }}
 {% endif %}
 <P>
-Comments: {{ correction.comment }} 
-<P>
+<br />
 {% endfor %}
 
 

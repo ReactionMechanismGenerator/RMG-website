@@ -33,6 +33,9 @@ RMG Solvation Database
 
 {% block page_body %}
 
+<p>For details on the solute and solvent descriptors and solvation groups, please refer to <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html">
+   Solvation Thermochemistry</a> in documentation.</p>
+
 {% if section == '' %}
 <h2>1. <a href="{% url 'database:solvation-search' %}">Solvation Search</a></h2>
 {% endif %}
@@ -57,9 +60,7 @@ RMG Solvation Database
 <ul>
     {# <li><a href="{% url 'database:solvation' section='groups' subsection='group' %}">{{ solvationDatabase.groups.group.name }}</a> ({{ solvationDatabase.groups.group.entries|length }} entries)</li> #}
 {% for subsection, groups in solvationGroups %}
-    {% if subsection != 'group' %}
-        <li><a href="{% url 'database:solvation' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
-    {% endif %}
+    <li><a href="{% url 'database:solvation' section='groups' subsection=subsection %}">{{ groups.label }}</a> ({{ groups.entries|length }} entries)</li>
 {% endfor %}
 
 </ul>
