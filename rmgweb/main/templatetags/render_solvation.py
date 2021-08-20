@@ -294,7 +294,7 @@ def render_solvation_math(solvation, user=None):
     return mark_safe(result)
 
 @register.filter
-def render_solvation_molecule(item, only_solvent=False):
+def render_solvation_molecule(item, solvent_search_result=False):
     """
     Return a SMILES string(s) of the given `item`, which is either an instance of `Species` or
     a list of an instance of `Species`.
@@ -303,18 +303,18 @@ def render_solvation_molecule(item, only_solvent=False):
     result = ''
     # Case 1. Solvent - this is given as a list of Species objects.
     if isinstance(item, list):
-        if only_solvent:
-            result += r'<h3>Solvent SMILES:</h3>' + '\n'
+        if solvent_search_result:
+            result += r'<p>&emsp;&emsp;Result solvent SMILES: &nbsp;'
         else:
             result += r'<h2>Molecule SMILES</h2>' + '\n'
-        result += r'<p>'
+            result += r'<p>'
         if len(item) == 1:
             result += item[0].smiles
         else:
-            result += 'This is a mixture of the following solvents: '
             for spc in item:
                 result += f'{spc.smiles}, '
             result = result[:-2]
+            result += ' (mixture solvents) '
         result += r'</p>'
     # Case 2. Solute - this is given as a Specie object.
     elif isinstance(item, Species):
