@@ -332,6 +332,25 @@ def render_solvation_molecule(item, only_solvent=False):
 
 
 @register.filter
+def render_smiles_list(smiles_list):
+    """
+    Format and return a SMILES string(s).
+    """
+    # The string that will be returned to the template
+    result = r'<h3>Solvent SMILES:</h3>' + '\n'
+    result += r'<p>'
+    if len(smiles_list) == 1:
+        result += smiles_list[0]
+    else:
+        result += 'This is a mixture of the following solvents: '
+        for smiles in smiles_list:
+            result += f'{smiles}, '
+        result = result[:-2]
+    result += r'</p>'
+    return mark_safe(result)
+
+
+@register.filter
 def get_items(dictionary, key):
     '''
     By default, Django does not let the user lookup a dictionary value if the key is the loop variable.

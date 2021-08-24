@@ -19,7 +19,7 @@
 
 {% if solventInfo %}
 <h3>Solvent Name: <a href="{{ solventInfo.2 }}">{{ solventInfo.3 }}. {{ solventInfo.0 }}</a></h3>
-{{ solventInfo.1|render_solvation_molecule:True }}
+{{ solventInfo.1|render_smiles_list }}
 {% endif %}
 
 {% if additionalInfoList %}
@@ -30,11 +30,16 @@
 {% endfor %}
 {% endif %}
 
-<P><br>
+<form method="post" id="download_file">
+<P><br></P>
+{% csrf_token %}
+<input type="submit" value="Click to Export to Excel" name="excel" />
+<input type="hidden" name="html_table" value="{{ html_table }}" />
+</form>
+
 {% autoescape off %}
    {{ html_table }}
 {% endautoescape %}
-</P>
 
 
 {% endblock %}s

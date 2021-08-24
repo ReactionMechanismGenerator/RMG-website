@@ -18,6 +18,7 @@ dependencies:
   - graphviz
   - jinja2
   - libgcc
+  - lxml
   - markupsafe
   - matplotlib >=1.5
   - mopac
@@ -35,4 +36,5 @@ dependencies:
   - symmetry
   - rdkit >=2018
   - xlrd
+  - xlsxwriter
   - xlwt
