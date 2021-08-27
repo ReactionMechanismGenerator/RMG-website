@@ -260,14 +260,14 @@ class SolvationSearchMLForm(forms.ModelForm):
     def clean_solvent_solute_smiles(self):
         """
         Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
-        does not exceed 100.
+        does not exceed 50.
         """
         solvent_solute_smiles = self.cleaned_data['solvent_solute_smiles']
         solvent_solute_smiles_list = solvent_solute_smiles.split()
-        if len(solvent_solute_smiles_list) > 200:
+        if len(solvent_solute_smiles_list) > 50:
             import traceback
             traceback.print_exc()
-            raise forms.ValidationError('The number of input solvent-solute pairs cannot exceed 200.')
+            raise forms.ValidationError('The number of input solvent-solute pairs cannot exceed 50.')
         return solvent_solute_smiles
 
     def clean_option_selected(self):
@@ -307,14 +307,14 @@ class SolvationSearchTempDepForm(forms.ModelForm):
     def clean_solvent_solute_temp(self):
         """
         Custom validation for the solvent_solute_temp field to ensure that the number of solvent-solute-temperature
-        pairs do not exceed 200.
+        pairs do not exceed 50.
         """
         solvent_solute_temp = self.cleaned_data['solvent_solute_temp']
         solvent_solute_temp_list = solvent_solute_temp.split()
-        if len(solvent_solute_temp_list) > 200:
+        if len(solvent_solute_temp_list) > 50:
             import traceback
             traceback.print_exc()
-            raise forms.ValidationError('The number of solvent-solute-temperature inputs cannot exceed 200.')
+            raise forms.ValidationError('The number of solvent-solute-temperature inputs cannot exceed 50.')
         return solvent_solute_temp
 
     def clean_option_selected(self):
@@ -353,14 +353,14 @@ class SoluteSearchForm(forms.ModelForm):
     def clean_solute_smiles(self):
         """
         Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
-        does not exceed 100.
+        does not exceed 50.
         """
         solute_smiles = self.cleaned_data['solute_smiles']
         solute_smiles_list = solute_smiles.split()
-        if len(solute_smiles_list) > 100:
+        if len(solute_smiles_list) > 50:
             import traceback
             traceback.print_exc()
-            raise forms.ValidationError('The number of input solute SMILESs cannot exceed 100.')
+            raise forms.ValidationError('The number of input solute SMILESs cannot exceed 50.')
         return solute_smiles
 
     def clean_solute_estimator(self):
