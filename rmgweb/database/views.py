@@ -566,7 +566,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
 
     dGsolv_required = any(
         [calc_dGsolv, calc_dSsolv, calc_logK, calc_logP])  # whether or not dGsolv calculation is needed
-    dHsolv_requied = any([calc_dHsolv, calc_dSsolv])  # whether or not dHsolv calculation is needed
+    dHsolv_required = any([calc_dHsolv, calc_dSsolv])  # whether or not dHsolv calculation is needed
 
     solvation_data_results = {'Input': [],
                               'solvent SMILES': [],
@@ -586,7 +586,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
         # initialization
         solvent_smiles = '-'
         solute_smiles = '-'
-        Error = '-'
+        error_msg = '-'
         dGsolv298 = '-'
         dGsolv298_epi_unc = '-'
         dHsolv298 = '-'
@@ -597,7 +597,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
 
         pair_list = solvent_solute.split('_')
         if not len(pair_list) == 2:
-            Error = 'Unable to process the input'
+            error_msg = 'Unable to process the input'
         else:
             solvent_smiles = pair_list[0]
             solute_smiles = pair_list[1]
@@ -608,14 +608,14 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
                     dGsolv298 = avg_pre[0]
                     dGsolv298_epi_unc = epi_unc[0]
                 except:
-                    Error = 'Unable to parse the SMILES'
-            if dHsolv_requied:
+                    error_msg = 'Unable to parse the SMILES'
+            if dHsolv_required:
                 try:
                     avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
                     dHsolv298 = avg_pre[0]
                     dHsolv298_epi_unc = epi_unc[0]
                 except:
-                    Error = 'Unable to parse the SMILES'
+                    error_msg = 'Unable to parse the SMILES'
             if calc_dSsolv and dGsolv298 != '-' and dHsolv298 != '-':
                 dSsolv298 = (dHsolv298 - dGsolv298) / 298  # default is in kcal/mol/K
             if calc_logK and dGsolv298 != '-':
@@ -634,7 +634,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
                     except:
                         # this error is very unlikely to happen if dGsolv298 is already calculated, but it's added
                         # as a safety net,
-                        Error = 'Unable to parse the SMILES'
+                        error_msg = 'Unable to parse the SMILES'
 
         # Round all values to appropriate decimal places. Convert the energy unit if needed.
         if dGsolv298 != '-':
@@ -658,7 +658,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
         solvation_data_results['Input'].append(solvent_solute)
         solvation_data_results['solvent SMILES'].append(solvent_smiles)
         solvation_data_results['solute SMILES'].append(solute_smiles)
-        solvation_data_results['Error'].append(Error)
+        solvation_data_results['Error'].append(error_msg)
         solvation_data_results[f'dGsolv298({energy_unit})'].append(dGsolv298)
         solvation_data_results[f'dHsolv298({energy_unit})'].append(dHsolv298)
         solvation_data_results[f'dSsolv298({energy_unit}/K)'].append(dSsolv298)
@@ -772,7 +772,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
         solvent_smiles_input = '-'
         solute_smiles_input = '-'
         temp = '-'
-        Error = '-'
+        error_msg = '-'
         dGsolv = '-'
         Kfactor = '-'
         henry = '-'
@@ -788,7 +788,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
 
         input_list = solvent_solute_temp_str.split('_')
         if not len(input_list) == 3:
-            Error = 'Unable to process the input'
+            error_msg = 'Unable to process the input'
         else:
             solvent_smiles_input = input_list[0]
             solute_smiles_input = input_list[1]
@@ -801,19 +801,19 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                     solvent_supported = True
                     solvent_name = allowed_solvent_dict[solvent_smiles]
                 else:
-                    Error = 'Unsupported solvent'
+                    error_msg = 'Unsupported solvent'
             except:
-                Error = 'Unable to parse the solvent SMILES'
+                error_msg = 'Unable to parse the solvent SMILES'
 
             # check whether the solute SMILES can be parsed correctly
             try:
                 solute_smiles = Chem.CanonSmiles(solute_smiles_input)
                 solute_supported = True
             except:
-                if Error == '-':
-                    Error = 'Unable to parse the solvent SMILES'
+                if error_msg == '-':
+                    error_msg = 'Unable to parse the solvent SMILES'
                 else:
-                    Error += ' and solute SMILES'
+                    error_msg += ' and solute SMILES'
 
             # check whether the temperature is float and then convert to Kelvin.
             try:
@@ -823,10 +823,10 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                 else:  # then it's in degree Celcius
                     temp_SI = temp + 273.15
             except:
-                if Error == '-':
-                    Error = 'Incorrect input type for temperature'
+                if error_msg == '-':
+                    error_msg = 'Incorrect input type for temperature'
                 else:
-                    Error += ', Incorrect input type for temperature'
+                    error_msg += ', Incorrect input type for temperature'
 
             # Check that the temperature is within valid range for CoolProp
             if solvent_supported and temp_SI is not None:
@@ -839,10 +839,10 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                                    solvent_name)  # vapor pressure of the solvent in Pa
                     temp_supported = True
                 except:
-                    if Error == '-':
-                        Error = 'Temperature is out of range'
+                    if error_msg == '-':
+                        error_msg = 'Temperature is out of range'
                     else:
-                        Error += ', Temperature is out of range'
+                        error_msg += ', Temperature is out of range'
 
             # Now perform calculations
             if solvent_supported and solute_supported and temp_supported:
@@ -862,7 +862,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                         dSsolv298 = (dHsolv298 - dGsolv298) / 298  # in J/mol/K
                         solvation_298_results[pair_key] = (dGsolv298, dHsolv298, dSsolv298)  # in J/mol, J/mol, J/mol/K
                     except:
-                        Error = 'Unable to parse the SMILES'
+                        error_msg = 'Unable to parse the SMILES'
 
                 # get T-dep calculations
                 if dGsolv298:
@@ -900,7 +900,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                                 dSsolv298water = (dHsolv298water - dGsolv298water) / 298  # in J/mol/K
                                 solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
                             except:
-                                Error = 'Unable to parse the SMILES'
+                                error_msg = 'Unable to parse the SMILES'
 
                         if dGsolv298water:
                             dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
@@ -908,10 +908,10 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                             logP = -(dGsolv - dGsolv_water) / (math.log(10) * 8.314472 * temp_SI)
                             logP = "{:.2f}".format(logP)  # round to 2 decimal places
                     else:
-                        if Error == '-':
-                            Error = 'Temperature is out of range for logP'
+                        if error_msg == '-':
+                            error_msg = 'Temperature is out of range for logP'
                         else:
-                            Error += ', Temperature is out of range for logP'
+                            error_msg += ', Temperature is out of range for logP'
 
         # Round all values to appropriate decimal places. Convert the energy unit if needed.
         if dGsolv != '-':
@@ -933,7 +933,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
         solvation_data_results['solvent SMILES'].append(solvent_smiles_input)
         solvation_data_results['solute SMILES'].append(solute_smiles_input)
         solvation_data_results[f'T ({temp_unit})'].append(temp)
-        solvation_data_results['Error'].append(Error)
+        solvation_data_results['Error'].append(error_msg)
         solvation_data_results[f'dGsolv({energy_unit})'].append(dGsolv)
         solvation_data_results['K-factor'].append(Kfactor)
         solvation_data_results["Henry's const (bar)"].append(henry)
@@ -1119,31 +1119,31 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
     # get predictions for each given SMILES
     for smiles in solute_smiles_list:
         # initialize the parameter values
-        Error = '-'
-        Comment = '-'
+        error_msg = '-'
+        solute_comment = '-'
         solute_data = SoluteData()
         try:
             solute_spc = Species().from_smiles(smiles)
             solute_spc.generate_resonance_structures()
         except:
             solute_spc = None
-            Error = 'Unable to parse the SMILES'
+            error_msg = 'Unable to parse the SMILES'
         # Get predictions using the selected method
         if solute_estimator == 'expt':
             if solute_spc is not None:
                 data = db.get_solute_data_from_library(solute_spc, db.libraries['solute'])
                 if data is not None:
                     solute_data = data[0]
-                    Comment = f'From RMG-database solute library: {data[2].index}. {data[2].label}'
+                    solute_comment = f'From RMG-database solute library: {data[2].index}. {data[2].label}'
                 else:
-                    Comment = 'Not found in RMG-database'
+                    solute_comment = 'Not found in RMG-database'
         elif solute_estimator == 'SoluteGC':
             if solute_spc is not None:
                 try:
                     solute_data = db.get_solute_data(solute_spc, skip_library=True)
-                    Comment = solute_data.comment
+                    solute_comment = solute_data.comment
                 except:
-                    Error = 'Unable to get the prediction from the SoluteGC method'
+                    error_msg = 'Unable to get the prediction from the SoluteGC method'
         elif solute_estimator == 'SoluteML':
             solute_epi_unc_dict = {}
             try:
@@ -1153,15 +1153,15 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
                 solute_data.A = avg_pre[0][2]
                 solute_data.B = avg_pre[0][3]
                 solute_data.L = avg_pre[0][4]
-                Error = '-'
-                Comment = 'SoluteML prediction'
+                error_msg = '-'
+                solute_comment = 'SoluteML prediction'
                 solute_epi_unc_dict['E epi. unc.'] = epi_unc[0][0]
                 solute_epi_unc_dict['S epi. unc.'] = epi_unc[0][1]
                 solute_epi_unc_dict['A epi. unc.'] = epi_unc[0][2]
                 solute_epi_unc_dict['B epi. unc.'] = epi_unc[0][3]
                 solute_epi_unc_dict['L epi. unc.'] = epi_unc[0][4]
             except:
-                Error = 'Unable to parse the SMILES'
+                error_msg = 'Unable to parse the SMILES'
             # get V value using RMG
             if solute_spc is not None:
                 try:
@@ -1169,16 +1169,16 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
                 except:
                     pass
             # add error message if V value could not be obtained
-            if solute_data.V is None and Error == '-':
-                Error = 'Unable to get V value'
+            if solute_data.V is None and error_msg == '-':
+                error_msg = 'Unable to get V value'
         else:
             # unknown estimator is given
             raise Http404
 
         # append the results
         solute_data_results['Input SMILES'].append(smiles)
-        solute_data_results['Error'].append(Error)
-        solute_data_results['Comment'].append(Comment)
+        solute_data_results['Error'].append(error_msg)
+        solute_data_results['Comment'].append(solute_comment)
         solute_param_dict = {'E': solute_data.E, 'S': solute_data.S, 'A': solute_data.A, 'B': solute_data.B,
                              'L': solute_data.L, 'V': solute_data.V}
         found = True  # whether the solute parameters E, S, A, B, L are found. (not V)
@@ -1236,29 +1236,29 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
         # check whether we have all solvent parameters to calculate dGsolv and dHsolv
         abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
                                   solvent_data.a_g, solvent_data.c_g]
-        dGsolv_availble = not any(param is None for param in abraham_parameter_list)
+        dGsolv_avail = not any(param is None for param in abraham_parameter_list)
         mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
                                 solvent_data.a_h, solvent_data.c_h]
-        dHsolv_availble = not any(param is None for param in mintz_parameter_list)
+        dHsolv_avail = not any(param is None for param in mintz_parameter_list)
 
         for solute_data, solute_data_found in zip(solute_data_list, solute_data_found_list):
             dGsolv298 = '-'
             dHsolv298 = '-'
             dSsolv298 = '-'
             if solute_data_found:
-                if dGsolv_availble:
+                if dGsolv_avail:
                     dGsolv298 = db.calc_g(solute_data, solvent_data) / 4184  # convert to kcal/mol
                     if energy_unit == 'kJ/mol':
                         dGsolv298 = dGsolv298 * 4.184  # convert to kJ/mol
                 else:
                     dGsolv298 = 'not available'
-                if dHsolv_availble:
+                if dHsolv_avail:
                     dHsolv298 = db.calc_h(solute_data, solvent_data) / 4184  # convert to kJ/mol
                     if energy_unit == 'kJ/mol':
                         dHsolv298 = dHsolv298 * 4.184  # convert to kJ/mol
                 else:
                     dHsolv298 = 'not available'
-                if dGsolv_availble and dHsolv_availble:
+                if dGsolv_avail and dHsolv_avail:
                     dSsolv298 = (dHsolv298 - dGsolv298) / 298  # has the unit of dGsolv298 divided by Kelvin
                     if abs(dSsolv298) < 1000:
                         dSsolv298 = "{:.5f}".format(dSsolv298)  # round to 5 decimal places
@@ -1269,12 +1269,12 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
 
                 # round the dGsolv298 and dHsolv298 values to appropriate decimal places after they are used
                 # for dSsolv298 calculation.
-                if dGsolv_availble:
+                if dGsolv_avail:
                     if abs(dGsolv298) < 1000:
                         dGsolv298 = "{:.2f}".format(dGsolv298)  # round to 2 decimal places
                     else:
                         dGsolv298 = "{:.2e}".format(dGsolv298)  # display in scientific notation if the value is big
-                if dHsolv_availble:
+                if dHsolv_avail:
                     if abs(dHsolv298) < 1000:
                         dHsolv298 = "{:.2f}".format(dHsolv298)  # round to 2 decimal places
                     else:
