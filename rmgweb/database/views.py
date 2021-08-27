@@ -556,6 +556,39 @@ def solvationEntry(request, section, subsection, index):
 #                    'word_list': word_list})
 
 
+def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_required, calc_dSsolv, energy_unit):
+    """
+    Calculate solvation free energy, enthalpy, and entropy using the DirectML model. Corresponding
+    epistemic uncertainties and error message are also returned. All values are returned in the given energy unit.
+    """
+    dGsolv298 = None
+    dGsolv298_epi_unc = None
+    dHsolv298 = None
+    dHsolv298_epi_unc = None
+    dSsolv298 = None
+    if dGsolv_required:
+        try:
+            avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
+            dGsolv298, dGsolv298_epi_unc = avg_pre[0], epi_unc[0]
+        except:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
+    if dHsolv_required:
+        try:
+            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
+            dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
+        except:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
+    if calc_dSsolv and dGsolv298 is not None and dHsolv298 is not None:
+        dSsolv298 = (dHsolv298 - dGsolv298) / 298  # default is in kcal/mol/K
+
+    solvation_val_list = []
+    for val in [dGsolv298, dGsolv298_epi_unc, dHsolv298, dHsolv298_epi_unc, dSsolv298]:
+        if val is not None:
+            val = convert_energy_unit(val, 'kcal/mol', energy_unit)
+        solvation_val_list.append(val)
+    return solvation_val_list, error_msg
+
+
 def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_dSsolv,
                           calc_logK, calc_logP, energy_unit):
     """
@@ -564,128 +597,80 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
 
     solvent_solute_smiles_list = solvent_solute_smiles.split()
 
-    dGsolv_required = any(
-        [calc_dGsolv, calc_dSsolv, calc_logK, calc_logP])  # whether or not dGsolv calculation is needed
+    dGsolv_required = any([calc_dGsolv, calc_dSsolv, calc_logK, calc_logP])  # whether or not dGsolv calculation is needed
     dHsolv_required = any([calc_dHsolv, calc_dSsolv])  # whether or not dHsolv calculation is needed
 
-    solvation_data_results = {'Input': [],
-                              'solvent SMILES': [],
-                              'solute SMILES': [],
-                              'Error': [],
-                              f'dGsolv298({energy_unit})': [],
-                              f'dHsolv298({energy_unit})': [],
-                              f'dSsolv298({energy_unit}/K)': [],
-                              'logK': [],
-                              'logP': [],
-                              f'dGsolv298 epi.unc.({energy_unit})': [],
-                              f'dHsolv298 epi.unc.({energy_unit})': [],
-                              }
+    # Prepare an empty result dictionary
+    solvation_data_results = {}
+    results_col_name_list = ['Input', 'solvent SMILES', 'solute SMILES', 'Error', f'dGsolv298({energy_unit})',
+                             f'dHsolv298({energy_unit})', f'dSsolv298({energy_unit}/K)', 'logK', 'logP',
+                             f'dGsolv298 epi.unc.({energy_unit})', f'dHsolv298 epi.unc.({energy_unit})']
+    for col_name in results_col_name_list:
+        solvation_data_results[col_name] = []
 
     # get predictions for each given solvent_solute SMILES
     for solvent_solute in solvent_solute_smiles_list:
         # initialization
-        solvent_smiles = '-'
-        solute_smiles = '-'
-        error_msg = '-'
-        dGsolv298 = '-'
-        dGsolv298_epi_unc = '-'
-        dHsolv298 = '-'
-        dHsolv298_epi_unc = '-'
-        dSsolv298 = '-'
-        logK = '-'
-        logP = '-'
+        solvent_smiles, solute_smiles, error_msg, logK, logP = None, None, None, None, None
+        dGsolv298, dGsolv298_epi_unc, dHsolv298, dHsolv298_epi_unc, dSsolv298 = None, None, None, None, None
 
         pair_list = solvent_solute.split('_')
         if not len(pair_list) == 2:
-            error_msg = 'Unable to process the input'
+            error_msg = update_error_msg(error_msg, 'Unable to process the input')
         else:
             solvent_smiles = pair_list[0]
             solute_smiles = pair_list[1]
             pair_smiles = [[solvent_smiles, solute_smiles]]
-            if dGsolv_required:
-                try:
-                    avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
-                    dGsolv298 = avg_pre[0]
-                    dGsolv298_epi_unc = epi_unc[0]
-                except:
-                    error_msg = 'Unable to parse the SMILES'
-            if dHsolv_required:
-                try:
-                    avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
-                    dHsolv298 = avg_pre[0]
-                    dHsolv298_epi_unc = epi_unc[0]
-                except:
-                    error_msg = 'Unable to parse the SMILES'
-            if calc_dSsolv and dGsolv298 != '-' and dHsolv298 != '-':
-                dSsolv298 = (dHsolv298 - dGsolv298) / 298  # default is in kcal/mol/K
-            if calc_logK and dGsolv298 != '-':
-                logK = -dGsolv298 * 4184 / (
-                            math.log(10) * 8.314472 * 298)  # 4184 is a conversion factor for kcal/mol -> J/mol
-                logK = "{:.2f}".format(logK)  # round to 2 decimal places
-            if calc_logP and dGsolv298 != '-':
+            # get dGsolv, dHsolv, dSsolv calculation
+            [dGsolv298, dGsolv298_epi_unc, dHsolv298, dHsolv298_epi_unc, dSsolv298], error_msg = \
+                get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_required, calc_dSsolv, 'J/mol')
+            # get logK calculation
+            if calc_logK and dGsolv298 is not None:
+                logK = -dGsolv298 / (math.log(10) * 8.314472 * 298)
+                logK = clean_up_value(logK, deci_place=2, only_big=True)
+            # get logP calculation
+            if calc_logP and dGsolv298 is not None:
                 if solvent_smiles == 'O':
                     logP = 0
                 else:
                     try:
                         avg_pre, epi_unc, valid_indices = dGsolv_estimator([['O', solute_smiles]])
-                        dGsolv298_water = avg_pre[0]
-                        logP = -(dGsolv298 - dGsolv298_water) * 4184 / (math.log(10) * 8.314472 * 298)
-                        logP = "{:.2f}".format(logP)  # round to 2 decimal places
+                        dGsolv298_water = convert_energy_unit(avg_pre[0], 'kcal/mol', 'J/mol')
+                        logP = -(dGsolv298 - dGsolv298_water) / (math.log(10) * 8.314472 * 298)
+                        logP = clean_up_value(logP, deci_place=2, only_big=True)
                     except:
-                        # this error is very unlikely to happen if dGsolv298 is already calculated, but it's added
-                        # as a safety net,
-                        error_msg = 'Unable to parse the SMILES'
+                        # this error is very unlikely to happen, but it's added as a safety net
+                        error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES')
 
-        # Round all values to appropriate decimal places. Convert the energy unit if needed.
-        if dGsolv298 != '-':
-            if energy_unit == 'kJ/mol':
-                dGsolv298 = dGsolv298 * 4.184
-                dGsolv298_epi_unc = dGsolv298_epi_unc * 4.184
-            dGsolv298 = "{:.2f}".format(dGsolv298)  # round to 2 decimal places
-            dGsolv298_epi_unc = "{:.2f}".format(dGsolv298_epi_unc)  # round to 3 decimal places
-        if dHsolv298 != '-':
-            if energy_unit == 'kJ/mol':
-                dHsolv298 = dHsolv298 * 4.184
-                dHsolv298_epi_unc = dHsolv298_epi_unc * 4.184
-            dHsolv298 = "{:.2f}".format(dHsolv298)  # round to 2 decimal places
-            dHsolv298_epi_unc = "{:.2f}".format(dHsolv298_epi_unc)  # round to 2 decimal places
-        if dSsolv298 != '-':
-            if energy_unit == 'kJ/mol':
-                dSsolv298 = dSsolv298 * 4.184
-            dSsolv298 = "{:.5f}".format(dSsolv298)  # round to 5 decimal places for solvation entropy
-
-        # append the results
-        solvation_data_results['Input'].append(solvent_solute)
-        solvation_data_results['solvent SMILES'].append(solvent_smiles)
-        solvation_data_results['solute SMILES'].append(solute_smiles)
-        solvation_data_results['Error'].append(error_msg)
-        solvation_data_results[f'dGsolv298({energy_unit})'].append(dGsolv298)
-        solvation_data_results[f'dHsolv298({energy_unit})'].append(dHsolv298)
-        solvation_data_results[f'dSsolv298({energy_unit}/K)'].append(dSsolv298)
-        solvation_data_results['logK'].append(logK)
-        solvation_data_results['logP'].append(logP)
-        solvation_data_results[f'dGsolv298 epi.unc.({energy_unit})'].append(dGsolv298_epi_unc)
-        solvation_data_results[f'dHsolv298 epi.unc.({energy_unit})'].append(dHsolv298_epi_unc)
+        # append the results.
+        result_val_list = [solvent_solute, solvent_smiles, solute_smiles, error_msg, dGsolv298, dHsolv298, dSsolv298,
+                           logK, logP, dGsolv298_epi_unc, dHsolv298_epi_unc]
+        for key, val in zip(results_col_name_list, result_val_list):
+            # Convert to the input energy unit and round to appropriate decimal places for solvation properties.
+            if energy_unit in key and val is not None:
+                val = convert_energy_unit(val, 'J/mol', energy_unit)
+                if 'dSsolv' in key:
+                    val = clean_up_value(val, deci_place=2, sig_fig=2)
+                else:
+                    val = clean_up_value(val, deci_place=2, sig_fig=2, only_big=True)
+            solvation_data_results[key].append(val)
 
     # drop unnecessary dictionary keys.
-    rem_list = []
-    if calc_dGsolv is False:
-        rem_list += [f'dGsolv298({energy_unit})', f'dGsolv298 epi.unc.({energy_unit})']
-    if calc_dHsolv is False:
-        rem_list += [f'dHsolv298({energy_unit})', f'dHsolv298 epi.unc.({energy_unit})']
-    if calc_dSsolv is False:
-        rem_list += [f'dSsolv298({energy_unit}/K)']
-    if calc_logK is False:
-        rem_list += ['logK']
-    if calc_logP is False:
-        rem_list += ['logP']
-    [solvation_data_results.pop(key) for key in rem_list]
+    remove_list = []
+    calc_val_key_tup_list = [(calc_dGsolv, [f'dGsolv298({energy_unit})', f'dGsolv298 epi.unc.({energy_unit})']),
+                             (calc_dHsolv, [f'dHsolv298({energy_unit})', f'dHsolv298 epi.unc.({energy_unit})']),
+                             (calc_dSsolv, [f'dSsolv298({energy_unit}/K)']), (calc_logK, ['logK']), (calc_logP, ['logP'])]
+    for calc_val, key in calc_val_key_tup_list:
+        if calc_val is False:
+            remove_list += key
+    [solvation_data_results.pop(key) for key in remove_list]
 
     # add explanation about epistemic error if needed.
     additional_info_list = []
     if calc_dGsolv or calc_dHsolv:
         additional_info_list += ['epi. unc.: epistemic uncertainty of the DirectML model.']
 
+    solvation_data_results = parse_none_results(solvation_data_results)
     return solvation_data_results, additional_info_list
 
 
