@@ -1084,6 +1084,227 @@ def solvationSolventData(request, solvent_adjlist):
                    'solventInfoList': solvent_info_list})
 
 
+def update_error_msg(error_msg, new_msg, overwrite=False):
+    if overwrite == True:
+        return new_msg
+    else:
+        if error_msg is None:
+            return new_msg
+        else:
+            return error_msg + ', ' + new_msg
+
+
+def get_solute_data_from_db(solute_spc, db):
+    """
+    Returns solute data found from the RMG solute library and corresponding comment.
+    """
+    if solute_spc is not None:
+        data = db.get_solute_data_from_library(solute_spc, db.libraries['solute'])
+        if data is not None:
+            solute_data = data[0]
+            solute_comment = f'From RMG-database solute library: {data[2].index}. {data[2].label}'
+        else:
+            solute_data = None
+            solute_comment = 'Not found in RMG-database'
+        return solute_data, solute_comment
+    else:
+        return None, None
+
+
+def get_solute_data_from_SoluteGC(solute_spc, db, error_msg):
+    """
+    Returns solute data estimated from SoluteGC and corresponding comment and error message.
+    """
+    solute_comment = None
+    if solute_spc is not None:
+        try:
+            solute_data = db.get_solute_data(solute_spc, skip_library=True)
+            solute_comment = solute_data.comment
+        except:
+            solute_data = None
+            error_msg = update_error_msg(error_msg, 'Unable to get the prediction from the SoluteGC method')
+        return solute_data, solute_comment, error_msg
+    else:
+        return None, None, error_msg
+
+
+def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
+    """
+    Returns solute data estimated from SoluteML, corresponding comment and error message, and a dictionary
+    containing the epistemic uncertainty of the SoluteML prediction.
+    """
+    solute_epi_unc_dict = {}
+    solute_data = SoluteData()
+    solute_comment = None
+    try:
+        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
+        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
+        for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
+            solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
+        error_msg = update_error_msg(error_msg, None, overwrite=True)
+        solute_comment = 'SoluteML prediction'
+    except:
+        error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
+    # get V value using RMG
+    if solute_spc is not None:
+        try:
+            solute_data.set_mcgowan_volume(solute_spc)
+        except:
+            pass
+    # add error message if V value could not be obtained
+    if solute_data.V is None:
+        if error_msg is None or (isinstance(error_msg, str) and not 'Unable to parse the SMILES' in error_msg):
+            error_msg = update_error_msg(error_msg, 'Unable to get V value')
+    return solute_data, solute_comment, error_msg, solute_epi_unc_dict
+
+
+def clean_up_value(value, deci_place=4, sig_fig=2, only_big=False):
+    """
+    Round the given value to the given decimal place (`deci_place`).
+    If the absolute value of the given value is too big or too small, return the value in
+    scientific notation with the given significant figure (`sig_fig`).
+    """
+    if value is None:
+        return value
+    if only_big is True:
+        if abs(value) < 1000:
+            return "{:.{}f}".format(value, deci_place)
+        else:
+            return "{:.{}e}".format(value, sig_fig)
+    else:
+        if 1e-1 < abs(value) < 1000:
+            return "{:.{}f}".format(value, deci_place)
+        else:
+            return "{:.{}e}".format(value, sig_fig)
+
+
+def parse_and_append_solute_data(solute_data, solute_data_results, solute_estimator, solute_epi_unc_dict):
+    """
+    Parse and append the `solute_data` to the `solute_data_results` dictionary.
+    If `solute_epi_unc_dict` is given, it is also parsed and appended to the `solute_data_results` dictionary.
+    It also returns whether the solute parameters, E, S, A, B, L, are all found.
+    """
+    solute_data_found = True  # whether the solute parameters E, S, A, B, L are found. (not V)
+    solute_param_list = ['E', 'S', 'A', 'B', 'L', 'V']
+
+    if solute_data is None:
+        solute_val_list = [None] * 6
+        solute_data_found = False
+    else:
+        solute_val_list = [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L, solute_data.V]
+
+    for key, value in zip(solute_param_list, solute_val_list):
+        if value is None and key != 'V':
+            solute_data_found = False
+        # round to appropriate decimal places or display in scientific notation if the value is not from RMG-database
+        if solute_estimator != 'expt':
+            value = clean_up_value(value, only_big=True)
+        solute_data_results[key].append(value)
+        # parse and append the epistemic uncertainty result if SoluteML is used
+        if solute_estimator == 'SoluteML' and key != 'V':
+            epi_unc_key = f'{key} epi. unc.'
+            epi_unc_value = None
+            if epi_unc_key in solute_epi_unc_dict:
+                epi_unc_value = solute_epi_unc_dict[epi_unc_key]
+                epi_unc_value = clean_up_value(epi_unc_value)
+            solute_data_results[f'{key} epi. unc.'].append(epi_unc_value)
+
+    return solute_data_results, solute_data_found
+
+
+def convert_energy_unit(energy_val, current_unit, new_unit):
+    """
+    Convert `energy_val` from the `current_unit` to `new_unit`.
+    Only support kJ/mol, kcal/mol, and J/mol.
+    """
+    if current_unit == 'kJ/mol' and new_unit == 'kcal/mol':
+        return energy_val / 4.184
+    elif current_unit == 'kJ/mol' and new_unit == 'J/mol':
+        return energy_val * 1000
+    elif current_unit == 'J/mol' and new_unit == 'kJ/mol':
+        return energy_val / 1000
+    elif current_unit == 'J/mol' and new_unit == 'kcal/mol':
+        return energy_val / 4184
+    elif current_unit == 'kcal/mol' and new_unit == 'kJ/mol':
+        return energy_val * 4.184
+    elif current_unit == 'kcal/mol' and new_unit == 'J/mol':
+        return energy_val * 4184
+    else:
+        raise ValueError("Unsupported units")
+
+
+def get_solvent_info(solvent):
+    """
+    Returns `solvent_data` and `solvent_info` given the solvent name (`solvent`).
+    Also returns whether all Abraham and Mintz parameters are found in the `solvent_data`.
+    """
+    solvent_entry = database.solvation.libraries['solvent'].entries[solvent]
+    solvent_data = solvent_entry.data
+    solvent_smiles_list = []
+    for spc in solvent_entry.item:
+        solvent_smiles_list.append(spc.smiles)
+    solvent_index = solvent_entry.index
+    solvent_href = reverse('database:solvation-entry',
+                           kwargs={'section': 'libraries', 'subsection': 'solvent',
+                                   'index': solvent_index})
+    solvent_info = (solvent, solvent_smiles_list, solvent_href, solvent_index)
+
+    # check whether we have all solvent parameters to calculate dGsolv and dHsolv
+    abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
+                              solvent_data.a_g, solvent_data.c_g]
+    dGsolv_avail = not any(param is None for param in abraham_parameter_list)
+    mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
+                            solvent_data.a_h, solvent_data.c_h]
+    dHsolv_avail = not any(param is None for param in mintz_parameter_list)
+
+    return solvent_data, solvent_info, dGsolv_avail, dHsolv_avail
+
+
+def get_solvation_from_LSER(solute_data, solute_data_found, solvent_data, db, dGsolv_avail, dHsolv_avail, energy_unit):
+    """
+    Calculate solvation free energy, enthalpy, and entropy using the given `solute_data` and `solvent_data`
+    base on the LSER. Return the values in the given `energy_unit`.
+    """
+    # initialize
+    dGsolv298, dHsolv298, dSsolv298 = None, None, None
+    if solute_data_found:
+        if dGsolv_avail:
+            dGsolv298 = db.calc_g(solute_data, solvent_data)  # in J/mol
+        if dHsolv_avail:
+            dHsolv298 = db.calc_h(solute_data, solvent_data)  # in J/mol
+        if dGsolv_avail and dHsolv_avail:
+            dSsolv298 = (dHsolv298 - dGsolv298) / 298  # in J/mol/K
+
+    # Convert the results to appropriate units and round the values
+    solvation_val_list = [dGsolv298, dHsolv298, dSsolv298]
+    for i in range(len(solvation_val_list)):
+        val = solvation_val_list[i]
+        if solute_data_found is False:
+            val = None
+        elif val is None:
+            val = 'not available'
+        else:
+            val = convert_energy_unit(val, 'J/mol', energy_unit)
+            if i == 2:
+                val = clean_up_value(val, deci_place=2, sig_fig=2)
+            else:
+                val = clean_up_value(val, deci_place=2, sig_fig=2, only_big=True)
+        solvation_val_list[i] = val
+
+    return solvation_val_list
+
+
+def parse_none_results(result_dict):
+    """
+    Replace `None` value in the `result_dict` to a string '-'
+    """
+    for key, value_list in result_dict.items():
+        for i in range(len(value_list)):
+            if value_list[i] is None:
+                result_dict[key][i] = '-'
+    return result_dict
+
+
 def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_unit):
     """
     Returns a dictionary with solute parameter data for a given list of solute SMILES.
@@ -1091,15 +1312,11 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
     """
     solute_smiles_list = solute_smiles.split()
 
-    solute_data_results = {'Input SMILES': [],
-                           'Error': [],
-                           'E': [],
-                           'S': [],
-                           'A': [],
-                           'B': [],
-                           'L': [],
-                           'V': [],
-                           'Comment': []}
+    # Prepare an empty result dictionary
+    solute_data_results = {}
+    results_col_name_list = ['Input SMILES', 'Error', 'E', 'S', 'A', 'B', 'L', 'V', 'Comment']
+    for col_name in results_col_name_list:
+        solute_data_results[col_name] = []
 
     solute_data_list = []
     solute_data_found_list = []  # a list of Boolean for whether the solute parameters E, S, A, B, L are all found. (not V)
@@ -1116,99 +1333,36 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
     elif solute_estimator == 'SoluteGC':
         additional_info_list.append('Comment: functional groups used to estimate the solute parameters')
 
-    # get predictions for each given SMILES
+    # get the solute parameter predictions for each given SMILES
     for smiles in solute_smiles_list:
         # initialize the parameter values
-        error_msg = '-'
-        solute_comment = '-'
-        solute_data = SoluteData()
+        error_msg = None
+        solute_epi_unc_dict = {}
         try:
             solute_spc = Species().from_smiles(smiles)
             solute_spc.generate_resonance_structures()
         except:
             solute_spc = None
-            error_msg = 'Unable to parse the SMILES'
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES')
         # Get predictions using the selected method
         if solute_estimator == 'expt':
-            if solute_spc is not None:
-                data = db.get_solute_data_from_library(solute_spc, db.libraries['solute'])
-                if data is not None:
-                    solute_data = data[0]
-                    solute_comment = f'From RMG-database solute library: {data[2].index}. {data[2].label}'
-                else:
-                    solute_comment = 'Not found in RMG-database'
+            solute_data, solute_comment = get_solute_data_from_db(solute_spc, db)
         elif solute_estimator == 'SoluteGC':
-            if solute_spc is not None:
-                try:
-                    solute_data = db.get_solute_data(solute_spc, skip_library=True)
-                    solute_comment = solute_data.comment
-                except:
-                    error_msg = 'Unable to get the prediction from the SoluteGC method'
+            solute_data, solute_comment, error_msg = get_solute_data_from_SoluteGC(solute_spc, db, error_msg)
         elif solute_estimator == 'SoluteML':
-            solute_epi_unc_dict = {}
-            try:
-                avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
-                solute_data.E = avg_pre[0][0]
-                solute_data.S = avg_pre[0][1]
-                solute_data.A = avg_pre[0][2]
-                solute_data.B = avg_pre[0][3]
-                solute_data.L = avg_pre[0][4]
-                error_msg = '-'
-                solute_comment = 'SoluteML prediction'
-                solute_epi_unc_dict['E epi. unc.'] = epi_unc[0][0]
-                solute_epi_unc_dict['S epi. unc.'] = epi_unc[0][1]
-                solute_epi_unc_dict['A epi. unc.'] = epi_unc[0][2]
-                solute_epi_unc_dict['B epi. unc.'] = epi_unc[0][3]
-                solute_epi_unc_dict['L epi. unc.'] = epi_unc[0][4]
-            except:
-                error_msg = 'Unable to parse the SMILES'
-            # get V value using RMG
-            if solute_spc is not None:
-                try:
-                    solute_data.set_mcgowan_volume(solute_spc)
-                except:
-                    pass
-            # add error message if V value could not be obtained
-            if solute_data.V is None and error_msg == '-':
-                error_msg = 'Unable to get V value'
+            solute_data, solute_comment, error_msg, solute_epi_unc_dict = get_solute_data_from_SoluteML(smiles, solute_spc, error_msg)
         else:
             # unknown estimator is given
             raise Http404
 
-        # append the results
-        solute_data_results['Input SMILES'].append(smiles)
-        solute_data_results['Error'].append(error_msg)
-        solute_data_results['Comment'].append(solute_comment)
-        solute_param_dict = {'E': solute_data.E, 'S': solute_data.S, 'A': solute_data.A, 'B': solute_data.B,
-                             'L': solute_data.L, 'V': solute_data.V}
-        found = True  # whether the solute parameters E, S, A, B, L are found. (not V)
-        for key, value in solute_param_dict.items():
-            if value is None:
-                value = '-'
-                if key != 'V':
-                    found = False # if any of the solute parameters, E, S, A, B, L are not found, set this to False
-            else:
-                # rounding is not needed for experimental values from RMG-database
-                if solute_estimator != 'expt':
-                    if abs(value) < 1000:
-                        value = "{:.4f}".format(value)  # round to 4 decimal places
-                    else:
-                        value = "{:.2e}".format(value)  # display in scientific notation if the value is big
+        # append the results to the result dictionary
+        for key, value in zip(['Input SMILES', 'Error', 'Comment'], [smiles, error_msg, solute_comment]):
             solute_data_results[key].append(value)
-            if solute_estimator == 'SoluteML' and key != 'V':
-                key_epi_unc = f'{key} epi. unc.'
-                if key_epi_unc in solute_epi_unc_dict:
-                    epi_unc_value = solute_epi_unc_dict[key_epi_unc]
-                    if abs(epi_unc_value) < 1000:
-                        epi_unc_value = "{:.4f}".format(epi_unc_value)  # round to 4 decimal places
-                    else:
-                        epi_unc_value = "{:.2e}".format(epi_unc_value)  # display in scientific notation if the value is big
-                    solute_data_results[key_epi_unc].append(epi_unc_value)
-                else:
-                    solute_data_results[key_epi_unc].append('-')
-
+        solute_data_results, solute_data_found = parse_and_append_solute_data(solute_data, solute_data_results,
+                                                                              solute_estimator, solute_epi_unc_dict)
+        # save the solute_data and solute_data_found results to use them for solvation calculations if needed
         solute_data_list.append(solute_data)
-        solute_data_found_list.append(found)
+        solute_data_found_list.append(solute_data_found)
 
     # get the solvation properties if the input solvent was given
     solvent_info = None
@@ -1221,70 +1375,19 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
         additional_info_list.append('dHsolv298: solvation enthalpy at 298 K.')
         additional_info_list.append('dSsolv298: solvation entropy at 298 K.')
 
-        # get the solvent data and href
-        solvent_entry = database.solvation.libraries['solvent'].entries[solvent]
-        solvent_data = solvent_entry.data
-        solvent_smiles_list = []
-        for spc in solvent_entry.item:
-            solvent_smiles_list.append(spc.smiles)
-        solvent_index = solvent_entry.index
-        solvent_href = reverse('database:solvation-entry',
-                               kwargs={'section': 'libraries', 'subsection': 'solvent',
-                                       'index': solvent_index})
-        solvent_info = (solvent, solvent_smiles_list, solvent_href, solvent_index)
-
-        # check whether we have all solvent parameters to calculate dGsolv and dHsolv
-        abraham_parameter_list = [solvent_data.s_g, solvent_data.b_g, solvent_data.e_g, solvent_data.l_g,
-                                  solvent_data.a_g, solvent_data.c_g]
-        dGsolv_avail = not any(param is None for param in abraham_parameter_list)
-        mintz_parameter_list = [solvent_data.s_h, solvent_data.b_h, solvent_data.e_h, solvent_data.l_h,
-                                solvent_data.a_h, solvent_data.c_h]
-        dHsolv_avail = not any(param is None for param in mintz_parameter_list)
+        # get the solvent data
+        solvent_data, solvent_info, dGsolv_avail, dHsolv_avail = get_solvent_info(solvent)
 
         for solute_data, solute_data_found in zip(solute_data_list, solute_data_found_list):
-            dGsolv298 = '-'
-            dHsolv298 = '-'
-            dSsolv298 = '-'
-            if solute_data_found:
-                if dGsolv_avail:
-                    dGsolv298 = db.calc_g(solute_data, solvent_data) / 4184  # convert to kcal/mol
-                    if energy_unit == 'kJ/mol':
-                        dGsolv298 = dGsolv298 * 4.184  # convert to kJ/mol
-                else:
-                    dGsolv298 = 'not available'
-                if dHsolv_avail:
-                    dHsolv298 = db.calc_h(solute_data, solvent_data) / 4184  # convert to kJ/mol
-                    if energy_unit == 'kJ/mol':
-                        dHsolv298 = dHsolv298 * 4.184  # convert to kJ/mol
-                else:
-                    dHsolv298 = 'not available'
-                if dGsolv_avail and dHsolv_avail:
-                    dSsolv298 = (dHsolv298 - dGsolv298) / 298  # has the unit of dGsolv298 divided by Kelvin
-                    if abs(dSsolv298) < 1000:
-                        dSsolv298 = "{:.5f}".format(dSsolv298)  # round to 5 decimal places
-                    else:
-                        dSsolv298 = "{:.2e}".format(dSsolv298)  # display in scientific notation if the value is big
-                else:
-                    dSsolv298 = 'not available'
-
-                # round the dGsolv298 and dHsolv298 values to appropriate decimal places after they are used
-                # for dSsolv298 calculation.
-                if dGsolv_avail:
-                    if abs(dGsolv298) < 1000:
-                        dGsolv298 = "{:.2f}".format(dGsolv298)  # round to 2 decimal places
-                    else:
-                        dGsolv298 = "{:.2e}".format(dGsolv298)  # display in scientific notation if the value is big
-                if dHsolv_avail:
-                    if abs(dHsolv298) < 1000:
-                        dHsolv298 = "{:.2f}".format(dHsolv298)  # round to 2 decimal places
-                    else:
-                        dHsolv298 = "{:.2e}".format(dHsolv298)  # display in scientific notation if the value is big
+            [dGsolv298, dHsolv298, dSsolv298] = get_solvation_from_LSER(solute_data, solute_data_found, solvent_data,
+                                                                         db, dGsolv_avail, dHsolv_avail, energy_unit)
 
             # append the results
             solute_data_results[f'dGsolv298({energy_unit})'].append(dGsolv298)
             solute_data_results[f'dHsolv298({energy_unit})'].append(dHsolv298)
             solute_data_results[f'dSsolv298({energy_unit}/K)'].append(dSsolv298)
 
+    solute_data_results = parse_none_results(solute_data_results)
     return solute_data_results, additional_info_list, solvent_info
 
 
