@@ -6,6 +6,17 @@
 
 {% block title %}RMG: Solvation Search{% endblock %}
 
+{% block extrahead %}
+<script type="text/javascript">
+// Show a loading animation when after hitting the submit button.
+$().ready(function(){
+   $('[name$=submit]').click(function() {
+      if ($('[name$=solvent_solute_temp]').val()){
+         $('#searching').show(); }
+      });
+});
+</script>
+{% endblock %}
 
 {% block navbar_items %}
 <li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
@@ -104,6 +115,15 @@ ul.multicolumn {
     A maximum of 50 solvent-solute-temperature inputs are allowed for each calculation.
     It should take less than 1 minute to calculate solvation free energies for 50 inputs and could take
     more time if more options are selected.
+
+<div style="display:none" id="searching">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." id='loading_image'>
+   <p>Due to our server capacity,</p>
+   <p><strong>- Please wait patiently after submitting your search request. It may take a few minutes.</strong></p>
+   <p><strong>- Please do not submit multiple solvation searches simultaneously.</strong></p>
+   <p>If you keep receiving 'Gateway Timeout' error, it indicates your search takes longer time than the limit. Please contact <a href="mailto:rmg_dev@mit.edu">the RMG Development Team</a> for help.</p>
+</div>
+
 <form method="post" id="species_form">
 <table>
    <tr>
