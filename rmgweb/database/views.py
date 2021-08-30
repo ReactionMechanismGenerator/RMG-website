@@ -714,6 +714,105 @@ def solvationDataML(request, solvent_solute_smiles, calc_dGsolv, calc_dHsolv, ca
                   )
 
 
+def check_avail_temp_dep_solvent(solvent_smiles_input, allowed_solvent_dict, error_msg):
+    """
+    Checks whether the given `solvent_smiles_input` is available in CoolProp for the temperature dependent calculation
+    and returns its CoolProp name. It also returns the solvent's SMILES generated from rdkit that will be used
+    as the unique solvent key and the corresponding error message.
+    """
+    try:
+        solvent_smiles = Chem.CanonSmiles(solvent_smiles_input)
+        if solvent_smiles in allowed_solvent_dict:
+            solvent_name = allowed_solvent_dict[solvent_smiles]
+            return True, solvent_smiles, solvent_name, error_msg
+        else:
+            error_msg = update_error_msg(error_msg, 'Unsupported solvent')
+            return False, solvent_smiles, None, error_msg
+    except:
+        error_msg = update_error_msg(error_msg, 'Unable to parse the solvent SMILES')
+        return False, None, None, error_msg
+
+
+def parse_solute_smiles_using_rdkit(solute_smiles_input, error_msg):
+    """
+    Check whether the given `solute_smiles_input` can be parsed correctly using rdkit and returns its unique
+    SMILES key and corresponding error message.
+    """
+    try:
+        solute_smiles = Chem.CanonSmiles(solute_smiles_input)
+        return True, solute_smiles, error_msg
+    except:
+        if isinstance(error_msg, str) and 'Unable to parse the solvent SMILES' in error_msg:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the solvent SMILES and solute SMILES',
+                                         overwrite=True)
+        else:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the solute SMILES')
+        return False, None, error_msg
+
+
+def parse_temp_input(temp, temp_unit, error_msg):
+    """
+    Check whether the given `temp` is float and return the temperature in Kelvin and corresponding error message.
+    """
+    try:
+        temp = float(temp)
+        if temp_unit == 'K':
+            temp_SI = temp
+        else:  # then it's in degree Celcius
+            temp_SI = temp + 273.15
+        return temp_SI, error_msg
+    except:
+        error_msg = update_error_msg(error_msg, 'Incorrect input type for temperature')
+        return None, error_msg
+
+
+def check_avail_temp(temp_SI, solvent_supported, solvent_name, error_msg):
+    """
+    Check whether the given temperature `temp_SI` is in the valid range for CoolProp calculation for the given solvent
+    `solvent_name`. It returns the solvent's vapor pressure `Pvap` in Pa and the corresponding error message.
+    """
+    if temp_SI is not None and solvent_supported is True:
+        try:
+            rho_g = PropsSI('Dmolar', 'T', temp_SI, 'Q', 1, solvent_name)  # molar density of the vapor, in mol/m^3
+            rho_l = PropsSI('Dmolar', 'T', temp_SI, 'Q', 0, solvent_name)  # molar density of the solvent, in mol/m^3
+            Pvap = PropsSI('P', 'T', temp_SI, 'Q', 0, solvent_name)  # vapor pressure of the solvent in Pa
+            return True, Pvap, error_msg
+        except:
+            error_msg = update_error_msg(error_msg, 'Temperature is out of range')
+            return False, None, error_msg
+    return False, None, error_msg
+
+
+def get_temp_dep_logP(solvent_smiles, solute_smiles, temp_SI, solvation_298_results, dGsolv, error_msg, db):
+    """
+    Returns the logP calculation evaluated at the given temperature `temp_SI`, the updated dictionary containing
+    the solvation property calculations of water at 298 K, and the corresponding error message.
+    """
+    logP = None
+    if solvent_smiles == 'O':
+        logP = 0
+    # Check that the temperature is within valid range for CoolProp for water
+    elif 647 >= temp_SI >= 273.15:
+        pair_smiles_water = [['O', solute_smiles]]
+        pair_key_water = 'O' + '_' + solute_smiles
+
+        # get 298 K predictions for the water-solute pair
+        if pair_key_water in solvation_298_results:
+            dGsolv298water, dHsolv298water, dSsolv298water = solvation_298_results[pair_key_water]
+        else:
+            [dGsolv298water, dGsolv298_epi_unc, dHsolv298water, dHsolv298_epi_unc, dSsolv298water], \
+            error_msg = get_solvation_from_DirectML(pair_smiles_water, error_msg, True, True, True, 'J/mol')
+            solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
+
+        if dGsolv298water is not None and dHsolv298water is not None and dSsolv298water is not None:
+            dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
+                dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
+            logP = -(dGsolv - dGsolv_water) / (math.log(10) * 8.314472 * temp_SI)
+    else:
+        error_msg = update_error_msg(error_msg, 'Temperature is out of range for logP')
+    return logP, solvation_298_results, error_msg
+
+
 def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, calc_henry, calc_logK,
                                 calc_logP, temp_unit, energy_unit):
     """
@@ -735,103 +834,42 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
             smiles = Chem.CanonSmiles(entry.item[0].smiles)
             allowed_solvent_dict[smiles] = coolprop_name
 
-    # dictionary for storing the dGsolv and dHsolv at 298 K predictions. These are stored so we don't have to
-    # repeat the ML prediction.
+    # Create a dictionary for storing the dGsolv and dHsolv at 298 K predictions. These are stored so we don't have to
+    # repeat the ML prediction for the same solvent-solute pair.
     solvation_298_results = {}
 
-    solvation_data_results = {'Input': [],
-                              'solvent SMILES': [],
-                              'solute SMILES': [],
-                              f'T ({temp_unit})': [],
-                              'Error': [],
-                              f'dGsolv({energy_unit})': [],
-                              'K-factor': [],
-                              "Henry's const (bar)": [],
-                              'logK': [],
-                              'logP': [],
-                              }
+    # Prepare an empty result dictionary
+    solvation_data_results = {}
+    results_col_name_list = ['Input', 'solvent SMILES', 'solute SMILES', f'T ({temp_unit})', 'Error',
+                             f'dGsolv({energy_unit})', 'K-factor', "Henry's const (bar)", 'logK', 'logP']
+    for col_name in results_col_name_list:
+        solvation_data_results[col_name] = []
 
     # get predictions for each given solvent_solute SMILES
     for solvent_solute_temp_str in solvent_solute_temp_list:
         # initialization
-        solvent_smiles_input = '-'
-        solute_smiles_input = '-'
-        temp = '-'
-        error_msg = '-'
-        dGsolv = '-'
-        Kfactor = '-'
-        henry = '-'
-        logK = '-'
-        logP = '-'
-        solvent_name = None
-        solvent_supported = False
-        solute_supported = False
-        temp_supported = False
-        Pvap = None
-        dGsolv298 = None
-        temp_SI = None
+        solvent_smiles_input, solute_smiles_input, temp, error_msg, dGsolv,  = None, None, None, None, None
+        Kfactor, henry, logK, logP, Pvap = None, None, None, None, None
 
         input_list = solvent_solute_temp_str.split('_')
         if not len(input_list) == 3:
-            error_msg = 'Unable to process the input'
+            error_msg = update_error_msg(error_msg, 'Unable to process the input')
         else:
             solvent_smiles_input = input_list[0]
             solute_smiles_input = input_list[1]
             temp = input_list[2]
 
-            # check whether the solvent is supported.
-            try:
-                solvent_smiles = Chem.CanonSmiles(solvent_smiles_input)
-                if solvent_smiles in allowed_solvent_dict:
-                    solvent_supported = True
-                    solvent_name = allowed_solvent_dict[solvent_smiles]
-                else:
-                    error_msg = 'Unsupported solvent'
-            except:
-                error_msg = 'Unable to parse the solvent SMILES'
-
-            # check whether the solute SMILES can be parsed correctly
-            try:
-                solute_smiles = Chem.CanonSmiles(solute_smiles_input)
-                solute_supported = True
-            except:
-                if error_msg == '-':
-                    error_msg = 'Unable to parse the solvent SMILES'
-                else:
-                    error_msg += ' and solute SMILES'
-
-            # check whether the temperature is float and then convert to Kelvin.
-            try:
-                temp = float(temp)
-                if temp_unit == 'K':
-                    temp_SI = temp
-                else:  # then it's in degree Celcius
-                    temp_SI = temp + 273.15
-            except:
-                if error_msg == '-':
-                    error_msg = 'Incorrect input type for temperature'
-                else:
-                    error_msg += ', Incorrect input type for temperature'
+            # check whether the solvent, solute, and temperature inputs are supported.
+            solvent_supported, solvent_smiles, solvent_name, error_msg = \
+                check_avail_temp_dep_solvent(solvent_smiles_input, allowed_solvent_dict, error_msg)
+            solute_supported, solute_smiles, error_msg = parse_solute_smiles_using_rdkit(solute_smiles_input, error_msg)
+            temp_SI, error_msg = parse_temp_input(temp, temp_unit, error_msg)
 
             # Check that the temperature is within valid range for CoolProp
-            if solvent_supported and temp_SI is not None:
-                try:
-                    rho_g = PropsSI('Dmolar', 'T', temp_SI, 'Q', 1,
-                                    solvent_name)  # molar density of the vapor, in mol/m^3
-                    rho_l = PropsSI('Dmolar', 'T', temp_SI, 'Q', 0,
-                                    solvent_name)  # molar density of the solvent, in mol/m^3
-                    Pvap = PropsSI('P', 'T', temp_SI, 'Q', 0,
-                                   solvent_name)  # vapor pressure of the solvent in Pa
-                    temp_supported = True
-                except:
-                    if error_msg == '-':
-                        error_msg = 'Temperature is out of range'
-                    else:
-                        error_msg += ', Temperature is out of range'
+            temp_supported, Pvap, error_msg = check_avail_temp(temp_SI, solvent_supported, solvent_name, error_msg)
 
             # Now perform calculations
             if solvent_supported and solute_supported and temp_supported:
-
                 pair_smiles = [[solvent_smiles, solute_smiles]]
                 pair_key = solvent_smiles + '_' + solute_smiles
 
@@ -839,106 +877,51 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                 if pair_key in solvation_298_results:
                     dGsolv298, dHsolv298, dSsolv298 = solvation_298_results[pair_key]  # in J/mol, J/mol, J/mol/K
                 else:
-                    try:
-                        avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
-                        dGsolv298 = avg_pre[0] * 4184  # convert to J/mol
-                        avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
-                        dHsolv298 = avg_pre[0] * 4184  # convert to J/mol
-                        dSsolv298 = (dHsolv298 - dGsolv298) / 298  # in J/mol/K
-                        solvation_298_results[pair_key] = (dGsolv298, dHsolv298, dSsolv298)  # in J/mol, J/mol, J/mol/K
-                    except:
-                        error_msg = 'Unable to parse the SMILES'
+                    [dGsolv298, dGsolv298_epi_unc, dHsolv298, dHsolv298_epi_unc, dSsolv298], error_msg = \
+                    get_solvation_from_DirectML(pair_smiles, error_msg, True, True, True, 'J/mol')
+                    solvation_298_results[pair_key] = (dGsolv298, dHsolv298, dSsolv298)
 
                 # get T-dep calculations
-                if dGsolv298:
+                if dGsolv298 is not None and dHsolv298 is not None and dSsolv298 is not None:
                     # dGsolv in J/mol
                     dGsolv, Kfactor = db.get_T_dep_solvation_energy_from_input_298(dGsolv298, dHsolv298, dSsolv298,
                                                                                    solvent_name, temp_SI)
 
-                if calc_henry and dGsolv != '-':
-                    henry = Kfactor * Pvap / 100000  # Pvap is in Pa, so convert it to bar
+                if calc_henry and Kfactor is not None and Pvap is not None:
+                    henry = Kfactor * Pvap / 100000  # Pvap is in Pa, and henry is in bar
+                    henry = clean_up_value(henry, deci_place=2, sig_fig=2)
+                # format the Kfactor result after it is used for henry calculation
+                Kfactor = clean_up_value(Kfactor)
 
-                if calc_logK and dGsolv != '-':
+                if calc_logK and dGsolv is not None:
                     logK = -dGsolv / (math.log(10) * 8.314472 * temp_SI)
-                    logK = "{:.2f}".format(logK)  # round to 2 decimal places
+                    logK = clean_up_value(logK, deci_place=2, only_big=True)
 
-                if calc_logP and dGsolv != '-':
-                    dGsolv298water = None
-                    if solvent_smiles == 'O':
-                        logP = 0
-                    # Check that the temperature is within valid range for CoolProp for water
-                    elif 647 >= temp_SI >= 273.15:
-                        pair_smiles_water = [['O', solute_smiles]]
-                        pair_key_water = 'O' + '_' + solute_smiles
+                if calc_logP and dGsolv is not None:
+                    logP, solvation_298_results, error_msg = get_temp_dep_logP(
+                        solvent_smiles, solute_smiles, temp_SI, solvation_298_results, dGsolv, error_msg, db)
+                    logP = clean_up_value(logP, deci_place=2, only_big=True)
 
-                        # get 298 K predictions for the water-solute pair
-                        if pair_key_water in solvation_298_results:
-                            dGsolv298water, dHsolv298water, dSsolv298water = solvation_298_results[pair_key_water]
-                        else:
-                            try:
-                                avg_pre, epi_unc, valid_indices = dGsolv_estimator(
-                                    pair_smiles_water)  # default is in kcal/mol
-                                dGsolv298water = avg_pre[0] * 4184  # convert to J/mol
-                                avg_pre, epi_unc, valid_indices = dHsolv_estimator(
-                                    pair_smiles_water)  # default is in kcal/mol
-                                dHsolv298water = avg_pre[0] * 4184  # convert to J/mol
-                                dSsolv298water = (dHsolv298water - dGsolv298water) / 298  # in J/mol/K
-                                solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
-                            except:
-                                error_msg = 'Unable to parse the SMILES'
-
-                        if dGsolv298water:
-                            dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
-                                dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
-                            logP = -(dGsolv - dGsolv_water) / (math.log(10) * 8.314472 * temp_SI)
-                            logP = "{:.2f}".format(logP)  # round to 2 decimal places
-                    else:
-                        if error_msg == '-':
-                            error_msg = 'Temperature is out of range for logP'
-                        else:
-                            error_msg += ', Temperature is out of range for logP'
-
-        # Round all values to appropriate decimal places. Convert the energy unit if needed.
-        if dGsolv != '-':
-            if energy_unit == 'kJ/mol':
-                dGsolv = dGsolv / 1000  # from J/mol to kJ/mol
-            else:
-                dGsolv = dGsolv / 4184  # from J/mol to kcal/mol
-            dGsolv = "{:.2f}".format(dGsolv)  # round to 2 decimal places
-            Kfactor = "{:.2e}".format(Kfactor)  # change to scientific notation
-
-        if henry != '-':
-            if 1000 > henry > 1:
-                henry = "{:.2f}".format(henry)  # round to 2 decimal places
-            else:
-                henry = "{:.2e}".format(henry)  # change to scientific notation
-
-        # append the results
-        solvation_data_results['Input'].append(solvent_solute_temp_str)
-        solvation_data_results['solvent SMILES'].append(solvent_smiles_input)
-        solvation_data_results['solute SMILES'].append(solute_smiles_input)
-        solvation_data_results[f'T ({temp_unit})'].append(temp)
-        solvation_data_results['Error'].append(error_msg)
-        solvation_data_results[f'dGsolv({energy_unit})'].append(dGsolv)
-        solvation_data_results['K-factor'].append(Kfactor)
-        solvation_data_results["Henry's const (bar)"].append(henry)
-        solvation_data_results['logK'].append(logK)
-        solvation_data_results['logP'].append(logP)
+        # append the results.
+        result_val_list = [solvent_solute_temp_str, solvent_smiles_input, solute_smiles_input, temp, error_msg,
+                           dGsolv, Kfactor, henry, logK, logP]
+        for key, val in zip(results_col_name_list, result_val_list):
+            # Convert to the input energy unit and round to appropriate decimal places for solvation properties.
+            if energy_unit in key and val is not None:
+                val = convert_energy_unit(val, 'J/mol', energy_unit)
+                val = clean_up_value(val, deci_place=2, sig_fig=2, only_big=True)
+            solvation_data_results[key].append(val)
 
     # drop unnecessary dictionary keys.
-    rem_list = []
-    if calc_dGsolv is False:
-        rem_list.append(f'dGsolv({energy_unit})')
-    if calc_Kfactor is False:
-        rem_list.append('K-factor')
-    if calc_henry is False:
-        rem_list.append("Henry's const (bar)")
-    if calc_logK is False:
-        rem_list.append('logK')
-    if calc_logP is False:
-        rem_list.append('logP')
-    [solvation_data_results.pop(key) for key in rem_list]
+    remove_list = []
+    calc_val_key_tup_list = [(calc_dGsolv, [f'dGsolv({energy_unit})']), (calc_Kfactor, ['K-factor']),
+                             (calc_henry, ["Henry's const (bar)"]), (calc_logK, ['logK']), (calc_logP, ['logP'])]
+    for calc_val, key in calc_val_key_tup_list:
+        if calc_val is False:
+            remove_list += key
+    [solvation_data_results.pop(key) for key in remove_list]
 
+    solvation_data_results = parse_none_results(solvation_data_results)
     return solvation_data_results
 
 
