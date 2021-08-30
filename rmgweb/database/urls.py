@@ -87,9 +87,6 @@ urlpatterns = [
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry, name='solvation-entry'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation, name='solvation'),
     re_path(r'^solvation/(?P<section>\w+)/$', views.solvation, name='solvation'),
-    # below is commented out because it is no longer used. But let's keep it just in case anyone wants to use it
-    # re_path(r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)__'
-    #         r'solventTemp=(?P<solvent_temp>[\S\s]+)__temp=(?P<temp>\d+\.\d+)$', views.solvationData, name='solvation-data'),
 
     # statmech database
     re_path(r'^statmech/$', views.statmech, name='statmech'),
