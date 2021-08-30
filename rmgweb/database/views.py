@@ -1002,8 +1002,14 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
             solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
         error_msg = update_error_msg(error_msg, None, overwrite=True)
         solute_comment = 'SoluteML prediction'
-    except:
-        error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
+    except Exception as e:
+        if "rdkit_2d_normalized" in str(e) or "descriptastorus" in str(e) or "rdNormalizedDescriptors" in str(e):
+            raise ImportError(f'Please install "descriptastorus" to use the SoluteML model.\n'
+                              f'Run the following line to install "descriptastorus":\n'
+                              f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
+                              'If "descriptastorus" is already installed, please update "chemprop_solvation".')
+        else:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     # get V value using RMG
     if solute_spc is not None:
         try:
@@ -3440,7 +3446,6 @@ def solvationSoluteSearch(request):
 
         form = SoluteSearchForm(initial, error_class=DivErrorList)
 
-        print(posted.errors)
         if posted.is_valid():
             solute_smiles = posted.cleaned_data['solute_smiles']
             solute_estimator = posted.cleaned_data['solute_estimator']
