@@ -45,6 +45,7 @@ from CoolProp.CoolProp import PropsSI
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 
 import rmgpy
+import rmgpy.constants as constants
 from rmgpy.data.base import Entry, LogicAnd, LogicNode, LogicOr
 from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, LibraryReaction
@@ -626,7 +627,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
                 get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_required, calc_dSsolv, 'J/mol')
             # get logK calculation
             if calc_logK and dGsolv298 is not None:
-                logK = -dGsolv298 / (math.log(10) * 8.314472 * 298)
+                logK = -dGsolv298 / (math.log(10) * constants.R * 298)
                 logK = clean_up_value(logK, deci_place=2, only_big=True)
             # get logP calculation
             if calc_logP and dGsolv298 is not None:
@@ -636,7 +637,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
                     try:
                         avg_pre, epi_unc, valid_indices = dGsolv_estimator([['O', solute_smiles]])
                         dGsolv298_water = convert_energy_unit(avg_pre[0], 'kcal/mol', 'J/mol')
-                        logP = -(dGsolv298 - dGsolv298_water) / (math.log(10) * 8.314472 * 298)
+                        logP = -(dGsolv298 - dGsolv298_water) / (math.log(10) * constants.R * 298)
                         logP = clean_up_value(logP, deci_place=2, only_big=True)
                     except:
                         # this error is very unlikely to happen, but it's added as a safety net
@@ -807,7 +808,7 @@ def get_temp_dep_logP(solvent_smiles, solute_smiles, temp_SI, solvation_298_resu
         if dGsolv298water is not None and dHsolv298water is not None and dSsolv298water is not None:
             dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
                 dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
-            logP = -(dGsolv - dGsolv_water) / (math.log(10) * 8.314472 * temp_SI)
+            logP = -(dGsolv - dGsolv_water) / (math.log(10) * constants.R * temp_SI)
     else:
         error_msg = update_error_msg(error_msg, 'Temperature is out of range for logP')
     return logP, solvation_298_results, error_msg
@@ -894,7 +895,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                 Kfactor = clean_up_value(Kfactor)
 
                 if calc_logK and dGsolv is not None:
-                    logK = -dGsolv / (math.log(10) * 8.314472 * temp_SI)
+                    logK = -dGsolv / (math.log(10) * constants.R * temp_SI)
                     logK = clean_up_value(logK, deci_place=2, only_big=True)
 
                 if calc_logP and dGsolv is not None:
