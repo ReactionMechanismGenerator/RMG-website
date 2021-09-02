@@ -9,7 +9,7 @@ dependencies:
   - beautifulsoup4
   - cairo
   - cairocffi
-  - chemprop_solvation
+  - chemprop_solvation >=0.0.3
   - coverage
   - cython >=0.25.2
   - docutils
