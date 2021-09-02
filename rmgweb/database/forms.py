@@ -243,6 +243,172 @@ class SolvationSearchForm(forms.ModelForm):
         return temp
 
 
+class SolvationSearchMLForm(forms.ModelForm):
+    """
+    Form for searching for the solvation properties for a given solvent-solute pair(s) using an ML model.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolvationSearchML
+        model = SolvationSearchML
+        fields = '__all__'
+        widgets = {'solvent_solute_smiles': forms.Textarea(attrs={'cols': 80, 'rows': 10,
+                                                            'placeholder': "solventSMILES_soluteSMILES \n"
+                                                                           "CC#N_CCCC \nO_CCO \nO_C1=CC=CC=C1 ..."}),
+        }
+
+    def clean_solvent_solute_smiles(self):
+        """
+        Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
+        does not exceed 50.
+        """
+        solvent_solute_smiles = self.cleaned_data['solvent_solute_smiles']
+        solvent_solute_smiles_list = solvent_solute_smiles.split()
+        if len(solvent_solute_smiles_list) > 50:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of input solvent-solute pairs cannot exceed 50.')
+        return solvent_solute_smiles
+
+    def clean_option_selected(self):
+        """
+        Custom validation for the option_selected to ensure at least one calculation option is selected.
+        """
+        calc_dGsolv = self.cleaned_data['calc_dGsolv']
+        calc_dHsolv = self.cleaned_data['calc_dHsolv']
+        calc_dSsolv = self.cleaned_data['calc_dSsolv']
+        calc_logK = self.cleaned_data['calc_logK']
+        calc_logP = self.cleaned_data['calc_logP']
+
+        option_selected = any([calc_dGsolv, calc_dHsolv, calc_dSsolv, calc_logK, calc_logP])
+
+        if option_selected is False:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('At least one option must be selected.')
+        return option_selected
+
+
+class SolvationSearchTempDepForm(forms.ModelForm):
+    """
+    Form for searching for temperature-dependent solvation properties for a given solvent-solute pair(s) at a
+    an input temperature(s).
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolvationSearchTempDep
+        model = SolvationSearchTempDep
+        fields = '__all__'
+        widgets = {'solvent_solute_temp': forms.Textarea(attrs={'cols': 80, 'rows': 10,
+                                                                'placeholder': "solventSMILES_soluteSMILES_Temperature \n"
+                                                                               "CCO_CCCCCCCC_298 \nO_CCCO_300 \nC1CCCCC1_C1=CC=CC=C1_400 ..."}),
+        }
+
+    def clean_solvent_solute_temp(self):
+        """
+        Custom validation for the solvent_solute_temp field to ensure that the number of solvent-solute-temperature
+        pairs do not exceed 50.
+        """
+        solvent_solute_temp = self.cleaned_data['solvent_solute_temp']
+        solvent_solute_temp_list = solvent_solute_temp.split()
+        if len(solvent_solute_temp_list) > 50:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of solvent-solute-temperature inputs cannot exceed 50.')
+        return solvent_solute_temp
+
+    def clean_option_selected(self):
+        """
+        Custom validation for the option_selected to ensure at least one calculation option is selected.
+        """
+        calc_dGsolv = self.cleaned_data['calc_dGsolv']
+        calc_Kfactor = self.cleaned_data['calc_Kfactor']
+        calc_henry = self.cleaned_data['calc_henry']
+        calc_logK = self.cleaned_data['calc_logK']
+        calc_logP = self.cleaned_data['calc_logP']
+
+        option_selected = any([calc_dGsolv, calc_Kfactor, calc_henry, calc_logK, calc_logP])
+
+        if option_selected is False:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('At least one option must be selected.')
+        return option_selected
+
+
+class SoluteSearchForm(forms.ModelForm):
+    """
+    Form for searching for the Abraham solute parameters for a solute species and optionally search for
+    solvation properties if a solvent species is also chosen.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SoluteSearch
+        model = SoluteSearch
+        fields = '__all__'
+        widgets = {'solute_smiles': forms.Textarea(attrs={'cols': 50, 'rows': 10,
+                                                            'placeholder': "CCCC CCO C1=CC=CC=C1 ..."}),
+        }
+
+    def clean_solute_smiles(self):
+        """
+        Custom validation for the solute_smiles_list field to ensure that the number of solute SMILES
+        does not exceed 50.
+        """
+        solute_smiles = self.cleaned_data['solute_smiles']
+        solute_smiles_list = solute_smiles.split()
+        if len(solute_smiles_list) > 50:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('The number of input solute SMILESs cannot exceed 50.')
+        return solute_smiles
+
+    def clean_solute_estimator(self):
+        """
+        Custom validation for the solute_estimator field to ensure that the user select a method for solute parameter
+        estimation.
+        """
+        solute_estimator = self.cleaned_data['solute_estimator']
+        if solute_estimator == '':
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('You must select an estimation method for the solute parameters.')
+        return solute_estimator
+
+
+class SolventSearchForm(forms.ModelForm):
+    """
+    Form for searching for solvent data.
+    """
+    class Meta(object):
+
+        from rmgweb.database.models import SolventSelection
+        model = SolventSelection
+        fields = '__all__'
+        widgets = {'species_identifier': forms.TextInput(
+            attrs={'onchange': 'resolve("adjlist");', 'class': 'identifier', 'style': 'width:100%;'}
+            ),
+            'adjlist': forms.Textarea(attrs={'cols': 50, 'rows': 10}),
+        }
+
+    def clean_adjlist(self):
+        """
+        Custom validation for the adjlist field to ensure that a valid adjacency
+        list has been provided.
+        """
+        try:
+            adjlist = self.cleaned_data['adjlist']
+            if adjlist == '':
+                return ''
+            molecule = Molecule()
+            molecule.from_adjacency_list(adjlist)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            raise forms.ValidationError('Invalid adjacency list.')
+        return adjlist
+
+
 class GroupDrawForm(forms.Form):
     """
     Form for drawing group from adjacency list

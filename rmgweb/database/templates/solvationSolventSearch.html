@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+
+
+{% block title %}RMG: Solvent Search{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// the function used to resolve the identifier into an adjacency list
+function resolve(){
+   var spField = $('#id_adjlist');
+   var identifier = $('#id_species_identifier').val();
+   var url = '/adjacencylist/'+escape(identifier);
+   spField.val("Loading...");
+   var jqxhr = $.get(url,function(structure) {
+                     spField.val(structure);
+                     spField.change();
+                  })
+               .on('error', function(j,t,e) { spField.val(t+'\n'+e); });
+};
+// convert an adjancency list into an image url
+function adjlist2img(s) {
+   adjlist = encodeURI(s);
+   return "{% url 'draw-molecule' adjlist='ADJLIST' %}".replace('ADJLIST',adjlist);
+}
+
+$(document).ready(function() {
+// prevent "enter" keypress in the form fields from submitting the form,
+// but instead make them select the submit button.
+   $(".identifier").bind("keypress", function(e) {
+    var c = e.which ? e.which : e.keyCode;
+    if (c == 13) {
+       if ($("input:submit").is(":focus")) { return true;}
+       else {
+          $("input:submit:first").focus();
+          return false;
+       };
+    }
+   });
+// add images to the right of all the text areas
+   $("textarea").closest('tr').append("<img src='{% static 'img/moleculedraw-logo-small.png' %}'>");
+// add onChange handlers to all the text areas to modify the image sources
+   $("textarea").change( function() {
+      var src = adjlist2img( $(this).val() );
+      $(this).closest('tr').find('img').attr('src',src);
+    });
+// if you got to the page with pre-filled fields (eg. by hitting the back or forward button) the images will be stale
+   $("textarea").each(function(){
+      if ($(this).val()) { $(this).change(); }
+      })
+// end of $(document).ready(function() {
+})
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solventSearch' %}">Solvent Search</a></li>
+{% endblock %}
+
+{% block page_title %}Solvent Search{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to browse the Abraham and Mintz solvent parameters and
+viscosity parameters for the solvents that are available in the RMG database.
+Choose a solvent molecule by entering its species identifier or adjacency list.
+</p>
+
+<p>
+Note that a solvent must have all Abraham, Mintz, and viscosity parameters
+in order for a RMG user to simulate a liquid reactor. If a solvent is missing
+any of those parameters, RMG liquid reactor simulation will raise an error.
+Other parameters (e.g. α, β, dielectric constant) are not needed for RMG liquid reactor simulation.
+</p>
+
+<p>For details on the Abraham and Mintz solvent parameters and viscosity parameters, please refer to <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html">
+   Solvation Thermochemistry</a> in documentation, specifically Sections <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html#use-of-abraham-lser-to-estimate-thermochemistry-at-298-k">
+   15.2.2</a> and <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html#diffusion-limited-kinetics">
+   15.3</a>. Please cite the references given in "Long description" if you wish to use any parameters.
+   You can see all available solvents in the solvent library <a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}" target="_blank">here</a>.
+   <br>
+</p>
+
+<P>To search for a solvent, enter any species identifier,
+such as a
+<a href="javascript:$('#id_species_identifier').val('CCC=CC(=O)O');resolve();">SMILES</a>,
+<a href="javascript:$('#id_species_identifier').val('InChI=1S/C7H8O/c8-6-7-4-2-1-3-5-7/h1-5,8H,6H2');resolve();">InChI</a>,
+<a href="javascript:$('#id_species_identifier').val('623-42-7');resolve();">CAS number</a>, or
+<a href="javascript:$('#id_species_identifier').val('2,3 dimethyl hexan-4-ol');resolve();">species name</a>
+ in the 'Solvent Species Identifier' field and press tab.
+This is translated into an adjacency list using the <a href="http://cactus.nci.nih.gov/chemical/structure">NCI Chemical Identifier Resolver</a>.
+Do not click the search button until the adjacency list has loaded.
+Alternatively, you can directly enter the adjacency list in the 'Solvent Adjacency List' field.
+The search will pull the solvent data if it exists in the RMG-database solvent library.
+<form method="post" id="species_form">
+<table>
+   <tr>
+      <th><b>Solvent Species Identifier:</b></th>
+      <td>{{form.species_identifier}}</td>
+   </tr>
+   <tr>
+      <th><b>Solvent Adjacency List:	</b></th>
+      <td>{{form.adjlist}}</td>
+   </tr>
+   <tr>
+      <th>{% csrf_token %}</th>
+      <td>
+         <input type="submit" value="Search Solvent Data" name="solventSearch" />
+         <input type="submit" value="Reset Form" name="reset" />
+      </td>
+   </tr>
+</table>
+</form>
+
+{% endblock %}s

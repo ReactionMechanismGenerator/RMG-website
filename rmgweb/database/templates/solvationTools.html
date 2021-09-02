@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}RMG: Solvation Tools{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+{% endblock %}
+
+{% block sidebar_items %}
+{% endblock %}
+
+{% block page_title %}Solvation Tools{% endblock %}
+
+{% block page_body %}
+
+
+    <ol>
+        <li><a href ="{% url 'database:solvation-solventSearch' %}">Solvent Search</a>: search Abraham and Mintz solvent
+        parameters and other solvent-specific parameters (e.g. viscosity) from RMG-database by entering species
+        identifiers. Use this tool to check whether a solvent of your interest is available for RMG liquid
+        reactor simulation.<P>
+        <li><a href ="{% url 'database:solvation-soluteSearch' %}">Solute Parameter Search & Prediction (optional
+        solvation free energy, enthalpy, and entropy prediction using the LSER)</a>: search for Abraham
+        solute parameters (E, S, A, B, L, V) from RMG-database or get the prediction from a group additivity model
+        (SoluteGC) and a machine learning model (SoluteML) by entering a solute SMILES(s). Optionally, get solvation
+        free energy, enthalpy, and entropy prediction at 298 K from the solute and solvent parameters using the
+        LSER (Linear Solvation Energy Relationship) approach.<P>
+        <li><a href ="{% url 'database:solvation-searchML' %}">Solvation Free Energy, Enthalpy, and Entropy Prediction
+        at 298 K Using a Machine Learning Model</a>:
+        get solvation free energy, enthalpy, and entropy prediction at 298 K from a machine learning model (DirectML)
+        by entering SMILES of a solvent and a solute. LogK and logP (dry) prediction is also available.<P>
+        <li><a href ="{% url 'database:solvation-searchTempDep' %}">Temperature-Dependent Solvation Free Energy, Vapor–Liquid
+        Equilibria, and Henry's Law Constant Prediction</a>: get solvation free energy, VLE, and Henry's law constant
+        prediction along the solvent's saturation curve at any temperature of interest by entering SMILES of a solvent
+        and a solute. LogK and logP (dry) prediction is also available. This temperature-dependence search is
+        currently limited to certain solvents.<P>
+        <li>Solid Solubility Prediction: upcoming<P>
+					</ol>
+
+<p>&nbsp;</p>
+Note:
+<i>
+    We caution that while our solvation tools work well overall, it is possible that they mispredict
+    solvation properties or parameters of particular solvents, solutes, or solvent-solute pairs. The authors assume
+    no liability for the predictions which turn out to be erroneous. </i>
+
+{% endblock %}

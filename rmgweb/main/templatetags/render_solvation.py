@@ -294,7 +294,7 @@ def render_solvation_math(solvation, user=None):
     return mark_safe(result)
 
 @register.filter
-def render_solvation_molecule(item):
+def render_solvation_molecule(item, solvent_search_result=False):
     """
     Return a SMILES string(s) of the given `item`, which is either an instance of `Species` or
     a list of an instance of `Species`.
@@ -303,15 +303,19 @@ def render_solvation_molecule(item):
     result = ''
     # Case 1. Solvent - this is given as a list of Species objects.
     if isinstance(item, list):
-        result += r'<h2>Molecule SMILES</h2>' + '\n'
-        result += r'<p>'
+        if solvent_search_result:
+            result += r'<p>&emsp;&emsp;Result solvent SMILES: &nbsp;'
+        else:
+            result += r'<h2>Molecule SMILES</h2>' + '\n'
+            result += r'<p>'
         if len(item) == 1:
             result += item[0].smiles
         else:
-            result += 'This is a mixture of the following solvents: '
             for spc in item:
                 result += f'{spc.smiles}, '
-            result = result[:-2] + r'</p>'
+            result = result[:-2]
+            result += ' (mixture solvents) '
+        result += r'</p>'
     # Case 2. Solute - this is given as a Specie object.
     elif isinstance(item, Species):
         result += r'<h2>Molecule SMILES</h2>' + '\n'
@@ -324,6 +328,25 @@ def render_solvation_molecule(item):
         result += r'<p><pre>'
         result += item.to_adjacency_list()
         result += r'</pre></p>'
+    return mark_safe(result)
+
+
+@register.filter
+def render_smiles_list(smiles_list):
+    """
+    Format and return a SMILES string(s).
+    """
+    # The string that will be returned to the template
+    result = r'<h3>Solvent SMILES:</h3>' + '\n'
+    result += r'<p>'
+    if len(smiles_list) == 1:
+        result += smiles_list[0]
+    else:
+        result += 'This is a mixture of the following solvents: '
+        for smiles in smiles_list:
+            result += f'{smiles}, '
+        result = result[:-2]
+    result += r'</p>'
     return mark_safe(result)
 
 

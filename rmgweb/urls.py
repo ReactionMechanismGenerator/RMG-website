@@ -115,9 +115,8 @@ urlpatterns = [
     re_path(r'^cactus/(?P<query>.*)$', rmgweb.main.views.cactusResolver, name='cactus-resolver'),
     re_path(r'^nistcas/(?P<inchi>.*)$', rmgweb.main.views.getNISTcas, name='get-nist-cas'),
 
-    # Molecule and solvation search,  group drawing webpages
+    # Molecule search,  group drawing webpages
     re_path(r'^molecule_search$', rmgweb.database.views.moleculeSearch, name='molecule-search'),
-    re_path(r'^solvation_search', rmgweb.database.views.solvationSearch, name='solvation-search'),
 
     # RMG-Py Stuff
     re_path(r'^tools/', include("rmgweb.rmg.urls")),

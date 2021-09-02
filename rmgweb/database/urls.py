@@ -67,9 +67,23 @@ urlpatterns = [
 
     # solvation database
     re_path(r'^solvation/$', views.solvation, name='solvation'),
-    re_path(r'^solvation/search/$', views.solvationSearch, name='solvation-search'),
-    re_path(r'^solvation/results/solute=(?P<solute_adjlist>[\S\s]+)__solvent=(?P<solvent>[\S\s]+)__'
-            r'solventTemp=(?P<solvent_temp>[\S\s]+)__temp=(?P<temp>\d+\.\d+)$', views.solvationData, name='solvation-data'),
+    re_path(r'^solvation/search/$', views.solvationIndex, name='solvation-search'),
+    re_path(r'^solvation/searchML/$', views.solvationSearchML, name='solvation-searchML'),
+    re_path(r'^solvation/searchTempDep/$', views.solvationSearchTempDep, name='solvation-searchTempDep'),
+    re_path(r'^solvation/solventSearch/$', views.solvationSolventSearch, name='solvation-solventSearch'),
+    re_path(r'^solvation/soluteSearch/$', views.solvationSoluteSearch, name='solvation-soluteSearch'),
+    re_path(r'^solvation/searchML/solv_solu=(?P<solvent_solute_smiles>[\S\s]+)__dG=(?P<calc_dGsolv>[\S\s]+)__'
+            r'dH=(?P<calc_dHsolv>[\S\s]+)__dS=(?P<calc_dSsolv>[\S\s]+)__logK=(?P<calc_logK>[\S\s]+)__'
+            r'logP=(?P<calc_logP>[\S\s]+)__unit=(?P<energy_unit>[\S\s]+)$', views.solvationDataML, name='solvation-dataML'),
+    re_path(r'^solvation/searchTempDep/solv_sol_temp=(?P<solvent_solute_temp>[\S\s]+)__dG=(?P<calc_dGsolv>[\S\s]+)__'
+            r'Kfac=(?P<calc_Kfactor>[\S\s]+)__Henry=(?P<calc_henry>[\S\s]+)__logK=(?P<calc_logK>[\S\s]+)__'
+            r'logP=(?P<calc_logP>[\S\s]+)__Tunit=(?P<temp_unit>[\S\s]+)__Eunit=(?P<energy_unit>[\S\s]+)$',
+            views.solvationDataTempDep, name='solvation-dataTempDep'),
+    re_path(r'^solvation/solventSearch/solvent=(?P<solvent_adjlist>[\S\s]+)$',
+            views.solvationSolventData, name='solvation-solventData'),
+    re_path(r'^solvation/soluteSearch/solu=(?P<solute_smiles>[\S\s]+)__estimator=(?P<solute_estimator>[\S\s]+)__'
+            r'solv=(?P<solvent>[\S\s]+)__unit=(?P<energy_unit>[\S\s]+)$',
+            views.solvationSoluteData, name='solvation-soluteData'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry, name='solvation-entry'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation, name='solvation'),
     re_path(r'^solvation/(?P<section>\w+)/$', views.solvation, name='solvation'),

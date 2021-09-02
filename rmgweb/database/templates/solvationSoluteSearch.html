@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// Show a loading animation when after hitting the submit button.
+$().ready(function(){
+   $('[name$=submit]').click(function() {
+      if ($('[name$=solute_smiles]').val() && $('[name$=solute_estimator]').val()){
+         $('#searching').show(); }
+      });
+});
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-soluteSearch' %}">Solute and Solvation LSER Search</a></li>
+{% endblock %}
+
+{% block page_title %}Solute and Solvation LSER Search{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to find the Abraham solute parameters (E, S, A, B, L, V). Currently, we only support searches
+   for electrically neutral solute compounds containing H, C, N, O, S, P, F, Cl, Br, and I.
+   You can select the following methods to find the Abraham solute parameters: <br>
+<ul>
+   <li><b>RMG-database</b>: get the experimental values from the RMG-database
+      <a href="{% url 'database:solvation' section='libraries' subsection='solute' %}" target="_blank">solute library</a>
+      if they exist.</li>
+   <li><b>SoluteGC</b>: get the prediction using the group contribution (a.k.a. group additivity) method.</li>
+   <li><b>SoluteML</b>: get the prediction using the machine learning model. This is usually
+      more accurate than the SoluteGC method.</li>
+</ul>
+   Very limited radical corrections are available for the SoluteGC method. The SoluteML model is not trained
+for radical compounds, and therefore it is not suitable for radical compounds. The SoluteML method should take less than 1
+minute to process 50 solute compounds. The RMG-database and SoluteGC methods are usually faster than the SoluteML method.
+If the input solute species is complex (i.e. many fused rings, many resonance structures, ...), it will take longer
+time to process.
+</p>
+
+<p>Details on the SoluteGC and SoluteML methods can be found in the publication shown below. Both SoluteGC and SoluteML
+   models are fitted/trained on experimental solute parameter data of approximately 8300 compounds.
+   Please cite our work if you wish to use any of the solute parameters or solvation properties found using this form.<br>
+   <ul> <li>Chung, Y, Vermeire, FH, Wu, H, Walker, PJ, Abraham, MH, Green, WH. Group contribution and machine learning
+   approaches to predict Abraham solute parameters, solvation free energy, and solvation enthalpy.
+   <i>Manuscript in Preparation</i>. 2021.</li></ul></p>
+
+
+<p>
+   Optional solvation free energy, enthalpy, and entropy calculations at 298 K are available if a solvent molecule is chosen.
+   These solvation properties are calculated based on the Abraham and Mintz linear solvation energy relationships (LSERs)
+   using the solute parameters found from this form and the solvent parameters stored in the RMG-database
+   <a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}" target="_blank">solvent library</a>.
+   For details on the LSERs, please refer to <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html">
+   Solvation Thermochemistry</a> in documentation, specifically Section <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/liquids.html#use-of-abraham-lser-to-estimate-thermochemistry-at-298-k">
+   15.2.2</a>.
+   You can browse the available solvent molecules using the <a href="{% url 'database:solvation-solventSearch' %}">Solvent Search Tool</a>
+   or find all available solvents in the solvent library <a href="{% url 'database:solvation' section='libraries' subsection='solvent' %}" target="_blank">here</a>.
+   <br>
+   Solvation free energy is calculated using the standard state of an ideal gas at a concentration of 1 mol/L
+   dissolving as an ideal solution at a concentration of 1 mol/L.
+</p>
+
+<p>
+   Note that this tool is not designed for bulk queries. For bulk queries or automatic calculations, one can install
+   the SoluteGC and SoluteML models. The SoluteGC method is available through RMG with the sample code located
+   <a href="https://github.com/ReactionMechanismGenerator/RMG-Py/blob/master/ipython/estimate_solvation_thermo_and_search_available_solvents.ipynb">
+   here</a>. Refer to the <a href="http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/installation/index.html">
+   documentation</a> for RMG installation. The SoluteML model can be installed as a conda package 'chemprop_solvation' from
+   <a href="https://anaconda.org/fhvermei/chemprop_solvation"> here</a>.
+</p>
+
+
+<P>Enter a SMILES of a solute compound in the field below to search. For multiple solute compounds, separate each SMILES by empty space
+   or by line.
+   A maximum of 50 solute compounds are allowed for each search.
+
+<div style="display:none" id="searching">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." id='loading_image'>
+   <p>Due to our server capacity,</p>
+   <p><strong>- Please wait patiently after submitting your search request. It may take a few minutes.</strong></p>
+   <p><strong>- Please do not submit multiple solvation searches simultaneously.</strong></p>
+   <p>If you keep receiving 'Gateway Timeout' error, it indicates your search takes longer time than the limit. Please contact <a href="mailto:rmg_dev@mit.edu">the RMG Development Team</a> for help.</p>
+</div>
+
+<form method="post" id="species_form">
+<table>
+   <tr>
+      <th><b>Input Solute SMILES(s):	</b></th>
+      <td>{{form.solute_smiles}}</td>
+   </tr>
+   {% if form.errors.solute_smiles %}
+      <tr>
+         <td colspan="2", align="center"><b style="color:red;">{{ form.errors.solute_smiles }}</b></td>
+      </tr>
+   {% endif %}
+   <tr>
+      <th><b>Solute Parameter Estimation Method:	</b></th>
+      <td>{{form.solute_estimator}}</td>
+   </tr>
+   {% if form.errors.solute_estimator %}
+      <tr>
+         <td colspan="2", align="center"><b style="color:red;">{{ form.errors.solute_estimator }}</b></td>
+      </tr>
+   {% endif %}
+   <tr>
+      <th colspan="2", style="font-weight:normal", align="left", ><p><br>Select the solvent molecule in the drop down menu below for optional
+         solvation properties calculation.</p></th>
+   </tr>
+   <tr>
+      <th colspan="2", align="left"><p>Optional solvation free energy, enthalpy, entropy at 298 K prediction</p></th>
+   </tr>
+   <tr>
+      <th><b>Solvent:</b></th>
+      <td>{{form.solvent}}</td>
+   </tr>
+   <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+       <th><b>Preferred unit:</b></th>
+       <td>{{form.energy_unit}}</td>
+   </tr>
+   <tr>
+       <th>&nbsp;</th>
+   </tr>
+   <tr>
+   <tr>
+      <th>{% csrf_token %}</th>
+      <td>
+         <input type="submit" value="Submit" name="submit" />
+         <input type="submit" value="Reset Form" name="reset" />
+      </td>
+   </tr>
+</table>
+</form>
+
+{% endblock %}s

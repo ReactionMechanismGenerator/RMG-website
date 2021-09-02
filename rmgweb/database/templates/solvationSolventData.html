@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% load gravatar %}
+{% load render_solvation %}
+{% load databasefilters %}
+
+
+
+{% block title %}Solvation Data{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solventSearch' %}">Solvent Search</a></li>
+{% endblock %}
+
+{% block page_title %}Solvent Data{% endblock %}
+
+{% block page_body %}
+
+<h2>Solvent Structure</h2>
+<p>
+{{ structure|safe }}
+</p>
+<br />
+
+{% if solventInfoList|length < 1 %}
+<h3>The given solvent is not found in the RMG solvent library.</h3>
+{% else %}
+<h3>Click each result to view the solvent data</h3>
+{% for solventLabel, solventEntry, href in solventInfoList %}
+<h3><a href="{{ href }}">Result #{{ forloop.counter }} &ndash; {{ solventLabel }} (entry #{{ solventEntry.index }})</a></h3>
+{{ solventEntry.item|render_solvation_molecule:True }}
+<!--<h4>Solvent Data</h4>-->
+<!--<table class="solvationEntryData">-->
+<!--{{ solventEntry|render_solvation_math:user }}-->
+</table>
+<P>
+
+</P>
+<br />
+{% endfor %}
+{% endif %}
+
+{% endblock %}

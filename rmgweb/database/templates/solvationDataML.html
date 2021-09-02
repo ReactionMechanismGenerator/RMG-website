@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+{% load render_solvation %}
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-searchML' %}">Solvation Prediction 298 K Using Machine Learning</a></li>
+{% endblock %}
+
+{% block page_title %}Solvation Prediction at 298 K Using Machine Learning{% endblock %}
+
+{% block page_body %}
+
+{% if additionalInfoList %}
+<P><br></P>
+<h3>Additional information:</h3>
+{% for additionalInfo in additionalInfoList %}
+<p>{{ additionalInfo }}</p>
+{% endfor %}
+{% endif %}
+
+<form method="post" id="download_file">
+<P><br></P>
+{% csrf_token %}
+<input type="submit" value="Click to Export to Excel" name="excel" />
+<input type="hidden" name="html_table" value="{{ html_table }}" />
+</form>
+
+{% autoescape off %}
+   {{ html_table }}
+{% endautoescape %}
+
+
+{% endblock %}s
