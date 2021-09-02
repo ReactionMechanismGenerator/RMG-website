@@ -1007,7 +1007,8 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
             raise ImportError(f'Please install "descriptastorus" to use the SoluteML model.\n'
                               f'Run the following line to install "descriptastorus":\n'
                               f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
-                              'If "descriptastorus" is already installed, please update "chemprop_solvation".')
+                              'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
+                              'version 0.0.3 or higher.')
         else:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     # get V value using RMG
