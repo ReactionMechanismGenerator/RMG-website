@@ -117,12 +117,12 @@ def render_thermo_math(thermo, user=None):
         result += '<tr>'
         result += r'    <td class="key"><script type="math/tex">C_\mathrm{p}(0)</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s}  }}</script></td>'.format(thermo.cp0.value_si * Cpfactor, Cpunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s}  }}</script></td>'.format(thermo.Cp0.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><script type="math/tex">C_\mathrm{p}(\infty)</script></td>'
         result += r'    <td class="equals">=</td>'
-        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.cpInf.value_si * Cpfactor, Cpunits)
+        result += r'    <td class="value"><script type="math/tex">{0:.2f} \ \mathrm{{ {1!s} }}</script></td>'.format(thermo.CpInf.value_si * Cpfactor, Cpunits)
         result += '</tr>\n'
         result += '<tr>'
         result += r'    <td class="key"><script type="math/tex">a_0</script></td>'
