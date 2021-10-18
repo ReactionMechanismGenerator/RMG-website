@@ -4,6 +4,7 @@ channels:
   - rmg
   - rdkit
   - conda-forge
+  - pytorch
   - fhvermei
 dependencies:
   - beautifulsoup4
@@ -31,9 +32,12 @@ dependencies:
   - pydqed >=1.0.0
   - pyparsing
   - python >=3.7
+  - pytorch
   - quantities
   - scipy
   - symmetry
+  - torchvision
+  - torchaudio
   - rdkit >=2018
   - xlrd
   - xlsxwriter
