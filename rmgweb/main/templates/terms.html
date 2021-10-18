@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}Terms of Use{% endblock %}
+
+{% block extrahead %}{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'main.views.terms' %}">Terms of Use</a></li>
+{% endblock %}
+
+{% block sidebar_items %}{% endblock %}
+
+{% block page_title %}Terms of Use{% endblock %}
+
+{% block page_body %}
+
+<p>
+Last updated: March 28, 2018.
+
+Please carefully read these Terms of Use ("Terms", "Terms of Use") before using the
+RMG website (the "Website"), operated by the Green Research Group at MIT ("us", "we", or "our").
+
+Your access and use of the Website is conditioned on your acceptance and compliance with these Terms.
+These Terms apply to all visitors, users, and others who access or use the Website.
+
+By accessing or using the Website you agree to be bound by these Terms.
+If you disagree with any part of the terms then you may not access the Website.
+</p>
+
+<h2>Restrictions</h2>
+<p>
+You agree not to use any automated system or script to access this Website, in a manner that
+sends more requests to our servers than is reasonable for a human to produce in the same period.
+All data and services provided by the Website are freely available on GitHub, as detailed in the
+Licensing section below.
+</p>
+
+<h2>Licensing</h2>
+<p>
+All content on this Website, including the website itself, is available via the open source MIT license.
+Source code for the Website, RMG-Py, and RMG-database can be found on the ReactionMechanismGenerator
+GitHub site (https://github.com/ReactionMechanismGenerator).
+</p>
+
+<h2>
+Termination
+</h2>
+<p>
+We may terminate or suspend access to our Website immediately, without prior notice or liability,
+for any reason whatsoever, including without limitation if you breach the Terms.
+
+All provisions of the Terms which by their nature should survive termination shall survive termination,
+including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitation of liability.
+</p>
+
+<h2>Links To Other Web Sites</h2>
+<p>
+Our Website may contain links to third-party web sites or services that are not owned or controlled
+by the Green Research Group.
+
+The Green Research Group has no control over, and assumes no responsibility for, the content,
+privacy policies, or practices of any third party web sites or services. You further acknowledge and
+agree that the Green Research Group shall not be responsible or liable, directly or indirectly, for any
+damage or loss caused or alleged to be caused by or in connection with use of or reliance on any
+such content, goods or services available on or through any such web sites or services.
+</p>
+
+<h2>Disclaimers</h2>
+<p>
+We try our best to provide the best database for chemical kinetic modeling, but your use of this
+data and this Service is at your sole risk. This data is provided on an "as is" and "as available" basis,
+and we expressly disclaim all express or implied warranties.
+</p>
+
+<h2>Changes</h2>
+<p>
+We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a
+revision is material we will try to provide at least 30 days' notice prior to any new terms
+taking effect. What constitutes a material change will be determined at our sole discretion.
+</p>
+
+<h2>Contact Us</h2>
+<p>
+The website is (primarily) developed by the research groups of 
+</p>
+    <ul>
+        <li><a href="http://cheme.scripts.mit.edu/green-group/">William H. Green</a> in the <a href="http://web.mit.edu/cheme/">
+    Department of Chemical Engineering</a> at <a href="http://web.mit.edu/">MIT</a>.</li>
+        <li><a href="http://www.northeastern.edu/comocheng/">Richard H. West</a> in the <a href="http://www.northeastern.edu/che/">
+    Department of Chemical Engineering</a> at <a href="http://www.northeastern.edu/">Northeastern University</a>.</li>
+    </ul>
+<p>
+Please post comments or concerns about the website to 
+<a href="http://www.github.com/ReactionMechanismGenerator/RMG-website/issues">our issues page</a>
+or email the RMG Development Team at <a href="mailto:rmg_dev@mit.edu">rmg_dev@mit.edu</a>
+</p>
+
+{% endblock %}

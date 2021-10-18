@@ -64,6 +64,9 @@ urlpatterns = [
     # The RMG website homepage
     re_path(r'^$', rmgweb.main.views.index, name='index'),
 
+    # The terms of use
+    re_path(r'^terms$', rmgweb.main.views.terms),
+
     # The privacy policy
     re_path(r'^privacy$', rmgweb.main.views.privacy, name='privacy'),
 
