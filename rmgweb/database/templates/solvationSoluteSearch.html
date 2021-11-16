@@ -36,7 +36,9 @@ Use this form to find the Abraham solute parameters (E, S, A, B, L, V). Currentl
    <li><b>RMG-database</b>: get the experimental values from the RMG-database
       <a href="{% url 'database:solvation' section='libraries' subsection='solute' %}" target="_blank">solute library</a>
       if they exist.</li>
-   <li><b>SoluteGC</b>: get the prediction using the group contribution (a.k.a. group additivity) method.</li>
+   <li><b>SoluteGC</b>: get the prediction using the group contribution (a.k.a. group additivity) method.
+   A list of all solvation groups is found
+      <a href="{% url 'database:solvation' section='groups' %}">here</a>.</li>
    <li><b>SoluteML</b>: get the prediction using the machine learning model. This is usually
       more accurate than the SoluteGC method.</li>
 </ul>

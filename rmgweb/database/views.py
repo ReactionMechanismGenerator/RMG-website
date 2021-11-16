@@ -865,11 +865,11 @@ def parseSoluteDataComment(comment):
     word_list = []
 
     # Search for library strings.
-    # Example: Solvation thermo for [O]CCCCl from Solute library: Solute library: butan-1-ol + halogen(Cl-(Cs-CsHH)) + radical(ROJ)
-    library_split_string = comment.split("Solute library: ")
-    if len(library_split_string) > 1:  # if a match was found for "Solute library: "
-        library_substring = library_split_string[1].split('+')
-        lib_solute_species = library_substring[0].strip() # Example: 'butan-1-ol'
+    # Example: Solvation thermo for CCCO from solute library: From RMG-database solute library: 133. propan-1-ol
+    library_split_string = comment.split("From RMG-database solute library: ")
+    if len(library_split_string) > 1:  # if a match was found for "From RMG-database solute library: "
+        library_substring = library_split_string[1].split('+')[0].split('. ')
+        lib_solute_species = library_substring[1].strip() # Example: 'propan-1-ol'
         lib_source_full = comment.split('+')[0].strip()
         word_list.append(lib_source_full)
         try:
@@ -906,6 +906,19 @@ def parseSoluteDataComment(comment):
 
     return ref_dict, word_list
 
+
+def add_href_to_solute_data_comment(comment):
+    """
+    Add the href link for each solute data or solute group found in the comment.
+    """
+    ref_dict, word_list = parseSoluteDataComment(comment)
+    already_replaced_list = []
+    for word in word_list:
+        if word in ref_dict and not word in already_replaced_list:
+            new_str = f'<a href="{ref_dict[word]}">{word}</a>'
+            comment = comment.replace(word, new_str)
+            already_replaced_list.append(word)
+    return comment
 
 
 def solvationSolventData(request, solvent_adjlist):
@@ -1213,8 +1226,12 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
         # Get predictions using the selected method
         if solute_estimator == 'expt':
             solute_data, solute_comment = get_solute_data_from_db(solute_spc, db)
+            # Get href for the solute data found in the solute_comment
+            solute_comment = add_href_to_solute_data_comment(solute_comment)
         elif solute_estimator == 'SoluteGC':
             solute_data, solute_comment, error_msg = get_solute_data_from_SoluteGC(solute_spc, db, error_msg)
+            # Get href for each solute group found in the solute_comment
+            solute_comment = add_href_to_solute_data_comment(solute_comment)
         elif solute_estimator == 'SoluteML':
             solute_data, solute_comment, error_msg, solute_epi_unc_dict = get_solute_data_from_SoluteML(smiles, solute_spc, error_msg)
         else:
@@ -1289,7 +1306,7 @@ def solvationSoluteData(request, solute_smiles, solute_estimator, solvent, energ
 
     # convert the results to pandas data frame and html table
     df_results = pd.DataFrame(solute_data_results)
-    html_table = df_results.to_html(index=False)
+    html_table = df_results.to_html(index=False, render_links=True, escape=False)
 
     return render(request, 'solvationSoluteData.html',
                   {'html_table': html_table,
