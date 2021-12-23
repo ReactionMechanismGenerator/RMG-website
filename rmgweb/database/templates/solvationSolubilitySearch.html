@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+// Show a loading animation when after hitting the submit button.
+$().ready(function(){
+   $('[name$=submit]').click(function() {
+         $('#searching').show();
+      });
+});
+</script>
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solubilitySearch' %}">Solid Solubility Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Solid Solubility Prediction{% endblock %}
+
+{% block page_body %}
+
+<p>
+Use this form to get temperature-dependent solid solubility (logS in log10(mol/L)) prediction for a
+  solvent-solute pair of your interest.
+  Currently, we only support prediction for electrically neutral solute
+  compounds containing H, C, N, O, S, P, F, Cl, Br, and I ? and nonionic liquid solvents.
+</p>
+
+<p>
+Include the citation info here.
+</p>
+
+<p>
+    Include the description of our models here.
+</p>
+
+<p>
+   Note that this tool is not designed for bulk queries. For bulk queries or automatic calculations, one can install
+  a conda package 'solprop_ml' from
+   <a href="https://anaconda.org/fhvermei/solprop_ml"> here</a>. The source code is also located
+  <a href="https://github.com/fhvermei/SolProp_ML"> here</a> on GitHub.
+</p>
+
+<p>
+    Click <a href="{% url 'database:solvation-solubilityInfo' %}">here</a> to find the information on the inputs and
+    outputs.
+</p>
+
+<div style="display:none" id="searching">
+<img src="{% static 'img/loading.gif' %}" alt="Loading..." id='loading_image'>
+   <p>Due to our server capacity,</p>
+   <p><strong>- Please wait patiently after submitting your search request. It may take a few minutes.</strong></p>
+   <p><strong>- Please do not submit multiple solvation searches simultaneously.</strong></p>
+   <p>If you keep receiving 'Gateway Timeout' error, it indicates your search takes longer time than the limit. Please contact <a href="mailto:rmg_dev@mit.edu">the RMG Development Team</a> for help.</p>
+</div>
+
+{% if empty_error_msg %}
+     <b style="color:red;">Empty input: {{ empty_error_msg }}<br /></b>
+{% endif %}
+{% if required_input_error_msg %}
+     <b style="color:red;">Required input missing: {{ required_input_error_msg }}<br /></b>
+{% endif %}
+{% if optional_input_error_msg %}
+     <b style="color:red;">Invalid optional input: {{ optional_input_error_msg }}<br /></b>
+{% endif %}
+{% if smiles_error_msg %}
+     <b style="color:red;">Invalid SMILES: {{ smiles_error_msg }}<br /></b>
+{% endif %}
+{% if temp_error_msg %}
+     <b style="color:red;">Invalid temperature: {{ temp_error_msg }}<br /></b>
+{% endif %}
+{% if ref_solubility_error_msg %}
+     <b style="color:red;">Invalid solubility: {{ ref_solubility_error_msg }}<br /></b>
+{% endif %}
+{% if hsub_error_msg %}
+     <b style="color:red;">Invalid sublimation enthalpy: {{ hsub_error_msg }}<br /></b>
+{% endif %}
+{% if cp_error_msg %}
+     <b style="color:red;">Invalid heat capacity: {{ cp_error_msg }}<br /></b>
+{% endif %}
+
+<form method="post">
+    <table>
+        <thead>
+            <tr>
+                <th>Solvent SMILES</th>
+                <th>Solute SMILES</th>
+                <th>Temp.<br />[K]</th>
+                <th style="color:maroon;">Ref. Solvent SMILES<br />(optional)</th>
+                <th style="color:maroon;">Ref. Solubility<br />[log10(mol/L)]<br />(optional)</th>
+                <th style="color:maroon;">Ref. Temp.<br />[K]<br />(optional)</th>
+                <th style="color:#000066;">ΔHsub298<br />[kcal/mol]<br />(optional)</th>
+                <th style="color:#000066;">Cpg298<br />[cal/mol/K]<br />(optional)</th>
+                <th style="color:#000066;">Cps298<br />[cal/mol/K]<br />(optional)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{ form_set.management_form }}
+            {% for form in form_set %}
+            <tr>
+                <td>
+                    {{ form.solvent }}
+                </td>
+                <td>
+                    {{ form.solute }}
+                </td>
+                <td>
+                    {{ form.temp }}
+                </td>
+                <td>
+                    {{ form.ref_solvent }}
+                </td>
+                <td>
+                    {{ form.ref_solubility }}
+                </td>
+                <td>
+                    {{ form.ref_temp }}
+                </td>
+                <td>
+                    {{ form.hsub298 }}
+                </td>
+                <td>
+                    {{ form.cp_gas_298 }}
+                </td>
+                <td>
+                    {{ form.cp_solid_298 }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tr><th>&nbsp;</th></tr>
+    </table>
+    {% csrf_token %}
+    <input type="submit" value="Submit" name="submit" />
+    <input type="submit" value="Reset Form" name="reset" />
+</form>
+
+
+{% endblock %}s

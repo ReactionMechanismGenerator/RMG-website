@@ -72,6 +72,8 @@ urlpatterns = [
     re_path(r'^solvation/searchTempDep/$', views.solvationSearchTempDep, name='solvation-searchTempDep'),
     re_path(r'^solvation/solventSearch/$', views.solvationSolventSearch, name='solvation-solventSearch'),
     re_path(r'^solvation/soluteSearch/$', views.solvationSoluteSearch, name='solvation-soluteSearch'),
+    re_path(r'^solvation/searchSolubility/$', views.solvationSolubilitySearch, name='solvation-solubilitySearch'),
+    re_path(r'^solvation/searchSolubility/info$', views.solvationSolubilityInfo, name='solvation-solubilityInfo'),
     re_path(r'^solvation/searchML/solv_solu=(?P<solvent_solute_smiles>[\S\s]+)__dG=(?P<calc_dGsolv>[\S\s]+)__'
             r'dH=(?P<calc_dHsolv>[\S\s]+)__dS=(?P<calc_dSsolv>[\S\s]+)__logK=(?P<calc_logK>[\S\s]+)__'
             r'logP=(?P<calc_logP>[\S\s]+)__unit=(?P<energy_unit>[\S\s]+)$', views.solvationDataML, name='solvation-dataML'),
@@ -84,6 +86,10 @@ urlpatterns = [
     re_path(r'^solvation/soluteSearch/solu=(?P<solute_smiles>[\S\s]+)__estimator=(?P<solute_estimator>[\S\s]+)__'
             r'solv=(?P<solvent>[\S\s]+)__unit=(?P<energy_unit>[\S\s]+)$',
             views.solvationSoluteData, name='solvation-soluteData'),
+    re_path(r'^solvation/searchSolubility/solv=(?P<solvent_str>[\S\s]+)__solu=(?P<solute_str>[\S\s]+)__'
+            r'T=(?P<temp_str>[\S\s]+)__refSolv=(?P<ref_solvent_str>[\S\s]+)__refS=(?P<ref_solubility_str>[\S\s]+)__'
+            r'refT=(?P<ref_temp_str>[\S\s]+)__Hsub=(?P<hsub298_str>[\S\s]+)__Cpg=(?P<cp_gas_298_str>[\S\s]+)__'
+            r'Cps=(?P<cp_solid_298_str>[\S\s]+)$',  views.solvationSolubilityData, name='solvation-solubilityData'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/(?P<index>-?\d+)/$', views.solvationEntry, name='solvation-entry'),
     re_path(r'^solvation/(?P<section>\w+)/(?P<subsection>.+)/$', views.solvation, name='solvation'),
     re_path(r'^solvation/(?P<section>\w+)/$', views.solvation, name='solvation'),

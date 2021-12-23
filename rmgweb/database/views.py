@@ -41,6 +41,7 @@ import pandas as pd
 from functools import reduce
 from rdkit import Chem
 from CoolProp.CoolProp import PropsSI
+from decimal import Decimal
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 
@@ -72,6 +73,7 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
+from django.forms import formset_factory
 
 try:
     from bs4 import BeautifulSoup
@@ -3482,6 +3484,155 @@ def solvationSoluteSearch(request):
         if 'reset' in request.POST:
             form = SoluteSearchForm()
     return render(request, 'solvationSoluteSearch.html', {'form': form})
+
+
+def solvationSolubilityInfo(request):
+    """
+    The solubility information page.
+    """
+    return render(request, 'solvationSolubilityInfo.html')
+
+
+def solvationSolubilitySearch(request):
+    """
+    Creates webpage form to display solid solubility prediction upon choosing a solvent,
+    solute and temperature. Reference solvent is
+    """
+    from rmgweb.database.forms import SolubilitySearchForm
+    table_rows = 15
+    solubility_form_set_factory = formset_factory(SolubilitySearchForm, extra=table_rows)
+    solubility_form_set = solubility_form_set_factory()
+    smiles_error_msg, temp_error_msg, ref_solubility_error_msg, hsub_error_msg, cp_error_msg, required_input_error_msg,\
+    optional_input_error_msg, empty_error_msg = False, False, False, False, False, False, False, False
+
+    if request.method == 'POST':
+        posted = solubility_form_set_factory(request.POST)
+        initial = request.POST.copy()
+
+        if posted.is_valid():
+            # initialize the input dictionary to pass to the result page
+            str_input_dict = {}
+            str_input_name_list = ['solvent_str', 'solute_str', 'temp_str', 'ref_solvent_str', 'ref_solubility_str',
+                                   'ref_temp_str', 'hsub298_str', 'cp_gas_298_str', 'cp_solid_298_str']
+            for str_input_name in str_input_name_list:
+                str_input_dict[str_input_name] = None
+            # get the input from the posted formset
+            for form in posted:
+                cd = form.cleaned_data
+                solvent, solute, temp, ref_solvent, ref_solubility, ref_temp, hsub298, cp_gas_298, cp_solid_298 = \
+                    cd.get('solvent'), cd.get('solute'), cd.get('temp'), cd.get('ref_solvent'), cd.get('ref_solubility'), \
+                    cd.get('ref_temp'), cd.get('hsub298'), cd.get('cp_gas_298'), cd.get('cp_solid_298')
+                input_value_list = [solvent, solute, temp, ref_solvent, ref_solubility, ref_temp, hsub298, cp_gas_298,
+                                    cp_solid_298]
+                # skip if all values are None:
+                if not any(input_value_list):
+                    continue
+                # check for invalid input and add appropriate error messages
+                required_input_list = [solvent, solute, temp]
+                optional_input_set_list = [ref_solvent, ref_solubility, ref_temp]
+                if not all(required_input_list):
+                    required_input_error_msg = parse_input_error_msg(
+                        required_input_error_msg, 'Solvent SMILES, Solute SMILES, and Temp are required inputs')
+                if any(optional_input_set_list) and not all (optional_input_set_list):
+                    optional_input_error_msg = parse_input_error_msg(
+                        optional_input_error_msg, 'All three reference values (ref. solvent SMILES, ref. solubility, '
+                                                  'ref. temp) must be provided together')
+                if '_' in str(solvent) or '_' in str(solute) or '_' in str(ref_solvent):
+                    smiles_error_msg = parse_input_error_msg(smiles_error_msg, 'An underscore (_) cannot be in SMILES')
+                if temp is not None:
+                    temp_error_msg = check_float_input(temp, temp_error_msg, max_val=1000, min_val=0, max_dec_pnt=2,
+                                                       input_type='Temperature', input_unit='K')
+                if ref_solubility is not None:
+                    ref_solubility_error_msg = check_float_input(
+                        ref_solubility, ref_solubility_error_msg, max_val=15, min_val=-15, max_dec_pnt=5,
+                        input_type='Ref. Solubility', input_unit='[log10(mol/L)]')
+                if ref_temp is not None:
+                    temp_error_msg = check_float_input(ref_temp, temp_error_msg, max_val=1000, min_val=0, max_dec_pnt=2,
+                                                       input_type='Temperature', input_unit='K')
+                if hsub298 is not None:
+                    hsub_error_msg = check_float_input(hsub298, hsub_error_msg, max_val=10000, min_val=0, max_dec_pnt=2,
+                                                       input_type='ΔHsub298', input_unit='kcal/mol')
+                if cp_gas_298 is not None:
+                    cp_error_msg = check_float_input(cp_gas_298, cp_error_msg, max_val=10000, min_val=0, max_dec_pnt=2,
+                                                     input_type='Cp', input_unit='cal/mol/K')
+                if cp_solid_298 is not None:
+                    cp_error_msg = check_float_input(
+                        cp_solid_298, cp_error_msg, max_val=10000, min_val=0, max_dec_pnt=2, input_type='Heat capacity',
+                        input_unit='cal/mol/K')
+
+                # turn the input into one string
+                if any(input_value_list):
+                    for str_input_name, input_value in zip(str_input_name_list, input_value_list):
+                        if str_input_dict[str_input_name] is None:
+                            str_input_dict[str_input_name] = str(input_value)
+                        else:
+                            str_input_dict[str_input_name] += '_' + str(input_value)
+
+            # Display the error message(s) if any of the submitted input is invalid
+            error_msg_list = [smiles_error_msg, temp_error_msg, ref_solubility_error_msg, hsub_error_msg, cp_error_msg,
+                              required_input_error_msg, optional_input_error_msg, empty_error_msg]
+            if 'submit' in request.POST and any(error_msg_list):
+                solubility_form_set = solubility_form_set_factory(initial)
+            # check whether the form is empty
+            elif 'submit' in request.POST and str_input_dict['solvent_str'] is not None:
+                return HttpResponseRedirect(reverse('database:solvation-solubilityData', kwargs=str_input_dict))
+            # reset the form with a message if the form is empty
+            elif 'submit' in request.POST:
+                empty_error_msg = 'Please submit at least one input'
+                solubility_form_set_factory = formset_factory(SolubilitySearchForm, extra=table_rows)
+                solubility_form_set = solubility_form_set_factory()
+
+        if 'reset' in request.POST:
+            smiles_error_msg, temp_error_msg, ref_solubility_error_msg, hsub_error_msg, cp_error_msg, \
+            required_input_error_msg, optional_input_error_msg, empty_error_msg = \
+                False, False, False, False, False, False, False, False
+            solubility_form_set_factory = formset_factory(SolubilitySearchForm, extra=table_rows)
+            solubility_form_set = solubility_form_set_factory()
+
+    return render(request, 'solvationSolubilitySearch.html',
+                  {'form_set': solubility_form_set, 'smiles_error_msg': smiles_error_msg,
+                   'temp_error_msg': temp_error_msg, 'ref_solubility_error_msg': ref_solubility_error_msg,
+                   'hsub_error_msg': hsub_error_msg, 'cp_error_msg': cp_error_msg,
+                   'required_input_error_msg': required_input_error_msg,
+                   'optional_input_error_msg': optional_input_error_msg,
+                   'empty_error_msg': empty_error_msg})
+
+
+def check_float_input(value, error_msg, max_val=100, min_val=0, max_dec_pnt=2, input_type=None, input_unit=None):
+    if value >= max_val:
+        error_msg = parse_input_error_msg(
+            error_msg, f'{input_type} must be smaller than {max_val} {input_unit}')
+    elif value <= min_val:
+        error_msg = parse_input_error_msg(
+            error_msg, f'{input_type} must be greater than {min_val} {input_unit}')
+    if get_decimal_places(value) > max_dec_pnt:
+        error_msg = parse_input_error_msg(
+            error_msg, f'{input_type} cannot have more than {max_dec_pnt} decimal places')
+    return error_msg
+
+
+def get_decimal_places(value):
+    return abs(Decimal(str(value)).as_tuple().exponent)
+
+
+def parse_input_error_msg(error_msg, new_msg):
+    if error_msg is False:
+        error_msg = new_msg
+    elif len(error_msg) > 0 and not new_msg in error_msg:
+        error_msg += ', ' + new_msg
+    return error_msg
+
+
+def solvationSolubilityData(request, solvent_str, solute_str, temp_str, ref_solvent_str, ref_solubility_str,
+                            ref_temp_str, hsub298_str, cp_gas_298_str, cp_solid_298_str):
+    """
+    Returns a pandas html table with the given solubility data results.
+    It also provides a downloadable excel file with results if the excel export button is clicked.
+    """
+
+    return render(request, 'solvationSolubilityData.html',
+                  {'html_table': ''},
+                  )
 
 
 def groupDraw(request):

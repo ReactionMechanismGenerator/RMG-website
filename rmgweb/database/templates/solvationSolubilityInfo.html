@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+{% block extrahead %}
+
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solubilitySearch' %}">Solid Solubility Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Solid Solubility Prediction Info{% endblock %}
+
+{% block page_body %}
+
+<p>
+    <font size="+1"><b>Definition of Inputs</b></font>
+</p>
+
+<p>
+    Required inputs:
+    <ul>
+   <li><b>Solvent SMILES</b>: SMILES of a solvent</li>
+   <li><b>Solute SMILES</b>: SMILES of a solute</li>
+    <li><b>Temp</b>: temperature in K</li>
+</ul>
+Optional input set 1 - one can provide a reference solubility value of the same solute in a different solvent and/or
+at a different temperature to get a more accurate solubility prediction. All of the three values must be provided
+together for this option.
+    <ul>
+   <li><b>Ref. Solvent SMILES</b>: SMILES of a reference solvent</li>
+   <li><b>Ref. Solubility</b>: solubility of the input solute in a reference solvent at a reference temperature.
+   In logS (log10(mol/L)) unit.</li>
+    <li><b>Temp</b>: reference temperature in K</li>
+</ul>
+Optional input 2 - one can provide any or all of the values below to improve the temperature-dependent solubility
+prediction. Typically, ΔHsub298 is more important than Cpg298 and Cps298 to get a more accurate temperature-dependent
+solubility prediction.
+    <ul>
+   <li><b>ΔHsub298</b>: sublimation enthalpy of the input solute at 298 K in kcal/mol</li>
+   <li><b>Cpg298</b>: Heat capacity of the input solute in a gas phase at 298 K in cal/mol/K</li>
+    <li><b>Cps298</b>: Heat capacity of the input solute in a solid phase at 298 K in cal/mol/K</li>
+</ul>
+</p>
+
+<p>
+    <font size="+1"><b>Definition of Outputs</b></font>
+</p>
+
+<p>
+  To be added..
+</p>
+
+{% endblock %}s

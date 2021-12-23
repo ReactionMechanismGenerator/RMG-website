@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+{% load render_solvation %}
+
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solubilitySearch' %}">Solid Solubility Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Solid Solubility Prediction{% endblock %}
+
+{% block page_body %}
+
+<!--<form method="post" id="download_file">-->
+<!--{% csrf_token %}-->
+<!--<input type="submit" value="Click to Export to Excel" name="excel" />-->
+<!--<input type="hidden" name="html_table" value="{{ html_table }}" />-->
+</form>
+
+<!--{% autoescape off %}-->
+<!--   {{ html_table }}-->
+<!--{% endautoescape %}-->
+
+<p>Empty resullt page</p>
+
+{% endblock %}s

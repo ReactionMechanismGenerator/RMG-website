@@ -409,6 +409,96 @@ class SolventSearchForm(forms.ModelForm):
         return adjlist
 
 
+class SolubilitySearchForm(forms.ModelForm):
+    """
+    Form for solid solubility prediction
+    """
+
+    class Meta(object):
+        from rmgweb.database.models import SolubilitySearch
+        model = SolubilitySearch
+        fields = '__all__'
+        widgets = {'solvent': forms.TextInput(attrs={'style': 'width:120px'}),
+                   'solute': forms.TextInput(attrs={'style': 'width:120px;'}),
+                   'temp': forms.NumberInput(attrs={'style': 'width:70px;'}),
+                   'ref_solvent': forms.TextInput(attrs={'style': 'width:130px;'}),
+                   'ref_solubility': forms.NumberInput(attrs={'style': 'width:100px;'}),
+                   'ref_temp': forms.NumberInput(attrs={'style': 'width:70px;'}),
+                   'hsub298': forms.NumberInput(attrs={'style': 'width:70px;'}),
+                   'cp_gas_298': forms.NumberInput(attrs={'style': 'width:70px;'}),
+                   'cp_solid_298': forms.NumberInput(attrs={'style': 'width:70px;'}),
+        }
+
+    def clean_solvent(self):
+        """
+        Custom validation for solvent SMILES.
+        """
+        solvent_smiles = self.cleaned_data['solvent'].strip()
+        if len(solvent_smiles) == 0:
+            solvent_smiles = None
+        return solvent_smiles
+
+    def clean_solute(self):
+        """
+        Custom validation for solute SMILES.
+        """
+        solute_smiles = self.cleaned_data['solute'].strip()
+        if len(solute_smiles) == 0:
+            solute_smiles = None
+        return solute_smiles
+
+    def clean_temp(self):
+        """
+        Custom validation for temperature.
+        """
+        temp = self.cleaned_data['temp']
+        return temp
+
+    def clean_ref_solvent(self):
+        """
+        Custom validation for reference solvent SMILES.
+        """
+        ref_solvent = self.cleaned_data['ref_solvent'].strip()
+        if len(ref_solvent) == 0:
+            ref_solvent = None
+        return ref_solvent
+
+    def clean_ref_solubility(self):
+        """
+        Custom validation for reference solubility.
+        """
+        ref_solubility = self.cleaned_data['ref_solubility']
+        return ref_solubility
+
+    def clean_ref_temp(self):
+        """
+        Custom validation for reference temperature.
+        """
+        ref_temp = self.cleaned_data['ref_temp']
+        return ref_temp
+
+    def clean_hsub298(self):
+        """
+        Custom validation for sublimation enthalpy at 298 K.
+        """
+        hsub298 = self.cleaned_data['hsub298']
+        return hsub298
+
+    def clean_cp_gas_298(self):
+        """
+        Custom validation for gas heat capacity (Cp) at 298 K.
+        """
+        cp_gas_298 = self.cleaned_data['cp_gas_298']
+        return cp_gas_298
+
+    def clean_cp_solid_298(self):
+        """
+        Custom validation for solid heat capacity (Cp) at 298 K.
+        """
+        cp_solid_298 = self.cleaned_data['cp_solid_298']
+        return cp_solid_298
+
+
 class GroupDrawForm(forms.Form):
     """
     Form for drawing group from adjacency list
