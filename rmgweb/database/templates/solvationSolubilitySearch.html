@@ -29,7 +29,7 @@ $().ready(function(){
 Use this form to get temperature-dependent solid solubility (logS in log10(mol/L)) prediction for a
   solvent-solute pair of your interest.
   Currently, we only support prediction for electrically neutral solute
-  compounds containing H, C, N, O, S, P, F, Cl, Br, and I ? and nonionic liquid solvents.
+  compounds containing H, B, C, N, O, S, P, F, Cl, Br, and I and nonionic liquid solvents.
 </p>
 
 <p>
@@ -41,15 +41,17 @@ Include the citation info here.
 </p>
 
 <p>
-   Note that this tool is not designed for bulk queries. For bulk queries or automatic calculations, one can install
-  a conda package 'solprop_ml' from
-   <a href="https://anaconda.org/fhvermei/solprop_ml"> here</a>. The source code is also located
+   Each input should take several seconds to process. Calculations can take several minutes for more inputs or/and
+    if the server is busy. Please wait patiently and do not click submit buttons multiple times.
+    Note that this tool is not designed for bulk queries. For bulk queries or automatic calculations, one can install
+    a conda package <b>solprop_ml</b> from
+   <a href="https://anaconda.org/fhvermei/solprop_ml"> here</a>. The source code is located
   <a href="https://github.com/fhvermei/SolProp_ML"> here</a> on GitHub.
 </p>
 
 <p>
-    Click <a href="{% url 'database:solvation-solubilityInfo' %}">here</a> to find the information on the inputs and
-    outputs.
+    <b>Click <a href="{% url 'database:solvation-solubilityInfo' %}">here</a> to find more information on the
+        <u>inputs</u> and <u>outputs</u>.</b>
 </p>
 
 <div style="display:none" id="searching">
@@ -96,8 +98,8 @@ Include the citation info here.
                 <th style="color:maroon;">Ref. Solubility<br />[log10(mol/L)]<br />(optional)</th>
                 <th style="color:maroon;">Ref. Temp.<br />[K]<br />(optional)</th>
                 <th style="color:#000066;">ΔHsub298<br />[kcal/mol]<br />(optional)</th>
-                <th style="color:#000066;">Cpg298<br />[cal/mol/K]<br />(optional)</th>
-                <th style="color:#000066;">Cps298<br />[cal/mol/K]<br />(optional)</th>
+                <th style="color:#000066;">Cpg298<br />[cal/K/mol]<br />(optional)</th>
+                <th style="color:#000066;">Cps298<br />[cal/K/mol]<br />(optional)</th>
             </tr>
         </thead>
         <tbody>

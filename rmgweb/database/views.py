@@ -38,12 +38,17 @@ import shutil
 import subprocess
 import urllib
 import pandas as pd
+import numpy as np
 from functools import reduce
 from rdkit import Chem
+import rdkit.Chem.rdmolops as rdmolops
 from CoolProp.CoolProp import PropsSI
 from decimal import Decimal
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
+from solvation_predictor.solubility.solubility_calculator import SolubilityCalculations
+from solvation_predictor.solubility.solubility_models import SolubilityModels
+from solvation_predictor.solubility.solubility_predictions import SolubilityPredictions
 
 import rmgpy
 import rmgpy.constants as constants
@@ -94,10 +99,12 @@ from rmgpy.data.solvation import get_critical_temperature
 # Loading these ML estimators takes around 10 seconds.
 # Therefore, instead of loading these each time these estimators are used, let's
 # load them in the beginning only once and use them as needed.
-global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator
+global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator, solub_models
 dGsolv_estimator = load_DirectML_Gsolv_estimator()
 dHsolv_estimator = load_DirectML_Hsolv_estimator()
-SoluteML_estimator = load_SoluteML_estimator()
+solub_models = SolubilityModels(reduced_number=False, load_g=True, load_h=True, load_saq=True,
+                                load_solute=True, logger=None, verbose=False)
+SoluteML_estimator = solub_models.solute_models
 
 def load(request):
     """
@@ -3499,7 +3506,7 @@ def solvationSolubilitySearch(request):
     solute and temperature. Reference solvent is
     """
     from rmgweb.database.forms import SolubilitySearchForm
-    table_rows = 15
+    table_rows = 10
     solubility_form_set_factory = formset_factory(SolubilitySearchForm, extra=table_rows)
     solubility_form_set = solubility_form_set_factory()
     smiles_error_msg, temp_error_msg, ref_solubility_error_msg, hsub_error_msg, cp_error_msg, required_input_error_msg,\
@@ -3573,7 +3580,7 @@ def solvationSolubilitySearch(request):
                               required_input_error_msg, optional_input_error_msg, empty_error_msg]
             if 'submit' in request.POST and any(error_msg_list):
                 solubility_form_set = solubility_form_set_factory(initial)
-            # check whether the form is empty
+            # submit the form if the form is not empty
             elif 'submit' in request.POST and str_input_dict['solvent_str'] is not None:
                 return HttpResponseRedirect(reverse('database:solvation-solubilityData', kwargs=str_input_dict))
             # reset the form with a message if the form is empty
@@ -3629,10 +3636,263 @@ def solvationSolubilityData(request, solvent_str, solute_str, temp_str, ref_solv
     Returns a pandas html table with the given solubility data results.
     It also provides a downloadable excel file with results if the excel export button is clicked.
     """
+    # Create a downloadable excel file from the html_table that is passed as a hidden input.
+    # By passing the html_table, the calculation does not get repeated.
+    if request.method == 'POST' and 'excel' in request.POST:
+        input_html_table = request.POST.get('html_table')
+        df_results = pd.read_html(input_html_table)
+        output = io.BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df_results[0].to_excel(writer, index=False)
+        writer.save()
+        # important step, rewind the buffer or when it is read() you'll get nothing
+        # but an error message when you try to open your zero length file in Excel
+        output.seek(0)
+        # set the mime type so that the browser knows what to do with the file
+        response = HttpResponse(output.read(),
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        # set the file name in the Content-Disposition header
+        response['Content-Disposition'] = 'attachment; filename=SolubilityResults.xlsx'
+        return response
+
+    # Turn the input string to a list
+    solvent_list, solute_list, temp_list = str_to_list(solvent_str), str_to_list(solute_str), str_to_float_list(temp_str)
+    ref_solvent_list, ref_solubility_list = str_to_list(ref_solvent_str), str_to_float_list(ref_solubility_str)
+    ref_temp_list, hsub298_list = str_to_float_list(ref_temp_str), str_to_float_list(hsub298_str)
+    cp_gas_298_list, cp_solid_298_list = str_to_float_list(cp_gas_298_str), str_to_float_list(cp_solid_298_str)
+
+    # Prepare an empty result dictionary
+    solubility_results = {}
+    col_name_list = ['Solvent', 'Solute', 'Temp', 'Ref. Solv', 'Ref. Solub', 'Ref. Temp',
+                     'Input Hsub298', 'Input Cpg298', 'Input Cps298', 'Error Message', 'Warning Message',
+                     'logS (method1) [log10(mol/L)]', 'logS (method2) [log10(mol/L)]',
+                     'dGsolv [kcal/mol]', 'dHsolv [kcal/mol]', 'dSsolv [cal/K/mol]',
+                     'Pred. Hsub298 [kcal/mol]', 'Pred. Cpg298 [cal/K/mol]', 'Pred. Cps298 [cal/K/mol]']
+    for col_name in col_name_list:
+        solubility_results[col_name] = []
+
+    for solvent, solute, temp, ref_solvent, ref_solubility, ref_temp, hsub298, cp_gas_298, cp_solid_298 \
+            in zip(solvent_list, solute_list, temp_list, ref_solvent_list, ref_solubility_list, ref_temp_list,
+               hsub298_list, cp_gas_298_list, cp_solid_298_list):
+        # Initialize the outputs
+        logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT = None, None, None, None, None
+        Hsub298_pred, Cpg298_pred, Cps298_pred = None, None, None
+        input_error_msg, warning_msg = None, None
+        # First check whether solvent and solute have valid SMILES
+        solvent_smiles, input_error_msg = validate_smiles(solvent, input_error_msg, 'Solvent SMILES')
+        solute_smiles, input_error_msg = validate_smiles(solute, input_error_msg, 'Solute SMILES')
+        if ref_solvent is not None:
+            ref_solvent_smiles, input_error_msg = validate_smiles(ref_solvent, input_error_msg, 'Ref. solvent SMILES')
+        else:
+            ref_solvent_smiles = None
+        # Get the predictions if there is no error with input
+        if input_error_msg is None:
+            [logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, Hsub298_pred, Cpg298_pred, Cps298_pred], \
+            input_error_msg, warning_msg = \
+                get_solubility_pred(solvent_smiles, solute_smiles, temp, ref_solvent_smiles, ref_solubility, ref_temp,
+                                    hsub298, cp_gas_298, cp_solid_298)
+
+        # Append the results
+        result_val_list = [solvent, solute, temp, ref_solvent, ref_solubility, ref_temp, hsub298, cp_gas_298,
+                           cp_solid_298, input_error_msg, warning_msg, logST_method1, logST_method2, dGsolvT, dHsolvT,
+                           dSsolvT, Hsub298_pred, Cpg298_pred, Cps298_pred]
+        for key, val in zip(col_name_list, result_val_list):
+            if 'kcal/mol' in key or 'cal/K/mol' in key:
+                val = clean_up_value(val, deci_place=2, sig_fig=2, only_big=True)
+            elif 'log10(mol/L)' in key:
+                val = clean_up_value(val, deci_place=3, sig_fig=2, only_big=True)
+            solubility_results[key].append(val)
+
+
+    solubility_results = parse_none_results(solubility_results)
+
+    # convert the results to pandas data frame and html table
+    df_results = pd.DataFrame(solubility_results)
+    html_table = df_results.to_html(index=False, render_links=True, escape=False)
 
     return render(request, 'solvationSolubilityData.html',
-                  {'html_table': ''},
+                  {'html_table': html_table},
                   )
+
+
+def get_solubility_pred(solvent_smiles, solute_smiles, temp, ref_solvent_smiles, ref_solubility, ref_temp, hsub298,
+                        cp_gas_298, cp_solid_298):
+    """
+    Get solubility prediction for the input solvent and solute pair at the input temperature
+    """
+    # Case 1: reference values are not provided
+    if ref_solvent_smiles is None:
+        calculations = calc_solubility_no_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
+                                              hsub298=hsub298, cp_gas_298=cp_gas_298, cp_solid_298=cp_solid_298)
+        # Extract the solubility prediction results using from_aq keys
+        logST_method1 = calculations.logs_T_with_const_hdiss_from_aq[0]
+        logST_method2 = calculations.logs_T_with_T_dep_hdiss_from_aq[0]
+    # Case 2: reference values are provided
+    else:
+        calculations_ref = calc_solubility_no_ref(solvent_smiles=ref_solvent_smiles, solute_smiles=solute_smiles,
+                                                  temp=ref_temp, hsub298=hsub298, cp_gas_298=cp_gas_298,
+                                                  cp_solid_298=cp_solid_298)
+        ref_solubility298 = get_ref_solubility298(calculations_ref=calculations_ref, ref_solubility=ref_solubility)
+        calculations = calc_solubility_with_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
+                                                ref_solvent_smiles=ref_solvent_smiles,
+                                                ref_solubility298=ref_solubility298,
+                                                hsub298=hsub298, cp_gas_298=cp_gas_298, cp_solid_298=cp_solid_298)
+        # Extract the solubility prediction results using from_ref keys
+        logST_method1 = calculations.logs_T_with_const_hdiss_from_ref[0]
+        logST_method2 = calculations.logs_T_with_T_dep_hdiss_from_ref[0]
+
+    # Extract other results
+    dGsolvT, dHsolvT, dSsolvT = calculations.gsolv_T[0], calculations.hsolv_T[0], calculations.ssolv_T[0]  # in kcal/mol
+    if dSsolvT is not None:
+        dSsolvT = dSsolvT * 1000  # convert to cal/mol/K
+    Hsub298_pred = calculations.hsubl_298[0] if hsub298 is None else None  # in kcal/mol
+    Cpg298_pred = calculations.Cp_gas[0] if cp_gas_298 is None else None  # in cal/mol/K
+    Cps298_pred = calculations.Cp_solid[0] if cp_solid_298 is None else None  # in cal/mol/K
+    T_dep_hdiss_error_mesg = calculations.logs_T_with_T_dep_hdiss_error_message[0]
+    calc_error_msg, warning_msg = format_T_dep_hdiss_error_mesg(T_dep_hdiss_error_mesg)
+
+    pred_val_list = [logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, Hsub298_pred, Cpg298_pred, Cps298_pred]
+    return pred_val_list, calc_error_msg, warning_msg
+
+
+def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, hsub298=None, cp_gas_298=None,
+                           cp_solid_298=None):
+    """
+    Calculate solubility with no reference solvent and reference solubility
+    """
+    hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
+    Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
+    Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
+
+    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp)
+    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=True,
+                                        predict_reference_solvents=False, predict_t_dep=True,
+                                        predict_solute_parameters=True, verbose=False)
+    calculations = SolubilityCalculations(predictions, calculate_aqueous=True,
+                                          calculate_reference_solvents=False, calculate_t_dep=True,
+                                          calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
+                                          hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
+    return calculations
+
+
+def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None, ref_solvent_smiles=None,
+                             ref_solubility298=None, hsub298=None, cp_gas_298=None, cp_solid_298=None):
+    """
+    Calculate solubility with a reference solvent and reference solubility
+    """
+    hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
+    Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
+    Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
+
+    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
+                                ref_solub=ref_solubility298, ref_solv=ref_solvent_smiles)
+    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=False,
+                                        predict_reference_solvents=True, predict_t_dep=True,
+                                        predict_solute_parameters=True, verbose=False)
+    calculations = SolubilityCalculations(predictions, calculate_aqueous=False,
+                                          calculate_reference_solvents=True, calculate_t_dep=True,
+                                          calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
+                                          hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
+    return calculations
+
+
+def get_ref_solubility298(calculations_ref=None, ref_solubility=None):
+    """
+    Estimate the reference solubility at 298 K based on the reference solvent calculation results and input
+    reference solubility value at reference temperature.
+    """
+    # Use the prediction from method 2 if available. If not, use the prediction from method 1 as the ref value
+    logST_ref_pred = calculations_ref.logs_T_with_T_dep_hdiss_from_aq[0]
+    if logST_ref_pred is None:
+        logST_ref_pred = calculations_ref.logs_T_with_const_hdiss_from_aq[0]
+    # Get ref_solubility value at 298 K from ref_solubility at T
+    logS298_ref_from_aq = calculations_ref.logs_298_from_aq[0]
+    logS_diff = logST_ref_pred - logS298_ref_from_aq
+    ref_solubility298 = ref_solubility - logS_diff
+    return ref_solubility298
+
+
+class SolubilityData:
+    """
+    Class for storing the input data for solubility prediction
+    """
+    def __init__(self, solvent_smiles=None, solute_smiles=None, temp=None, ref_solub=None, ref_solv=None):
+        self.smiles_pairs = [(solvent_smiles, solute_smiles)]
+        self.temperatures = np.array([temp]) if temp is not None else None
+        self.reference_solubility = np.array([ref_solub]) if ref_solub is not None else None
+        self.reference_solvents = np.array([ref_solv]) if ref_solv is not None else None
+
+
+def format_T_dep_hdiss_error_mesg(error_msg):
+    """
+    Turn the error_msg for the T-dep Hdiss prediction into appropriate error and warning messages
+    """
+    calc_error_msg, warning_msg = None, None
+    if error_msg is not None:
+        if 'above the critical temperature' in error_msg:
+            calc_error_msg = error_msg + ' Method 2 cannot be used'
+        elif 'The given solvent is not supported' in error_msg:
+            calc_error_msg = 'The input solvent is not supported by method 2'
+        elif 'Unable to predict dHdissT for T' in error_msg or 'is below the minimum limit' in error_msg:
+            warning_msg = 'The input temperature is too low. The prediction may not be reliable'
+    return calc_error_msg, warning_msg
+
+
+def str_to_list(str_list, splitter='_'):
+    """
+    Turn the str into a list using the input splitter
+    """
+    py_str_list = str_list.split(splitter)
+    py_list = []
+    for str_val in py_str_list:
+        if str_val == 'None':
+            str_val = None
+        py_list.append(str_val)
+    return py_list
+
+
+def str_to_float_list(str_list, splitter='_'):
+    """
+    Turn the str into a list of floats using the input splitter
+    """
+    py_list = str_to_list(str_list, splitter=splitter)
+    float_list = []
+    for str_val in py_list:
+        if str_val is not None:
+            str_val = float(str_val)
+        float_list.append(str_val)
+    return float_list
+
+
+def validate_smiles(mol_input, error_msg, mol_type):
+    """
+    Convert the mol_input into SMILES using RDKit and returns an error message if it fails
+    """
+    mol_smiles = None
+    mol_charge = 0
+    if mol_input is not None and not pd.isnull(mol_input):
+        if 'InChI' in mol_input:
+            try:
+                mol = Chem.MolFromInchi(mol_input)
+                mol_smiles = Chem.MolToSmiles(mol)
+                mol_charge = rdmolops.GetFormalCharge(mol)
+            except:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} is invalid')
+        else:
+            try:
+                mol = Chem.MolFromSmiles(mol_input)
+                mol_smiles = Chem.MolToSmiles(mol)
+                mol_charge = rdmolops.GetFormalCharge(mol)
+            except:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} is invalid')
+        if mol_charge != 0:
+            error_msg = update_error_msg(
+                error_msg, f'{mol_type} has charge {mol_charge} but only neutral molecules are allowed')
+    else:
+        error_msg = update_error_msg(error_msg, f'{mol_type} input is not empty')
+    return mol_smiles, error_msg
 
 
 def groupDraw(request):
