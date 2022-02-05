@@ -27,31 +27,30 @@ $().ready(function(){
 
 <p>
 Use this form to get temperature-dependent solid solubility (logS in log10(mol/L)) prediction for a
-  solvent-solute pair of your interest.
+  solvent-solute pair of your interest. The logS is in log10 of mol solute per L solution unit.
   Currently, we only support prediction for electrically neutral solute
   compounds containing H, B, C, N, O, S, P, F, Cl, Br, and I and nonionic liquid solvents.
 </p>
 
 <p>
-Include the citation info here.
+Details on the prediction method can be found in the publication shown below. Please cite our work if you wish to use any results.<br>
+   <ul> <li> Vermeire, F. H.; Chung, Y.; Green, W. H. Thermodynamics and Machine Learning for the Prediction of the
+    Solvation Enthalpy and Solid Solubility in Water and Organic Solvents.
+    2022. [<i>Manuscript in Preparation</i>]</li></ul>
 </p>
 
 <p>
-    Include the description of our models here.
-</p>
-
-<p>
-   Each input should take several seconds to process. Calculations can take several minutes for more inputs or/and
-    if the server is busy. Please wait patiently and do not click submit buttons multiple times.
+   Calculations can take several minutes for more inputs or/and if the server is busy.
+    Please wait patiently and do not click submit buttons multiple times.
     Note that this tool is not designed for bulk queries. For bulk queries or automatic calculations, one can install
     a conda package <b>solprop_ml</b> from
    <a href="https://anaconda.org/fhvermei/solprop_ml"> here</a>. The source code is located
-  <a href="https://github.com/fhvermei/SolProp_ML"> here</a> on GitHub.
+  <a href="https://github.com/fhvermei/SolProp_ML"> here</a> on GitHub with sample scripts.
 </p>
 
 <p>
     <b>Click <a href="{% url 'database:solvation-solubilityInfo' %}">here</a> to find more information on the
-        <u>inputs</u> and <u>outputs</u>.</b>
+        <u>input</u> and <u>output</u> definitions.</b>
 </p>
 
 <div style="display:none" id="searching">
