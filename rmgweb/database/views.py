@@ -3503,7 +3503,9 @@ def solvationSolubilityInfo(request):
 def solvationSolubilitySearch(request):
     """
     Creates webpage form to display solid solubility prediction upon choosing a solvent,
-    solute and temperature. Reference solvent is
+    solute, temperature, and other optional inputs such as reference solvent, reference solubility,
+    reference temperature, hsub298, cp_gas_298, and cp_solid_298.
+    The input definitions can be found on the solvationSolubilityInfo page.
     """
     from rmgweb.database.forms import SolubilitySearchForm
     table_rows = 10
