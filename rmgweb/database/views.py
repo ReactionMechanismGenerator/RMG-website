@@ -466,6 +466,15 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
     dHsolv298 = None
     dHsolv298_epi_unc = None
     dSsolv298 = None
+    allowed_atom_list = ['H', 'C', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I']
+
+    # check whether the input solvent and solutes are valid. If not, give a corresponding error message.
+    [[solvent_smiles, solute_smiles]] = pair_smiles
+    solv_smi_rdkit, error_msg = validate_smiles_only_error_msg(solvent_smiles, error_msg, 'Solvent', allowed_atom_list)
+    solu_smi_rdkit, error_msg = validate_smiles_only_error_msg(solute_smiles, error_msg, 'Solute', allowed_atom_list)
+    if not error_msg is None:
+        error_msg = update_error_msg(error_msg, 'The prediction may not be reliable')
+
     if dGsolv_required:
         try:
             avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
@@ -971,6 +980,8 @@ def update_error_msg(error_msg, new_msg, overwrite=False):
     else:
         if error_msg is None:
             return new_msg
+        elif new_msg is None:
+            return error_msg
         else:
             return error_msg + ', ' + new_msg
 
@@ -1022,7 +1033,6 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
         [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
         for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
             solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
-        error_msg = update_error_msg(error_msg, None, overwrite=True)
         solute_comment = 'SoluteML prediction'
     except Exception as e:
         if "rdkit_2d_normalized" in str(e) or "descriptastorus" in str(e) or "rdNormalizedDescriptors" in str(e):
@@ -1031,8 +1041,8 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
                               f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
                               'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
                               'version 0.0.3 or higher.')
-        else:
-            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
+        elif not 'Unable to parse the SMILES' in error_msg:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
     # get V value using RMG
     if solute_spc is not None:
         try:
@@ -1041,8 +1051,7 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
             pass
     # add error message if V value could not be obtained
     if solute_data.V is None:
-        if error_msg is None or (isinstance(error_msg, str) and not 'Unable to parse the SMILES' in error_msg):
-            error_msg = update_error_msg(error_msg, 'Unable to get V value')
+        error_msg = update_error_msg(error_msg, 'Unable to get V value')
     return solute_data, solute_comment, error_msg, solute_epi_unc_dict
 
 
@@ -1221,6 +1230,7 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
     elif solute_estimator == 'SoluteGC':
         additional_info_list.append('Comment: functional groups used to estimate the solute parameters')
 
+    allowed_atom_list = ['H', 'C', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I']
     # get the solute parameter predictions for each given SMILES
     for smiles in solute_smiles_list:
         # initialize the parameter values
@@ -1232,17 +1242,24 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
         except:
             solute_spc = None
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES')
+        # Check for other types of error in the input solute
+        smiles_rdkit, error_msg = validate_smiles_only_error_msg(smiles, error_msg, 'Solute', allowed_atom_list)
+        if error_msg is not None:
+            error_msg = update_error_msg(error_msg, 'The prediction may be not reliable')
         # Get predictions using the selected method
         if solute_estimator == 'expt':
             solute_data, solute_comment = get_solute_data_from_db(solute_spc, db)
             # Get href for the solute data found in the solute_comment
-            solute_comment = add_href_to_solute_data_comment(solute_comment)
+            if not solute_comment is None:
+                solute_comment = add_href_to_solute_data_comment(solute_comment)
         elif solute_estimator == 'SoluteGC':
             solute_data, solute_comment, error_msg = get_solute_data_from_SoluteGC(solute_spc, db, error_msg)
             # Get href for each solute group found in the solute_comment
-            solute_comment = add_href_to_solute_data_comment(solute_comment)
+            if not solute_comment is None:
+                solute_comment = add_href_to_solute_data_comment(solute_comment)
         elif solute_estimator == 'SoluteML':
-            solute_data, solute_comment, error_msg, solute_epi_unc_dict = get_solute_data_from_SoluteML(smiles, solute_spc, error_msg)
+            solute_data, solute_comment, error_msg, solute_epi_unc_dict = \
+                get_solute_data_from_SoluteML(smiles, solute_spc, error_msg)
         else:
             # unknown estimator is given
             raise Http404
@@ -1281,6 +1298,45 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
 
     solute_data_results = parse_none_results(solute_data_results)
     return solute_data_results, additional_info_list, solvent_info
+
+
+def validate_smiles_only_error_msg(mol_input, error_msg, mol_type, allowed_atom_list):
+    """
+    Convert the mol_input into SMILES using RDKit and returns an error message if it fails
+    """
+    mol = None
+    mol_smiles = None
+    mol_charge = 0
+    if mol_input is not None and not pd.isnull(mol_input):
+        try:
+            mol = Chem.MolFromSmiles(mol_input)
+            mol_smiles = Chem.MolToSmiles(mol)
+            mol_charge = rdmolops.GetFormalCharge(mol)
+        except:
+            error_msg = update_error_msg(
+                error_msg, f'{mol_type} is invalid')
+        if mol is not None:
+            # check whether the mol_input has a charge and give a corresponding error message
+            if mol_charge != 0:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} has charge {mol_charge} but only neutral molecules are allowed')
+            # check whether the mol_input contains more than 1 compound or is salts and give a corresponding warning message
+            if len(Chem.GetMolFrags(mol)) > 1:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} contains more than one molecule/fragment but only single molecule is '
+                                 f'allowed')
+            # check whether the mol_input contains any out-of-range atoms and give a corresponding warning message
+            out_of_range_list = []
+            for i, atom in enumerate(list(mol.GetAtoms())):
+                symbol = atom.GetSymbol()
+                if not symbol in allowed_atom_list and not symbol in out_of_range_list:
+                    out_of_range_list.append(symbol)
+            if len(out_of_range_list) > 0:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} contains out-of-range atoms, {out_of_range_list}')
+    else:
+        error_msg = update_error_msg(error_msg, f'{mol_type} input cannot be not empty')
+    return mol_smiles, error_msg
 
 
 def solvationSoluteData(request, solute_smiles, solute_estimator, solvent, energy_unit):
@@ -3679,21 +3735,28 @@ def solvationSolubilityData(request, solvent_str, solute_str, temp_str, ref_solv
         # Initialize the outputs
         logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT = None, None, None, None, None
         Hsub298_pred, Cpg298_pred, Cps298_pred = None, None, None
-        input_error_msg, warning_msg = None, None
+        input_error_msg, warning_msg, calc_warning_msg = None, None, None
+        allowed_atom_list = ['H', 'B', 'C', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I']
         # First check whether solvent and solute have valid SMILES
-        solvent_smiles, input_error_msg = validate_smiles(solvent, input_error_msg, 'Solvent SMILES')
-        solute_smiles, input_error_msg = validate_smiles(solute, input_error_msg, 'Solute SMILES')
+        solvent_smiles, input_error_msg, warning_msg = validate_smiles(solvent, input_error_msg,
+                                                                       warning_msg,'Solvent',allowed_atom_list)
+        solute_smiles, input_error_msg, warning_msg = validate_smiles(solute, input_error_msg,
+                                                                      warning_msg, 'Solute', allowed_atom_list)
         if ref_solvent is not None:
-            ref_solvent_smiles, input_error_msg = validate_smiles(ref_solvent, input_error_msg, 'Ref. solvent SMILES')
+            ref_solvent_smiles, input_error_msg, warning_msg = validate_smiles(
+                ref_solvent, input_error_msg, warning_msg, 'Ref. solvent', allowed_atom_list)
         else:
             ref_solvent_smiles = None
         # Get the predictions if there is no error with input
         if input_error_msg is None:
             [logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, Hsub298_pred, Cpg298_pred, Cps298_pred], \
-            input_error_msg, warning_msg = \
+            input_error_msg, calc_warning_msg = \
                 get_solubility_pred(solvent_smiles, solute_smiles, temp, ref_solvent_smiles, ref_solubility, ref_temp,
                                     hsub298, cp_gas_298, cp_solid_298)
-
+        # Update the warning message
+        warning_msg = update_error_msg(warning_msg, calc_warning_msg)
+        if not warning_msg is None:
+            warning_msg = update_error_msg(warning_msg, 'The prediction may not be reliable')
         # Append the results
         result_val_list = [solvent, solute, temp, ref_solvent, ref_solubility, ref_temp, hsub298, cp_gas_298,
                            cp_solid_298, input_error_msg, warning_msg, logST_method1, logST_method2, dGsolvT, dHsolvT,
@@ -3836,7 +3899,7 @@ def format_T_dep_hdiss_error_mesg(error_msg):
         elif 'The given solvent is not supported' in error_msg:
             calc_error_msg = 'The input solvent is not supported by method 2'
         elif 'Unable to predict dHdissT for T' in error_msg or 'is below the minimum limit' in error_msg:
-            warning_msg = 'The input temperature is too low. The prediction may not be reliable'
+            warning_msg = 'The input temperature is too low'
     return calc_error_msg, warning_msg
 
 
@@ -3866,10 +3929,11 @@ def str_to_float_list(str_list, splitter='_'):
     return float_list
 
 
-def validate_smiles(mol_input, error_msg, mol_type):
+def validate_smiles(mol_input, error_msg, warning_msg, mol_type, allowed_atom_list):
     """
     Convert the mol_input into SMILES using RDKit and returns an error message if it fails
     """
+    mol = None
     mol_smiles = None
     mol_charge = 0
     if mol_input is not None and not pd.isnull(mol_input):
@@ -3889,12 +3953,28 @@ def validate_smiles(mol_input, error_msg, mol_type):
             except:
                 error_msg = update_error_msg(
                     error_msg, f'{mol_type} is invalid')
-        if mol_charge != 0:
-            error_msg = update_error_msg(
-                error_msg, f'{mol_type} has charge {mol_charge} but only neutral molecules are allowed')
+        if mol is not None:
+            # check whether the mol_input has a charge and give a corresponding error message
+            if mol_charge != 0:
+                error_msg = update_error_msg(
+                    error_msg, f'{mol_type} has charge {mol_charge} but only neutral molecules are allowed')
+            # check whether the mol_input contains more than 1 compound or is salts and give a corresponding warning message
+            if len(Chem.GetMolFrags(mol)) > 1:
+                warning_msg = update_error_msg(
+                    warning_msg, f'{mol_type} contains more than one molecule/fragment but only single molecule is '
+                                 f'allowed')
+            # check whether the mol_input contains any out-of-range atoms and give a corresponding warning message
+            out_of_range_list = []
+            for i, atom in enumerate(list(mol.GetAtoms())):
+                symbol = atom.GetSymbol()
+                if not symbol in allowed_atom_list and not symbol in out_of_range_list:
+                    out_of_range_list.append(symbol)
+            if len(out_of_range_list) > 0:
+                warning_msg = update_error_msg(
+                    warning_msg, f'{mol_type} contains out-of-range atoms, {out_of_range_list}')
     else:
-        error_msg = update_error_msg(error_msg, f'{mol_type} input is not empty')
-    return mol_smiles, error_msg
+        error_msg = update_error_msg(error_msg, f'{mol_type} input cannot be not empty')
+    return mol_smiles, error_msg, warning_msg
 
 
 def groupDraw(request):
