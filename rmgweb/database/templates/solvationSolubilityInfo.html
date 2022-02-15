@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% load gravatar %}
+{% load databasefilters %}
+
+{% block title %}RMG: Solvation Search{% endblock %}
+
+{% block extrahead %}
+
+{% endblock %}
+
+{% block navbar_items %}
+<li><a href="{% url 'database:solvation-search' %}">Solvation Tools</a></li>
+<li><a href="{% url 'database:solvation-solubilitySearch' %}">Solid Solubility Prediction</a></li>
+{% endblock %}
+
+{% block page_title %}Solid Solubility Prediction Info{% endblock %}
+
+{% block page_body %}
+
+<p>
+    <font size="+1"><b>Definition of Inputs</b></font>
+</p>
+
+<p>
+    Required inputs:
+    <ul>
+   <li><b>Solvent SMILES or InChI</b>: SMILES or InChI of a solvent</li>
+   <li><b>Solute SMILES or InChI</b>: SMILES or InChI of a solute</li>
+    <li><b>Temp</b>: Temperature in K</li>
+</ul>
+Optional input set 1 - one can provide a reference solubility value of the same solute in a different solvent and/or
+at a different temperature to <u>get more accurate solubility prediction</u>. All of the three values must be provided
+together for this option.
+    <ul>
+   <li><b>Ref. Solvent SMILES or InChI</b>: SMILES or InChI of a reference solvent</li>
+   <li><b>Ref. Solubility</b>: Solubility of the input solute in a reference solvent at a reference temperature.
+   In logS (log10(mol/L)) unit.</li>
+    <li><b>Temp</b>: Reference temperature in K</li>
+</ul>
+Optional input 2 - one can provide any or all of the values below to improve the temperature-dependent solubility
+prediction. Typically, <u>ΔHsub298 is more important than Cpg298 and Cps298</u> to get more accurate temperature-dependent
+    solubility prediction.
+    <ul>
+   <li><b>ΔHsub298</b>: Sublimation enthalpy of the input solute at 298 K in kcal/mol</li>
+   <li><b>Cpg298</b>: Heat capacity of the input solute in a gas phase at 298 K in cal/K/mol</li>
+    <li><b>Cps298</b>: Heat capacity of the input solute in a solid phase at 298 K in cal/K/mol</li>
+</ul>
+</p>
+
+<p>
+    <font size="+1"><b>Definition of Outputs</b></font>
+</p>
+
+<p>
+  <ul>
+   <li><b>logS (method1) [log10(mol/L)]</b>: Predicted solubility of the input solute in the input solvent at the
+       input temperature in log10(mol/L). This prediction is made using method 1, which approximates the temperature
+       dependence of solubility using the constant dissolution enthalpy at 298 K.  This method neglects the temperature
+       dependence of dissolution enthalpy. Below 350 K, the prediction accuracy of method 1 and method 2 is similar.
+       <u>Above 350 K, method 2 gives a more accurate prediction than method 1.</u>
+       Please refer to our paper for more details.</li>
+    <li><b>logS (method2) [log10(mol/L)]</b>: Predicted solubility of the input solute in the input solvent at the
+       input temperature in log10(mol/L). This prediction is made using method 2, which estimates the temperature
+       dependence of solubility using the temperature-dependent dissolution enthalpy. <u>Method 2 provides
+        <b>more accurate</b> prediction than method 1 at high temperature. However, method 2 is currently only available for
+        around 100 common solvents.</u> Please refer to our paper for more details.</li>
+    <li><b>dGsolv [kcal/mol]</b>: Predicted solvation free energy of the input solvent-solute pair at the input
+        temperature in kcal/mol. This prediction is available if method 2 is available. The standard state of an
+        ideal gas at a concentration of 1 mol/L dissolving as an ideal solution at a concentration of 1 mol/L is
+        used.</li>
+    <li><b>dHsolv [kcal/mol]</b>: Predicted solvation enthalpy of the input solvent-solute pair at the input
+        temperature in kcal/mol. This prediction is available if method 2 is available. The same standard state as
+        dGsolv is used.</li>
+    <li><b>dSsolv [cal/K/mol]</b>: Predicted solvation entropy of the input solvent-solute pair at the input
+        temperature in cal/K/mol. This prediction is available if method 2 is available. The same standard state as
+        dGsolv is used.</li>
+    <li><b>Pred. Hsub298 [kcal/mol]</b>: Predicted sublimation enthalpy of the input solute at 298 K in kcal/mol.
+    If the input ΔHsub298 is provided by a user, this output will be empty.</li>
+    <li><b>Pred. Cpg298 [cal/K/mol]</b>: Predicted heat capacity of the input solute in a gas phase at 298 K in
+        cal/K/mol. If the input Cpg298 is provided by a user, this output will be empty.</li>
+    <li><b>Pred. Cps298 [cal/K/mol]</b>: Predicted heat capacity of the input solute in a solid phase at 298 K in
+        cal/K/mol. If the input Cps298 is provided by a user, this output will be empty.</li>
+    </ul>
+</p>
+
+{% endblock %}s

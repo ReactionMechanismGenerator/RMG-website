@@ -127,3 +127,17 @@ class SolvationSearchTempDep(models.Model):
                                    default='Kelvin')
     energy_unit = models.CharField(verbose_name="Preferred unit", choices=energy_unit_list, max_length=200, blank=False,
                                    default='kcal/mol')
+
+class SolubilitySearch(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(SolubilitySearch, self).__init__(*args, **kwargs)
+
+    solvent = models.CharField(verbose_name="Solvent SMILES", max_length=200, blank=True)
+    solute = models.CharField(verbose_name="Solute SMILES", max_length=200, blank=True)
+    temp = models.FloatField(verbose_name='Temperature', max_length=6, blank=True, null=True)
+    ref_solvent = models.CharField(verbose_name='Ref. Solvent SMILES', max_length=200, blank=True)
+    ref_solubility = models.FloatField(verbose_name='Ref. Solubility', max_length=10, blank=True, null=True)
+    ref_temp = models.FloatField(verbose_name='Ref. Temperature', max_length=6, blank=True, null=True)
+    hsub298 = models.FloatField(verbose_name='dHsub at 298K', max_length=6, blank=True, null=True)
+    cp_gas_298 = models.FloatField(verbose_name='Cp_gas at 298K', max_length=6, blank=True, null=True)
+    cp_solid_298 = models.FloatField(verbose_name='Cp_solid at 298K', max_length=6, blank=True, null=True)
