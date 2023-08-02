@@ -21,10 +21,13 @@ dependencies:
   - lxml
   - markupsafe
   - matplotlib >=1.5
-  - rmg::mopac
+  - mopac
   - nose
   - numpy >=1.10.0
   - conda-forge::openbabel >= 3
+  - pip
+  - pip:
+      - git+https://github.com/bp-kelley/descriptastorus@2.5.0
   - psutil
   - pydas >=1.0.2
   - pydot
