@@ -22,11 +22,6 @@ For detailed instructions on setting up a local version of RMG-website,
 please see the [wiki page](https://github.com/ReactionMechanismGenerator/RMG-Py/wiki/Setting-up-RMG-website) 
 in RMG-Py. 
 
-<em>*After updating your `rmg_env` environment, be sure to install `descriptastorus` using the following command</em>
-```
-pip install git+https://github.com/bp-kelley/descriptastorus
-```
-
 ## Credits
 - [Professor William H. Green's research group](http://cheme.scripts.mit.edu/green-group/) at the 
 [Massachusetts Institute of Technology](http://web.mit.edu/) 
