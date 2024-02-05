@@ -14,31 +14,34 @@ dependencies:
   - cython >=0.25.2
   - docutils
   - django =2.2
-  - gprof2dot
+  - rmg::gprof2dot
   - graphviz
   - jinja2
+  - conda-forge::julia>=1.8.5,!=1.9.0
   - libgcc
   - lxml
   - markupsafe
   - matplotlib >=1.5
-  - mopac
-  - nose
+  - conda-forge::mopac
   - numpy >=1.10.0
   - conda-forge::openbabel >= 3
+  - pip
+  - pip:
+      - git+https://github.com/bp-kelley/descriptastorus@2.5.0
   - psutil
-  - pydas >=1.0.1
+  - rmg::pydas >=1.0.3
   - pydot
-  - pydqed >=1.0.0
+  - rmg::pydqed >=1.0.3
   - pyparsing
   - python >=3.7
   - pytorch
-  - quantities
+  - rmg::quantities
+  - rmg::rdkit >=2020.03.3.0
   - scipy
   - solprop_ml >=1.2
-  - symmetry
+  - rmg::symmetry
   - torchvision
   - torchaudio
-  - rdkit >=2018
   - xlrd
   - xlsxwriter
   - xlwt
