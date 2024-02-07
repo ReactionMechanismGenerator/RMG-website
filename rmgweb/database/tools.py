@@ -420,9 +420,10 @@ def generateReactions(database, reactants, products=None, only_families=None, re
 
             # Get all of the kinetics for the reaction
             family = get_family_library_object(reaction.family)
-            kinetics_list = family.get_kinetics(reaction, template_labels=reaction.template, degeneracy=reaction.degeneracy, return_all_kinetics=True)
+            kinetics_list = family.get_kinetics(reaction, template_labels=reaction.template, degeneracy=reaction.degeneracy, estimator = "rate rules", return_all_kinetics=True)
             if family.own_reverse and hasattr(reaction, 'reverse'):
-                kinetics_list_rev = family.get_kinetics(reaction.reverse, template_labels=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, return_all_kinetics=True)
+                kinetics_list_rev = family.get_kinetics(reaction.reverse, template_labels=reaction.reverse.template, degeneracy=reaction.reverse.degeneracy, estimator = "rate rules",
+                                                                                        return_all_kinetics=True)
                 for kinetics, source, entry, is_forward in kinetics_list_rev:
                     for kinetics0, source0, entry0, is_forward0 in kinetics_list:
                         if (source0 is not None) and (source is not None) and (entry0 is entry) and (is_forward != is_forward0):
