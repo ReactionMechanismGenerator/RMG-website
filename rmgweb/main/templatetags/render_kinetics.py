@@ -57,6 +57,8 @@ UNIT_TYPES = {
 
 
 def getArrheniusJSMath(A, Aunits, n, nunits, Ea, Eaunits, T0, T0units):
+    if any (np.isnan(x) for x in (A, n, Ea, T0)):
+        return 'undefined' # to gracefully handle upstream edge cases, such as reverse rxn rate = 0
     result = '{0!s}'.format(getLaTeXScientificNotation(A))
     if n != 0:
         if T0 != 1:
