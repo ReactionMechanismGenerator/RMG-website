@@ -793,7 +793,7 @@ def get_solvation_data_temp_dep(solvent_solute_temp, calc_dGsolv, calc_Kfactor, 
                 # get T-dep calculations
                 if dGsolv298 is not None and dHsolv298 is not None and dSsolv298 is not None:
                     # dGsolv in J/mol
-                    dGsolv, Kfactor = db.get_T_dep_solvation_energy_from_input_298(dGsolv298, dHsolv298, dSsolv298,
+                    dGsolv, Kfactor, henry = db.get_T_dep_solvation_energy_from_input_298(dGsolv298, dHsolv298, dSsolv298,
                                                                                    solvent_name, temp_SI)
 
                 if calc_henry and Kfactor is not None and Pvap is not None:
