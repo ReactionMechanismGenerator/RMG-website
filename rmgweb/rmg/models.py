@@ -75,16 +75,34 @@ class Chemkin(models.Model):
     dict_file = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
 
+    def save_html_file(path, read_comments=True):
+        """
+        Save an output HTML file.
+        """
+        from rmgpy.rmg.model import CoreEdgeReactionModel
+        from rmgpy.rmg.output import save_output_html
+        from rmgpy.chemkin import load_chemkin_file
+
+        chemkin_path = os.path.join(path, 'chemkin', 'chem.inp')
+        dictionary_path = os.path.join(path, 'RMG_Dictionary.txt')
+        model = CoreEdgeReactionModel()
+        model.core.species, model.core.reactions = load_chemkin_file(chemkin_path, dictionary_path,
+                                                                    read_comments=read_comments)
+        output_path = os.path.join(path, 'output.html')
+        species_path = os.path.join(path, 'species')
+        if not os.path.isdir(species_path):
+            os.makedirs(species_path)
+        save_output_html(output_path, model)
+
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        from rmgpy.chemkin import save_html_file
         if self.foreign:
             # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
-            save_html_file(self.path, read_comments=False)
+            self.save_html_file(self.path, read_comments=False)
         else:
-            save_html_file(self.path)
+            self.save_html_file(self.path)
 
     def createDir(self):
         """
