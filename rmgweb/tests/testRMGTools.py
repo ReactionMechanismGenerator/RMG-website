@@ -54,8 +54,8 @@ class ChemkinTest(TestCase):
         Test post functionality of /tools/chemkin/
         """
 
-        chem_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
+        chem_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
 
         with open(chem_file) as cf, open(dict_file) as df:
             response = self.client.post('/tools/chemkin/', {'chem_file': cf, 'dict_file': df})
@@ -96,10 +96,10 @@ class CompareTest(TestCase):
         Test basic functionality of /tools/compare/
         """
 
-        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
-        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp')
-        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
+        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
+        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp', blank=True, null=True)
+        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt', blank=True, null=True)
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
             response = self.client.post('/tools/compare/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
@@ -140,10 +140,10 @@ class CompareTest(TestCase):
         Test basic functionality of /tools/merge_models/
         """
 
-        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
-        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp')
-        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
+        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
+        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp', blank=True, null=True)
+        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt', blank=True, null=True)
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
             response = self.client.post('/tools/merge_models/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
