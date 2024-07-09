@@ -63,15 +63,6 @@ class ModelCompareForm(forms.ModelForm):
         fields = '__all__'
 
 
-class UploadDictionaryForm(forms.ModelForm):
-    """
-    A Django form for uploading a RMG dictionary file.
-    """
-    class Meta(object):
-        model = AdjlistConversion
-        fields = '__all__'
-
-
 class FluxDiagramForm(forms.ModelForm):
     """
     A Django form for creating a flux diagram by uploading the files required.

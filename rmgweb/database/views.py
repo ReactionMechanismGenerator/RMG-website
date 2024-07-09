@@ -121,50 +121,6 @@ def index(request):
     return render(request, 'database.html')
 
 
-def export(request, type):
-    """
-    Export the RMG database to the old RMG-Java format.
-    """
-    # Build archive filenames from git hash and compression type
-    sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                                  cwd=rmgweb.settings.DATABASE_PATH)[:7]
-    base = 'RMG_database_{0}'.format(sha)
-    file_zip = '{0}.zip'.format(base)
-    file_tar = '{0}.tar.gz'.format(base)
-    if type == 'zip':
-        file = file_zip
-    elif type == 'tar.gz':
-        file = file_tar
-
-    # Set output path
-    path = os.path.join(rmgweb.settings.PROJECT_PATH, '..', 'database', 'export')
-    output = os.path.join(path, 'RMG_database')
-
-    # Assert archives do not already exist
-    if not os.path.exists(os.path.join(path, file)):
-
-        # Export old database
-        cmd_export = ['python', rmgweb.settings.DATABASE_PATH + '../scripts/exportOldDatabase.py', output]
-        subprocess.check_call(cmd_export)
-
-        # Compress database to zip
-        cmd_zip = ['zip', '-r', base, 'RMG_database']
-        subprocess.check_output(cmd_zip, cwd=path)
-
-        # Compress database to tar.gz
-        cmd_tar = ['tar', '-czf', file_tar, 'RMG_database']
-        subprocess.check_output(cmd_tar, cwd=path)
-
-        # Make compressed databases group-writable
-        os.chmod(os.path.join(path, file_zip), 0o664)
-        os.chmod(os.path.join(path, file_tar), 0o664)
-
-        # Remove exported database
-        shutil.rmtree(output)
-
-    # Redirect to requested compressed database
-    return HttpResponseRedirect('export/{0}'.format(file))
-
 #################################################################################################################################################
 
 
@@ -3043,16 +2999,6 @@ def kineticsGroupEstimateEntry(request, family, estimator, reactant1, product1, 
                    'plotWidth': 500,
                    'plotHeight': 400 + 15 * len(entry_list),
                    })
-
-
-def kineticsJavaEntry(request, entry, reactants_fig, products_fig, kineticsParameters, kineticsModel):
-    section = ''
-    subsection = ''
-    database_name = 'RMG-Java Database'
-    reference = ''
-    reference_type = ''
-    arrow = '&hArr;'
-    return render(request, 'kineticsEntry.html', {'section': section, 'subsection': subsection, 'databaseName': database_name, 'entry': entry, 'reactants': reactants_fig, 'arrow': arrow, 'products': products_fig, 'reference': reference, 'referenceType': reference_type, 'kinetics': entry.data})
 
 
 def kineticsSearch(request):

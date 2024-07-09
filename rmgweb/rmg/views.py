@@ -72,31 +72,6 @@ def convertChemkin(request):
     return render(request, 'chemkinUpload.html', {'form': form, 'path': path})
 
 
-def convertAdjlists(request):
-    """
-    Allows user to upload a dictionary txt file and convert it back into old style adjacency lists in the form of a txt file.
-    """
-    conversion = AdjlistConversion()
-    path = ''
-    conversion.deleteDir()
-
-    if request.method == 'POST':
-        conversion.createDir()
-        form = UploadDictionaryForm(request.POST, request.FILES, instance=conversion)
-        if form.is_valid():
-            form.save()
-            path = 'media/rmg/tools/adjlist_conversion/RMG_Dictionary.txt'
-            # Generate the output HTML file
-            conversion.createOutput()
-            # Go back to the network's main page
-            return render(request, 'dictionaryUpload.html', {'form': form, 'path': path})
-
-    # Otherwise create the form
-    else:
-        form = UploadDictionaryForm(instance=conversion)
-
-    return render(request, 'dictionaryUpload.html', {'form': form, 'path': path})
-
 
 def compareModels(request):
     """
@@ -360,35 +335,6 @@ def plotKinetics(request):
         form = UploadChemkinForm(instance=chemkin)
 
     return render(request, 'plotKinetics.html', {'form': form})
-
-
-def javaKineticsLibrary(request):
-    """
-    Allows user to upload chemkin files to generate a plot of reaction kinetics.
-    """
-
-    eval = False
-
-    if request.method == 'POST':
-        chemkin = Chemkin()
-        chemkin.createDir()
-        form = UploadChemkinForm(request.POST, request.FILES, instance=chemkin)
-        if form.is_valid():
-            form.save()
-            chemkin.createJavaKineticsLibrary()
-            eval = True
-
-        return render(request, 'javaKineticsLibrary.html',
-                      {'form': form, 'eval': eval})
-
-    # Otherwise create the form
-    else:
-
-        chemkin = Chemkin()
-        chemkin.deleteDir()
-        form = UploadChemkinForm(instance=chemkin)
-
-    return render(request, 'javaKineticsLibrary.html', {'form': form})
 
 
 def evaluateNASA(request):

@@ -44,9 +44,6 @@ urlpatterns = [
     # Load the whole database into memory
     re_path(r'^load/?$', views.load, name='load'),
 
-    # Export to an RMG-Java database
-    re_path(r'^export_(?P<type>zip|tar\.gz)/?$', views.export, name='export'),
-
     # Thermodynamics database
     re_path(r'^thermo/$', views.thermo, name='thermo'),
     re_path(r'^thermo/search/$', views.moleculeSearch, name='thermo-search'),
