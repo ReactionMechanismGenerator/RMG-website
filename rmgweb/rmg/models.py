@@ -180,7 +180,7 @@ class Diff(models.Model):
     dict_file1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'), verbose_name='Model 1: RMG Dictionary', blank=True, null=True)
     foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
     chem_file2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File', blank=True, null=True)
-    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary', )
+    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary', blank=True, null=True)
     foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def createOutput(self):
