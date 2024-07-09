@@ -71,7 +71,7 @@ class Chemkin(models.Model):
         self.folder = os.path.join('rmg', 'tools', 'chemkin')
         self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
 
-    chem_file = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
+    chem_file = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File', blank=True, null=True)
     dict_file = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
 
