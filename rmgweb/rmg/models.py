@@ -75,34 +75,15 @@ class Chemkin(models.Model):
     dict_file = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
 
-    def save_html_file(path, read_comments=True):
-        """
-        Save an output HTML file.
-        """
-        from rmgpy.rmg.model import CoreEdgeReactionModel
-        from rmgpy.rmg.output import save_output_html
-        from rmgpy.chemkin import load_chemkin_file
-
-        chemkin_path = os.path.join(path, 'chemkin', 'chem.inp')
-        dictionary_path = os.path.join(path, 'RMG_Dictionary.txt')
-        model = CoreEdgeReactionModel()
-        model.core.species, model.core.reactions = load_chemkin_file(chemkin_path, dictionary_path,
-                                                                    read_comments=read_comments)
-        output_path = os.path.join(path, 'output.html')
-        species_path = os.path.join(path, 'species')
-        if not os.path.isdir(species_path):
-            os.makedirs(species_path)
-        save_output_html(output_path, model)
-
     def createOutput(self):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
         if self.foreign:
             # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
-            self.save_html_file(self.path, read_comments=False)
+            saveHtmlFile(self.path, read_comments=False)
         else:
-            self.save_html_file(self.path)
+            saveHtmlFile(self.path)
 
     def createDir(self):
         """
@@ -199,7 +180,7 @@ class Diff(models.Model):
     dict_file1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'), verbose_name='Model 1: RMG Dictionary', blank=True, null=True)
     foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
     chem_file2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File', blank=True, null=True)
-    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary', blank=True, null=True)
+    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary', )
     foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def createOutput(self):

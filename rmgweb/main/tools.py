@@ -31,6 +31,12 @@
 import urllib
 
 import math
+import os
+
+
+from rmgpy.rmg.model import CoreEdgeReactionModel
+from rmgpy.rmg.output import save_output_html
+from rmgpy.chemkin import load_chemkin_file
 from django.urls import reverse
 from rmgpy.molecule.group import Group
 from rmgpy.molecule.molecule import Molecule
@@ -182,3 +188,20 @@ def getStructureMarkup(item):
     else:
         structure = ''
     return structure
+
+################################################################################
+
+def saveHtmlFile(path, read_comments=True):
+    """
+    Save an output HTML file.
+    """
+    chemkin_path = os.path.join(path, 'chemkin', 'chem.inp')
+    dictionary_path = os.path.join(path, 'RMG_Dictionary.txt')
+    model = CoreEdgeReactionModel()
+    model.core.species, model.core.reactions = load_chemkin_file(chemkin_path, dictionary_path,
+                                                                read_comments=read_comments)
+    output_path = os.path.join(path, 'output.html')
+    species_path = os.path.join(path, 'species')
+    if not os.path.isdir(species_path):
+        os.makedirs(species_path)
+    save_output_html(output_path, model)
