@@ -71,7 +71,7 @@ class Chemkin(models.Model):
         self.folder = os.path.join('rmg', 'tools', 'chemkin')
         self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
 
-    chem_file = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File')
+    chem_file = models.FileField(upload_to=uploadTo(os.path.join('chemkin', 'chem.inp')), verbose_name='Chemkin File', blank=True, null=True)
     dict_file = models.FileField(upload_to=uploadTo('RMG_Dictionary.txt'), verbose_name='RMG Dictionary', blank=True, null=True)
     foreign = models.BooleanField(verbose_name="Not an RMG-generated Chemkin file")
 
@@ -79,12 +79,11 @@ class Chemkin(models.Model):
         """
         Generate output html file from the path containing chemkin and dictionary files.
         """
-        from rmgpy.chemkin import save_html_file
         if self.foreign:
             # Chemkin file was not from RMG, do not parse the comments when visualizing the file.
-            save_html_file(self.path, read_comments=False)
+            saveHtmlFile(self.path, read_comments=False)
         else:
-            save_html_file(self.path)
+            saveHtmlFile(self.path)
 
     def createDir(self):
         """
@@ -162,18 +161,6 @@ class Chemkin(models.Model):
 
         return kinetics_data_list
 
-    def createJavaKineticsLibrary(self):
-        """
-        Generates java reaction library files from your chemkin file.
-        """
-        from rmgpy.chemkin import load_chemkin_file, save_java_kinetics_library
-
-        chem_path = os.path.join(self.path, 'chemkin', 'chem.inp')
-        dict_path = os.path.join(self.path, 'RMG_Dictionary.txt')
-        spc_list, rxn_list = load_chemkin_file(chem_path, dict_path)
-        save_java_kinetics_library(self.path, spc_list, rxn_list)
-        return
-
 
 class Diff(models.Model):
     """
@@ -189,11 +176,11 @@ class Diff(models.Model):
         self.chemkin2 = os.path.join(self.path, 'chem2.inp')
         self.dict2 = os.path.join(self.path, 'RMG_Dictionary2.txt')
 
-    chem_file1 = models.FileField(upload_to=uploadTo('chem1.inp'), verbose_name='Model 1: Chemkin File')
-    dict_file1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'), verbose_name='Model 1: RMG Dictionary')
+    chem_file1 = models.FileField(upload_to=uploadTo('chem1.inp'), verbose_name='Model 1: Chemkin File', blank=True, null=True)
+    dict_file1 = models.FileField(upload_to=uploadTo('RMG_Dictionary1.txt'), verbose_name='Model 1: RMG Dictionary', blank=True, null=True)
     foreign1 = models.BooleanField(verbose_name="Model 1 not an RMG-generated Chemkin file")
-    chem_file2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File')
-    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary')
+    chem_file2 = models.FileField(upload_to=uploadTo('chem2.inp'), verbose_name='Model 2: Chemkin File', blank=True, null=True)
+    dict_file2 = models.FileField(upload_to=uploadTo('RMG_Dictionary2.txt'), verbose_name='Model 2: RMG Dictionary', blank=True, null=True)
     foreign2 = models.BooleanField(verbose_name="Model 2 not an RMG-generated Chemkin file")
 
     def createOutput(self):
@@ -266,71 +253,6 @@ class Diff(models.Model):
             pass
 
 
-class AdjlistConversion(models.Model):
-    """
-    A Django model for converting new style adjlists to old style ones.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(AdjlistConversion, self).__init__(*args, **kwargs)
-        self.folder = os.path.join('rmg', 'tools', 'adjlist_conversion')
-        self.path = os.path.join(settings.MEDIA_ROOT, self.folder)
-        self.dictionary = os.path.join(self.path, 'species_dictionary.txt')
-
-    dict_file = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
-
-    def createOutput(self):
-        """
-        Generate output html file from the path containing chemkin and dictionary files.
-        """
-
-        spc_list = []
-        with open(self.dictionary, 'r') as f:
-            adjlist = ''
-            for line in f:
-                if line.strip() == '' and adjlist.strip() != '':
-                    # Finish this adjacency list
-                    species = Species().from_adjacency_list(adjlist)
-                    spc_list.append(species)
-                    adjlist = ''
-                else:
-                    if "InChI" in line:
-                        line = line.split()[0] + '\n'
-                    if '//' in line:
-                        index = line.index('//')
-                        line = line[0:index]
-                    adjlist += line
-
-        with open(os.path.join(self.path, 'RMG_Dictionary.txt'), 'w') as f:
-            for spec in spc_list:
-                try:
-                    f.write(spec.molecule[0].to_adjacency_list(label=spec.label, remove_h=True, old_style=True))
-                    f.write('\n')
-                except:
-                    raise Exception('Ran into error saving adjlist for species {0}. It may not be compatible with old adjacency list format.'.format(spec))
-
-    def createDir(self):
-        """
-        Create the directory (and any other needed parent directories) that
-        the Network uses for storing files.
-        """
-        try:
-            os.makedirs(self.path)
-        except OSError:
-            # Fail silently on any OS errors
-            pass
-
-    def deleteDir(self):
-        """
-        Clean up everything by deleting the directory
-        """
-        import shutil
-        try:
-            shutil.rmtree(self.path)
-        except OSError:
-            pass
-
-
 class FluxDiagram(models.Model):
     """
     A Django model for generating a flux diagram using RMG-Py.
@@ -345,7 +267,6 @@ class FluxDiagram(models.Model):
     chem_file = models.FileField(upload_to=uploadTo('chem.inp'), verbose_name='Chemkin File')
     dict_file = models.FileField(upload_to=uploadTo('species_dictionary.txt'), verbose_name='RMG Dictionary')
     chem_output = models.FileField(upload_to=uploadTo('chemkin_output.out'), verbose_name='Chemkin Output File (Optional)', blank=True, null=True)
-    java = models.BooleanField(default=False, verbose_name='From RMG-Java')
     max_nodes = models.PositiveIntegerField(default=50, verbose_name='Maximum Nodes')
     max_edges = models.PositiveIntegerField(default=50, verbose_name='Maximum Edges')
     time_step = models.FloatField(default=1.25, verbose_name='Multiplicative Time Step Factor')
@@ -378,8 +299,6 @@ class FluxDiagram(models.Model):
                     ]
         if arguments['chem_output']:
             command.insert(5, arguments['chem_output'])
-        if arguments['java']:
-            command.append('--java')
 
         # It is important to learn why flux diagram generation fails
         try:

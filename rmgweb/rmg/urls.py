@@ -48,9 +48,6 @@ urlpatterns = [
     # Compare 2 RMG Models
     re_path(r'^compare', views.compareModels, name='compare-models'),
 
-    # Compare 2 RMG Models
-    re_path(r'^adjlist_conversion', views.convertAdjlists, name='convert-adjlists'),
-
     # Merge 2 RMG Models
     re_path(r'^merge_models', views.mergeModels, name='merge-models'),
 
@@ -62,9 +59,6 @@ urlpatterns = [
 
     # Plot Kinetics
     re_path(r'^plot_kinetics', views.plotKinetics, name='plot-kinetics'),
-
-    # Generate RMG-Java Kinetics Library
-    re_path(r'^java_kinetics_library', views.javaKineticsLibrary, name='java-kinetics-library'),
 
     # Evaluate NASA Polynomial
     re_path(r'^evaluate_nasa', views.evaluateNASA, name='evaluate-nasa'),

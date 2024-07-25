@@ -54,8 +54,8 @@ class ChemkinTest(TestCase):
         Test post functionality of /tools/chemkin/
         """
 
-        chem_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
+        chem_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
 
         with open(chem_file) as cf, open(dict_file) as df:
             response = self.client.post('/tools/chemkin/', {'chem_file': cf, 'dict_file': df})
@@ -96,10 +96,10 @@ class CompareTest(TestCase):
         Test basic functionality of /tools/compare/
         """
 
-        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
-        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp')
-        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
+        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
+        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp', blank=True, null=True)
+        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt', blank=True, null=True)
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
             response = self.client.post('/tools/compare/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
@@ -140,10 +140,10 @@ class CompareTest(TestCase):
         Test basic functionality of /tools/merge_models/
         """
 
-        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp')
-        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt')
-        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp')
-        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt')
+        chem_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem1.inp', blank=True, null=True)
+        dict_file1 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary1.txt', blank=True, null=True)
+        chem_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'chem2.inp', blank=True, null=True)
+        dict_file2 = os.path.join(rmgpy.get_path(), 'tools', 'data', 'diffmodels', 'species_dictionary2.txt', blank=True, null=True)
 
         with open(chem_file1) as cf1, open(dict_file1) as df1, open(chem_file2) as cf2, open(dict_file2) as df2:
             response = self.client.post('/tools/merge_models/', {'chem_file1': cf1, 'dict_file1': df1, 'chem_file2': cf2, 'dict_file2': df2})
@@ -341,85 +341,3 @@ class EvaluateNASATest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-
-class AdjlistConversionTest(TestCase):
-
-    def test_0(self):
-        """
-        Test that webpage gives expected response
-        """
-
-        response = self.client.get('/tools/adjlist_conversion/')
-
-        self.assertEqual(response.status_code, 200)
-
-    def test_1(self):
-        """
-        Test basic functionality of /tools/adjlist_conversion/
-        """
-
-        dict_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'species_dictionary.txt')
-
-        with open(dict_file) as df:
-            response = self.client.post('/tools/adjlist_conversion/', {'dict_file': df})
-
-        self.assertEqual(response.status_code, 200)
-
-        folder = os.path.join(settings.MEDIA_ROOT, 'rmg', 'tools', 'adjlist_conversion')
-
-        # Check if inputs were correctly uploaded
-        dict_input = os.path.join(folder, 'species_dictionary.txt')
-
-        self.assertTrue(os.path.isfile(dict_input), 'Dictionary file was not uploaded')
-
-        # Check if outputs were correctly generated
-        html_output = os.path.join(folder, 'RMG_Dictionary.txt')
-
-        self.assertTrue(os.path.isfile(html_output), 'Species dictionary was not generated')
-
-        shutil.rmtree(folder)
-
-
-class JavaLibraryTest(TestCase):
-
-    def test_0(self):
-        """
-        Test that webpage gives expected response
-        """
-
-        response = self.client.get('/tools/java_kinetics_library/')
-
-        self.assertEqual(response.status_code, 200)
-
-    def test_1(self):
-        """
-        Test basic functionality of /tools/java_kinetics_library/
-        """
-
-        chem_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'chem.inp')
-        dict_file = os.path.join(os.path.dirname(rmgweb.__file__), 'tests', 'files', 'kinetics', 'species_dictionary.txt')
-
-        with open(chem_file) as cf, open(dict_file) as df:
-            response = self.client.post('/tools/java_kinetics_library/', {'chem_file': cf, 'dict_file': df})
-
-        self.assertEqual(response.status_code, 200)
-
-        folder = os.path.join(settings.MEDIA_ROOT, 'rmg', 'tools', 'chemkin')
-
-        # Check if inputs were correctly uploaded
-        chem_input = os.path.join(folder, 'chemkin', 'chem.inp')
-        dict_input = os.path.join(folder, 'RMG_Dictionary.txt')
-
-        self.assertTrue(os.path.isfile(chem_input), 'Chemkin file was not uploaded')
-        self.assertTrue(os.path.isfile(dict_input), 'Dictionary file was not uploaded')
-
-        # Check if outputs were correctly generated
-        reactions = os.path.join(folder, 'reactions.txt')
-        pdep = os.path.join(folder, 'pdepreactions.txt')
-        species = os.path.join(folder, 'species.txt')
-
-        self.assertTrue(os.path.isfile(reactions), 'Reactions file was not generated')
-        self.assertTrue(os.path.isfile(pdep), 'Pdep reactions file was not generated')
-        self.assertTrue(os.path.isfile(species), 'Species file was not generated')
-
-        shutil.rmtree(folder)
