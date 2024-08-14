@@ -51,32 +51,19 @@ Now the website should appear on your localhost, you can visit it in any browser
 The website may take some time to load, as the RMG database must be loaded from the disk every time the webserver is restarted.
 
 ### 4. Usage Notes
-When you rebuild any `Model` class within a models.py file, you have to modify the sql tables. This step is more complex now that Django has moved to a migration model.
+When you rebuild any `Model` class within a models.py file, you have to modify the sql tables via Django's migration model.
+This can be done as follows:
 
-For production, it is necessary to create a migration. However, RMG-website has not fully transitioned to using migrations, so detailed instructions are not available at this point.
-
-For local development, it is possible to simply recreate the necessary database tables. For instance if you changed `rmgweb/rmg/models.py`, the module name is `rmg`.
-
-1. Generate sql commands for dropping the tables:
+1. In the ``RMG-website`` directory, run:
 
     ```
-    python manage.py sqlclear rmg
-    ```
-
-2. Copy the section starting with `BEGIN` and ending with `COMMIT`.
-3. Start the database shell:
-
-    ```
-    python manage.py dbshell
-    ```
-
-4. Paste the copied commands, then use `CRTL+D` to exit.
-5. Regenerate the tables and start the server:
-
-    ```
+    python manage.py makemigrations
     python manage.py migrate
-    python manage.py runserver
+    python manage.py collectstatic --clear --noinput
     ```
+
+2. If in a development environment, commit these migrations along with your other changes. This is not needed in production.
+
 
 ## Credits
 - [Professor William H. Green's research group](http://cheme.scripts.mit.edu/green-group/) at the 
