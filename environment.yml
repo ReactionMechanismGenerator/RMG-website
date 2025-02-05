@@ -1,47 +1,20 @@
+# First, install a conda environment with RMG-Py.
+# Then, update the environment using the constraints in this environment file.
+
 name: rmg_env
 channels:
-  - defaults
-  - rmg
-  - rdkit
   - conda-forge
-  - pytorch
+  - rmg
   - fhvermei
 dependencies:
   - beautifulsoup4
-  - cairo
-  - cairocffi
-  - coverage
-  - cython >=0.25.2
   - docutils
   - django =2.2
-  - rmg::gprof2dot
-  - graphviz
-  - jinja2
-  - conda-forge::julia>=1.8.5,!=1.9.0
   - libgcc
   - lxml
-  - markupsafe
-  - matplotlib >=1.5
-  - conda-forge::mopac
-  - numpy >=1.10.0
-  - conda-forge::openbabel >= 3
   - pip
   - pip:
       - git+https://github.com/bp-kelley/descriptastorus@2.5.0
-  - psutil
-  - rmg::pydas >=1.0.3
-  - pydot
-  - rmg::pydqed >=1.0.3
-  - pyparsing
   - python >=3.7
-  - pytorch
-  - rmg::quantities
-  - rmg::rdkit >=2020.03.3.0
-  - scipy
   - solprop_ml >=1.2
-  - rmg::symmetry
-  - torchvision
-  - torchaudio
-  - xlrd
   - xlsxwriter
-  - xlwt
