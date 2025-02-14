@@ -21,7 +21,6 @@ The following command will update your `rmg_env` environment and install the nec
 ```
 cd RMG-website
 conda env update -f environment.yml
-pip install git+https://github.com/bp-kelley/descriptastorus
 ```
 
 ### 2. Configure the Webserver
