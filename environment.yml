@@ -3,14 +3,13 @@
 
 name: rmg_env
 channels:
-  - conda-forge
   - rmg
+  - conda-forge
+  - cantera
   - fhvermei
 dependencies:
-  - beautifulsoup4
   - docutils
   - django =2.2
-  - libgcc
   - lxml
   - pip
   - pip:

@@ -47,6 +47,7 @@ from rmgpy.data.rmg import RMGDatabase, SolvationDatabase, StatmechDatabase
 from rmgpy.data.thermo import ThermoDatabase
 from rmgpy.data.transport import TransportDatabase
 from rmgpy.kinetics import Arrhenius
+from rmgpy.kinetics.model import KineticsModel
 from rmgpy.molecule.molecule import Molecule
 from rmgpy.species import Species
 from rmgpy.reaction import same_species_lists
@@ -401,7 +402,9 @@ def generateReactions(database, reactants, products=None, only_families=None, re
         # If the reaction already has kinetics (e.g. from a library),
         # assume the kinetics are satisfactory
         if reaction.kinetics is not None:
-            reaction_data_list.append(reaction)
+            if not isinstance(reaction.kinetics, KineticsModel): # 3/31/25: Added as a temporary stopgap to prevent solvent TS data from crashing.
+                # TODO: eliminate this and add in ability to visualize solvent parameter kinetics.
+                reaction_data_list.append(reaction)
         else:
             # Set the reaction kinetics
             # Only reactions from families should be missing kinetics
