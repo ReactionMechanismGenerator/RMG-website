@@ -402,7 +402,7 @@ def generateReactions(database, reactants, products=None, only_families=None, re
         # If the reaction already has kinetics (e.g. from a library),
         # assume the kinetics are satisfactory
         if reaction.kinetics is not None:
-            if not isinstance(reaction.kinetics, KineticsModel): # 3/31/25: Added as a temporary stopgap to prevent solvent TS data from crashing.
+            if not reaction.kinetics.__class__ is KineticsModel: # 3/31/25: Added as a temporary stopgap to prevent solvent TS data from crashing.
                 # TODO: eliminate this and add in ability to visualize solvent parameter kinetics.
                 reaction_data_list.append(reaction)
         else:
