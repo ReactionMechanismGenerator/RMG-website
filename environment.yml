@@ -1,19 +1,15 @@
 # First, install a conda environment with RMG-Py.
 # Then, update the environment using the constraints in this environment file.
 
-name: rmg_env
+name: rmg_website
 channels:
-  - rmg
   - conda-forge
-  - cantera
-  - fhvermei
+  - roelleenhouts
 dependencies:
-  - docutils
-  - django =2.2
-  - lxml
+  - django
   - pip
   - pip:
       - git+https://github.com/bp-kelley/descriptastorus@2.5.0
-  - python >=3.7
-  - solprop_ml >=1.2
+  - roelleenhouts::solprop_ml
+  - python>=3.9
   - xlsxwriter
