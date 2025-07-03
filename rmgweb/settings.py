@@ -169,3 +169,7 @@ INSTALLED_APPS = (
 # Settings relating to user account management
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
+
+# Set auto field for auto-created primary key fields
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
