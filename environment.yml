@@ -5,6 +5,7 @@ name: rmg_website
 channels:
   - conda-forge
   - roelleenhouts
+  - fhvermei
 dependencies:
   - django
   - pip
@@ -13,3 +14,4 @@ dependencies:
   - roelleenhouts::solprop_ml
   - python>=3.9
   - xlsxwriter
+  - fhvermei::chemprop_solvation
