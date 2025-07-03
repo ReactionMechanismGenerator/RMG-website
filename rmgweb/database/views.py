@@ -4067,7 +4067,8 @@ def json_to_adjlist(request):
     Interprets ChemDoodle JSON and returns an RMG adjacency list.
     """
     adjlist = ''
-    if request.is_ajax() and request.method == 'POST':
+    is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    if is_ajax and request.method == 'POST':
         cd_json_str = request.POST.get('data')
         cd_json = json.loads(cd_json_str)
 
