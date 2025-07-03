@@ -129,8 +129,6 @@ def generateFlux(request):
     to generate a flux diagram video.
     """
 
-    from rmgpy.tools.fluxdiagram import create_flux_diagram
-
     flux = FluxDiagram()
     path = ''
     flux.deleteDir()
@@ -144,7 +142,6 @@ def generateFlux(request):
             arguments["chem_output"] = ''
             if 'chem_output' in request.FILES:
                 arguments["chem_output"] = os.path.join(flux.path, 'chemkin_output.out')
-            arguments['java'] = form.cleaned_data['java']
             arguments['max_nodes'] = form.cleaned_data['max_nodes']
             arguments['max_edges'] = form.cleaned_data['max_edges']
             arguments['time_step'] = form.cleaned_data['time_step']

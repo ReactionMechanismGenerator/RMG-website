@@ -390,7 +390,6 @@ def generateReactions(database, reactants, products=None, only_families=None, re
         reactants, products, only_families=only_families, resonance=resonance)
     if len(reactants) == 1:
         # if only one reactant, react it with itself bimolecularly, with RMG-py
-        # the java version already does this (it includes A+A reactions when you react A)
         reactants2 = [reactants[0], reactants[0]]
         reaction_list.extend(database.kinetics.generate_reactions(
             reactants2, products, only_families=only_families, resonance=resonance))
