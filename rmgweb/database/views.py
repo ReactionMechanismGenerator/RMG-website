@@ -47,7 +47,6 @@ from decimal import Decimal
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 from solvation_predictor.solubility.SolubilityCalculations import SolubilityCalculations
-from solvation_predictor.solubility.SolubilityModels import SolubilityModels
 from solvation_predictor.solubility.SolubilityPredictions import SolubilityPredictions
 
 import rmgpy
@@ -74,7 +73,7 @@ from rmgpy.thermo import NASA, ThermoData, Wilhoit
 from rmgpy.thermo.thermoengine import process_thermo_data
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
@@ -99,12 +98,10 @@ from rmgpy.data.solvation import get_critical_temperature
 # Loading these ML estimators takes around 10 seconds.
 # Therefore, instead of loading these each time these estimators are used, let's
 # load them in the beginning only once and use them as needed.
-global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator, solub_models
+global dGsolv_estimator, dHsolv_estimator, solub_models, SoluteML_estimator
 dGsolv_estimator = load_DirectML_Gsolv_estimator()
 dHsolv_estimator = load_DirectML_Hsolv_estimator()
-solub_models = SolubilityModels(reduced_number=False, load_g=True, load_h=True, load_saq=True,
-                                load_solute=True, logger=None, verbose=False)
-SoluteML_estimator = solub_models.solute_models
+solub_models, SoluteML_estimator = None, None
 
 def load(request):
     """
@@ -120,6 +117,16 @@ def index(request):
     """
     return render(request, 'database.html')
 
+def load_solubility_models():
+    """
+    Load solubility models only when they're required rather than at initialization.
+    This is to avoid an error in the argument parsing of the initial model.
+    """
+    if solub_models is None:
+        from solvation_predictor.solubility.SolubilityModels import SolubilityModels
+        solub_models = SolubilityModels(load_ghsolv=True, load_g=False, load_h=False, reduced_number=False, load_saq=True,
+                                        load_solute=True, logger=None, verbose=False)
+        SoluteML_estimator = solub_models.solute_models
 
 #################################################################################################################################################
 
@@ -670,7 +677,7 @@ def get_temp_dep_logP(solvent_smiles, solute_smiles, temp_SI, solvation_298_resu
             solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
 
         if dGsolv298water is not None and dHsolv298water is not None and dSsolv298water is not None:
-            dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
+            dGsolv_water, Kfactor_water, henry = db.get_T_dep_solvation_energy_from_input_298(
                 dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
             logP = -(dGsolv - dGsolv_water) / (math.log(10) * constants.R * temp_SI)
     else:
@@ -3771,6 +3778,8 @@ def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, h
     """
     Calculate solubility with no reference solvent and reference solubility
     """
+    load_solubility_models() # This is done to avoid an argument parsing glitch with the solprop package.
+
     hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
@@ -3791,6 +3800,8 @@ def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None,
     """
     Calculate solubility with a reference solvent and reference solubility
     """
+    load_solubility_models() # This is done to avoid an argument parsing glitch with the solprop package.
+
     hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
