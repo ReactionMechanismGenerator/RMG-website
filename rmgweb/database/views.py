@@ -134,12 +134,34 @@ def load(request):
     database.load()
     return HttpResponseRedirect(reverse('database:index'))
 
-
 def index(request):
     """
     The RMG database homepage.
     """
     return render(request, 'database.html')
+
+def return_common_entry_data(entries, section, subsection, index, data_type):
+    """
+    A helper function that returns entry data for a species, after the relevant entries are determined.
+    """
+    index = int(index)
+    if index != 0 and index != -1:
+        for entry in entries:
+            if entry.index == index:
+                break
+        else:
+            raise Http404
+    else:
+        if index == 0:
+            index = min(entry.index for entry in entries if entry.index > 0)
+        else:
+            index = max(entry.index for entry in entries if entry.index > 0)
+        return HttpResponseRedirect(reverse(f'database:{data_type}-entry',
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+    return entry
 
 #################################################################################################################################################
 
@@ -219,23 +241,7 @@ def transportEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:transport-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "transport")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -1423,23 +1429,7 @@ def statmechEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:statmech-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "statmech")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -1568,23 +1558,7 @@ def thermoEntry(request, section, subsection, index):
         db = database.get_thermo_database(section, subsection)
     except ValueError:
         raise Http404
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:thermo-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "thermo")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -2508,49 +2482,29 @@ def kineticsEntryEdit(request, section, subsection, index):
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if False:
-                # Render it as if it were saved.
-                return render(request, 'kineticsEntry.html',
-                              {'section': section,
-                               'subsection': subsection,
-                               'databaseName': db.name,
-                               'entry': new_entry,
-                               'reference': entry.reference,
-                               'kinetics': entry.data,
-                               })
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py')
-                db.save(path)
-                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
-                commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message, '--author',
-                                                         commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py')
+            db.save(path)
+            commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+            commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message, '--author',
+                                                        commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
 
-                # return HttpResponse(commit_result, content_type="text/plain")
-
-                kwargs = {'section': section,
-                          'subsection': subsection,
-                          'index': index}
-                forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
-                message = """
-                Changes saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': 'Change saved successfully.',
-                               'body': message,
-                               })
-
-            # redirect
-            return HttpResponseRedirect(forward_url)
+            kwargs = {'section': section,
+                        'subsection': subsection,
+                        'index': index}
+            forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
+            message = """
+            Changes saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': 'Change saved successfully.',
+                            'body': message,
+                            })
 
     else:  # not POST
         # Get the entry as a entry_string
@@ -2635,31 +2589,27 @@ def thermoEntryNew(request, section, subsection, adjlist):
                       }
             forward_url = reverse('database:thermo-entry', kwargs=kwargs)
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
-                db.save(path)
-                commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
-                commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
-                                                                                             subsection=subsection,
-                                                                                             index=new_entry.index,
-                                                                                             msg=msg)
-                commit_message += '\n\nSubmitted through the RMG website.'
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
-                                                         '--author', commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                message = """
-                New entry saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': '', 'body': message})
+            # save it
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+            db.save(path)
+            commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
+            commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
+                                                                                            subsection=subsection,
+                                                                                            index=new_entry.index,
+                                                                                            msg=msg)
+            commit_message += '\n\nSubmitted through the RMG website.'
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
+                                                        '--author', commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            message = """
+            New entry saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': '', 'body': message})
     else:  # not POST
         entry_string = """
 label = "{label}",
@@ -2733,49 +2683,32 @@ def thermoEntryEdit(request, section, subsection, index):
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if False:
-                # Render it as if it were saved.
-                return render(request, 'thermoEntry.html',
-                              {'section': section,
-                               'subsection': subsection,
-                               'databaseName': db.name,
-                               'entry': new_entry,
-                               'reference': entry.reference,
-                               'kinetics': entry.data,
-                               })
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
-                db.save(path)
-                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
-                commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
-                                                         '--author', commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            # save it
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+            db.save(path)
+            commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+            commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
+                                                        '--author', commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
 
-                # return HttpResponse(commit_result, content_type="text/plain")
+            # return HttpResponse(commit_result, content_type="text/plain")
 
-                kwargs = {'section': section,
-                          'subsection': subsection,
-                          'index': index}
-                forward_url = reverse('database:thermo-entry', kwargs=kwargs)
-                message = """
-                Changes saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': 'Change saved successfully.',
-                               'body': message,
-                               })
-
-            # redirect
-            return HttpResponseRedirect(forward_url)
+            kwargs = {'section': section,
+                        'subsection': subsection,
+                        'index': index}
+            forward_url = reverse('database:thermo-entry', kwargs=kwargs)
+            message = """
+            Changes saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': 'Change saved successfully.',
+                            'body': message,
+                            })
 
     else:  # not POST
         # Get the entry as a entry_string
@@ -2804,8 +2737,7 @@ def thermoEntryEdit(request, section, subsection, index):
                    'entry': entry,
                    'form': form,
                    })
-
-
+    
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
@@ -2825,23 +2757,7 @@ def kineticsEntry(request, section, subsection, index):
         # if the entries are lists
         entries = reduce(lambda x, y: x + y, entries)
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in entries:
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in entries if entry.index > 0)
-        else:
-            index = max(entry.index for entry in entries if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:kinetics-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(entries, section, subsection, index, "kinetics")
 
     reference = entry.reference
     reference_type = ''
