@@ -34,8 +34,8 @@ import json
 import math
 import os
 import re
-import shutil
 import subprocess
+import sys
 import urllib
 import pandas as pd
 import numpy as np
@@ -43,6 +43,7 @@ from functools import reduce
 from rdkit import Chem
 import rdkit.Chem.rdmolops as rdmolops
 from CoolProp.CoolProp import PropsSI
+from contextlib import contextmanager
 from decimal import Decimal
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
@@ -117,15 +118,33 @@ def index(request):
     """
     return render(request, 'database.html')
 
+@contextmanager
+def fake_sys_argv(): 
+    """
+    Workaround to avoid problems with multiple argument parsers.
+    This was encountered with SolProp, but might occur with other packages.
+    """
+    old_argv = sys.argv
+    try:
+        sys.argv = ['model_loader.py']  # empty or fake args
+        yield
+    finally:
+        sys.argv = old_argv
+
 def load_solubility_models():
+    global solub_models, SoluteML_estimator
     """
     Load solubility models only when they're required rather than at initialization.
     This is to avoid an error in the argument parsing of the initial model.
     """
     if solub_models is None:
         from solvation_predictor.solubility.SolubilityModels import SolubilityModels
-        solub_models = SolubilityModels(load_ghsolv=True, load_g=False, load_h=False, reduced_number=False, load_saq=True,
-                                        load_solute=True, logger=None, verbose=False)
+        with fake_sys_argv():
+            solub_models = SolubilityModels(
+                load_ghsolv=True, load_g=False, load_h=False,
+                reduced_number=False, load_saq=True,
+                load_solute=True, logger=None, verbose=False
+            )
         SoluteML_estimator = solub_models.solute_models
 
 #################################################################################################################################################
@@ -988,6 +1007,8 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     Returns solute data estimated from SoluteML, corresponding comment and error message, and a dictionary
     containing the epistemic uncertainty of the SoluteML prediction.
     """
+    load_solubility_models()
+
     solute_epi_unc_dict = {}
     solute_data = SoluteData()
     solute_comment = None
@@ -3778,17 +3799,17 @@ def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, h
     """
     Calculate solubility with no reference solvent and reference solubility
     """
-    load_solubility_models() # This is done to avoid an argument parsing glitch with the solprop package.
+    load_solubility_models()
 
     hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
 
     solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp)
-    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=True,
-                                        predict_reference_solvents=False, predict_t_dep=True,
-                                        predict_solute_parameters=True, verbose=False)
-    calculations = SolubilityCalculations(predictions, calculate_aqueous=True,
+    predictions = SolubilityPredictions(predict_aqueous=True, predict_reference_solvents=False, 
+                                        predict_t_dep=True, predict_solute_parameters=True, 
+                                        data=solub_data, models=solub_models,  verbose=False)
+    calculations = SolubilityCalculations(predictions=predictions, calculate_aqueous=True,
                                           calculate_reference_solvents=False, calculate_t_dep=True,
                                           calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
                                           hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
@@ -3800,7 +3821,7 @@ def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None,
     """
     Calculate solubility with a reference solvent and reference solubility
     """
-    load_solubility_models() # This is done to avoid an argument parsing glitch with the solprop package.
+    load_solubility_models() 
 
     hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
