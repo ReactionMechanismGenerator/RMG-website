@@ -46,9 +46,9 @@ from CoolProp.CoolProp import PropsSI
 from decimal import Decimal
 
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
-from solvation_predictor.solubility.solubility_calculator import SolubilityCalculations
-from solvation_predictor.solubility.solubility_models import SolubilityModels
-from solvation_predictor.solubility.solubility_predictions import SolubilityPredictions
+from solvation_predictor.solubility.SolubilityCalculations import SolubilityCalculations
+from solvation_predictor.solubility.SolubilityModels import SolubilityModels
+from solvation_predictor.solubility.SolubilityPredictions import SolubilityPredictions
 
 import rmgpy
 import rmgpy.constants as constants
@@ -57,7 +57,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, LibraryReaction
 from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.reference import Article, Book
-from rmgpy.data.solvation import SoluteData, SolventData, SolvationCorrection
+from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
