@@ -49,6 +49,7 @@ from decimal import Decimal
 from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 from solvation_predictor.solubility.SolubilityCalculations import SolubilityCalculations
 from solvation_predictor.solubility.SolubilityPredictions import SolubilityPredictions
+from solvation_predictor.solubility.SolubilityData import SolubilityData
 
 import rmgpy
 import rmgpy.constants as constants
@@ -104,20 +105,6 @@ dGsolv_estimator = load_DirectML_Gsolv_estimator()
 dHsolv_estimator = load_DirectML_Hsolv_estimator()
 solub_models, SoluteML_estimator = None, None
 
-def load(request):
-    """
-    Load the RMG database and redirect to the database homepage.
-    """
-    database.load()
-    return HttpResponseRedirect(reverse('database:index'))
-
-
-def index(request):
-    """
-    The RMG database homepage.
-    """
-    return render(request, 'database.html')
-
 @contextmanager
 def fake_sys_argv(): 
     """
@@ -132,20 +119,30 @@ def fake_sys_argv():
         sys.argv = old_argv
 
 def load_solubility_models():
-    global solub_models, SoluteML_estimator
+    pass
+
+from solvation_predictor.solubility.SolubilityModels import SolubilityModels
+with fake_sys_argv():
+    solub_models = SolubilityModels(
+        load_ghsolv=True, load_g=False, load_h=False,
+        reduced_number=False, load_saq=True,
+        load_solute=True, logger=None, verbose=False
+    )
+    SoluteML_estimator = solub_models.solute_models
+
+def load(request):
     """
-    Load solubility models only when they're required rather than at initialization.
-    This is to avoid an error in the argument parsing of the initial model.
+    Load the RMG database and redirect to the database homepage.
     """
-    if solub_models is None:
-        from solvation_predictor.solubility.SolubilityModels import SolubilityModels
-        with fake_sys_argv():
-            solub_models = SolubilityModels(
-                load_ghsolv=True, load_g=False, load_h=False,
-                reduced_number=False, load_saq=True,
-                load_solute=True, logger=None, verbose=False
-            )
-        SoluteML_estimator = solub_models.solute_models
+    database.load()
+    return HttpResponseRedirect(reverse('database:index'))
+
+
+def index(request):
+    """
+    The RMG database homepage.
+    """
+    return render(request, 'database.html')
 
 #################################################################################################################################################
 
@@ -3829,10 +3826,10 @@ def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None,
 
     solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
                                 ref_solub=ref_solubility298, ref_solv=ref_solvent_smiles)
-    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=False,
-                                        predict_reference_solvents=True, predict_t_dep=True,
-                                        predict_solute_parameters=True, verbose=False)
-    calculations = SolubilityCalculations(predictions, calculate_aqueous=False,
+    predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=True, 
+                                        predict_t_dep=True, predict_solute_parameters=True, 
+                                        data=solub_data, models=solub_models,  verbose=False)
+    calculations = SolubilityCalculations(predictions=predictions, calculate_aqueous=False,
                                           calculate_reference_solvents=True, calculate_t_dep=True,
                                           calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
                                           hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
@@ -3853,17 +3850,6 @@ def get_ref_solubility298(calculations_ref=None, ref_solubility=None):
     logS_diff = logST_ref_pred - logS298_ref_from_aq
     ref_solubility298 = ref_solubility - logS_diff
     return ref_solubility298
-
-
-class SolubilityData:
-    """
-    Class for storing the input data for solubility prediction
-    """
-    def __init__(self, solvent_smiles=None, solute_smiles=None, temp=None, ref_solub=None, ref_solv=None):
-        self.smiles_pairs = [(solvent_smiles, solute_smiles)]
-        self.temperatures = np.array([temp]) if temp is not None else None
-        self.reference_solubility = np.array([ref_solub]) if ref_solub is not None else None
-        self.reference_solvents = np.array([ref_solv]) if ref_solv is not None else None
 
 
 def format_T_dep_hdiss_error_mesg(error_msg):
