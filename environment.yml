@@ -7,7 +7,7 @@ channels:
   - roelleenhouts
   - fhvermei
 dependencies:
-  - django
+  - django==4.2
   - pip
   - pip:
       - git+https://github.com/bp-kelley/descriptastorus@2.5.0
