@@ -78,11 +78,11 @@ var treeParent = new Array();
 var treeChildren = new Array();
 
 {% for entry in entries %}
-    {% ifequal entry.parent None %}
+    {% if entry.parent == None %}
     treeParent["{{ entry.index }}"] = "";
     {% else %}
     treeParent["{{ entry.index }}"] = "{{ entry.parent.index }}";
-    {% endifequal %}
+    {% endif %}
     treeChildren["{{ entry.index }}"] = [{% for child in entry.children %}"{{ child.index }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 {% endfor %}
 
