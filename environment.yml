@@ -12,6 +12,7 @@ dependencies:
   - pip:
       - git+https://github.com/bp-kelley/descriptastorus
   - simonabuzzi::solprop_ml_mix
+  - wandb # Required for solprop_ml_mix
   - python>=3.9
   - xlsxwriter
   - fhvermei::chemprop_solvation
