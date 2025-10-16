@@ -3714,8 +3714,8 @@ def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, h
 
     # Create dataframe with solvent and solute data
     data = {
-        'solvent': [solvent_smiles],
-        'solute': [solute_smiles],
+        'solvent_smiles': [solvent_smiles],
+        'solute_smiles': [solute_smiles],
         'temperature': [temp],
         'reference_solubility': [None],
         'reference_solvent': [None],
@@ -3743,8 +3743,8 @@ def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None,
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
 
     data = {
-        'solvent': [solvent_smiles],
-        'solute': [solute_smiles],
+        'solvent_smiles': [solvent_smiles],
+        'solute_smiles': [solute_smiles],
         'temperature': [temp],
         'reference_solubility': [ref_solubility298],
         'reference_solvent': [ref_solvent_smiles],
