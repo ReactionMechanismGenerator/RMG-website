@@ -125,7 +125,8 @@ with fake_sys_argv():
         reduced_number=False, load_saq=False, # TODO: need load_saq=True after it's added to SolProp
         load_solute=True, logger=None, verbose=False
     )
-    SoluteML_estimator = solub_models.solute_models
+#    SoluteML_estimator = solub_models.solute_models
+    SoluteML_estimator = load_SoluteML_estimator()
 
 def load(request):
     """
