@@ -3712,7 +3712,17 @@ def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, h
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
 
-    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp)
+    # Create dataframe with solvent and solute data
+    data = {
+        'solvent': [solvent_smiles],
+        'solute': [solute_smiles],
+        'temperature': [temp],
+        'reference_solubility': [None],
+        'reference_solvent': [None],
+    }
+    df = pd.DataFrame(data)
+
+    solub_data = SolubilityData(df=df)
     predictions = SolubilityPredictions(predict_aqueous=True, predict_reference_solvents=False, 
                                         predict_t_dep=True, predict_solute_parameters=True, 
                                         data=solub_data, models=solub_models,  verbose=False)
@@ -3732,8 +3742,16 @@ def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None,
     Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
     Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
 
-    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
-                                ref_solub=ref_solubility298, ref_solv=ref_solvent_smiles)
+    data = {
+        'solvent': [solvent_smiles],
+        'solute': [solute_smiles],
+        'temperature': [temp],
+        'reference_solubility': [ref_solubility298],
+        'reference_solvent': [ref_solvent_smiles],
+    }
+    df = pd.DataFrame(data)
+
+    solub_data = SolubilityData(df=df)
     predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=True, 
                                         predict_t_dep=True, predict_solute_parameters=True, 
                                         data=solub_data, models=solub_models,  verbose=False)
