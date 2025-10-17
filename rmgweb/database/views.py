@@ -121,8 +121,8 @@ def fake_sys_argv():
 from solvation_predictor.solubility.SolubilityModels import SolubilityModels
 with fake_sys_argv():
     solub_models = SolubilityModels(
-        load_ghsolv=True, load_g=False, load_h=False,
-        reduced_number=False, load_saq=False, # TODO: need load_saq=True after it's added to SolProp
+        load_ghsolv=True, load_g=True, load_h=True,
+        reduced_number=False, load_saq=True,
         load_solute=True, logger=None, verbose=False
     )
 #    SoluteML_estimator = solub_models.solute_models
