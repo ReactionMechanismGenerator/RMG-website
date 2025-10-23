@@ -46,7 +46,6 @@ from CoolProp.CoolProp import PropsSI
 from contextlib import contextmanager
 from decimal import Decimal
 
-from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 from solvation_predictor.solubility.SolubilityCalculations import SolubilityCalculations
 from solvation_predictor.solubility.SolubilityPredictions import SolubilityPredictions
 from solvation_predictor.solubility.SolubilityData import SolubilityData
@@ -100,9 +99,7 @@ from rmgpy.data.solvation import get_critical_temperature
 # Loading these ML estimators takes around 10 seconds.
 # Therefore, instead of loading these each time these estimators are used, let's
 # load them in the beginning only once and use them as needed.
-global dGsolv_estimator, dHsolv_estimator, solub_models, SoluteML_estimator
-dGsolv_estimator = load_DirectML_Gsolv_estimator()
-dHsolv_estimator = load_DirectML_Hsolv_estimator()
+global solub_models, SoluteML_estimator
 solub_models, SoluteML_estimator = None, None
 
 @contextmanager
@@ -125,8 +122,7 @@ with fake_sys_argv():
         reduced_number=False, load_saq=True,
         load_solute=True, logger=None, verbose=False
     )
-#    SoluteML_estimator = solub_models.solute_models
-    SoluteML_estimator = load_SoluteML_estimator()
+    SoluteML_estimator = solub_models.solute_models
 
 def load(request):
     """
@@ -458,16 +454,30 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
     if not error_msg is None:
         error_msg = update_error_msg(error_msg, 'The prediction may not be reliable')
 
+    # reformat data for SolProp
+    df = pd.DataFrame({
+        'solvent_smiles': [solvent_smiles],
+        'solute_smiles': [solute_smiles],
+        'temperature': [298],
+    })
+    solv_data = SolubilityData(df=df)
+
     if dGsolv_required:
         try:
-            avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
-            dGsolv298, dGsolv298_epi_unc = avg_pre[0], epi_unc[0]
+            predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
+                                            predict_t_dep=False, predict_solute_parameters=True, 
+                                            data=solv_data, models=solub_models, verbose=False)
+            [dHsolv298, dHsolv298_epi_unc] = predictions.make_property_predictions("Gsolv", solub_models.g_models)
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if dHsolv_required:
         try:
-            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
-            dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
+            predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
+                                            predict_t_dep=False, predict_solute_parameters=True, 
+                                            data=solv_data, models=solub_models, verbose=False)
+            [dHsolv298, dHsolv298_epi_unc] = predictions.make_property_predictions("Hsolv", solub_models.h_models)
+#            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
+#            dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if calc_dSsolv and dGsolv298 is not None and dHsolv298 is not None:
@@ -1012,19 +1022,25 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     solute_data = SoluteData()
     solute_comment = None
     try:
-        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
-        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
+#        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
+        data = {
+            'solvent_smiles': ['O'],
+            'solute_smiles': [smiles],
+            'temperature': [298],
+        }
+        df = pd.DataFrame(data)
+
+        solub_data = SolubilityData(df=df)
+        predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
+                                            predict_t_dep=False, predict_solute_parameters=True, 
+                                            data=solub_data, models=solub_models, verbose=False)
+
+        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in predictions.make_soluteparameter_predictions)
         for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
             solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
         solute_comment = 'SoluteML prediction'
     except Exception as e:
-        if "rdkit_2d_normalized" in str(e) or "descriptastorus" in str(e) or "rdNormalizedDescriptors" in str(e):
-            raise ImportError(f'Please install "descriptastorus" to use the SoluteML model.\n'
-                              f'Run the following line to install "descriptastorus":\n'
-                              f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
-                              'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
-                              'version 0.0.3 or higher.')
-        elif not 'Unable to parse the SMILES' in error_msg:
+        if not 'Unable to parse the SMILES' in error_msg:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
     # get V value using RMG
     if solute_spc is not None:
