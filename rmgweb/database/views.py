@@ -1022,7 +1022,6 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     solute_data = SoluteData()
     solute_comment = None
     try:
-#        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
         data = {
             'solvent_smiles': ['O'],
             'solute_smiles': [smiles],
@@ -1035,9 +1034,10 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
                                             predict_t_dep=False, predict_solute_parameters=True, 
                                             data=solub_data, models=solub_models, verbose=False)
 
-        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in predictions.make_soluteparameter_predictions)
+        avg_pre = predictions.make_soluteparameter_predictions()
+        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = [i for i in avg_pre[0][0]]
         for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
-            solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
+            solute_epi_unc_dict[f'{solute_param} epi. unc.'] = avg_pre[1][0][i]
         solute_comment = 'SoluteML prediction'
     except Exception as e:
         if not 'Unable to parse the SMILES' in error_msg:
