@@ -467,7 +467,7 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
             predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
                                             predict_t_dep=False, predict_solute_parameters=True, 
                                             data=solv_data, models=solub_models, verbose=False)
-            [dHsolv298, dHsolv298_epi_unc] = predictions.make_property_predictions("Gsolv", solub_models.g_models)
+            [dGsolv298, dGsolv298_epi_unc] = predictions.make_property_predictions("Gsolv", solub_models.g_models)
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if dHsolv_required:
@@ -476,8 +476,6 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
                                             predict_t_dep=False, predict_solute_parameters=True, 
                                             data=solv_data, models=solub_models, verbose=False)
             [dHsolv298, dHsolv298_epi_unc] = predictions.make_property_predictions("Hsolv", solub_models.h_models)
-#            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
-#            dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if calc_dSsolv and dGsolv298 is not None and dHsolv298 is not None:
