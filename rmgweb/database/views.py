@@ -46,6 +46,7 @@ from CoolProp.CoolProp import PropsSI
 from contextlib import contextmanager
 from decimal import Decimal
 
+from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
 from solvation_predictor.solubility.SolubilityCalculations import SolubilityCalculations
 from solvation_predictor.solubility.SolubilityPredictions import SolubilityPredictions
 from solvation_predictor.solubility.SolubilityData import SolubilityData
@@ -99,7 +100,9 @@ from rmgpy.data.solvation import get_critical_temperature
 # Loading these ML estimators takes around 10 seconds.
 # Therefore, instead of loading these each time these estimators are used, let's
 # load them in the beginning only once and use them as needed.
-global solub_models, SoluteML_estimator
+global dGsolv_estimator, dHsolv_estimator, solub_models, SoluteML_estimator
+dGsolv_estimator = load_DirectML_Gsolv_estimator()
+dHsolv_estimator = load_DirectML_Hsolv_estimator()
 solub_models, SoluteML_estimator = None, None
 
 @contextmanager
@@ -122,7 +125,8 @@ with fake_sys_argv():
         reduced_number=False, load_saq=True,
         load_solute=True, logger=None, verbose=False
     )
-    SoluteML_estimator = solub_models.solute_models
+#    SoluteML_estimator = solub_models.solute_models
+    SoluteML_estimator = load_SoluteML_estimator()
 
 def load(request):
     """
@@ -454,28 +458,16 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
     if not error_msg is None:
         error_msg = update_error_msg(error_msg, 'The prediction may not be reliable')
 
-    # reformat data for SolProp
-    df = pd.DataFrame({
-        'solvent_smiles': [solvent_smiles],
-        'solute_smiles': [solute_smiles],
-        'temperature': [298],
-    })
-    solv_data = SolubilityData(df=df)
-
     if dGsolv_required:
         try:
-            predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
-                                            predict_t_dep=False, predict_solute_parameters=True, 
-                                            data=solv_data, models=solub_models, verbose=False)
-            [dGsolv298, dGsolv298_epi_unc] = predictions.make_property_predictions("Gsolv", solub_models.g_models)
+            avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
+            dGsolv298, dGsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if dHsolv_required:
         try:
-            predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False, 
-                                            predict_t_dep=False, predict_solute_parameters=True, 
-                                            data=solv_data, models=solub_models, verbose=False)
-            [dHsolv298, dHsolv298_epi_unc] = predictions.make_property_predictions("Hsolv", solub_models.h_models)
+            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
+            dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if calc_dSsolv and dGsolv298 is not None and dHsolv298 is not None:
@@ -1011,73 +1003,39 @@ def get_solute_data_from_SoluteGC(solute_spc, db, error_msg):
         return None, None, error_msg
 
 
-def get_solute_data_from_SoluteML(smiles_list, solute_spc_list, error_msg_list, solvent_smiles='O'):
+def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     """
-    Batch-returns: (solute_data_list, solute_comment_list, error_msg_list, solute_epi_unc_dict_list)
-    for a list of SMILES/Species/error_msgs, and a solvent_smiles.
-    Each element N corresponds to the same input index.
+    Returns solute data estimated from SoluteML, corresponding comment and error message, and a dictionary
+    containing the epistemic uncertainty of the SoluteML prediction.
     """
-    solute_data_list = []
-    solute_comment_list = []
-    out_error_msg_list = []
-    solute_epi_unc_dict_list = []
-
-    # map index for those without error (to align results)
-    valid_indices = [i for i, e in enumerate(error_msg_list) if e is None or ('Unable to parse the SMILES' not in str(e))]
-    valid_smiles = [smiles_list[i] for i in valid_indices]
-    # Prepare for valid entries batching
-    batch_params = [None] * len(smiles_list)
-    batch_uncs = [None] * len(smiles_list)
-    if valid_smiles:
+    solute_epi_unc_dict = {}
+    solute_data = SoluteData()
+    solute_comment = None
+    try:
+        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
+        [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
+        for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
+            solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
+        solute_comment = 'SoluteML prediction'
+    except Exception as e:
+        if "rdkit_2d_normalized" in str(e) or "descriptastorus" in str(e) or "rdNormalizedDescriptors" in str(e):
+            raise ImportError(f'Please install "descriptastorus" to use the SoluteML model.\n'
+                              f'Run the following line to install "descriptastorus":\n'
+                              f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
+                              'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
+                              'version 0.0.3 or higher.')
+        elif not 'Unable to parse the SMILES' in error_msg:
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
+    # get V value using RMG
+    if solute_spc is not None:
         try:
-            df = pd.DataFrame({
-                'solvent_smiles': [solvent_smiles] * len(valid_smiles),
-                'solute_smiles': valid_smiles,
-                'temperature': [298] * len(valid_smiles),
-            })
-            solub_data = SolubilityData(df=df)
-            predictions = SolubilityPredictions(predict_aqueous=False, predict_reference_solvents=False,
-                                                predict_t_dep=False, predict_solute_parameters=True,
-                                                data=solub_data, models=solub_models, verbose=False)
-            avg_pre = predictions.make_soluteparameter_predictions()
-            for j, orig_idx in enumerate(valid_indices):
-                batch_params[orig_idx] = avg_pre[0][j]
-                batch_uncs[orig_idx] = avg_pre[1][j]
-        except Exception:
-            for orig_idx in valid_indices:
-                error_msg_list[orig_idx] = update_error_msg(error_msg_list[orig_idx], 'Unable to parse the SMILES', overwrite=False)
-
-    for idx in range(len(smiles_list)):
-        smiles = smiles_list[idx]
-        solute_spc = solute_spc_list[idx]
-        error_msg = error_msg_list[idx]
-        solute_epi_unc_dict = {}
-        solute_data = SoluteData()
-        solute_comment = None
-        params = batch_params[idx]
-        if params is not None:
-            [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = [i for i in params]
-            unc_vals = batch_uncs[idx]
-            if unc_vals is not None:
-                for k, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
-                    solute_epi_unc_dict[f'{solute_param} epi. unc.'] = unc_vals[k]
-            solute_comment = 'SoluteML prediction'
-        else:
-            if error_msg is None:
-                error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
-        # get V value using RMG if possible
-        if solute_spc is not None:
-            try:
-                solute_data.set_mcgowan_volume(solute_spc)
-            except:
-                pass
-        if solute_data.V is None:
-            error_msg = update_error_msg(error_msg, 'Unable to get V value')
-        solute_data_list.append(solute_data)
-        solute_comment_list.append(solute_comment)
-        out_error_msg_list.append(error_msg)
-        solute_epi_unc_dict_list.append(solute_epi_unc_dict)
-    return solute_data_list, solute_comment_list, out_error_msg_list, solute_epi_unc_dict_list
+            solute_data.set_mcgowan_volume(solute_spc)
+        except:
+            pass
+    # add error message if V value could not be obtained
+    if solute_data.V is None:
+        error_msg = update_error_msg(error_msg, 'Unable to get V value')
+    return solute_data, solute_comment, error_msg, solute_epi_unc_dict
 
 
 def clean_up_value(value, deci_place=4, sig_fig=2, only_big=False):
@@ -1228,26 +1186,11 @@ def parse_none_results(result_dict):
 
 
 def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_unit):
-    def preparse_single_solute(smiles, allowed_atom_list):
-        error_msg = None
-        try:
-            solute_spc = Species().from_smiles(smiles)
-            solute_spc.generate_resonance_structures()
-        except:
-            solute_spc = None
-            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES')
-        smiles_rdkit, error_msg = validate_smiles_only_error_msg(smiles, error_msg, 'Solute', allowed_atom_list)
-        if error_msg is not None:
-            error_msg = update_error_msg(error_msg, 'The prediction may be not reliable')
-        return smiles, solute_spc, error_msg
-
+    """
+    Returns a dictionary with solute parameter data for a given list of solute SMILES.
+    If a solvent is selected, solvation properties are also given.
+    """
     solute_smiles_list = solute_smiles.split()
-    # Parse all inputs regardless of estimator
-    allowed_atom_list = ['H', 'C', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I']
-    preparse_results = [preparse_single_solute(sm, allowed_atom_list) for sm in solute_smiles_list]
-    smiles_input = [r[0] for r in preparse_results]
-    species_list = [r[1] for r in preparse_results]
-    error_list = [r[2] for r in preparse_results]
 
     # Prepare an empty result dictionary
     solute_data_results = {}
@@ -1270,38 +1213,48 @@ def get_solvation_solute_data(solute_smiles, solute_estimator, solvent, energy_u
     elif solute_estimator == 'SoluteGC':
         additional_info_list.append('Comment: functional groups used to estimate the solute parameters')
 
-    if solute_estimator == 'SoluteML':
-        solute_datas, solute_comments, error_msgs, solute_epi_uncs = get_solute_data_from_SoluteML(
-            smiles_input, species_list, error_list
-        )
-        for smiles, error_msg, solute_comment, solute_data, solute_epi_unc_dict in zip(smiles_input, error_msgs, solute_comments, solute_datas, solute_epi_uncs):
-            for key, value in zip(['Input SMILES', 'Error', 'Comment'], [smiles, error_msg, solute_comment]):
-                solute_data_results[key].append(value)
-            solute_data_results, solute_data_found = parse_and_append_solute_data(solute_data, solute_data_results,
-                                                                                  solute_estimator, solute_epi_unc_dict)
-            solute_data_list.append(solute_data)
-            solute_data_found_list.append(solute_data_found)
-    else:
-        for smiles, solute_spc, error_msg in zip(smiles_input, species_list, error_list):
-            solute_epi_unc_dict = {}
-            # Get predictions using the selected method
-            if solute_estimator == 'expt':
-                solute_data, solute_comment = get_solute_data_from_db(solute_spc, db)
-                if not solute_comment is None:
-                    solute_comment = add_href_to_solute_data_comment(solute_comment)
-            elif solute_estimator == 'SoluteGC':
-                solute_data, solute_comment, error_msg = get_solute_data_from_SoluteGC(solute_spc, db, error_msg)
-                if not solute_comment is None:
-                    solute_comment = add_href_to_solute_data_comment(solute_comment)
-            else:
-                raise Http404
+    allowed_atom_list = ['H', 'C', 'N', 'O', 'S', 'P', 'F', 'Cl', 'Br', 'I']
+    # get the solute parameter predictions for each given SMILES
+    for smiles in solute_smiles_list:
+        # initialize the parameter values
+        error_msg = None
+        solute_epi_unc_dict = {}
+        try:
+            solute_spc = Species().from_smiles(smiles)
+            solute_spc.generate_resonance_structures()
+        except:
+            solute_spc = None
+            error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES')
+        # Check for other types of error in the input solute
+        smiles_rdkit, error_msg = validate_smiles_only_error_msg(smiles, error_msg, 'Solute', allowed_atom_list)
+        if error_msg is not None:
+            error_msg = update_error_msg(error_msg, 'The prediction may be not reliable')
+        # Get predictions using the selected method
+        if solute_estimator == 'expt':
+            solute_data, solute_comment = get_solute_data_from_db(solute_spc, db)
+            # Get href for the solute data found in the solute_comment
+            if not solute_comment is None:
+                solute_comment = add_href_to_solute_data_comment(solute_comment)
+        elif solute_estimator == 'SoluteGC':
+            solute_data, solute_comment, error_msg = get_solute_data_from_SoluteGC(solute_spc, db, error_msg)
+            # Get href for each solute group found in the solute_comment
+            if not solute_comment is None:
+                solute_comment = add_href_to_solute_data_comment(solute_comment)
+        elif solute_estimator == 'SoluteML':
+            solute_data, solute_comment, error_msg, solute_epi_unc_dict = \
+                get_solute_data_from_SoluteML(smiles, solute_spc, error_msg)
+        else:
+            # unknown estimator is given
+            raise Http404
 
-            for key, value in zip(['Input SMILES', 'Error', 'Comment'], [smiles, error_msg, solute_comment]):
-                solute_data_results[key].append(value)
-            solute_data_results, solute_data_found = parse_and_append_solute_data(solute_data, solute_data_results,
-                                                                                  solute_estimator, solute_epi_unc_dict)
-            solute_data_list.append(solute_data)
-            solute_data_found_list.append(solute_data_found)
+        # append the results to the result dictionary
+        for key, value in zip(['Input SMILES', 'Error', 'Comment'], [smiles, error_msg, solute_comment]):
+            solute_data_results[key].append(value)
+        solute_data_results, solute_data_found = parse_and_append_solute_data(solute_data, solute_data_results,
+                                                                              solute_estimator, solute_epi_unc_dict)
+        # save the solute_data and solute_data_found results to use them for solvation calculations if needed
+        solute_data_list.append(solute_data)
+        solute_data_found_list.append(solute_data_found)
 
     # get the solvation properties if the input solvent was given
     solvent_info = None
