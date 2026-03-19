@@ -4,17 +4,8 @@
 name: rmg_website
 channels:
   - conda-forge
-  - simonabuzzi
-  - fhvermei
 dependencies:
   - django==4.2
-  - pip
-  - pip:
-      - git+https://github.com/bp-kelley/descriptastorus@2.5.0
-  - simonabuzzi::solprop_ml_mix
-  - wandb # Required for solprop_ml_mix
   - python>=3.9
   - xlsxwriter
-  - scipy>=1.9,<=1.10 # need 1.9.0 or greater for milp but < 1.11 because of gilbrat/gibrat deprecation for compat. with descriptastorus
-  - fhvermei::chemprop_solvation>=0.0.3
   - cantera==2.6.0*
