@@ -977,12 +977,12 @@ def get_solute_data_from_SoluteGC(solute_spc, db, error_msg):
     else:
         return None, None, error_msg
 
-def _SoluteML_estimator(smiles):
+def _SoluteML_estimator(solute_smiles):
     # helper function to call out to the running docker container
-    result = requests.post(SOLPROP_URL + '/SoluteML_estimator', json={'smiles': smiles}).json()
-    return result['avg_pre'], result['epi_unc'], result['valid_indices']
+    result = requests.post(SOLPROP_URL + '/SoluteML_estimator', json={'solute_smiles': solute_smiles}).json()
+    return result['avg_pred'], result['epi_unc'], result['valid_indices']
 
-def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
+def get_solute_data_from_SoluteML(solute_smiles, solute_spc, error_msg):
     """
     Returns solute data estimated from SoluteML, corresponding comment and error message, and a dictionary
     containing the epistemic uncertainty of the SoluteML prediction.
@@ -991,7 +991,7 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     solute_data = SoluteData()
     solute_comment = None
     try:
-        avg_pre, epi_unc, valid_indices = _SoluteML_estimator([[smiles]])
+        avg_pre, epi_unc, valid_indices = _SoluteML_estimator(solute_smiles)
         [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
         for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
             solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
@@ -1003,8 +1003,10 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
                               f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
                               'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
                               'version 0.0.3 or higher.')
-        elif not 'Unable to parse the SMILES' in error_msg:
+        elif 'Unable to parse the SMILES' in error_msg:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
+        else:
+            error_msg = update_error_msg(error_msg, 'Unable to get the prediction from the SoluteML method', overwrite=False)
     # get V value using RMG
     if solute_spc is not None:
         try:
