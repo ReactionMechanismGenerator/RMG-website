@@ -44,6 +44,9 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
+from rmgpy.molecule.group import Group
+from rmgpy.molecule.adjlist import InvalidAdjacencyListError
+
 from rmgpy.molecule.atomtype import allElements as SUPPORTED_ELEMENTS
 
 from rmgweb.main.forms import *
@@ -68,6 +71,10 @@ for element in SUPPORTED_ELEMENTS:
     elif len(element) == 2:
         SUPPORTED_ELEMENTS_TWO_LETTERS.append(element)
 
+# add conda environment bin to PATH. Added on 3 July 2025 to ensure graphviz is added to path, even if bashrc is not sourced.
+bin = os.path.join(os.environ.get("CONDA_PREFIX", ""), "bin")
+if bin and bin not in os.environ["PATH"]:
+    os.environ["PATH"] = bin + os.pathsep + os.environ["PATH"]
 
 def index(request):
     """
@@ -354,30 +361,28 @@ def drawGroup(request, adjlist, format='png'):
     Returns an image of the provided adjacency list `adjlist` for a molecular
     group.  urllib is used to quote/unquote the adjacency list.
     """
-    from rmgpy.molecule.group import Group
-    from rmgpy.molecule.adjlist import InvalidAdjacencyListError
 
     adjlist = urllib.parse.unquote(adjlist)
 
-    # try:
-    #     group = Group().from_adjacency_list(adjlist)
-    # except (InvalidAdjacencyListError, ValueError):
-    #     response = HttpResponseRedirect(static('img/invalid_icon.png'))
-    # else:
-    #     if format == 'png':
-    #         response = HttpResponse(content_type="image/png")
-    #         response.write(group.draw('png'))
-    #     elif format == 'svg':
-    #         response = HttpResponse(content_type="image/svg+xml")
-    #         svg_data = group.draw('svg')
-    #         # Remove the scale and rotate transformations applied by pydot
-    #         svg_data = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svg_data)
-    #         response.write(svg_data)
-    #     else:
-    #         response = HttpResponse('Image format not implemented.', status=501)
+    try:
+        group = Group().from_adjacency_list(adjlist)
+    except (InvalidAdjacencyListError, ValueError):
+        response = HttpResponseRedirect(static('img/invalid_icon.png'))
+    else:
+        if format == 'png':
+            response = HttpResponse(content_type="image/png")
+            response.write(group.draw('png'))
+        elif format == 'svg':
+            response = HttpResponse(content_type="image/svg+xml")
+            svg_data = group.draw('svg')
+            # Remove the scale and rotate transformations applied by pydot
+            svg_data = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svg_data)
+            response.write(svg_data)
+        else:
+            response = HttpResponse('Image format not implemented.', status=501)
 
-    # return response
-    return HttpResponse(content_type="image/png") # TODO: fix root cause. Added 3/31/25 as a stopgap to prevent 'neato not found' errors.
+    return response
+#    return HttpResponse(content_type="image/svg+xml")
 
 
 @login_required

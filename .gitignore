@@ -44,9 +44,6 @@ rmgweb/media/rmg/tools/*
 .pydevproject
 .settings/*
 
-# WSGI
-apache/django.wsgi
-
 # VS Code related files
 .history/*
 

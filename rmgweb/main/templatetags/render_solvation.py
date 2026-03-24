@@ -37,7 +37,7 @@ from django.utils.safestring import mark_safe
 from rmgpy.data.base import Entry
 from rmgpy.species import Species
 from rmgpy.molecule.group import Group
-from rmgpy.data.solvation import *
+from rmgpy.data.solvation import SoluteData, SolventData, SolvationCorrection
 
 # Register this module as a Django template tag library
 register = template.Library()

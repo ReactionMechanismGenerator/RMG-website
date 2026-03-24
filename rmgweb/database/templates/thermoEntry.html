@@ -89,7 +89,7 @@ No structure given.
 </p>
 
 <h2>Thermodynamic Data</h2>
-{% ifequal thermo.0 'Link' %}
+{% if thermo.0 == 'Link' %}
 <table class="thermoEntryData">
 <tr>
     <td class="key">Link:</td>
@@ -98,7 +98,7 @@ No structure given.
 </table>
 {% else %}
 {{ thermo|render_thermo_math:user }}
-{% endifequal %}
+{% endif %}
 
 {% if nasa_string %}
 <br/>

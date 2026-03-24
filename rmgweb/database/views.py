@@ -34,7 +34,6 @@ import json
 import math
 import os
 import re
-import shutil
 import subprocess
 import urllib
 import pandas as pd
@@ -44,11 +43,7 @@ from rdkit import Chem
 import rdkit.Chem.rdmolops as rdmolops
 from CoolProp.CoolProp import PropsSI
 from decimal import Decimal
-
-from chemprop_solvation.solvation_estimator import load_DirectML_Gsolv_estimator, load_DirectML_Hsolv_estimator, load_SoluteML_estimator
-from solvation_predictor.solubility.solubility_calculator import SolubilityCalculations
-from solvation_predictor.solubility.solubility_models import SolubilityModels
-from solvation_predictor.solubility.solubility_predictions import SolubilityPredictions
+import requests
 
 import rmgpy
 import rmgpy.constants as constants
@@ -57,7 +52,7 @@ from rmgpy.data.kinetics import KineticsDepository, KineticsGroups, \
                                 TemplateReaction, LibraryReaction
 from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.data.reference import Article, Book
-from rmgpy.data.solvation import SoluteData, SolventData, SolvationCorrection
+from rmgpy.data.solvation import SoluteData, SolventData
 from rmgpy.data.statmech import GroupFrequencies
 from rmgpy.data.thermo import find_cp0_and_cpinf
 from rmgpy.data.transport import CriticalPointGroupContribution, TransportData
@@ -74,7 +69,7 @@ from rmgpy.thermo import NASA, ThermoData, Wilhoit
 from rmgpy.thermo.thermoengine import process_thermo_data
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.templatetags.static import static
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
@@ -86,6 +81,7 @@ except ImportError:
     from BeautifulSoup import BeautifulSoup
 
 import rmgweb.settings
+from rmgweb.secretsettings import SOLPROP_URL
 from rmgweb.database.forms import DivErrorList, EniSearchForm, KineticsEntryEditForm, \
                                   KineticsSearchForm, MoleculeSearchForm, RateEvaluationForm
 from rmgweb.database.tools import database, generateReactions, generateSpeciesThermo, reactionHasReactants
@@ -96,15 +92,6 @@ from rmgpy.data.solvation import get_critical_temperature
 
 ################################################################################
 
-# Loading these ML estimators takes around 10 seconds.
-# Therefore, instead of loading these each time these estimators are used, let's
-# load them in the beginning only once and use them as needed.
-global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator, solub_models
-dGsolv_estimator = load_DirectML_Gsolv_estimator()
-dHsolv_estimator = load_DirectML_Hsolv_estimator()
-solub_models = SolubilityModels(reduced_number=False, load_g=True, load_h=True, load_saq=True,
-                                load_solute=True, logger=None, verbose=False)
-SoluteML_estimator = solub_models.solute_models
 
 def load(request):
     """
@@ -113,13 +100,34 @@ def load(request):
     database.load()
     return HttpResponseRedirect(reverse('database:index'))
 
-
 def index(request):
     """
     The RMG database homepage.
     """
     return render(request, 'database.html')
 
+def return_common_entry_data(entries, section, subsection, index, data_type):
+    """
+    A helper function that returns entry data for a species, after the relevant entries are determined.
+    """
+    index = int(index)
+    if index != 0 and index != -1:
+        for entry in entries:
+            if entry.index == index:
+                break
+        else:
+            raise Http404
+    else:
+        if index == 0:
+            index = min(entry.index for entry in entries if entry.index > 0)
+        else:
+            index = max(entry.index for entry in entries if entry.index > 0)
+        return HttpResponseRedirect(reverse(f'database:{data_type}-entry',
+                                            kwargs={'section': section,
+                                                    'subsection': subsection,
+                                                    'index': index,
+                                                    }))
+    return entry
 
 #################################################################################################################################################
 
@@ -199,23 +207,7 @@ def transportEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:transport-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "transport")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -412,6 +404,16 @@ def solvationEntry(request, section, subsection, index):
                    'referenceType': reference_type, 'solvation': solvation})
 
 
+def _dGsolv_estimator(pair_smiles):
+    # helper function to call out to the running Docker container
+    result = requests.post(SOLPROP_URL + "/dGsolv_estimator", json={"solvent_smiles": pair_smiles[0][0], "solute_smiles": pair_smiles[0][1]}).json()
+    return result["avg_pred"], result["epi_unc"], result["valid_indices"]
+
+def _dHsolv_estimator(pair_smiles):
+    # helper function to call out to the running Docker container
+    result = requests.post(SOLPROP_URL + "/dHsolv_estimator", json={"solvent_smiles": pair_smiles[0][0], "solute_smiles": pair_smiles[0][1]}).json()
+    return result["avg_pred"], result["epi_unc"], result["valid_indices"]
+
 def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_required, calc_dSsolv, energy_unit):
     """
     Calculate solvation free energy, enthalpy, and entropy using the DirectML model. Corresponding
@@ -433,13 +435,13 @@ def get_solvation_from_DirectML(pair_smiles, error_msg, dGsolv_required, dHsolv_
 
     if dGsolv_required:
         try:
-            avg_pre, epi_unc, valid_indices = dGsolv_estimator(pair_smiles)  # default is in kcal/mol
+            avg_pre, epi_unc, valid_indices = _dGsolv_estimator(pair_smiles)  # default is in kcal/mol
             dGsolv298, dGsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
     if dHsolv_required:
         try:
-            avg_pre, epi_unc, valid_indices = dHsolv_estimator(pair_smiles)  # default is in kcal/mol
+            avg_pre, epi_unc, valid_indices = _dHsolv_estimator(pair_smiles)  # default is in kcal/mol
             dHsolv298, dHsolv298_epi_unc = avg_pre[0], epi_unc[0]
         except:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=True)
@@ -499,7 +501,7 @@ def get_solvation_data_ML(solvent_solute_smiles, calc_dGsolv, calc_dHsolv, calc_
                     logP = 0
                 else:
                     try:
-                        avg_pre, epi_unc, valid_indices = dGsolv_estimator([['O', solute_smiles]])
+                        avg_pre, epi_unc, valid_indices = _dGsolv_estimator([['O', solute_smiles]])
                         dGsolv298_water = convert_energy_unit(avg_pre[0], 'kcal/mol', 'J/mol')
                         logP = -(dGsolv298 - dGsolv298_water) / (math.log(10) * constants.R * 298)
                         logP = clean_up_value(logP, deci_place=2, only_big=True)
@@ -670,7 +672,7 @@ def get_temp_dep_logP(solvent_smiles, solute_smiles, temp_SI, solvation_298_resu
             solvation_298_results[pair_key_water] = (dGsolv298water, dHsolv298water, dSsolv298water)
 
         if dGsolv298water is not None and dHsolv298water is not None and dSsolv298water is not None:
-            dGsolv_water, Kfactor_water = db.get_T_dep_solvation_energy_from_input_298(
+            dGsolv_water, Kfactor_water, henry = db.get_T_dep_solvation_energy_from_input_298(
                 dGsolv298water, dHsolv298water, dSsolv298water, 'water', temp_SI)
             logP = -(dGsolv - dGsolv_water) / (math.log(10) * constants.R * temp_SI)
     else:
@@ -975,8 +977,12 @@ def get_solute_data_from_SoluteGC(solute_spc, db, error_msg):
     else:
         return None, None, error_msg
 
+def _SoluteML_estimator(solute_smiles):
+    # helper function to call out to the running docker container
+    result = requests.post(SOLPROP_URL + '/SoluteML_estimator', json={'solute_smiles': solute_smiles}).json()
+    return result['avg_pred'], result['epi_unc'], result['valid_indices']
 
-def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
+def get_solute_data_from_SoluteML(solute_smiles, solute_spc, error_msg):
     """
     Returns solute data estimated from SoluteML, corresponding comment and error message, and a dictionary
     containing the epistemic uncertainty of the SoluteML prediction.
@@ -985,7 +991,7 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
     solute_data = SoluteData()
     solute_comment = None
     try:
-        avg_pre, epi_unc, valid_indices = SoluteML_estimator([[smiles]])
+        avg_pre, epi_unc, valid_indices = _SoluteML_estimator(solute_smiles)
         [solute_data.E, solute_data.S, solute_data.A, solute_data.B, solute_data.L] = (avg_pre[0][i] for i in range(5))
         for i, solute_param in zip(range(5), ['E', 'S', 'A', 'B', 'L']):
             solute_epi_unc_dict[f'{solute_param} epi. unc.'] = epi_unc[0][i]
@@ -997,8 +1003,10 @@ def get_solute_data_from_SoluteML(smiles, solute_spc, error_msg):
                               f'\tpip install git+https://github.com/bp-kelley/descriptastorus\n'
                               'If "descriptastorus" is already installed, please update "chemprop_solvation" with'
                               'version 0.0.3 or higher.')
-        elif not 'Unable to parse the SMILES' in error_msg:
+        elif 'Unable to parse the SMILES' in error_msg:
             error_msg = update_error_msg(error_msg, 'Unable to parse the SMILES', overwrite=False)
+        else:
+            error_msg = update_error_msg(error_msg, 'Unable to get the prediction from the SoluteML method', overwrite=False)
     # get V value using RMG
     if solute_spc is not None:
         try:
@@ -1403,23 +1411,7 @@ def statmechEntry(request, section, subsection, index):
     except ValueError:
         raise Http404
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:statmech-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "statmech")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -1548,23 +1540,7 @@ def thermoEntry(request, section, subsection, index):
         db = database.get_thermo_database(section, subsection)
     except ValueError:
         raise Http404
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in db.entries.values():
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in db.entries.values() if entry.index > 0)
-        else:
-            index = max(entry.index for entry in db.entries.values() if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:thermo-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(db.entries.values(), section, subsection, index, "thermo")
 
     # Get the structure of the item we are viewing
     structure = getStructureInfo(entry.item)
@@ -2488,49 +2464,29 @@ def kineticsEntryEdit(request, section, subsection, index):
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if False:
-                # Render it as if it were saved.
-                return render(request, 'kineticsEntry.html',
-                              {'section': section,
-                               'subsection': subsection,
-                               'databaseName': db.name,
-                               'entry': new_entry,
-                               'reference': entry.reference,
-                               'kinetics': entry.data,
-                               })
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py')
-                db.save(path)
-                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
-                commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message, '--author',
-                                                         commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics', section, subsection + '.py')
+            db.save(path)
+            commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+            commit_message = "{1}:{2} {3}\n\nChange to kinetics/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message, '--author',
+                                                        commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
 
-                # return HttpResponse(commit_result, content_type="text/plain")
-
-                kwargs = {'section': section,
-                          'subsection': subsection,
-                          'index': index}
-                forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
-                message = """
-                Changes saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': 'Change saved successfully.',
-                               'body': message,
-                               })
-
-            # redirect
-            return HttpResponseRedirect(forward_url)
+            kwargs = {'section': section,
+                        'subsection': subsection,
+                        'index': index}
+            forward_url = reverse('database:kinetics-entry', kwargs=kwargs)
+            message = """
+            Changes saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': 'Change saved successfully.',
+                            'body': message,
+                            })
 
     else:  # not POST
         # Get the entry as a entry_string
@@ -2615,31 +2571,27 @@ def thermoEntryNew(request, section, subsection, adjlist):
                       }
             forward_url = reverse('database:thermo-entry', kwargs=kwargs)
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
-                db.save(path)
-                commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
-                commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
-                                                                                             subsection=subsection,
-                                                                                             index=new_entry.index,
-                                                                                             msg=msg)
-                commit_message += '\n\nSubmitted through the RMG website.'
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
-                                                         '--author', commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                message = """
-                New entry saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': '', 'body': message})
+            # save it
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+            db.save(path)
+            commit_author = '{0.first_name} {0.last_name} <{0.email}>'.format(request.user)
+            commit_message = 'New Entry: {section}/{subsection}/{index}\n\n{msg}'.format(section=section,
+                                                                                            subsection=subsection,
+                                                                                            index=new_entry.index,
+                                                                                            msg=msg)
+            commit_message += '\n\nSubmitted through the RMG website.'
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
+                                                        '--author', commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            message = """
+            New entry saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': '', 'body': message})
     else:  # not POST
         entry_string = """
 label = "{label}",
@@ -2713,49 +2665,32 @@ def thermoEntryEdit(request, section, subsection, index):
             entry_string = entry_buffer.getvalue()
             entry_buffer.close()
 
-            if False:
-                # Just return the text.
-                return HttpResponse(entry_string, content_type="text/plain")
-            if False:
-                # Render it as if it were saved.
-                return render(request, 'thermoEntry.html',
-                              {'section': section,
-                               'subsection': subsection,
-                               'databaseName': db.name,
-                               'entry': new_entry,
-                               'reference': entry.reference,
-                               'kinetics': entry.data,
-                               })
-            if True:
-                # save it
-                db.entries[index] = new_entry
-                path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
-                db.save(path)
-                commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
-                commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
-                commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
-                                                         '--author', commit_author, path],
-                                                         cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
-                subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            # save it
+            db.entries[index] = new_entry
+            path = os.path.join(rmgweb.settings.DATABASE_PATH, 'thermo', section, subsection + '.py')
+            db.save(path)
+            commit_author = "{0.first_name} {0.last_name} <{0.email}>".format(request.user)
+            commit_message = "{1}:{2} {3}\n\nChange to thermo/{0}/{1} entry {2} submitted through RMG website:\n{3}\n{4}".format(section, subsection, index, form.cleaned_data['change'], commit_author)
+            commit_result = subprocess.check_output(['git', 'commit', '-m', commit_message,
+                                                        '--author', commit_author, path],
+                                                        cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
+            subprocess.check_output(['git', 'push'], cwd=rmgweb.settings.DATABASE_PATH, stderr=subprocess.STDOUT)
 
-                # return HttpResponse(commit_result, content_type="text/plain")
+            # return HttpResponse(commit_result, content_type="text/plain")
 
-                kwargs = {'section': section,
-                          'subsection': subsection,
-                          'index': index}
-                forward_url = reverse('database:thermo-entry', kwargs=kwargs)
-                message = """
-                Changes saved succesfully:<br>
-                <pre>{0}</pre><br>
-                See result at <a href="{1}">{1}</a>.
-                """.format(commit_result, forward_url)
-                return render(request, 'simple.html',
-                              {'title': 'Change saved successfully.',
-                               'body': message,
-                               })
-
-            # redirect
-            return HttpResponseRedirect(forward_url)
+            kwargs = {'section': section,
+                        'subsection': subsection,
+                        'index': index}
+            forward_url = reverse('database:thermo-entry', kwargs=kwargs)
+            message = """
+            Changes saved succesfully:<br>
+            <pre>{0}</pre><br>
+            See result at <a href="{1}">{1}</a>.
+            """.format(commit_result, forward_url)
+            return render(request, 'simple.html',
+                            {'title': 'Change saved successfully.',
+                            'body': message,
+                            })
 
     else:  # not POST
         # Get the entry as a entry_string
@@ -2784,8 +2719,7 @@ def thermoEntryEdit(request, section, subsection, index):
                    'entry': entry,
                    'form': form,
                    })
-
-
+    
 def kineticsEntry(request, section, subsection, index):
     """
     A view for showing an entry in a kinetics database.
@@ -2805,23 +2739,7 @@ def kineticsEntry(request, section, subsection, index):
         # if the entries are lists
         entries = reduce(lambda x, y: x + y, entries)
 
-    index = int(index)
-    if index != 0 and index != -1:
-        for entry in entries:
-            if entry.index == index:
-                break
-        else:
-            raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in entries if entry.index > 0)
-        else:
-            index = max(entry.index for entry in entries if entry.index > 0)
-        return HttpResponseRedirect(reverse('database:kinetics-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+    entry = return_common_entry_data(entries, section, subsection, index, "kinetics")
 
     reference = entry.reference
     reference_type = ''
@@ -3725,6 +3643,17 @@ def solvationSolubilityData(request, solvent_str, solute_str, temp_str, ref_solv
                   {'html_table': html_table},
                   )
 
+def _calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None, ref_solvent_smiles=None,
+                                  ref_solubility298=None, hsub298=None, cp_gas_298=None
+                                    , cp_solid_298=None):
+    res = requests.post(SOLPROP_URL + "/calc_solubility_with_ref", json={"solvent_smiles": solvent_smiles, "solute_smiles": solute_smiles, "temperature": temp, "reference_solvent": ref_solvent_smiles, "reference_solubility": ref_solubility298, "hsub298": hsub298, "cp_gas_298": cp_gas_298, "cp_solid_298": cp_solid_298}).json()
+    return res["logsT_method1"], res["logsT_method2"], res["gsolv_T"], res["hsolv_T"], res["ssolv_T"], res["hsubl_298"], res["Cp_gas"], res["Cp_solid"], res["logs_T_with_T_dep_hdiss_error_message"]
+
+def _calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, hsub298=None, cp_gas_298=None,
+                                cp_solid_298=None):
+    res = requests.post(SOLPROP_URL + "/calc_solubility_no_ref", json={"solvent_smiles": solvent_smiles, "solute_smiles": solute_smiles, "temperature": temp, "hsub298": hsub298, "cp_gas_298": cp_gas_298, "cp_solid_298": cp_solid_298}).json()
+    return res["logsT_method1"], res["logsT_method2"], res["gsolv_T"], res["hsolv_T"], res["ssolv_T"], res["hsubl_298"], res["Cp_gas"], res["Cp_solid"], res["logs_T_with_T_dep_hdiss_error_message"]
+
 
 def get_solubility_pred(solvent_smiles, solute_smiles, temp, ref_solvent_smiles, ref_solubility, ref_temp, hsub298,
                         cp_gas_298, cp_solid_298):
@@ -3733,105 +3662,45 @@ def get_solubility_pred(solvent_smiles, solute_smiles, temp, ref_solvent_smiles,
     """
     # Case 1: reference values are not provided
     if ref_solvent_smiles is None:
-        calculations = calc_solubility_no_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
+        logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, hsubl_298, Cp_gas, Cp_solid, T_dep_hdiss_error_mesg = _calc_solubility_no_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
                                               hsub298=hsub298, cp_gas_298=cp_gas_298, cp_solid_298=cp_solid_298)
-        # Extract the solubility prediction results using from_aq keys
-        logST_method1 = calculations.logs_T_with_const_hdiss_from_aq[0]
-        logST_method2 = calculations.logs_T_with_T_dep_hdiss_from_aq[0]
     # Case 2: reference values are provided
     else:
-        calculations_ref = calc_solubility_no_ref(solvent_smiles=ref_solvent_smiles, solute_smiles=solute_smiles,
+        logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, hsubl_298, Cp_gas, Cp_solid, T_dep_hdiss_error_mesg = _calc_solubility_no_ref(solvent_smiles=ref_solvent_smiles, solute_smiles=solute_smiles,
                                                   temp=ref_temp, hsub298=hsub298, cp_gas_298=cp_gas_298,
                                                   cp_solid_298=cp_solid_298)
-        ref_solubility298 = get_ref_solubility298(calculations_ref=calculations_ref, ref_solubility=ref_solubility)
-        calculations = calc_solubility_with_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
+        ref_solubility298 = get_ref_solubility298(logs_T_with_T_dep_hdiss_from_aq=logST_method2, logs_T_with_const_hdiss_from_aq=logST_method1, logs_298_from_aq=ref_solubility, ref_solubility=ref_solubility)
+        logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, hsubl_298, Cp_gas, Cp_solid, T_dep_hdiss_error_mesg = _calc_solubility_with_ref(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
                                                 ref_solvent_smiles=ref_solvent_smiles,
                                                 ref_solubility298=ref_solubility298,
                                                 hsub298=hsub298, cp_gas_298=cp_gas_298, cp_solid_298=cp_solid_298)
-        # Extract the solubility prediction results using from_ref keys
-        logST_method1 = calculations.logs_T_with_const_hdiss_from_ref[0]
-        logST_method2 = calculations.logs_T_with_T_dep_hdiss_from_ref[0]
 
     # Extract other results
-    dGsolvT, dHsolvT, dSsolvT = calculations.gsolv_T[0], calculations.hsolv_T[0], calculations.ssolv_T[0]  # in kcal/mol
     if dSsolvT is not None:
         dSsolvT = dSsolvT * 1000  # convert to cal/mol/K
-    Hsub298_pred = calculations.hsubl_298[0] if hsub298 is None else None  # in kcal/mol
-    Cpg298_pred = calculations.Cp_gas[0] if cp_gas_298 is None else None  # in cal/mol/K
-    Cps298_pred = calculations.Cp_solid[0] if cp_solid_298 is None else None  # in cal/mol/K
-    T_dep_hdiss_error_mesg = calculations.logs_T_with_T_dep_hdiss_error_message[0]
+    Hsub298_pred = hsubl_298 if hsub298 is None else None  # in kcal/mol
+    Cpg298_pred = Cp_gas if cp_gas_298 is None else None  # in cal/mol/K
+    Cps298_pred = Cp_solid if cp_solid_298 is None else None  # in cal/mol/K
     calc_error_msg, warning_msg = format_T_dep_hdiss_error_mesg(T_dep_hdiss_error_mesg)
 
     pred_val_list = [logST_method1, logST_method2, dGsolvT, dHsolvT, dSsolvT, Hsub298_pred, Cpg298_pred, Cps298_pred]
     return pred_val_list, calc_error_msg, warning_msg
 
 
-def calc_solubility_no_ref(solvent_smiles=None, solute_smiles=None, temp=None, hsub298=None, cp_gas_298=None,
-                           cp_solid_298=None):
-    """
-    Calculate solubility with no reference solvent and reference solubility
-    """
-    hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
-    Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
-    Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
-
-    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp)
-    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=True,
-                                        predict_reference_solvents=False, predict_t_dep=True,
-                                        predict_solute_parameters=True, verbose=False)
-    calculations = SolubilityCalculations(predictions, calculate_aqueous=True,
-                                          calculate_reference_solvents=False, calculate_t_dep=True,
-                                          calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
-                                          hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
-    return calculations
-
-
-def calc_solubility_with_ref(solvent_smiles=None, solute_smiles=None, temp=None, ref_solvent_smiles=None,
-                             ref_solubility298=None, hsub298=None, cp_gas_298=None, cp_solid_298=None):
-    """
-    Calculate solubility with a reference solvent and reference solubility
-    """
-    hsubl_298 = np.array([hsub298]) if hsub298 is not None else None
-    Cp_solid = np.array([cp_solid_298]) if cp_solid_298 is not None else None
-    Cp_gas = np.array([cp_gas_298]) if cp_gas_298 is not None else None
-
-    solub_data = SolubilityData(solvent_smiles=solvent_smiles, solute_smiles=solute_smiles, temp=temp,
-                                ref_solub=ref_solubility298, ref_solv=ref_solvent_smiles)
-    predictions = SolubilityPredictions(solub_data, solub_models, predict_aqueous=False,
-                                        predict_reference_solvents=True, predict_t_dep=True,
-                                        predict_solute_parameters=True, verbose=False)
-    calculations = SolubilityCalculations(predictions, calculate_aqueous=False,
-                                          calculate_reference_solvents=True, calculate_t_dep=True,
-                                          calculate_t_dep_with_t_dep_hdiss=True, verbose=False,
-                                          hsubl_298=hsubl_298, Cp_solid=Cp_solid, Cp_gas=Cp_gas)
-    return calculations
-
-
-def get_ref_solubility298(calculations_ref=None, ref_solubility=None):
+def get_ref_solubility298(logs_T_with_T_dep_hdiss_from_aq, logs_T_with_const_hdiss_from_aq, logs_298_from_aq, ref_solubility=None):
     """
     Estimate the reference solubility at 298 K based on the reference solvent calculation results and input
     reference solubility value at reference temperature.
     """
     # Use the prediction from method 2 if available. If not, use the prediction from method 1 as the ref value
-    logST_ref_pred = calculations_ref.logs_T_with_T_dep_hdiss_from_aq[0]
+    logST_ref_pred = logs_T_with_T_dep_hdiss_from_aq
     if logST_ref_pred is None:
-        logST_ref_pred = calculations_ref.logs_T_with_const_hdiss_from_aq[0]
+        logST_ref_pred = logs_T_with_const_hdiss_from_aq
     # Get ref_solubility value at 298 K from ref_solubility at T
-    logS298_ref_from_aq = calculations_ref.logs_298_from_aq[0]
+    logS298_ref_from_aq = logs_298_from_aq
     logS_diff = logST_ref_pred - logS298_ref_from_aq
     ref_solubility298 = ref_solubility - logS_diff
     return ref_solubility298
-
-
-class SolubilityData:
-    """
-    Class for storing the input data for solubility prediction
-    """
-    def __init__(self, solvent_smiles=None, solute_smiles=None, temp=None, ref_solub=None, ref_solv=None):
-        self.smiles_pairs = [(solvent_smiles, solute_smiles)]
-        self.temperatures = np.array([temp]) if temp is not None else None
-        self.reference_solubility = np.array([ref_solub]) if ref_solub is not None else None
-        self.reference_solvents = np.array([ref_solv]) if ref_solv is not None else None
 
 
 def format_T_dep_hdiss_error_mesg(error_msg):
@@ -4058,7 +3927,8 @@ def json_to_adjlist(request):
     Interprets ChemDoodle JSON and returns an RMG adjacency list.
     """
     adjlist = ''
-    if request.is_ajax() and request.method == 'POST':
+    is_ajax = request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+    if is_ajax and request.method == 'POST':
         cd_json_str = request.POST.get('data')
         cd_json = json.loads(cd_json_str)
 

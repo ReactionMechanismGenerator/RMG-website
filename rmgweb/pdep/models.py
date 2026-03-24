@@ -72,7 +72,8 @@ class Network(models.Model):
         Return the absolute path of the directory that the Network object uses
         to store files.
         """
-        return os.path.join(settings.MEDIA_ROOT, 'pdep', 'networks', str(self.pk))
+        pk_str = self.pk.decode() if isinstance(self.pk, bytes) else str(self.pk)
+        return os.path.join(settings.MEDIA_ROOT, 'pdep', 'networks', pk_str)
 
     def getInputFilename(self):
         """
