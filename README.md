@@ -36,7 +36,18 @@ Instructions to generate a key using Python are provided in the example file, or
 
 You also need to add `'127.0.0.1'` to `ALLOWED_HOSTS` in `secretsettings.py` to run RMG-website locally.
 
-### 3. Run the Website
+### 3. Configure Microservice(s)
+Some features, e.g. machine learning models, are accessed via microservices. 
+At present, these include only the solvation models, but could be changed in the future.
+
+First, verify that you have a working install of [Docker](https://docs.docker.com/engine/install/) .
+Then, use Docker to build and start the microservices as described in `microservices/solprop/README.md`. 
+
+If necessary, you may want to configure the localhost port in `secretsettings.py`, but be sure to also change it when building the Docker container.
+
+Once built, the website will be able to use the solvation models by querying the microservice.
+
+### 4. Run the Website
 If running the website for the first time, enter the commands
 ```
 cd RMG-website
@@ -49,7 +60,7 @@ You may be prompted to create a superuser account, which you will need to access
 Now the website should appear on your localhost, you can visit it in any browser using the URL: http://127.0.0.1:8000/.
 The website may take some time to load, as the RMG database must be loaded from the disk every time the webserver is restarted.
 
-### 4. Usage Notes
+### 5. Usage Notes
 When you rebuild any `Model` class within a models.py file, you have to modify the sql tables via Django's migration model.
 This can be done as follows:
 
