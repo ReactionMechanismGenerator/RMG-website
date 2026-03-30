@@ -114,22 +114,13 @@ def return_common_entry_data(entries, section, subsection, index, data_type):
     A helper function that returns entry data for a species, after the relevant entries are determined.
     """
     index = int(index)
-    if index != 0 and index != -1:
+    if index != -1:
         for entry in entries:
             if entry.index == index:
                 break
         else:
             raise Http404
-    else:
-        if index == 0:
-            index = min(entry.index for entry in entries if entry.index > 0)
-        else:
-            index = max(entry.index for entry in entries if entry.index > 0)
-        return HttpResponseRedirect(reverse(f'database:{data_type}-entry',
-                                            kwargs={'section': section,
-                                                    'subsection': subsection,
-                                                    'index': index,
-                                                    }))
+
     return entry
 
 #################################################################################################################################################
