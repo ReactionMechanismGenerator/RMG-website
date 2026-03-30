@@ -31,6 +31,7 @@
 import http.cookiejar
 import io
 import json
+import logging
 import math
 import os
 import re
@@ -89,6 +90,8 @@ from rmgweb.main.tools import getStructureInfo, groupToInfo, moleculeFromURL, mo
 from rmgpy.data.solvation import get_critical_temperature
 
 # from rmgweb.main.tools import moleculeToURL, moleculeFromURL
+
+logger = logging.getLogger(__name__)
 
 ################################################################################
 
@@ -3246,7 +3249,7 @@ def moleculeSearch(request):
 
             try:
                 old_adjlist = molecule.to_adjacency_list(remove_h=True, old_style=True)
-                print(old_adjlist)
+                logger.debug("Old adjacency list: %s", old_adjlist)
             except Exception:
                 pass
 

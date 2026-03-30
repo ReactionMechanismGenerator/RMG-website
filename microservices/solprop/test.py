@@ -1,4 +1,7 @@
+import logging
 import requests
+
+logger = logging.getLogger(__name__)
 
 # The base URL where your server is running.
 # Change this if running on a different port or host.
@@ -131,4 +134,4 @@ if __name__ == "__main__":
     test_invalid_payload_fails()
     test_calc_solubility_no_ref()
     test_calc_solubility_with_ref()
-    print("All tests passed!")
+    logger.info("All tests passed!")

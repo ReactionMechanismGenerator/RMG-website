@@ -33,6 +33,7 @@ This module contains additional classes and functions used by the database
 app that don't belong to any other module.
 """
 
+import logging
 import os
 import socket
 import sys
@@ -53,6 +54,8 @@ from rmgpy.species import Species
 from rmgpy.reaction import same_species_lists
 
 import rmgweb.settings
+
+logger = logging.getLogger(__name__)
 
 
 class RMGWebDatabase(object):
@@ -116,7 +119,7 @@ class RMGWebDatabase(object):
         """
         Walk the directory tree from dirpath, calling reset_timestamp(file) on each file.
         """
-        print("Resetting 'last loaded' timestamps for {0} in process {1}".format(dirpath, os.getpid()))
+        logger.info("Resetting 'last loaded' timestamps for {0} in process {1}".format(dirpath, os.getpid()))
         for root, dirs, files in os.walk(dirpath):
             for name in files:
                 self.reset_timestamp(os.path.join(root, name))
@@ -243,7 +246,7 @@ class RMGWebDatabase(object):
                         family.add_rules_from_training(thermo_database=self.database.thermo)
                         new_entries = len(family.rules.entries)
                         if new_entries != old_entries:
-                            print('{0} new entries added to {1} family after adding rules '
+                            logger.info('{0} new entries added to {1} family after adding rules '
                                   'from training set.'.format(new_entries - old_entries, family.label))
                         # Filling in rate rules in kinetics families by averaging...
                         family.fill_rules_by_averaging_up()
@@ -538,14 +541,14 @@ def getAbrahamAB(smiles):
                 if success:
                     smarts = pybel.Smarts(x.smarts.__str__())
                 else:
-                    print("Invalid SMARTS pattern", x.smarts.__str__())
+                    logger.warning("Invalid SMARTS pattern: %s", x.smarts.__str__())
                     break
                 matched = smarts.findall(mol)
                 x.num = len(matched)
                 if (x.num > 0):
-                    print("Found group", x.smarts.__str__(),
-                          'named', x.name, 'with contribution',
-                          x.value, 'to A', x.num, 'times')
+                    logger.debug("Found group %s named %s with contribution %s to A %s times",
+                          x.smarts.__str__(), x.name,
+                          x.value, x.num)
                 platts_A += (x.num) * (x.value)
 
             self.A = platts_A + 0.003
@@ -576,14 +579,14 @@ def getAbrahamAB(smiles):
                 if success:
                     smarts = pybel.Smarts(x.smarts.__str__())
                 else:
-                    print("Invalid SMARTS pattern", x.smarts.__str__())
+                    logger.warning("Invalid SMARTS pattern: %s", x.smarts.__str__())
                     break
                 matched = smarts.findall(mol)
                 x.num = len(matched)
                 if (x.num > 0):
-                    print("Found group", x.smarts.__str__(),
-                          'named', x.name, 'with contribution',
-                          x.value, 'to B', x.num, 'times')
+                    logger.debug("Found group %s named %s with contribution %s to B %s times",
+                          x.smarts.__str__(), x.name,
+                          x.value, x.num)
                 platts_B += (x.num) * (x.value)
 
             self.B = platts_B + 0.071

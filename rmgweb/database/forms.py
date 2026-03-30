@@ -29,6 +29,7 @@
 ###############################################################################
 
 import copy
+import logging
 import sys
 
 import rmgpy
@@ -37,6 +38,8 @@ from django.forms.utils import ErrorList
 from django.utils.safestring import mark_safe
 from rmgpy.molecule.molecule import Molecule
 from rmgweb.database.tools import database
+
+logger = logging.getLogger(__name__)
 
 
 class DivErrorList(ErrorList):
@@ -604,8 +607,8 @@ class ThermoEntryEditForm(forms.Form):
         try:
             entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
         except Exception:
-            print("Invalid entry from ThermoEntryEditForm.")
-            print(repr(entry_string))
+            logger.error("Invalid entry from ThermoEntryEditForm.")
+            logger.error("Entry string: %s", repr(entry_string))
             import traceback
             traceback.print_exc()
             raise forms.ValidationError('Invalid entry.' + sys.exc_info()[1])
@@ -642,8 +645,8 @@ class KineticsEntryEditForm(forms.Form):
         try:
             entry = eval("entry( index=-1, {0})".format(entry_string), global_context, local_context)
         except Exception:
-            print("Invalid entry from KineticsEntryEditForm.")
-            print(repr(entry_string))
+            logger.error("Invalid entry from KineticsEntryEditForm.")
+            logger.error("Entry string: %s", repr(entry_string))
             import traceback
             traceback.print_exc()
             raise forms.ValidationError('Invalid entry.' + sys.exc_info()[1])

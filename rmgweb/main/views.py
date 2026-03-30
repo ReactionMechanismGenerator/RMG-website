@@ -28,6 +28,7 @@
 #                                                                             #
 ###############################################################################
 
+import logging
 import os
 import re
 import sys
@@ -51,6 +52,7 @@ from rmgpy.molecule.atomtype import allElements as SUPPORTED_ELEMENTS
 
 from rmgweb.main.forms import *
 
+logger = logging.getLogger(__name__)
 
 ELEMENTS = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
             'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br',
@@ -389,7 +391,7 @@ def drawGroup(request, adjlist, format='png'):
 def restartWSGI(request):
     if request.META['mod_wsgi.process_group'] != '':
         restart_filename = os.path.join(os.path.dirname(request.META['SCRIPT_FILENAME']), 'restart')
-        print("Touching {0} to trigger a restart all daemon processes".format(restart_filename), file=sys.stderr)
+        logger.info("Touching %s to trigger a restart all daemon processes", restart_filename)
         with file(restart_filename, 'a'):
             os.utime(restart_filename, None)
         # os.kill(os.getpid(), signal.SIGINT)
@@ -399,9 +401,9 @@ def restartWSGI(request):
 def debug(request):
     import scipy
     import numpy as np
-    print("scipy module is {0}".format(scipy), file=sys.stderr)
-    print("numpy.finfo(float) = {0}".format(np.finfo(float)), file=sys.stderr)
-    print("Failing on purpose to trigger a debug screen", file=sys.stderr)
+    logger.warning("scipy module is %s", scipy)
+    logger.warning("numpy.finfo(float) = %s", np.finfo(float))
+    logger.warning("Failing on purpose to trigger a debug screen")
     assert False, "Intentional failure to trigger debug screen."
 
 

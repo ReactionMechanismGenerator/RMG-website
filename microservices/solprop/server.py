@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import logging
 import pandas as pd
 import numpy as np
 from typing import Optional
@@ -9,6 +10,8 @@ from solvation_predictor.solubility.solubility_calculator import SolubilityCalcu
 from solvation_predictor.solubility.solubility_predictions import SolubilityPredictions
 from solvation_predictor.solubility.solubility_data import SolubilityData
 from solvation_predictor.solubility.solubility_models import SolubilityModels
+
+logger = logging.getLogger(__name__)
 
 
 class SolubilityDataWrapper:
@@ -33,7 +36,7 @@ solub_models = None
 def load_models():
     global dGsolv_estimator, dHsolv_estimator, SoluteML_estimator, solub_models
     
-    print("Loading models...")
+    logger.info("Loading models...")
     
     dGsolv_estimator = load_DirectML_Gsolv_estimator()
     dHsolv_estimator = load_DirectML_Hsolv_estimator()
@@ -46,7 +49,7 @@ def load_models():
     
     SoluteML_estimator = load_SoluteML_estimator()
     
-    print("Models loaded.")
+    logger.info("Models loaded.")
 
 class SolubilityRequest(BaseModel):
     solvent_smiles: Optional[str] = None

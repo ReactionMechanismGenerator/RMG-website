@@ -32,6 +32,7 @@
 Provides template tags for rendering statmech models in various ways.
 """
 
+import logging
 import math
 import numpy as np
 from django import template
@@ -44,6 +45,8 @@ from rmgweb.main.models import UserProfile
 
 # Register this module as a Django template tag library
 register = template.Library()
+
+logger = logging.getLogger(__name__)
 
 ################################################################################
 
@@ -200,7 +203,7 @@ def get_states_data(states, user=None):
     try:
         rhodata = states.get_density_of_states(Edata)
     except Exception as e:
-        print("Could not calculate density of states", e)
+        logger.error("Could not calculate density of states: %s", e)
         pass
     Edata = list(Edata * Efactor)
     if len(rhodata) != 0:

@@ -42,11 +42,14 @@
 # how mod_wsgi works is shown below.
 
 import atexit
+import logging
 import os
 import queue
 import signal
 import sys
 import threading
+
+logger = logging.getLogger(__name__)
 
 _interval = 1.0
 _times = {}
@@ -60,8 +63,8 @@ _lock = threading.Lock()
 def _restart(path):
     _queue.put(True)
     prefix = 'monitor (pid=%d):' % os.getpid()
-    print('%s Change detected to \'%s\'.' % (prefix, path), file=sys.stderr)
-    print('%s Triggering process restart.' % prefix, file=sys.stderr)
+    logger.warning('%s Change detected to \'%s\'.', prefix, path)
+    logger.warning('%s Triggering process restart.', prefix)
     os.kill(os.getpid(), signal.SIGINT)
 
 
@@ -157,7 +160,7 @@ def start(interval=1.0):
     _lock.acquire()
     if not _running:
         prefix = 'monitor (pid=%d):' % os.getpid()
-        print('%s Starting change monitor.' % prefix, file=sys.stderr)
+        logger.warning('%s Starting change monitor.', prefix)
         _running = True
         _thread.start()
     _lock.release()
