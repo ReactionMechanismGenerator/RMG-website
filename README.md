@@ -11,7 +11,7 @@ Some parts of the web site require that Javascript be enabled.
 
 ## Developer Setup
 
-Running RMG-website requires a working installation of [RMG-Py](http://github.com/ReactionMechanismGenerator/RMG-Py). 
+Running RMG-website requires a working installation of [RMG-Py](https://github.com/ReactionMechanismGenerator/RMG-Py). 
 Development of the website closely mirrors that of RMG-Py, and you will generally need to update the RMG-Py repository whenever you update this repository.
 
 ### 1. Setup Dependencies
