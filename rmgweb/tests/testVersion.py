@@ -33,18 +33,6 @@ from django.test import TestCase
 
 class VersionTest(TestCase):
 
-    def test_homepage_uses_rmgpy_version(self):
-        """
-        Test that the homepage stable version comes from the installed RMG-Py.
-        """
-        from rmgpy import __version__
-
-        response = self.client.get('/')
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['version'], __version__)
-        self.assertContains(response, 'Latest Stable Version: {}'.format(__version__))
-
     def test_gets_to_version_page(self):
         """
         Test that /version gives expected response

@@ -5,6 +5,5 @@ name: rmg_website
 channels:
   - conda-forge
 dependencies:
-  - python>=3.11,<3.12
   - django==4.2
   - xlsxwriter
