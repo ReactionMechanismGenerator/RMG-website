@@ -6,6 +6,4 @@ channels:
   - conda-forge
 dependencies:
   - django==4.2
-  - python>=3.9
   - xlsxwriter
-  - cantera==2.6.0*
