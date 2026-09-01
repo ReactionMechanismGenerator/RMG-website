@@ -376,7 +376,7 @@ def drawGroup(request, adjlist, format='png'):
             response.write(group.draw('png'))
         elif format == 'svg':
             response = HttpResponse(content_type="image/svg+xml")
-            svg_data = group.draw('svg')
+            svg_data = group.draw('svg').decode('utf-8')
             # Remove the scale and rotate transformations applied by pydot
             svg_data = re.sub(r'scale\(0\.722222 0\.722222\) rotate\(0\) ', '', svg_data)
             response.write(svg_data)
@@ -384,7 +384,6 @@ def drawGroup(request, adjlist, format='png'):
             response = HttpResponse('Image format not implemented.', status=501)
 
     return response
-#    return HttpResponse(content_type="image/svg+xml")
 
 
 @login_required
