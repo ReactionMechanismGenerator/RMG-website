@@ -37,6 +37,9 @@ import os
 import re
 import subprocess
 import urllib
+from concurrent.futures import Future
+from threading import Lock
+from weakref import WeakKeyDictionary
 import pandas as pd
 import numpy as np
 from functools import reduce
@@ -1727,7 +1730,36 @@ def getKineticsTreeHTML(database, section, subsection, entries):
     return html
 
 
+_untrained_reactions = WeakKeyDictionary()
+_untrained_reactions_lock = Lock()
+
+
 def getUntrainedReactions(family):
+    """Cache untrained reactions for the lifetime of a loaded family.
+
+    Database reloads replace the family objects, invalidating these results.
+    Weak keys avoid retaining old families. Concurrent requests for the same
+    family share a future without blocking requests for other families.
+    """
+    with _untrained_reactions_lock:
+        future = _untrained_reactions.get(family)
+        calculate = future is None
+        if calculate:
+            future = Future()
+            _untrained_reactions[family] = future
+
+    if calculate:
+        try:
+            future.set_result(_calculateUntrainedReactions(family))
+        except BaseException as error:
+            with _untrained_reactions_lock:
+                del _untrained_reactions[family]
+            future.set_exception(error)
+            raise
+    return future.result()
+
+
+def _calculateUntrainedReactions(family):
     """
     Return a depository containing unique reactions for which no
     training data exists.
@@ -2222,26 +2254,25 @@ def kinetics(request, section='', subsection=''):
         kinetics_libraries = [(label, library) for label, library in database.kinetics.libraries.items() if subsection in label]
         kinetics_libraries.sort()
 
-        # If this is a subsection, but not the main kinetics page,
-        # we don't need to iterate through the entire database, as this takes a long time to load.
-        try:
-            families_to_process = [database.kinetics.families[subsection]]
-        except KeyError: # if main kinetics page, or some other error
-            families_to_process = database.kinetics.families.values()
-
-        for family in families_to_process:
-            for i in range(0, len(family.depositories)):
-                if 'untrained' in family.depositories[i].name:
-                    family.depositories.pop(i)
-            family.depositories.append(getUntrainedReactions(family))
-        kinetics_families = [(label, family) for label, family in database.kinetics.families.items() if subsection in label]
+        # Only calculate untrained reactions when a specific family is selected.
+        # Keep derived results separate from the family's source depositories.
+        untrained = None
+        kinetics_families = []
+        if section in ['families', '']:
+            if subsection in database.kinetics.families:
+                untrained = getUntrainedReactions(database.kinetics.families[subsection])
+            kinetics_families = [(label, family) for label, family in database.kinetics.families.items() if subsection in label]
         kinetics_families.sort()
-        return render(request, 'kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kinetics_libraries, 'kineticsFamilies': kinetics_families})
+        return render(request, 'kinetics.html', {'section': section, 'subsection': subsection, 'kineticsLibraries': kinetics_libraries, 'kineticsFamilies': kinetics_families, 'selectedFamily': subsection, 'untrained': untrained})
 
 
 def kineticsUntrained(request, family):
     database.load('kinetics', 'families')
-    entries0 = list(getUntrainedReactions(database.kinetics.families[family]).entries.values())
+    try:
+        kinetics_family = database.kinetics.families[family]
+    except KeyError:
+        raise Http404
+    entries0 = list(getUntrainedReactions(kinetics_family).entries.values())
     entries0.sort(key=lambda entry: (entry.index, entry.label))
 
     entries = []
