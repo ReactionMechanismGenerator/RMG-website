@@ -54,6 +54,7 @@ from rmgpy.species import Species
 from rmgpy.reaction import same_species_lists
 
 import rmgweb.settings
+from rmgweb.database.catalog import KineticsCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ class RMGWebDatabase(object):
             os.path.join(rmgweb.settings.DATABASE_PATH, 'forbiddenStructures.py')
             )
         self.timestamps = {}
+        self.kinetics_catalog = KineticsCatalog(os.path.join(rmgweb.settings.DATABASE_PATH, 'kinetics'))
 
     @property
     def kinetics(self):
