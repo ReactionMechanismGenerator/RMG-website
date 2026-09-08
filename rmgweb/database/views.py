@@ -86,6 +86,7 @@ from rmgweb.secretsettings import SOLPROP_URL
 from rmgweb.database.forms import DivErrorList, EniSearchForm, KineticsEntryEditForm, \
                                   KineticsSearchForm, MoleculeSearchForm, RateEvaluationForm
 from rmgweb.database.tools import database, generateReactions, generateSpeciesThermo, reactionHasReactants
+from rmgweb.database.catalog import KineticsDatabaseNotFound
 from rmgweb.main.tools import getStructureInfo, groupToInfo, moleculeFromURL, moleculeToAdjlist
 from rmgpy.data.solvation import get_critical_temperature
 
@@ -2137,6 +2138,16 @@ def queryNIST(entry, squib, entries, user):
 ###############################################################################
 
 
+def _kineticsDatabaseForBrowsing(section, subsection):
+    if section == 'libraries':
+        return database.kinetics_catalog.library(subsection)
+    database.load('kinetics', section)
+    try:
+        return database.get_kinetics_database(section, subsection)
+    except ValueError as error:
+        raise KineticsDatabaseNotFound(str(error)) from error
+
+
 def kinetics(request, section='', subsection=''):
     """
     The RMG database homepage.
@@ -2145,15 +2156,29 @@ def kinetics(request, section='', subsection=''):
     if section not in ['libraries', 'families', '']:
         raise Http404
 
-    # Load the kinetics database, if necessary
-    database.load('kinetics', section)
+    # Indexes only need metadata, not reaction objects or estimated rate rules.
+    if not subsection:
+        catalog = database.kinetics_catalog
+        return render(request, 'kineticsCatalog.html', {
+            'section': section,
+            'subsection': subsection,
+            'kineticsLibraries': catalog.libraries() if section in ['', 'libraries'] else [],
+            'kineticsFamilies': catalog.families() if section in ['', 'families'] else [],
+        })
 
     # Determine which subsection we wish to view
     db = None
     try:
-        db = database.get_kinetics_database(section, subsection)
-    except ValueError:
-        pass
+        db = _kineticsDatabaseForBrowsing(section, subsection)
+    except KineticsDatabaseNotFound:
+        if section == 'libraries':
+            libraries = database.kinetics_catalog.libraries(subsection)
+            if not libraries:
+                raise Http404
+            return render(request, 'kineticsCatalog.html', {
+                'section': section, 'subsection': subsection,
+                'kineticsLibraries': libraries, 'kineticsFamilies': [],
+            })
 
     if db is not None:
 
@@ -2421,13 +2446,10 @@ def kineticsEntryEdit(request, section, subsection, index):
     A view for editing an entry in a kinetics database.
     """
     from rmgweb.database.forms import KineticsEntryEditForm
-    # Load the kinetics database, if necessary
-    database.load('kinetics', section)
-
     # Determine the entry we wish to view
     try:
-        db = database.get_kinetics_database(section, subsection)
-    except ValueError:
+        db = _kineticsDatabaseForBrowsing(section, subsection)
+    except KineticsDatabaseNotFound:
         raise Http404
 
     entries = list(db.entries.values())
@@ -2719,13 +2741,10 @@ def kineticsEntry(request, section, subsection, index):
     A view for showing an entry in a kinetics database.
     """
 
-    # Load the kinetics database, if necessary
-    database.load('kinetics', section)
-
     # Determine the entry we wish to view
     try:
-        db = database.get_kinetics_database(section, subsection)
-    except ValueError:
+        db = _kineticsDatabaseForBrowsing(section, subsection)
+    except KineticsDatabaseNotFound:
         raise Http404
 
     entries = list(db.entries.values())

@@ -1,0 +1,47 @@
+{% extends "kinetics.html" %}
+{% load static %}
+
+{% block page_body %}
+{% if section == '' %}
+<h2>1. <a href="{% url 'database:kinetics-search' %}">Search Reaction Kinetics</a></h2>
+<h2>2. <a href="{% url 'database:kinetics' section='libraries' %}">Kinetics Libraries</a></h2>
+{% endif %}
+
+{% if section == 'libraries' or section == '' %}
+<table class="kineticsData">
+{% for label, library in kineticsLibraries %}
+    <tr>
+        <td><a href="{% url 'database:kinetics' section='libraries' subsection=label %}">{{ library.label }}</a></td>
+        <td>{{ library.short_desc }}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endif %}
+
+{% if section == '' %}
+<h2>3. <a href="{% url 'database:kinetics' section='families' %}">Kinetics Families</a></h2>
+{% endif %}
+
+{% if section == 'families' or section == '' %}
+<table class="kineticsData">
+{% for label, family in kineticsFamilies %}
+    <tr>
+        <td><a href="{% url 'database:kinetics' section='families' subsection=label %}">{{ family.name }}</a></td>
+        <td>
+            <ul>
+                <li><a href="{% url 'database:kinetics' section='families' subsection=family.groups.label %}">{{ family.groups.name }}</a></li>
+                {% if family.rules %}
+                <li><a href="{% url 'database:kinetics' section='families' subsection=family.rules.label %}">{{ family.rules.name }}</a></li>
+                {% endif %}
+                {% for depository in family.depositories %}
+                <li><a href="{% url 'database:kinetics' section='families' subsection=depository.label %}">{{ depository.name }}</a></li>
+                {% endfor %}
+                <li><a href="{% url 'database:kinetics-untrained' family=label %}">{{ family.name }}/untrained</a></li>
+            </ul>
+        </td>
+        <td><img class="family" src="{% get_static_prefix %}images/{{ family.name }}.png"/></td>
+    </tr>
+{% endfor %}
+</table>
+{% endif %}
+{% endblock %}
