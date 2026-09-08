@@ -133,7 +133,7 @@ class PasswordChangeForm(PasswordCreateForm):
 
     def __init__(self, *args, **kwargs):
         super(PasswordChangeForm, self).__init__(*args, **kwargs)
-        self.fields.keyOrder = ['current_password', 'password', 'confirm_password']
+        self.order_fields(['current_password', 'password', 'confirm_password'])
         self.fields['password'].label = mark_safe('New&nbsp;password')
         self.fields['confirm_password'].label = mark_safe('Confirm&nbsp;new&nbsp;password')
         self.fields['password'].required = False
