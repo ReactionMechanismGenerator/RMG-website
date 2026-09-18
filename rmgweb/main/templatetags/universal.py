@@ -54,6 +54,12 @@ def get_ref_tooltip(reference):
 
     from rmgpy.data.reference import Article, Book, Thesis
 
+    # Some database entries store the author names as bytes literals, which
+    # makes get_author_string() raise a TypeError when joining them
+    if reference.authors:
+        reference.authors = [author.decode('utf-8') if isinstance(author, bytes) else author
+                             for author in reference.authors]
+
     output = ''
     if isinstance(reference, Article):
         if reference.title:
