@@ -247,7 +247,10 @@ def getAdjacencyList(request, identifier):
         try:
             molecule.from_inchi(identifier)
         except AtomTypeError as e:
-            return analyze_atomtype_error(f'{e}')
+            try:
+                return analyze_atomtype_error(f'{e}')
+            except Exception:
+                return HttpResponse(f'{e}', status=400)
         except KeyError as e:
             return analyze_element_error(f'{e}')
     elif identifier.lower() in known_names:
@@ -257,7 +260,10 @@ def getAdjacencyList(request, identifier):
             # Try parsing as a SMILES string
             molecule.from_smiles(identifier)
         except AtomTypeError as e:
-            return analyze_atomtype_error(f'{e}')
+            try:
+                return analyze_atomtype_error(f'{e}')
+            except Exception:
+                return HttpResponse(f'{e}', status=400)
         except KeyError as e:
             return analyze_element_error(f'{e}')
         except (IOError, ValueError):
@@ -273,7 +279,12 @@ def getAdjacencyList(request, identifier):
             try:
                 molecule.from_smiles(smiles)
             except AtomTypeError as e:
-                return analyze_atomtype_error(f'{e}', cactus_result=smiles)
+                try:
+                    return analyze_atomtype_error(f'{e}', cactus_result=smiles)
+                except Exception:
+                    return HttpResponse(f'Input identifier was parsed by NCI resolver '
+                                        f'(https://cactus.nci.nih.gov). '
+                                        f'The resolved SMILES is {smiles}. {e}', status=400)
             except KeyError as e:
                 return analyze_element_error(f'{e}', cactus_result=smiles)
             except ValueError as e:
