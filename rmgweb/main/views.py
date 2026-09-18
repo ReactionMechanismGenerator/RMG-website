@@ -441,7 +441,7 @@ def analyze_element_error(error_message, cactus_result=None):
 
     element = error_message.strip("'")
     if element in ELEMENTS:
-        return HttpResponse(f'{cactus_result}Element {element} has not been implemented in RMG-Py.', status=501)
+        return HttpResponse(f'{cactus_result}Element {element} has not been implemented in RMG-Py.', status=400)
     else:
         return HttpResponse(f'{cactus_result}Invalid element {error_message}, which cannot be found in the periodic table.', status=400)
 
@@ -470,7 +470,7 @@ def analyze_atomtype_error(error_message, cactus_result=None):
         # by electron balance.
         return HttpResponse(f'Molecule with an unsupported atomtype {atom_type}. '
                             f'Detailed error message: {error_message}',
-                            status=501)
+                            status=400)
 
     val_elec = VAL_ELEC[element]
     # Example: which has 4 single bonds, 0 double bonds to C, 0 double bonds to O,
@@ -504,4 +504,4 @@ def analyze_atomtype_error(error_message, cactus_result=None):
     # If the balance is hold, then it is possible that RMG is missing an atomtype
     return HttpResponse(f'Molecule with an unsupported atomtype {atom_type}. '
                         f'Detailed error message: {error_message}',
-                        status=501)
+                        status=400)
