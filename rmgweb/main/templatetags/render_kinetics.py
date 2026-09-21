@@ -509,6 +509,24 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
 @register.filter
 def get_rate_coefficients(kinetics, user=None):
     """
+    Wrapper around :func:`_get_rate_coefficients` which returns safe empty
+    plotting data if the rate coefficients cannot be evaluated. Non-finite
+    kinetics parameters (e.g. from a degenerate reverse rate fit) make
+    ``get_rate_coefficient`` raise a ``TypeError``, which would otherwise
+    abort rendering of the entire page.
+    """
+    try:
+        return _get_rate_coefficients(kinetics, user=user)
+    except TypeError:
+        if user == "A_n_Ea":
+            return mark_safe('A = NaN; n = NaN; Ea = NaN; Aunits = ""; Eunits = ""; Pnote = "";')
+        return mark_safe('Tlist = [];Plist = [];klist = [];'
+                         'Tlist2 = [];Plist2 = [];klist2 = [];'
+                         'Tunits = "K";Punits = "Pa";kunits = "";')
+
+
+def _get_rate_coefficients(kinetics, user=None):
+    """
     Generate and return a set of :math:`k(T,P)` data suitable for plotting
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
