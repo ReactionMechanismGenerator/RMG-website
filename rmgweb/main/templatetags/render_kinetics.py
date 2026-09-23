@@ -567,7 +567,7 @@ def get_rate_coefficients(kinetics, user=None):
     for Tinv in np.linspace(1.0 / Tmax, 1.0 / Tmin, points):
         Tdata.append(1.0 / Tinv)
 
-    try: 
+    try:
         if kinetics.is_pressure_dependent():
             for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
                 Pdata.append(10**logP)
@@ -587,10 +587,10 @@ def get_rate_coefficients(kinetics, user=None):
                 kdata.append(kinetics.get_rate_coefficient(T) * kfactor)
     except TypeError:
         if return_A_n_Ea:
-            return mark_safe('A = NaN; n = NaN; Ea = NaN; Aunits = ""; Eunits = ""; Pnote = "";')
+            return mark_safe(f'A = NaN; n = NaN; Ea = NaN; Aunits = "{kunits}"; Eunits = "{Eunits}"; Pnote = "";')
         return mark_safe('Tlist = [];Plist = [];klist = [];'
                          'Tlist2 = [];Plist2 = [];klist2 = [];'
-                         'Tunits = "K";Punits = "Pa";kunits = "";')
+                         f'Tunits = "{Tunits}";Punits = "{Punits}";kunits = "{kunits}";')
 
     Tdata2 = []
     Pdata2 = []
@@ -618,10 +618,10 @@ def get_rate_coefficients(kinetics, user=None):
                 kdata2.append(kinetics.get_rate_coefficient(T) * kfactor)
     except TypeError:
         if return_A_n_Ea:
-            return mark_safe('A = NaN; n = NaN; Ea = NaN; Aunits = ""; Eunits = ""; Pnote = "";')
+            return mark_safe(f'A = NaN; n = NaN; Ea = NaN; Aunits = "{kunits}"; Eunits = "{Eunits}"; Pnote = "";')
         return mark_safe('Tlist = [];Plist = [];klist = [];'
                          'Tlist2 = [];Plist2 = [];klist2 = [];'
-                         'Tunits = "K";Punits = "Pa";kunits = "";')
+                         f'Tunits = "{Tunits}";Punits = "{Punits}";kunits = "{kunits}";')
 
     if return_A_n_Ea:
         "We are only interested in the (fitted) Arrhenius parameters (and their units)"
