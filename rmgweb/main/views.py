@@ -247,10 +247,7 @@ def getAdjacencyList(request, identifier):
         try:
             molecule.from_inchi(identifier)
         except AtomTypeError as e:
-            try:
-                return analyze_atomtype_error(f'{e}')
-            except Exception:
-                return HttpResponse(f'{e}', status=400)
+            return analyze_atomtype_error(f'{e}')
         except KeyError as e:
             return analyze_element_error(f'{e}')
     elif identifier.lower() in known_names:
@@ -260,10 +257,7 @@ def getAdjacencyList(request, identifier):
             # Try parsing as a SMILES string
             molecule.from_smiles(identifier)
         except AtomTypeError as e:
-            try:
-                return analyze_atomtype_error(f'{e}')
-            except Exception:
-                return HttpResponse(f'{e}', status=400)
+            return analyze_atomtype_error(f'{e}')
         except KeyError as e:
             return analyze_element_error(f'{e}')
         except (IOError, ValueError):
@@ -279,12 +273,7 @@ def getAdjacencyList(request, identifier):
             try:
                 molecule.from_smiles(smiles)
             except AtomTypeError as e:
-                try:
-                    return analyze_atomtype_error(f'{e}', cactus_result=smiles)
-                except Exception:
-                    return HttpResponse(f'Input identifier was parsed by NCI resolver '
-                                        f'(https://cactus.nci.nih.gov). '
-                                        f'The resolved SMILES is {smiles}. {e}', status=400)
+                return analyze_atomtype_error(f'{e}', cactus_result=smiles)
             except KeyError as e:
                 return analyze_element_error(f'{e}', cactus_result=smiles)
             except ValueError as e:
@@ -441,7 +430,7 @@ def analyze_element_error(error_message, cactus_result=None):
 
     element = error_message.strip("'")
     if element in ELEMENTS:
-        return HttpResponse(f'{cactus_result}Element {element} has not been implemented in RMG-Py.', status=400)
+        return HttpResponse(f'{cactus_result}Element {element} is not implemented in RMG-Py.', status=400)
     else:
         return HttpResponse(f'{cactus_result}Invalid element {error_message}, which cannot be found in the periodic table.', status=400)
 
@@ -456,7 +445,12 @@ def analyze_atomtype_error(error_message, cactus_result=None):
     cactus_result = f'Input identifier was parsed by NCI resolver (https://cactus.nci.nih.gov). ' \
                     f'The resolved SMILES is {cactus_result}. ' if cactus_result else ''
 
-    atom_type = error_message.split(',')[0].split()[7]
+    try:
+        atom_type = error_message.split(',')[0].split()[7]
+    except IndexError:
+        return HttpResponse(f'{cactus_result}Invalid molecule. Unable to analyze the atom type error.'
+                            f' Detailed error message: {error_message}', status=400)
+
     for element in SUPPORTED_ELEMENTS_TWO_LETTERS + SUPPORTED_ELEMENTS_ONE_LETTER:
         if element.title() in atom_type:
             # The atomtype belong to current element
@@ -476,8 +470,13 @@ def analyze_atomtype_error(error_message, cactus_result=None):
     # Example: which has 4 single bonds, 0 double bonds to C, 0 double bonds to O,
     # 0 double bonds to S, 0 triple bonds, 0 quadruple bonds, 0 benzene bonds, 0
     # lone pairs, and 0 charge.
-    single, r_double, o_double, s_double, triple, quadruple, benzene, lone_pairs, charge \
-        = [int(item) for item in re.findall('\s-?\d\s', ','.join(error_message.split(',')[1:]))]
+
+    try:
+        single, r_double, o_double, s_double, triple, quadruple, benzene, lone_pairs, charge \
+            = [int(item) for item in re.findall('\s-?\d\s', ','.join(error_message.split(',')[1:]))]
+    except ValueError:
+        return HttpResponse(f'{cactus_result}Invalid molecule. Unable to parse the bond information from the error message.'
+                            f' Detailed error message: {error_message}', status=400)
     orbital_num = single + 2 * (r_double + o_double + s_double) + 3 * triple + 4 * quadruple \
         + 1.5 * benzene + lone_pairs
     if element in ['C', 'N', 'O', 'F', 'Ne'] and orbital_num > 4:
