@@ -89,12 +89,14 @@ function calculateAverage() {
     {% if kinetics %}
     if (visible[highChartsSeriesIndex]) {
         {{ kinetics|get_rate_coefficients:"A_n_Ea" }} {# returns A=, n=, Ea=, Aunits=, Eunits=, and Pnote= #}
+        {% if not kinetics|get_rate_coefficients_error %} {# A, n and Ea are NaN otherwise #}
         AAverage += Math.log(A);
         nAverage += n;
         EaAverage += Ea;
         count += 1;
         {% if entry.reference %}refList += count + '. {{ entry.reference.authors.0 }}, {{ entry.reference.year }}{% if entry.reference.url %} {{ entry.reference.url }}{% endif %}'+Pnote+'\n';
         {% else %}refList += count + '. {{ source }}'+Pnote+'\n';{% endif %}
+        {% endif %}
         {{ kinetics|get_user_kfactor:user }}
     }
     highChartsSeriesIndex++;
@@ -257,6 +259,10 @@ Result #{{ forloop.counter }} - {{ source }}{% if entry.index != -1 %}/{{entry.i
 <p><span class="reactants">{{ reactants|safe }}</span>{{ arrow|safe }}<span class="products">{{ products|safe }}</span></p>
 
 {{ kinetics|render_kinetics_math:user }}
+
+{% with error=kinetics|get_rate_coefficients_error %}
+{% if error %}<div class="error">Unable to evaluate the rate coefficients of this entry, so it is not plotted or averaged. Detailed error message: {{ error }}</div>{% endif %}
+{% endwith %}
 
 {% if source == 'RMG-Java' %}
 <P>Comments: {{ entry.long_desc }}
