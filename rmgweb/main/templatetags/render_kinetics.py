@@ -507,13 +507,15 @@ k(T,P) = k_0(T) [\mathrm{{M}}]
 
 
 @register.filter
-def get_rate_coefficients(kinetics, user=None):
+def get_rate_coefficients(kinetics, user=None, raise_error=False):
     """
     Generate and return a set of :math:`k(T,P)` data suitable for plotting
     using Highcharts. If a `user` is specified, the user's preferred units
     will be used; otherwise default units will be used.
     If `user=='A_n_Ea'` then it fits an Arrhenius expression and returns
     the parameters (and their units).
+    If `raise_error` is True, a `TypeError` is raised instead of returning empty data.
+    This is used by :func:`get_rate_coefficients_error` to show the error message.
     """
     if kinetics is None:
         return "// There are no kinetics for this entry."
@@ -566,46 +568,74 @@ def get_rate_coefficients(kinetics, user=None):
 
     for Tinv in np.linspace(1.0 / Tmax, 1.0 / Tmin, points):
         Tdata.append(1.0 / Tinv)
-    if kinetics.is_pressure_dependent():
-        for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
-            Pdata.append(10**logP)
-        for P in Pdata:
-            klist = []
+
+    try:
+        if kinetics.is_pressure_dependent():
+            for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 1):
+                Pdata.append(10**logP)
+            for P in Pdata:
+                klist = []
+                for T in Tdata:
+                    klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
+                kdata.append(klist)
+        elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
             for T in Tdata:
-                klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
-            kdata.append(klist)
-    elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
-        for T in Tdata:
-            kdata.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
-    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
-        for T in Tdata:
-            kdata.append(kinetics.get_sticking_coefficient(T) * kfactor)
-    else:
-        for T in Tdata:
-            kdata.append(kinetics.get_rate_coefficient(T) * kfactor)
+                kdata.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
+        elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+            for T in Tdata:
+                kdata.append(kinetics.get_sticking_coefficient(T) * kfactor)
+        else:
+            for T in Tdata:
+                kdata.append(kinetics.get_rate_coefficient(T) * kfactor)
+    except TypeError:
+        # This filter is called in three ways for each entry:
+        # - get_rate_coefficients_error: re-raise so the error message can be shown
+        # - 'A_n_Ea' (averaging): return NaN Arrhenius parameters
+        # - plotting: return empty plot data
+        if raise_error:
+            raise
+        if return_A_n_Ea:
+            return mark_safe(f'A = NaN; n = NaN; Ea = NaN; Aunits = "{kunits}"; Eunits = "{Eunits}"; Pnote = "";')
+        return mark_safe('Tlist = [];Plist = [];klist = [];'
+                         'Tlist2 = [];Plist2 = [];klist2 = [];'
+                         f'Tunits = "{Tunits}";Punits = "{Punits}";kunits = "{kunits}";')
 
     Tdata2 = []
     Pdata2 = []
     kdata2 = []
     for Tinv in np.linspace(1.0 / Tmax, 1.0 / Tmin, points // 10):
         Tdata2.append(1.0 / Tinv)
-    if kinetics.is_pressure_dependent():
-        for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
-            Pdata2.append(10**logP)
-        for P in Pdata2:
-            klist = []
+
+    try:
+        if kinetics.is_pressure_dependent():
+            for logP in np.arange(math.log10(Pmin), math.log10(Pmax)+0.001, 0.1):
+                Pdata2.append(10**logP)
+            for P in Pdata2:
+                klist = []
+                for T in Tdata2:
+                    klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
+                kdata2.append(klist)
+        elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
             for T in Tdata2:
-                klist.append(kinetics.get_rate_coefficient(T, P) * kfactor)
-            kdata2.append(klist)
-    elif isinstance(kinetics, (ArrheniusEP, ArrheniusBM)):
-        for T in Tdata2:
-            kdata2.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
-    elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
-        for T in Tdata:
-            kdata2.append(kinetics.get_sticking_coefficient(T) * kfactor)
-    else:
-        for T in Tdata2:
-            kdata2.append(kinetics.get_rate_coefficient(T) * kfactor)
+                kdata2.append(kinetics.get_rate_coefficient(T, dHrxn=0) * kfactor)
+        elif isinstance(kinetics, (StickingCoefficient, StickingCoefficientBEP)):
+            for T in Tdata:
+                kdata2.append(kinetics.get_sticking_coefficient(T) * kfactor)
+        else:
+            for T in Tdata2:
+                kdata2.append(kinetics.get_rate_coefficient(T) * kfactor)
+    except TypeError:
+        # This filter is called in three ways for each entry: (same as above)
+        # - get_rate_coefficients_error: re-raise so the error message can be shown
+        # - 'A_n_Ea' (averaging): return NaN Arrhenius parameters
+        # - plotting: return empty plot data
+        if raise_error:
+            raise
+        if return_A_n_Ea:
+            return mark_safe(f'A = NaN; n = NaN; Ea = NaN; Aunits = "{kunits}"; Eunits = "{Eunits}"; Pnote = "";')
+        return mark_safe('Tlist = [];Plist = [];klist = [];'
+                         'Tlist2 = [];Plist2 = [];klist2 = [];'
+                         f'Tunits = "{Tunits}";Punits = "{Punits}";kunits = "{kunits}";')
 
     if return_A_n_Ea:
         "We are only interested in the (fitted) Arrhenius parameters (and their units)"
@@ -651,6 +681,22 @@ def get_rate_coefficients(kinetics, user=None):
                              Punits,
                              kunits,
                          ))
+
+
+###############################################################################
+
+@register.filter
+def get_rate_coefficients_error(kinetics):
+    """
+    Return the error message if the rate coefficients of the given `kinetics`
+    cannot be evaluated by :func:`get_rate_coefficients`, or an empty string
+    otherwise.
+    """
+    try:
+        get_rate_coefficients(kinetics, raise_error=True)
+    except TypeError as e:
+        return str(e)
+    return ''
 
 
 ###############################################################################
